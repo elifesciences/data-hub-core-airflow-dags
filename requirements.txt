@@ -1,0 +1,10 @@
+apache-airflow[gcp]
+apache-airflow[s3]
+google-api-python-client
+pandas
+PyYAML
+dateparser
+google-cloud-bigquery
+google-oauth
+google-cloud-storage
+boto3
