@@ -41,11 +41,9 @@ def get_last_run_day_from_cloud_storage(bucket: str, object_key:str, default_num
         if date_as_string is not None and len(re.findall(pattern, date_as_string.strip())) == 1:
             return date_as_string.strip()
         else:
-            return "2323"
-            #return get_date_days_before_as_string(default_number_of_previous_day_to_process)
+            return get_date_days_before_as_string(default_number_of_previous_day_to_process)
     except:
-        return 'reospfs'
-        #return get_date_days_before_as_string(default_number_of_previous_day_to_process)
+        return get_date_days_before_as_string(default_number_of_previous_day_to_process)
 
 
 
