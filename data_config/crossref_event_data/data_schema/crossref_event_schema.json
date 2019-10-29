@@ -1,0 +1,168 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "action",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "evidence_record",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "license",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "message_action",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "method",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pid",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "verification",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_type_id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "obj",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "obj_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "occurred_at",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "relation_type_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "source_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "source_token",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "alternative_id",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "api_url",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "url",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "author",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "issued",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "original_tweet_author",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "original_tweet_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pid",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "title",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_type_id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "subj",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "subj_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "terms",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "timestamp",
+    "type": "TIMESTAMP"
+  }
+]

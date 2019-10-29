@@ -1,0 +1,19 @@
+PROJECT_NAME: 'elife-data-pipeline'
+DATASET: 'de_dev'
+TABLE: 'crossref_event'
+LOCAL_TEMPFILE_DIR: '~/tempfile_dir'
+STATE_FILE:
+  BUCKET: 'prod-elife-data-pipeline'
+  OBJECT_NAME: 'airflow_test/crossref_event/date_state'
+SCHEMA_FILE:
+  BUCKET: 'prod-elife-data-pipeline'
+  OBJECT_NAME: 'airflow_test/crossref_event/data_schema/crossref_event_schema.json'
+TEMP_OBJECT_DIR:
+  BUCKET: 'prod-elife-data-pipeline'
+  TEMP_OBJECT_PREFIX: 'airflow_test/crossref_event/tempfiles/'
+PUBLISHER_ID: '10.7554'
+CROSSREF_EVENT_BASE_URL: "https://api.eventdata.crossref.org/v1/events?rows=10000"
+MESSAGE_KEY: 'message'
+EVENT_KEY: 'events'
+DEFAULT_NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS: 44
+IMPORTED_TIMESTAMP_FIELD: 'imported_timestamp'

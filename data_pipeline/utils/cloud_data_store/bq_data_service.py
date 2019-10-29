@@ -6,10 +6,16 @@ from google.cloud.bigquery.schema import SchemaField
 from google.cloud import bigquery
 from pandas import DataFrame
 
-
+import os
 LOGGER = logging.getLogger(__name__)
 MAX_ROWS_INSERTABLE = 1000
 
+
+UPLOAD_MESSAGE_INDEX = 'index'
+UPLOAD_MESSAGE_ERRORS = 'errors'
+UPLOAD_MESSAGE_MESSAGE = 'message'
+UPLOAD_MESSAGE_REASON = 'reason'
+UPLOAD_MESSAGE_STOPPED = 'stopped'
 
 def load_file_into_bq(
     filename: str,
@@ -18,18 +24,24 @@ def load_file_into_bq(
     source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
     rows_to_skip=0,
 ):
+    if os.path.isfile(filename) and os.path.getsize(filename) == 0:
+        LOGGER.info(
+            "File {} is empty.".format(filename)
+        )
+        return
     client = bigquery.Client()
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
     job_config = bigquery.LoadJobConfig()
     job_config.source_format = source_format
-    job_config.skip_leading_rows = rows_to_skip
+    if source_format is bigquery.SourceFormat.CSV:
+        job_config.skip_leading_rows = rows_to_skip
     job_config.autodetect = True
 
     with open(filename, "rb") as source_file:
         job = client.load_table_from_file(source_file, table_ref, job_config=job_config)
 
-    job.result()  # Waits for table load to complete
+    job.result()  # Waits for table cloud_data_store to complete
     LOGGER.info(
         "Loaded {} rows into {}:{}.".format(job.output_rows, dataset_name, table_name)
     )
@@ -56,20 +68,14 @@ def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
 
     return errors
 
-INDEX = 'index'
-ERRORS = 'errors'
-MESSAGE = 'message'
-REASON = 'reason'
-STOPPED = 'stopped'
-
 
 def load_json_list_to_bq_single_pass(json_data, bq_client, table):
 
     errors = bq_client.insert_rows_json(table, json_data)
     if len(errors) > 0:
-        error_list = set([row_message.get(INDEX) for row_message in errors if
-                          row_message.get(ERRORS)[0].get(MESSAGE) != '' or row_message.get(ERRORS)[0].get(
-                              REASON) != STOPPED])
+        error_list = set([row_message.get(UPLOAD_MESSAGE_INDEX) for row_message in errors if
+                          row_message.get(UPLOAD_MESSAGE_ERRORS)[0].get(UPLOAD_MESSAGE_MESSAGE) != '' or row_message.get(UPLOAD_MESSAGE_ERRORS)[0].get(
+                              UPLOAD_MESSAGE_REASON) != UPLOAD_MESSAGE_STOPPED])
         error_message = [errors[index] for index in error_list]
         error_rows = [json_data[index] for index in error_list]
         insertable_rows = [json_data[indx] for indx in range(0, len(json_data)) if indx not in error_list]
