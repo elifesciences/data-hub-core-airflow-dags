@@ -15,34 +15,19 @@ from data_pipeline.crossref_event_data.extract_crossref_data import get_last_run
 LOGGER = logging.getLogger(__name__)
 DEFAULT_ARGS = get_default_args()
 
-#PROJECT_NAME = 'elife-data-pipeline'
-#DATASET = 'de_dev'
-#TABLE = 'crossref_eventingxb'
-#STATE_FILENAME ='/home/michael/date_state' #'/usr/local/airflow/dags/date_state'
-#TEMP_FILE_DIR = '/home/michael/airflow/tempdir'#'/usr/local/airflow/tempfile'
-#PUBLISHER_ID = '10.7554' # read publisher id from some config file
-#TEMP_FILE_EXTENSION = '.file'
-#CROSSREF_EVENT_BASE_URL = "https://api.eventdata.crossref.org/v1/events?rows=10000"
-#MESSAGE_KEY = 'message'
-#EVENT_KEY = 'events'
-#DEFAULT_NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS = 44
-#S3_BUCKET = 'prod-elife-data-pipeline'
-#S3_OBJECT_PREFIX = 'airflow_test/tempfiles/'
-#IMPORTED_TIMESTAMP_FIELD = 'imported_timestamp'
-#Path(TEMP_FILE_DIR).mkdir(parents=True, exist_ok=True)
-#SCHEMA_FILE_LOCATION = '/home/michael/PycharmProjects/datahub-core-airflow-dags/data_config/crossref_event_data/data_schema/crossref_event_schema.json'
+#TODO : create json keys as constant
 CROSSREF_CONFIG_S3_BUCKET='prod-elife-data-pipeline'
 CROSSREF_CONFIG_S3_OBJECT_KEY="airflow_test/crossref_event/elife-data-pipeline.de_dev.config.yaml"
 
 def get_schedule_interval ():
-    return os.getenv('CROSS_REF_IMPORT_SCHEDULE_INTERVAL', '@hourly')
+    return os.getenv('CROSS_REF_IMPORT_SCHEDULE_INTERVAL', '@once')
 
 
 dag = DAG(
     dag_id="Load_Crossref_Event_Into_Bigquery",
     default_args=DEFAULT_ARGS,
     schedule_interval=get_schedule_interval(),
-    dagrun_timeout=timedelta(minutes=15),
+    dagrun_timeout=timedelta(minutes=60),
 )
 
 
@@ -93,9 +78,9 @@ def create_bq_table_if_not_exist(**kwargs):
                                      json_schema=new_schema)
 
 
-def current_timestamp_and_date_as_string():
+def current_timestamp_as_string():
     dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ"), dtobj.strftime("%Y-%m-%d")
+    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def get_and_transform_load_crossref_event_data(**kwargs):
@@ -108,7 +93,7 @@ def get_and_transform_load_crossref_event_data(**kwargs):
 
     temp_file_dir = data_config.get('LOCAL_TEMPFILE_DIR')
     Path(temp_file_dir).mkdir(parents=True, exist_ok=True)
-    default_number_of_previous_day_to_process = data_config.get('DEFAULT_NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS')
+    number_of_previous_day_to_process = data_config.get('NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS')
     message_key = data_config.get('MESSAGE_KEY')
     publisher_id = data_config.get('PUBLISHER_ID')
     crossref_event_base_url = data_config.get('CROSSREF_EVENT_BASE_URL')
@@ -117,10 +102,9 @@ def get_and_transform_load_crossref_event_data(**kwargs):
     dataset = data_config.get('DATASET')
     table = data_config.get('TABLE')
 
-    current_timestamp, current_date = current_timestamp_and_date_as_string()
-    last_run_date = get_last_run_day_from_cloud_storage(bucket=state_file_bucket, object_key=state_file_name_key, default_number_of_previous_day_to_process=default_number_of_previous_day_to_process)
-    print('last_run_date', last_run_date )
-    uninserted_rows, uninserted_rows_messages = \
+    current_timestamp = current_timestamp_as_string()
+    last_run_date = get_last_run_day_from_cloud_storage(bucket=state_file_bucket, object_key=state_file_name_key, number_of_previous_day_to_process=number_of_previous_day_to_process)
+    uninserted_rows, uninserted_rows_messages, latest_collected_record_date_as_string = \
         etl_data_return_errors(base_crossref_url=crossref_event_base_url,from_date_collected_as_string=last_run_date, publisher_id=publisher_id,
                                dataset_name=dataset, table_name=table, message_key=message_key, event_key=event_key,
                                imported_timestamp=current_timestamp, imported_timestamp_key=imported_timestamp_field)
@@ -137,7 +121,7 @@ def get_and_transform_load_crossref_event_data(**kwargs):
     else:
         kwargs["ti"].xcom_push(key="data_completely_loaded", value=True)
 
-    kwargs["ti"].xcom_push(key="current_date", value=current_date)
+    kwargs["ti"].xcom_push(key="latest_collected_record_date_as_string", value=latest_collected_record_date_as_string)
 
 branch_op = BranchPythonOperator(
     task_id='branch_if_uninserted_row_exist',
@@ -181,7 +165,7 @@ def log_last_execution(**kwargs):
         key="data_config", task_ids="get_data_config"
     )
     current_time = ti.xcom_pull(
-        key="current_date", task_ids="get_and_transform_load_crossref_event_data"
+        key="latest_collected_record_date_as_string", task_ids="get_and_transform_load_crossref_event_data"
     )
 
     state_file_name_key = data_config.get('STATE_FILE').get('OBJECT_NAME')
