@@ -27,8 +27,10 @@ def get_date_days_before_as_string(number_of_days_before):
         timezone.utc) - timedelta(number_of_days_before)
     return dtobj.strftime("%Y-%m-%d")
 
+
 def convert_latest_data_retrieved_to_string(datetime_obj):
     return datetime_obj.strftime("%Y-%m-%d")
+
 
 def get_last_run_day_from_cloud_storage(
     bucket: str, object_key: str, number_of_previous_day_to_process=1

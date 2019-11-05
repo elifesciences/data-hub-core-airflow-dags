@@ -30,27 +30,39 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_ARGS = get_default_args()
 
 # below are should be given as environment variables
-CROSSREF_CONFIG_S3_BUCKET = "prod-elife-data-pipeline"
-CROSSREF_CONFIG_S3_OBJECT_KEY = (
+CROSSREF_CONFIG_S3_BUCKET_NAME = 'CROSSREF_CONFIG_S3_BUCKET'
+DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE = "prod-elife-data-pipeline"
+CROSSREF_CONFIG_S3_OBJECT_KEY_NAME = 'CROSSREF_CONFIG_S3_OBJECT_KEY'
+DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE = (
     "airflow_test/crossref_event/elife-data-pipeline.de_dev.config.yaml"
 )
+CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY = 'CROSS_REF_IMPORT_SCHEDULE_INTERVAL'
+DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@once'
 
 
-def get_schedule_interval():
-    return os.getenv("CROSS_REF_IMPORT_SCHEDULE_INTERVAL", "@once")
+def get_env_var_or_use_default(env_var_name, default_value):
+    return os.getenv(env_var_name, default_value)
 
 
 dag = DAG(
     dag_id="Load_Crossref_Event_Into_Bigquery",
     default_args=DEFAULT_ARGS,
-    schedule_interval=get_schedule_interval(),
-    dagrun_timeout=timedelta(minutes=60),
+    schedule_interval=get_env_var_or_use_default(
+        CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY,
+        DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL),
+    dagrun_timeout=timedelta(
+        minutes=60),
 )
 
 
 def get_data_config(**kwargs):
     data_config = download_s3_yaml_object_as_json(
-        CROSSREF_CONFIG_S3_BUCKET, CROSSREF_CONFIG_S3_OBJECT_KEY
+        get_env_var_or_use_default(
+            CROSSREF_CONFIG_S3_BUCKET_NAME,
+            DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE),
+        get_env_var_or_use_default(
+            CROSSREF_CONFIG_S3_OBJECT_KEY_NAME,
+            DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE),
     )
     kwargs["ti"].xcom_push(key="data_config", value=data_config)
 
@@ -177,7 +189,8 @@ def log_last_execution_and_cleanup(**kwargs):
         key="latest_collected_record_date_as_string",
         task_ids="download_and_semi_transform_crossref_data",
     )
-    latest_record_date =convert_latest_data_retrieved_to_string(latest_record_time)
+    latest_record_date = convert_latest_data_retrieved_to_string(
+        latest_record_time)
 
     data_config_dict = ti.xcom_pull(
         key="data_config",
