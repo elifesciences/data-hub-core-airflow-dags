@@ -30,6 +30,15 @@ def get_default_args():
     }
 
 
+
+def create_python_task(dag, task_id, python_callable, trigger_rule='all_success', retries=0):
+    return PythonOperator(task_id=task_id, dag=dag, python_callable=python_callable, trigger_rule=trigger_rule, retries=retries)
+
+def get_task_run_instance_fullname(task_context):
+    return '___'.join([task_context.get('dag').dag_id, task_context.get('run_id'), task_context.get('task').task_id])
+
+
+
 def parse_gs_url(url):
     parsed_url = urlparse(url)
     if parsed_url.scheme != "gs":
