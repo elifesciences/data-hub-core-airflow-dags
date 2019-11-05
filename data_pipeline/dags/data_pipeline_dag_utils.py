@@ -4,7 +4,7 @@ from datetime import timedelta
 from functools import partial
 from inspect import getmembers
 from urllib.parse import urlparse
-from typing import Callable, Iterable, List
+from typing import Callable, Iterable
 
 import airflow
 from airflow.operators.dagrun_operator import TriggerDagRunOperator, DagRunOrder
@@ -30,13 +30,23 @@ def get_default_args():
     }
 
 
+def create_python_task(
+        dag,
+        task_id,
+        python_callable,
+        trigger_rule='all_success',
+        retries=0):
+    return PythonOperator(
+        task_id=task_id,
+        dag=dag,
+        python_callable=python_callable,
+        trigger_rule=trigger_rule,
+        retries=retries)
 
-def create_python_task(dag, task_id, python_callable, trigger_rule='all_success', retries=0):
-    return PythonOperator(task_id=task_id, dag=dag, python_callable=python_callable, trigger_rule=trigger_rule, retries=retries)
 
 def get_task_run_instance_fullname(task_context):
-    return '___'.join([task_context.get('dag').dag_id, task_context.get('run_id'), task_context.get('task').task_id])
-
+    return '___'.join([task_context.get('dag').dag_id, task_context.get(
+        'run_id'), task_context.get('task').task_id])
 
 
 def parse_gs_url(url):
@@ -45,22 +55,24 @@ def parse_gs_url(url):
         raise AssertionError("expected gs:// url, but got: %s" % url)
     if not parsed_url.hostname:
         raise AssertionError("url is missing bucket / hostname: %s" % url)
-    return {"bucket": parsed_url.hostname, "object": parsed_url.path.lstrip("/")}
+    return {"bucket": parsed_url.hostname,
+            "object": parsed_url.path.lstrip("/")}
 
 
 def _to_absolute_urls(bucket: str, path_iterable: Iterable[str]):
     return [f"gs://{bucket}/{path}" for path in path_iterable]
 
 
-############## OPERATOR CLASS  =================================================================================
+# OPERATOR CLASS  ========================================================
 
 
-class AbsoluteUrlGoogleCloudStorageListOperator(GoogleCloudStorageListOperator):
+class AbsoluteUrlGoogleCloudStorageListOperator(
+        GoogleCloudStorageListOperator):
     def execute(self, context):
         return _to_absolute_urls(self.bucket, super().execute(context))
 
 
-###################### CREATE OPERATORS ========================================================================
+# CREATE OPERATORS =======================================================
 def create_watch_sensor(dag, task_id, url_prefix, **kwargs):
     parsed_url = parse_gs_url(url_prefix)
     return GoogleCloudStoragePrefixSensor(
@@ -85,7 +97,10 @@ def create_list_operator(dag, task_id, url_prefix):
 def create_retrigger_operator(dag, task_id=None):
     if not task_id:
         task_id = f"retrigger_{dag.dag_id}"
-    return TriggerDagRunOperator(task_id=task_id, trigger_dag_id=dag.dag_id, dag=dag)
+    return TriggerDagRunOperator(
+        task_id=task_id,
+        trigger_dag_id=dag.dag_id,
+        dag=dag)
 
 
 def create_trigger_operator(
@@ -121,18 +136,19 @@ def create_trigger_next_task_dag_operator(
     )
 
 
-####################### INSTANTIATE OPERATORS IN DAG ===============================================================
+# INSTANTIATE OPERATORS IN DAG ===========================================
 
 
 def create_watch_and_list_operator(dag, task_id_prefix, url_prefix, **kwargs):
-    return create_watch_sensor(
-        dag=dag, task_id=f"{task_id_prefix}_watch", url_prefix=url_prefix, **kwargs
-    ) >> create_list_operator(
-        dag=dag, task_id=f"{task_id_prefix}_list", url_prefix=url_prefix
-    )
+    return create_watch_sensor(dag=dag,
+                               task_id=f"{task_id_prefix}_watch",
+                               url_prefix=url_prefix,
+                               **kwargs) >> create_list_operator(dag=dag,
+                                                                 task_id=f"{task_id_prefix}_list",
+                                                                 url_prefix=url_prefix)
 
 
-###################### OPERATORS  CALLABLES  FOR DAG MGT ===========================================================
+# OPERATORS  CALLABLES  FOR DAG MGT ======================================
 
 
 def _conditionally_trigger_dag(
@@ -143,7 +159,8 @@ def _conditionally_trigger_dag(
     transform_conf: Callable[[dict], dict] = None,
 ):
     conf: dict = context["dag_run"].conf
-    # the payload is used as the conf for the next dag run, we can just pass it through
+    # the payload is used as the conf for the next dag run, we can just pass
+    # it through
     dag_run_obj.payload = conf
     if transform_conf:
         dag_run_obj.payload = transform_conf(conf)
@@ -171,8 +188,8 @@ def _trigger_next_task_fn(**kwargs):
         task_index = tasks.index(dag_id)
     except ValueError:
         raise ValueError(
-            'current dag not found in task list, "%s" not in  %s' % (dag_id, tasks)
-        )
+            'current dag not found in task list, "%s" not in  %s' %
+            (dag_id, tasks))
     LOGGER.info("current dag task index: %d", task_index)
     if task_index + 1 == len(tasks):
         LOGGER.info("last tasks, skipping")
@@ -184,8 +201,8 @@ def _trigger_next_task_fn(**kwargs):
 
 def simple_trigger_dag(dag_id, conf, suffix=""):
     run_id = _get_full_run_id(
-        conf=conf, default_run_id=f"trig__{timezone.utcnow().isoformat()}{suffix}"
-    )
+        conf=conf,
+        default_run_id=f"trig__{timezone.utcnow().isoformat()}{suffix}")
     trigger_dag(
         dag_id=dag_id,
         run_id=run_id,
@@ -202,10 +219,12 @@ def _get_full_run_id(conf: dict, default_run_id: str) -> str:
     return default_run_id
 
 
-##################################### HOOKS  AND MACROS MGT ########################################
+##################################### HOOKS  AND MACROS MGT ##############
 
 
-def get_gs_hook(google_cloud_storage_conn_id="google_cloud_default", delegate_to=None):
+def get_gs_hook(
+        google_cloud_storage_conn_id="google_cloud_default",
+        delegate_to=None):
     return GoogleCloudStorageHook(
         google_cloud_storage_conn_id=google_cloud_storage_conn_id,
         delegate_to=delegate_to,
@@ -225,7 +244,10 @@ def add_dag_macros(dag: DAG, macros: object):
             LOGGER.debug("adding macro: %s", name)
             add_dag_macro(dag, name, value)
         else:
-            LOGGER.debug("not adding macro, not callable: %s -> %s", name, value)
+            LOGGER.debug(
+                "not adding macro, not callable: %s -> %s",
+                name,
+                value)
 
 
-################################# ##################################################################
+################################# ########################################

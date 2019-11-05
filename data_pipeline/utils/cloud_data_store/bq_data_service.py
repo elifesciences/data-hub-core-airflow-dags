@@ -35,13 +35,16 @@ def load_file_into_bq(
         job_config.skip_leading_rows = rows_to_skip
 
     with open(filename, "rb") as source_file:
-        job = client.load_table_from_file(source_file, table_ref, job_config=job_config)
+        job = client.load_table_from_file(
+            source_file, table_ref, job_config=job_config)
 
         # Waits for table cloud_data_store to complete
         job.result()
         LOGGER.info(
-            "Loaded {} rows into {}:{}.".format(job.output_rows, dataset_name, table_name)
-        )
+            "Loaded {} rows into {}:{}.".format(
+                job.output_rows,
+                dataset_name,
+                table_name))
 
 
 def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
@@ -56,7 +59,7 @@ def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
             client.insert_rows(
                 table,
                 tuple_list_to_insert[
-                    x * MAX_ROWS_INSERTABLE : (x + 1) * MAX_ROWS_INSERTABLE
+                    x * MAX_ROWS_INSERTABLE: (x + 1) * MAX_ROWS_INSERTABLE
                 ],
             )
         )
@@ -70,12 +73,19 @@ def load_json_list_to_bq_single_pass(json_data, bq_client, table):
     upload_message_response_keys = BqUploadResponseMessageKeys()
     errors = bq_client.insert_rows_json(table, json_data)
     if len(errors) > 0:
-        error_list = set([row_message.get(upload_message_response_keys.UPLOAD_MESSAGE_INDEX) for row_message in errors if
-                          row_message.get(upload_message_response_keys.UPLOAD_MESSAGE_ERRORS)[0].get(upload_message_response_keys.UPLOAD_MESSAGE_MESSAGE) != '' or row_message.get(upload_message_response_keys.UPLOAD_MESSAGE_ERRORS)[0].get(
-                              upload_message_response_keys.UPLOAD_MESSAGE_REASON) != upload_message_response_keys.UPLOAD_MESSAGE_STOPPED])
+        error_list = set(
+            [
+                row_message.get(
+                    upload_message_response_keys.UPLOAD_MESSAGE_INDEX) for row_message in errors if row_message.get(
+                    upload_message_response_keys.UPLOAD_MESSAGE_ERRORS)[0].get(
+                    upload_message_response_keys.UPLOAD_MESSAGE_MESSAGE) != '' or row_message.get(
+                        upload_message_response_keys.UPLOAD_MESSAGE_ERRORS)[0].get(
+                    upload_message_response_keys.UPLOAD_MESSAGE_REASON) != upload_message_response_keys.UPLOAD_MESSAGE_STOPPED])
         error_message = [errors[index] for index in error_list]
         error_rows = [json_data[index] for index in error_list]
-        insertable_rows = [json_data[indx] for indx in range(0, len(json_data)) if indx not in error_list]
+        insertable_rows = [
+            json_data[indx] for indx in range(
+                0, len(json_data)) if indx not in error_list]
         bq_client.insert_rows_json(table, insertable_rows)
         return error_rows, error_message
     return [], []
@@ -89,8 +99,8 @@ def load_json_list_into_bq(json_list_to_insert, dataset_name, table_name):
     uninserted_row_list = list()
     for x in range(ceil(len(json_list_to_insert) / MAX_ROWS_INSERTABLE)):
         data_rows, messages = load_json_list_to_bq_single_pass(json_list_to_insert[
-                    x * MAX_ROWS_INSERTABLE : (x + 1) * MAX_ROWS_INSERTABLE
-                ], client, table)
+            x * MAX_ROWS_INSERTABLE: (x + 1) * MAX_ROWS_INSERTABLE
+        ], client, table)
         uninserted_row_message_list.extend(messages)
         uninserted_row_list.extend(data_rows)
 
@@ -117,10 +127,11 @@ def get_table_schema(source_schema_file: str) -> List:
         return schema
     except OSError as e:
         LOGGER.error(
-            "File not found  : {}, error message {}".format(source_schema_file, e)
-        )
+            "File not found  : {}, error message {}".format(
+                source_schema_file, e))
     except KeyError as e:
-        LOGGER.error("Json does not contain required key named :  {}".format(e))
+        LOGGER.error(
+            "Json does not contain required key named :  {}".format(e))
 
 
 def get_schema_from_json(json_schema):
@@ -128,19 +139,28 @@ def get_schema_from_json(json_schema):
     return schema
 
 
-def get_table_schema_file_name(project_name: str, dataset: str, table_name: str, schema_dir:str) -> str:
+def get_table_schema_file_name(
+        project_name: str,
+        dataset: str,
+        table_name: str,
+        schema_dir: str) -> str:
     return Path(schema_dir).joinpath(
-        "%s.schema.json" % compose_full_table_name(project_name, dataset, table_name)
-    )
+        "%s.schema.json" %
+        compose_full_table_name(
+            project_name,
+            dataset,
+            table_name))
 
 
 def create_table_if_not_exist(
     project_name: str, dataset_name: str, table_name: str, json_schema
 ):
     try:
-        if not does_bigquery_table_exist(project_name, dataset_name, table_name):
+        if not does_bigquery_table_exist(
+                project_name, dataset_name, table_name):
             client = bigquery.Client()
-            table_id = compose_full_table_name(project_name, dataset_name, table_name)
+            table_id = compose_full_table_name(
+                project_name, dataset_name, table_name)
             schema = get_schema_from_json(json_schema)
             table = bigquery.Table(table_id, schema=schema)
             table = client.create_table(table, True)  # API request
@@ -155,28 +175,38 @@ def create_table_if_not_exist(
         LOGGER.error("Table Not Created")
 
 
-def compose_full_table_name(project_name: str, dataset_name: str, table_name: str):
+def compose_full_table_name(
+        project_name: str,
+        dataset_name: str,
+        table_name: str):
     return ".".join([project_name, dataset_name, table_name])
 
 
-def does_bigquery_table_exist(project_name: str, dataset_name: str, table_name: str):
+def does_bigquery_table_exist(
+        project_name: str,
+        dataset_name: str,
+        table_name: str):
     table_id = compose_full_table_name(project_name, dataset_name, table_name)
     client = bigquery.Client()
     try:
         client.get_table(table_id)
         return True
-    except:
+    except BaseException:
         return False
 
 
-def get_bigquery_table_schema(project_name: str, dataset_name: str, table_name: str):
+def get_bigquery_table_schema(
+        project_name: str,
+        dataset_name: str,
+        table_name: str):
     client = bigquery.Client()
     table_id = compose_full_table_name(project_name, dataset_name, table_name)
     try:
         table = client.get_table(table_id)
         return [schema_field.to_api_repr() for schema_field in table.schema]
-    except:
+    except BaseException:
         return None
+
 
 class BqUploadResponseMessageKeys:
     def __init__(self):

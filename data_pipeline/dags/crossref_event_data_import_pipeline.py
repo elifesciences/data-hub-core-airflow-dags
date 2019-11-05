@@ -13,6 +13,7 @@ from data_pipeline.crossref_event_data.extract_crossref_data import (
     get_last_run_day_from_cloud_storage,
     etl_crossref_data,
     CrossRefimportDataPipelineConfig,
+    convert_latest_data_retrieved_to_string,
 )
 from data_pipeline.utils.cloud_data_store.bq_data_service import (
     create_table_if_not_exist,
@@ -62,13 +63,10 @@ def create_bq_table_if_not_exist(**kwargs):
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
 
     schema_json = download_s3_json_object(
-        data_config.SCHEMA_FILE_S3_BUCKET,
-        data_config.SCHEMA_FILE_OBJECT_NAME)
+        data_config.SCHEMA_FILE_S3_BUCKET, data_config.SCHEMA_FILE_OBJECT_NAME
+    )
     new_schema = [
-        x
-        for x in schema_json
-        if data_config.IMPORTED_TIMESTAMP_FIELD not in x.keys()
-    ]
+        x for x in schema_json if data_config.IMPORTED_TIMESTAMP_FIELD not in x.keys()]
     new_schema.append(
         {
             "mode": "NULLABLE",
@@ -132,7 +130,7 @@ def download_and_semi_transform_crossref_data(**kwargs):
         imported_timestamp=current_timestamp,
         imported_timestamp_key=data_config.IMPORTED_TIMESTAMP_FIELD,
         full_temp_file_location=full_temp_file_location,
-        schema=data_schema
+        schema=data_schema,
     )
 
     kwargs["ti"].xcom_push(
@@ -159,7 +157,7 @@ def load_data_to_bigquery(**kwargs):
         filename=downloaded_data_filename,
         dataset_name=data_config.DATASET,
         table_name=data_config.TABLE,
-        bq_ignore_unknown_values=True
+        bq_ignore_unknown_values=False,
     )
 
 
@@ -175,22 +173,22 @@ def cleanup_file(**kwargs):
 
 def log_last_execution_and_cleanup(**kwargs):
     ti = kwargs["ti"]
-    current_time = ti.xcom_pull(
+    latest_record_time = ti.xcom_pull(
         key="latest_collected_record_date_as_string",
         task_ids="download_and_semi_transform_crossref_data",
     )
+    latest_record_date =convert_latest_data_retrieved_to_string(latest_record_time)
+
     data_config_dict = ti.xcom_pull(
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
     state_file_name_key = data_config.STATE_FILE_NAME_KEY
     state_file_bucket = data_config.STATE_FILE_BUCKET
-    print("MY CURRENT TIME ", current_time)
-    print(state_file_name_key, state_file_bucket)
     upload_s3_object(
         bucket=state_file_bucket,
         object_key=state_file_name_key,
-        object=current_time)
+        object=latest_record_date)
 
     downloaded_data_filename = ti.xcom_pull(
         key="full_temp_file_location",
