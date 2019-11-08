@@ -9,7 +9,7 @@ from data_pipeline.dags.data_pipeline_dag_utils import (
     create_python_task,
     get_task_run_instance_fullname,
 )
-from data_pipeline.crossref_event_data.extract_crossref_data import (
+from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_last_run_day_from_cloud_storage,
     etl_crossref_data,
     CrossRefimportDataPipelineConfig,

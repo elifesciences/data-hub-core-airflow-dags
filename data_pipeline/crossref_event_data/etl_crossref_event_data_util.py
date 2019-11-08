@@ -21,15 +21,17 @@ BQ_SCHEMA_FIELD_NAME_KEY = "name"
 BQ_SCHEMA_SUBFIELD_KEY = "fields"
 BQ_SCHEMA_FIELD_TYPE_KEY = "type"
 
+STATE_FILE_DATE_FORMAT = '%Y-%m-%d'
+
 
 def get_date_days_before_as_string(number_of_days_before):
     dtobj = datetime.datetime.now(
         timezone.utc) - timedelta(number_of_days_before)
-    return dtobj.strftime("%Y-%m-%d")
+    return dtobj.strftime(STATE_FILE_DATE_FORMAT)
 
 
 def convert_latest_data_retrieved_to_string(datetime_obj):
-    return datetime_obj.strftime("%Y-%m-%d")
+    return datetime_obj.strftime(STATE_FILE_DATE_FORMAT)
 
 
 def get_last_run_day_from_cloud_storage(
@@ -43,9 +45,9 @@ def get_last_run_day_from_cloud_storage(
             and len(re.findall(pattern, date_as_string.strip())) == 1
         ):
             dtobj = datetime.datetime.strptime(
-                date_as_string.strip(), "%Y-%m-%d"
+                date_as_string.strip(), STATE_FILE_DATE_FORMAT
             ) - timedelta(number_of_previous_day_to_process)
-            return dtobj.strftime("%Y-%m-%d")
+            return dtobj.strftime(STATE_FILE_DATE_FORMAT)
         else:
             return get_date_days_before_as_string(
                 number_of_previous_day_to_process)
@@ -97,10 +99,13 @@ def write_result_to_file_get_latest_record_timestamp(
                 record, imported_timestamp_key, imported_timestamp, schema=schema)
             write_file.write(json.dumps(n_record))
             write_file.write("\n")
-            record_collection_timestamp = datetime.datetime.strptime(
-                n_record.get(CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY),
-                CROSSREF_TIMESTAMP_FORMAT
-            )
+            try:
+                record_collection_timestamp = datetime.datetime.strptime(
+                    n_record.get(CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY),
+                    CROSSREF_TIMESTAMP_FORMAT
+                )
+            except:
+                record_collection_timestamp = latest_collected_record_timestamp
             latest_collected_record_timestamp = (
                 latest_collected_record_timestamp
                 if latest_collected_record_timestamp > record_collection_timestamp
@@ -131,6 +136,7 @@ def semi_clean_crossref_record(record, schema):
     if isinstance(record, dict):
         list_as_p_dict = convert_bq_schema_field_list_to_dict(schema)
         key_list = set(list_as_p_dict.keys())
+
         new_dict = {}
         for k, v in record.items():
             new_key = standardize_field_name(k)
@@ -148,6 +154,7 @@ def semi_clean_crossref_record(record, schema):
                         v = None
                 new_dict[new_key] = v
         return new_dict
+    elif isinstance(record, list):
         new_list = list()
         for elem in record:
             if isinstance(elem, dict) or isinstance(elem, list):

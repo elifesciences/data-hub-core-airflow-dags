@@ -4,8 +4,8 @@ from typing import List
 from pathlib import Path
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud import bigquery
+from google.cloud.bigquery import LoadJobConfig, Client
 from pandas import DataFrame
-
 import os
 LOGGER = logging.getLogger(__name__)
 MAX_ROWS_INSERTABLE = 1000
@@ -24,19 +24,19 @@ def load_file_into_bq(
             "File {} is empty.".format(filename)
         )
         return
-    client = bigquery.Client()
+    client = Client()
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
-    job_config = bigquery.LoadJobConfig()
+    job_config = LoadJobConfig()
     job_config.source_format = source_format
-    job_config.max_bad_records
     job_config.ignore_unknown_values = bq_ignore_unknown_values
     if source_format is bigquery.SourceFormat.CSV:
         job_config.skip_leading_rows = rows_to_skip
 
     with open(filename, "rb") as source_file:
+
         job = client.load_table_from_file(
-            source_file, table_ref, job_config=job_config)
+            source_file, destination=table_ref, job_config=job_config)
 
         # Waits for table cloud_data_store to complete
         job.result()
@@ -48,7 +48,7 @@ def load_file_into_bq(
 
 
 def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
-    client = bigquery.Client()
+    client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
 
@@ -63,7 +63,6 @@ def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
                 ],
             )
         )
-
     LOGGER.info("Loaded  data into {}:{}.".format(dataset_name, table_name))
 
     return errors
@@ -92,7 +91,7 @@ def load_json_list_to_bq_single_pass(json_data, bq_client, table):
 
 
 def load_json_list_into_bq(json_list_to_insert, dataset_name, table_name):
-    client = bigquery.Client()
+    client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
     uninserted_row_message_list = list()
@@ -112,7 +111,7 @@ def load_json_list_into_bq(json_list_to_insert, dataset_name, table_name):
 def load_pandas_data_frame_into_bq(
     data_frame: DataFrame, dataset_name: str, table_name: str
 ):
-    client = bigquery.Client()
+    client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
     errors = client.load_table_from_dataframe(data_frame, table)
@@ -122,7 +121,7 @@ def load_pandas_data_frame_into_bq(
 
 def get_table_schema(source_schema_file: str) -> List:
     try:
-        client = bigquery.Client()
+        client = Client()
         schema = client.schema_from_json(source_schema_file)
         return schema
     except OSError as e:
@@ -199,7 +198,7 @@ def get_bigquery_table_schema(
         project_name: str,
         dataset_name: str,
         table_name: str):
-    client = bigquery.Client()
+    client = Client()
     table_id = compose_full_table_name(project_name, dataset_name, table_name)
     try:
         table = client.get_table(table_id)
