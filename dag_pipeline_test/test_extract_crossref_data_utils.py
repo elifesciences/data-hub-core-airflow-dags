@@ -12,9 +12,11 @@ from unittest.mock import patch
 import datetime
 
 
-@pytest.fixture(name="download_s3_object")
+@pytest.fixture(name="mock_download_s3_object")
 def _download_s3_object(latest_date, test_download_exception: bool = False):
-    with patch.object(etl_crossref_event_data_util_module, "download_s3_object") as mock:
+    with patch.object(
+        etl_crossref_event_data_util_module, "download_s3_object"
+    ) as mock:
         mock.return_value = latest_date
         if test_download_exception:
             mock.side_effect = BaseException
@@ -24,15 +26,13 @@ def _download_s3_object(latest_date, test_download_exception: bool = False):
         yield mock
 
 
-@pytest.fixture(name="open_file")
+@pytest.fixture(name="mock_open_file")
 def _open():
-    with patch.object(
-        etl_crossref_event_data_util_module, "open"
-    ) as mock:
+    with patch.object(etl_crossref_event_data_util_module, "open") as mock:
         yield mock
 
 
-@pytest.fixture(name="download_crossref")
+@pytest.fixture(name="mock_download_crossref")
 def _get_crossref_data_single_page():
     with patch.object(
         etl_crossref_event_data_util_module, "get_crossref_data_single_page"
@@ -43,7 +43,7 @@ def _get_crossref_data_single_page():
 
 
 class TestExtractCrossreData:
-    def test_write_result_to_file_get_latest_record_timestamp(self, open_file):
+    def test_write_result_to_file_get_latest_record_timestamp(self, mock_open_file):
         test_data = TestData()
         max_timestamp = test_data.get_max_timestamp()
         result = write_result_to_file_get_latest_record_timestamp(
@@ -56,10 +56,10 @@ class TestExtractCrossreData:
             imported_timestamp=test_data.data_imported_timestamp,
             schema=test_data.source_data_schema,
         )
-        open_file.assert_called_with("tempfileloc", "a")
+        mock_open_file.assert_called_with("tempfileloc", "a")
         assert max_timestamp == result
 
-    def test_etl_crossref_data(self, download_crossref, open_file):
+    def test_etl_crossref_data(self, mock_download_crossref, mock_open_file):
         test_data = TestData()
         result = etl_crossref_data(
             base_crossref_url="base_crossref_url",
@@ -72,13 +72,13 @@ class TestExtractCrossreData:
             full_temp_file_location="temp_file_loc",
             schema=test_data.source_data_schema,
         )
-        open_file.assert_called_with("temp_file_loc", "a")
+        mock_open_file.assert_called_with("temp_file_loc", "a")
         assert result == test_data.get_max_timestamp()
-        assert download_crossref.called_with(
+        assert mock_download_crossref.called_with(
             base_crossref_url="base_crossref_url",
             from_date_collected_as_string="from_date_collected_as_string",
             publisher_id="publisher_id",
-             message_key = "message_key"
+            message_key="message_key",
         )
 
     @pytest.mark.parametrize(
@@ -91,7 +91,7 @@ class TestExtractCrossreData:
     )
     def test_get_last_run_day_from_cloud_storage(
         self,
-        download_s3_object,
+        mock_download_s3_object,
         latest_date,
         number_of_prv_days,
         data_download_start_date,
@@ -100,13 +100,15 @@ class TestExtractCrossreData:
         from_date = get_last_run_day_from_cloud_storage(
             "bucket", "object_key", number_of_prv_days
         )
-        download_s3_object.assert_called_with("bucket", "object_key")
+        mock_download_s3_object.assert_called_with("bucket", "object_key")
         assert from_date == data_download_start_date
 
     def test_convert_bq_schema_field_list_to_dict(self):
         test_data = TestData()
         source_data = test_data.data_bq_schema_field_list_to_convert_to_dict
-        expected_converted_data = test_data.data_bq_schema_field_list_to_convert_to_dict_result
+        expected_converted_data = (
+            test_data.data_bq_schema_field_list_to_convert_to_dict_result
+        )
         returned_data = convert_bq_schema_field_list_to_dict(source_data)
 
         assert returned_data == expected_converted_data
@@ -114,14 +116,18 @@ class TestExtractCrossreData:
     def test_semi_clean_crossref_record(self):
         test_data = TestData()
         assert (
-            test_data.test_data_all_field_present_result == semi_clean_crossref_record(
-                test_data.test_data_all_field_present,
-                test_data.source_data_schema))
+            test_data.test_data_all_field_present_result
+            == semi_clean_crossref_record(
+                test_data.test_data_all_field_present, test_data.source_data_schema
+            )
+        )
 
         assert (
-            test_data.test_data_more_field_present_result == semi_clean_crossref_record(
-                test_data.test_data_more_field_present,
-                test_data.source_data_schema))
+            test_data.test_data_more_field_present_result
+            == semi_clean_crossref_record(
+                test_data.test_data_more_field_present, test_data.source_data_schema
+            )
+        )
 
         assert (
             test_data.test_data_non_parseable_timestamp_present_result
@@ -132,9 +138,11 @@ class TestExtractCrossreData:
         )
 
         assert (
-            test_data.test_data_some_field_present_result == semi_clean_crossref_record(
-                test_data.test_data_some_field_present,
-                test_data.source_data_schema))
+            test_data.test_data_some_field_present_result
+            == semi_clean_crossref_record(
+                test_data.test_data_some_field_present, test_data.source_data_schema
+            )
+        )
 
 
 class TestData:
@@ -152,7 +160,7 @@ class TestData:
                 "type": "RECORD",
             },
             {
-                "fields": [{"mode": "NULLABLE", "name": "id", "type": "STRING"}, ],
+                "fields": [{"mode": "NULLABLE", "name": "id", "type": "STRING"},],
                 "mode": "NULLABLE",
                 "name": "nullable_record",
                 "type": "RECORD",
@@ -293,15 +301,13 @@ class TestData:
         return all_source_data_combined
 
     def get_max_timestamp(self):
-        all_string_timestamp = [time.get("timestamp")
-                                for time in self.get_data()]
+        all_string_timestamp = [time.get("timestamp") for time in self.get_data()]
         all_timestamp = []
         for string_timestamp in all_string_timestamp:
             try:
                 all_timestamp.append(
-                    datetime.datetime.strptime(
-                        string_timestamp,
-                        "%Y-%m-%dT%H:%M:%SZ"))
+                    datetime.datetime.strptime(string_timestamp, "%Y-%m-%dT%H:%M:%SZ")
+                )
             except BaseException:
                 continue
         return max(all_timestamp)
@@ -322,7 +328,11 @@ class TestData:
     def get_downloaded_crossref_data(self):
         data_downloaded__with_event_key = dict()
         data_downloaded = dict()
-        data_downloaded__with_event_key[self.data_downloaded_event_key] = self.get_data()
-        data_downloaded[self.data_downloaded_message_key] = data_downloaded__with_event_key
+        data_downloaded__with_event_key[
+            self.data_downloaded_event_key
+        ] = self.get_data()
+        data_downloaded[
+            self.data_downloaded_message_key
+        ] = data_downloaded__with_event_key
 
         return data_downloaded

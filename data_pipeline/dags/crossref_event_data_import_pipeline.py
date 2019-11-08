@@ -1,7 +1,6 @@
 import os
 import logging
-import datetime
-from datetime import timezone, timedelta
+from datetime import timedelta
 from pathlib import Path
 from airflow import DAG
 from data_pipeline.dags.data_pipeline_dag_utils import (
@@ -14,6 +13,8 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     etl_crossref_data,
     CrossRefimportDataPipelineConfig,
     convert_latest_data_retrieved_to_string,
+    add_timestamp_field_to_schema,
+    current_timestamp_as_string,
 )
 from data_pipeline.utils.cloud_data_store.bq_data_service import (
     create_table_if_not_exist,
@@ -34,10 +35,10 @@ CROSSREF_CONFIG_S3_BUCKET_NAME = 'CROSSREF_CONFIG_S3_BUCKET'
 DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE = "prod-elife-data-pipeline"
 CROSSREF_CONFIG_S3_OBJECT_KEY_NAME = 'CROSSREF_CONFIG_S3_OBJECT_KEY'
 DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE = (
-    "airflow_test/crossref_event/elife-data-pipeline.de_dev.config.yaml"
+    "airflow_test/crossref_event/elife-data-pipeline.config.yaml"
 )
 CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY = 'CROSS_REF_IMPORT_SCHEDULE_INTERVAL'
-DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@once'
+DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@daily'
 
 
 def get_env_var_or_use_default(env_var_name, default_value):
@@ -77,15 +78,7 @@ def create_bq_table_if_not_exist(**kwargs):
     schema_json = download_s3_json_object(
         data_config.SCHEMA_FILE_S3_BUCKET, data_config.SCHEMA_FILE_OBJECT_NAME
     )
-    new_schema = [
-        x for x in schema_json if data_config.IMPORTED_TIMESTAMP_FIELD not in x.keys()]
-    new_schema.append(
-        {
-            "mode": "NULLABLE",
-            "name": data_config.IMPORTED_TIMESTAMP_FIELD,
-            "type": "TIMESTAMP",
-        }
-    )
+    new_schema = add_timestamp_field_to_schema(schema_json, data_config.IMPORTED_TIMESTAMP_FIELD)
 
     kwargs["ti"].xcom_push(key="data_schema", value=new_schema)
 
@@ -102,11 +95,6 @@ def create_bq_table_if_not_exist(**kwargs):
             table_name=data_config.TABLE,
             json_schema=new_schema,
         )
-
-
-def current_timestamp_as_string():
-    dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def download_and_semi_transform_crossref_data(**kwargs):

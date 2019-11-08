@@ -223,6 +223,23 @@ def etl_crossref_data(
     return latest_collected_record_timestamp
 
 
+def add_timestamp_field_to_schema(schema_json, imported_timestamp_field_name):
+    new_schema = [
+        x for x in schema_json if imported_timestamp_field_name not in x.keys()]
+    new_schema.append(
+        {
+            "mode": "NULLABLE",
+            "name": imported_timestamp_field_name,
+            "type": "TIMESTAMP",
+        }
+    )
+    return new_schema
+
+
+def current_timestamp_as_string():
+    dtobj = datetime.datetime.now(timezone.utc)
+    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
+
 class CrossRefimportDataPipelineConfig:
     def __init__(self, data_config):
         self.PROJECT_NAME = data_config.get("PROJECT_NAME")
