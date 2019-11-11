@@ -98,6 +98,7 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
     )
 
 
+# pylint: disable=unused-argument
 @pytest.mark.parametrize(
     "latest_date, number_of_prv_days, "
     "data_download_start_date, "
@@ -112,6 +113,7 @@ def test_get_last_run_day_from_cloud_storage(
         mock_download_s3_object,
         number_of_prv_days,
         data_download_start_date,
+        test_download_exception
 ):
     """
     :param mock_download_s3_object:

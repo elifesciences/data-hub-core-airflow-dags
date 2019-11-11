@@ -37,17 +37,17 @@ def test_import_dags():
     """
     :return:
     """
-    dagbag = af_models.DagBag(dag_folder=DAG_PATH)
-    assert len(dagbag.import_errors) == 0, \
+    dagbag_data_pipeline = af_models.DagBag(dag_folder=DAG_PATH)
+    assert len(dagbag_data_pipeline.import_errors) == 0, \
         "DAG import failures. Errors: {}".format(
-        dagbag.import_errors)
+            dagbag_data_pipeline.import_errors)
 
 
 def test_task_count():
     """
     :return:
     """
-    dagbag = af_models.DagBag(dag_folder=DAG_PATH)
+    dagbag = af_models.DagBag(dag_folder=DAG_PATH, include_examples=False)
     dag_id = 'Load_Crossref_Event_Into_Bigquery'
     dag = dagbag.get_dag(dag_id)
     assert len(dag.tasks) == 6
@@ -57,7 +57,7 @@ def test_contain_tasks():
     """
     :return:
     """
-    dagbag = af_models.DagBag(dag_folder=DAG_PATH)
+    dagbag = af_models.DagBag(dag_folder=DAG_PATH, include_examples=False)
     dag_id = 'Load_Crossref_Event_Into_Bigquery'
     dag = dagbag.get_dag(dag_id)
 
@@ -80,7 +80,7 @@ def test_dependencies_of_load_data_to_bigquery_task():
     """
     :return:
     """
-    dagbag = af_models.DagBag(dag_folder=DAG_PATH)
+    dagbag = af_models.DagBag(dag_folder=DAG_PATH, include_examples=False)
     dag_id = 'Load_Crossref_Event_Into_Bigquery'
     dag = dagbag.get_dag(dag_id)
     load_data_to_bigquery_task = dag.get_task('load_data_to_bigquery')

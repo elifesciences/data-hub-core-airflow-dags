@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+    dhub:
+        build:
+            context: .
+        image: elifesciences/dhub_data_pipeline
+        command: ''
