@@ -1,14 +1,20 @@
+"""
+dag utils
+by m.owonibi
+"""
 import logging
 from datetime import timedelta
 
 import airflow
 from airflow.operators.python_operator import PythonOperator
-from airflow.utils import timezone
 
 LOGGER = logging.getLogger(__name__)
 
 
 def get_default_args():
+    """
+    :return:
+    """
     return {
         "start_date": airflow.utils.dates.days_ago(1),
         "retries": 10,
@@ -24,6 +30,14 @@ def create_python_task(
         python_callable,
         trigger_rule='all_success',
         retries=0):
+    """
+    :param dag:
+    :param task_id:
+    :param python_callable:
+    :param trigger_rule:
+    :param retries:
+    :return:
+    """
     return PythonOperator(
         task_id=task_id,
         dag=dag,
@@ -33,5 +47,9 @@ def create_python_task(
 
 
 def get_task_run_instance_fullname(task_context):
+    """
+    :param task_context:
+    :return:
+    """
     return '___'.join([task_context.get('dag').dag_id, task_context.get(
         'run_id'), task_context.get('task').task_id])

@@ -1,9 +1,12 @@
+"""
+dag for  crossref data import
+"""
 import os
 import logging
 from datetime import timedelta
 from pathlib import Path
 from airflow import DAG
-from data_pipeline.dags.data_pipeline_dag_utils import (
+from dags.data_pipeline_dag_utils import (
     get_default_args,
     create_python_task,
     get_task_run_instance_fullname,
@@ -26,6 +29,8 @@ from data_pipeline.utils.cloud_data_store.s3_data_service import (
     download_s3_json_object,
     upload_s3_object,
 )
+# pylint: disable=invalid-name, pointless-statement
+
 
 LOGGER = logging.getLogger(__name__)
 DEFAULT_ARGS = get_default_args()
@@ -42,6 +47,11 @@ DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@daily'
 
 
 def get_env_var_or_use_default(env_var_name, default_value):
+    """
+    :param env_var_name:
+    :param default_value:
+    :return:
+    """
     return os.getenv(env_var_name, default_value)
 
 
@@ -57,6 +67,10 @@ dag = DAG(
 
 
 def get_data_config(**kwargs):
+    """
+    :param kwargs:
+    :return:
+    """
     data_config = download_s3_yaml_object_as_json(
         get_env_var_or_use_default(
             CROSSREF_CONFIG_S3_BUCKET_NAME,
@@ -69,66 +83,76 @@ def get_data_config(**kwargs):
 
 
 def create_bq_table_if_not_exist(**kwargs):
-    ti = kwargs["ti"]
-    data_config_dict = ti.xcom_pull(
+    """
+    :param kwargs:
+    :return:
+    """
+    dag_context = kwargs["ti"]
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
 
     schema_json = download_s3_json_object(
-        data_config.SCHEMA_FILE_S3_BUCKET, data_config.SCHEMA_FILE_OBJECT_NAME
+        data_config.schema_file_s3_bucket, data_config.schema_file_object_name
     )
-    new_schema = add_timestamp_field_to_schema(schema_json, data_config.IMPORTED_TIMESTAMP_FIELD)
+    new_schema = add_timestamp_field_to_schema(
+        schema_json, data_config.imported_timestamp_field)
 
     kwargs["ti"].xcom_push(key="data_schema", value=new_schema)
 
     does_table_exist = does_bigquery_table_exist(
-        project_name=data_config.PROJECT_NAME,
-        dataset_name=data_config.DATASET,
-        table_name=data_config.TABLE,
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset,
+        table_name=data_config.table,
     )
     if not does_table_exist:
 
         create_table_if_not_exist(
-            project_name=data_config.PROJECT_NAME,
-            dataset_name=data_config.DATASET,
-            table_name=data_config.TABLE,
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset,
+            table_name=data_config.table,
             json_schema=new_schema,
         )
 
 
 def download_and_semi_transform_crossref_data(**kwargs):
-    ti = kwargs["ti"]
-    data_config_dict = ti.xcom_pull(
+    """
+    :param kwargs:
+    :return:
+    """
+    dag_context = kwargs["ti"]
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
-    Path(data_config.TEMP_FILE_DIR).mkdir(parents=True, exist_ok=True)
+    Path(data_config.temp_file_dir).mkdir(parents=True, exist_ok=True)
 
-    data_schema = ti.xcom_pull(
+    data_schema = dag_context.xcom_pull(
         key="data_schema",
         task_ids="create_table_if_not_exist")
 
     current_timestamp = current_timestamp_as_string()
     last_run_date = get_last_run_day_from_cloud_storage(
-        bucket=data_config.STATE_FILE_BUCKET,
-        object_key=data_config.STATE_FILE_NAME_KEY,
-        number_of_previous_day_to_process=data_config.NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS,
+        bucket=data_config.state_file_bucket,
+        object_key=data_config.state_file_name_key,
+        number_of_previous_day_to_process=data_config.
+        number_of_previous_day_to_process,
     )
     task_run_instance_fullname = get_task_run_instance_fullname(kwargs)
     full_temp_file_location = Path.joinpath(
-        Path(data_config.TEMP_FILE_DIR),
+        Path(data_config.temp_file_dir),
         "_".join([task_run_instance_fullname, "downloaded_date"]),
     )
 
     latest_collected_record_date_as_string = etl_crossref_data(
-        base_crossref_url=data_config.CROSSREF_EVENT_BASE_URL,
+        base_crossref_url=data_config.crossref_event_base_url,
         from_date_collected_as_string=last_run_date,
-        publisher_id=data_config.PUBLISHER_ID,
-        message_key=data_config.MESSAGE_KEY,
-        event_key=data_config.EVENT_KEY,
+        publisher_id=data_config.publisher_id,
+        message_key=data_config.message_key,
+        event_key=data_config.event_key,
         imported_timestamp=current_timestamp,
-        imported_timestamp_key=data_config.IMPORTED_TIMESTAMP_FIELD,
+        imported_timestamp_key=data_config.imported_timestamp_field,
         full_temp_file_location=full_temp_file_location,
         schema=data_schema,
     )
@@ -143,27 +167,34 @@ def download_and_semi_transform_crossref_data(**kwargs):
 
 
 def load_data_to_bigquery(**kwargs):
-    ti = kwargs["ti"]
-    downloaded_data_filename = ti.xcom_pull(
+    """
+    :param kwargs:
+    :return:
+    """
+    dag_context = kwargs["ti"]
+    downloaded_data_filename = dag_context.xcom_pull(
         key="full_temp_file_location",
         task_ids="download_and_semi_transform_crossref_data",
     )
-    data_config_dict = ti.xcom_pull(
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
 
     load_file_into_bq(
         filename=downloaded_data_filename,
-        dataset_name=data_config.DATASET,
-        table_name=data_config.TABLE,
-        bq_ignore_unknown_values=False,
+        dataset_name=data_config.dataset,
+        table_name=data_config.table,
     )
 
 
 def cleanup_file(**kwargs):
-    ti = kwargs["ti"]
-    downloaded_data_filename = ti.xcom_pull(
+    """
+    :param kwargs:
+    :return:
+    """
+    dag_context = kwargs["ti"]
+    downloaded_data_filename = dag_context.xcom_pull(
         key="full_temp_file_location",
         task_ids="download_and_semi_transform_crossref_data",
     )
@@ -172,26 +203,30 @@ def cleanup_file(**kwargs):
 
 
 def log_last_execution_and_cleanup(**kwargs):
-    ti = kwargs["ti"]
-    latest_record_time = ti.xcom_pull(
+    """
+    :param kwargs:
+    :return:
+    """
+    dag_context = kwargs["ti"]
+    latest_record_time = dag_context.xcom_pull(
         key="latest_collected_record_date_as_string",
         task_ids="download_and_semi_transform_crossref_data",
     )
     latest_record_date = convert_latest_data_retrieved_to_string(
         latest_record_time)
 
-    data_config_dict = ti.xcom_pull(
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
-    state_file_name_key = data_config.STATE_FILE_NAME_KEY
-    state_file_bucket = data_config.STATE_FILE_BUCKET
+    state_file_name_key = data_config.state_file_name_key
+    state_file_bucket = data_config.state_file_bucket
     upload_s3_object(
         bucket=state_file_bucket,
         object_key=state_file_name_key,
-        object=latest_record_date)
+        data_object=latest_record_date)
 
-    downloaded_data_filename = ti.xcom_pull(
+    downloaded_data_filename = dag_context.xcom_pull(
         key="full_temp_file_location",
         task_ids="download_and_semi_transform_crossref_data",
     )
@@ -225,6 +260,8 @@ log_last_execution_and_cleanup_task = create_python_task(
 )
 
 [
-    cleanup_task,
-    [cleanup_task, log_last_execution_and_cleanup_task] << load_file_into_bq_task,
-] << download_and_semi_transform_crossref_data_task << create_table_if_not_exist_task << get_data_config_task
+        cleanup_task,
+        [cleanup_task, log_last_execution_and_cleanup_task]
+        << load_file_into_bq_task
+] << download_and_semi_transform_crossref_data_task << \
+        create_table_if_not_exist_task << get_data_config_task
