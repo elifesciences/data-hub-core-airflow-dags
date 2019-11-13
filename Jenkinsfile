@@ -9,18 +9,10 @@ elifePipeline {
 
         stage 'Build and run tests', {
             try {
-                sh "make IMAGE_TAG=${commit} ci-build-and-test"
+                sh "make test"
             } finally {
                 sh "make ci-clean"
             }
-        }
-
-        elifeMainlineOnly {
-            stage 'Merge to master', {
-                elifeGitMoveToBranch commit, 'master'
-            }
-
-
         }
     }
 }

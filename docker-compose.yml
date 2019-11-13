@@ -1,8 +1,18 @@
 version: '3'
 
 services:
-    datahub_image:
+    datahub-dags:
         build:
             context: .
-        image: elifesciences/dhub_data_pipeline
+        image: elifesciences/datahub-dags
         command: ''
+
+    datahub-dags-dev:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                install_dev: y
+        image:  elifesciences/datahub-dags-dev
+        command: /bin/sh -c exit 0
+        entrypoint: []
