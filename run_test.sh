@@ -4,7 +4,7 @@ set -e
 ls .
 mkdir ./test_dir
 mv ./dags ./test_dir
-mv ./dag_pipeline_test ./test_dir/dag_pipeline_test
+mv ./tests ./test_dir/tests
 mv ./data_pipeline ./test_dir/data_pipeline
 cd ./test_dir
 
@@ -22,9 +22,9 @@ pytest -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/bigquery-views-pylint \
-  pylint dag_pipeline_test/ data_pipeline/
+  pylint tests/ data_pipeline/
 
 echo "running flake8"
-flake8 flake8  dag_pipeline_test/ data_pipeline/
+flake8 flake8  tests/ data_pipeline/
 
 echo "done"

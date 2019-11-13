@@ -340,24 +340,65 @@ class CrossRefimportDataPipelineConfig:
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     def __init__(self, data_config):
-        self.project_name = data_config.get("PROJECT_NAME")
-        self.dataset = data_config.get("DATASET")
-        self.table = data_config.get("TABLE")
-        self.imported_timestamp_field = data_config.get(
+        self.data_config = data_config
+        self.project_name = self.data_config.get("PROJECT_NAME")
+        self.dataset = self.data_config.get("DATASET")
+        self.table = self.data_config.get("TABLE")
+        self.imported_timestamp_field = self.data_config.get(
             "IMPORTED_TIMESTAMP_FIELD")
-        self.schema_file_s3_bucket = data_config.get(
+        self.schema_file_s3_bucket = self.data_config.get(
             "SCHEMA_FILE").get("BUCKET")
-        self.state_file_name_key = data_config.get(
+        self.state_file_name_key = self.data_config.get(
             "STATE_FILE").get("OBJECT_NAME")
-        self.state_file_bucket = data_config.get("STATE_FILE").get("BUCKET")
-        self.temp_file_dir = data_config.get("LOCAL_TEMPFILE_DIR")
-        self.number_of_previous_day_to_process = data_config.get(
+        self.state_file_bucket = self.data_config.get("STATE_FILE")\
+            .get("BUCKET")
+        self.temp_file_dir = self.data_config.get("LOCAL_TEMPFILE_DIR")
+        self.number_of_previous_day_to_process = self.data_config.get(
             "NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS"
         )
-        self.message_key = data_config.get("MESSAGE_KEY")
-        self.publisher_id = data_config.get("PUBLISHER_ID")
-        self.crossref_event_base_url = data_config.get(
+        self.message_key = self.data_config.get("MESSAGE_KEY")
+        self.publisher_id = self.data_config.get("PUBLISHER_ID")
+        self.crossref_event_base_url = self.data_config.get(
             "CROSSREF_EVENT_BASE_URL")
-        self.event_key = data_config.get("EVENT_KEY")
-        self.schema_file_object_name = data_config.get(
+        self.event_key = self.data_config.get("EVENT_KEY")
+        self.schema_file_object_name = self.data_config.get(
             "SCHEMA_FILE").get("OBJECT_NAME")
+        self.deployment_env_based_name_modification = self.data_config.\
+            get("DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION")
+
+    def get_dataset_name_based_on_deployment_env(self, deployment_env):
+        """
+        :param deployment_env:
+        :return:
+        """
+        dataset_name = self.dataset
+        if self.deployment_env_based_name_modification == "replace":
+            dataset_name = deployment_env
+        elif self.deployment_env_based_name_modification == "append":
+            dataset_name = "_".join([self.dataset, deployment_env])
+
+        return dataset_name
+
+    def get_state_object_name_based_on_deployment_env(self, deployment_env):
+        """
+        :param deployment_env:
+        :return:
+        """
+        download_state_file = "_".join(
+            [self.state_file_name_key, deployment_env]
+            ) if self.deployment_env_based_name_modification \
+            in {"replace", "append"} \
+            else self.state_file_name_key
+
+        return download_state_file
+
+    def modify_config_based_on_deployment_env(self, deployment_env):
+        """
+        :param deployment_env:
+        :return:
+        """
+        self.data_config['DATASET'] = \
+            self.get_dataset_name_based_on_deployment_env(deployment_env)
+        self.data_config['STATE_FILE']['OBJECT_NAME'] = \
+            self.get_state_object_name_based_on_deployment_env(deployment_env)
+        return self.data_config

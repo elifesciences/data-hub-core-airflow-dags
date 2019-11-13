@@ -10,7 +10,7 @@ with open(os.path.join('requirements.txt'), 'r') as f:
 PACKAGES = find_packages()
 
 PACKAGES = [x for x in PACKAGES
-            if x not in {'dags', 'dag_pipeline_test'}]
+            if x not in {'dags', 'tests'}]
 
 setup(
     name='data_pipeline',

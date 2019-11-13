@@ -6,7 +6,7 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 from airflow import DAG
-from dags.data_pipeline_dag_utils import (
+from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
     create_python_task,
     get_task_run_instance_fullname,
@@ -45,6 +45,9 @@ DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE = (
 CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY = 'CROSS_REF_IMPORT_SCHEDULE_INTERVAL'
 DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@daily'
 
+DEPLOYMENT_ENV = 'DEPLOYMENT_ENV'
+DEFAULT_DEPLOYMENT_ENV_VALUE = None
+
 
 def get_env_var_or_use_default(env_var_name, default_value):
     """
@@ -71,7 +74,7 @@ def get_data_config(**kwargs):
     :param kwargs:
     :return:
     """
-    data_config = download_s3_yaml_object_as_json(
+    data_config_dict = download_s3_yaml_object_as_json(
         get_env_var_or_use_default(
             CROSSREF_CONFIG_S3_BUCKET_NAME,
             DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE),
@@ -79,7 +82,13 @@ def get_data_config(**kwargs):
             CROSSREF_CONFIG_S3_OBJECT_KEY_NAME,
             DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE),
     )
-    kwargs["ti"].xcom_push(key="data_config", value=data_config)
+    data_config = CrossRefimportDataPipelineConfig(data_config_dict)
+    dep_env = get_env_var_or_use_default(DEPLOYMENT_ENV,
+                                         DEFAULT_DEPLOYMENT_ENV_VALUE)
+    env_based_data_config = data_config if dep_env is None \
+        else data_config.modify_config_based_on_deployment_env(dep_env)
+
+    kwargs["ti"].xcom_push(key="data_config", value=env_based_data_config)
 
 
 def create_bq_table_if_not_exist(**kwargs):

@@ -1,5 +1,8 @@
 PROJECT_NAME: 'elife-data-pipeline'
 DATASET: 'de_dev'
+#possible values for DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION include "replace", "append", "do-not-modify"
+#will modifiy the dataset name and data state name
+DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION: 'replace'
 TABLE: 'crossref_event'
 LOCAL_TEMPFILE_DIR: '/airflow_temp'
 STATE_FILE:
