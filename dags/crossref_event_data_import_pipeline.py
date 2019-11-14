@@ -1,5 +1,5 @@
 """
-dag for  crossref data import
+dag for  crossref data import into bigquery
 """
 import os
 import logging
@@ -15,7 +15,6 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_last_run_day_from_cloud_storage,
     etl_crossref_data,
     CrossRefimportDataPipelineConfig,
-    convert_latest_data_retrieved_to_string,
     add_timestamp_field_to_schema,
     current_timestamp_as_string,
 )
@@ -48,6 +47,8 @@ DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = '@daily'
 DEPLOYMENT_ENV = 'DEPLOYMENT_ENV'
 DEFAULT_DEPLOYMENT_ENV_VALUE = None
 
+
+UNTIL_TIME_COLLECTED_PARAM_KEY = "until_collected_date"
 
 def get_env_var_or_use_default(env_var_name, default_value):
     """
@@ -82,6 +83,7 @@ def get_data_config(**kwargs):
             CROSSREF_CONFIG_S3_OBJECT_KEY_NAME,
             DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE),
     )
+
     data_config = CrossRefimportDataPipelineConfig(data_config_dict)
     dep_env = get_env_var_or_use_default(DEPLOYMENT_ENV,
                                          DEFAULT_DEPLOYMENT_ENV_VALUE)
@@ -142,7 +144,7 @@ def download_and_semi_transform_crossref_data(**kwargs):
         task_ids="create_table_if_not_exist")
 
     current_timestamp = current_timestamp_as_string()
-    last_run_date = get_last_run_day_from_cloud_storage(
+    latest_journal_download_date = get_last_run_day_from_cloud_storage(
         bucket=data_config.state_file_bucket,
         object_key=data_config.state_file_name_key,
         number_of_previous_day_to_process=data_config.
@@ -153,17 +155,20 @@ def download_and_semi_transform_crossref_data(**kwargs):
         Path(data_config.temp_file_dir),
         "_".join([task_run_instance_fullname, "downloaded_date"]),
     )
-
+    externally_triggered_parameters = kwargs['dag_run'].conf
+    until_collected_date = \
+        externally_triggered_parameters.get(UNTIL_TIME_COLLECTED_PARAM_KEY)
     latest_collected_record_date_as_string = etl_crossref_data(
         base_crossref_url=data_config.crossref_event_base_url,
-        from_date_collected_as_string=last_run_date,
-        publisher_id=data_config.publisher_id,
+        latest_journal_download_date=latest_journal_download_date,
+        publisher_ids=data_config.publisher_ids,
         message_key=data_config.message_key,
         event_key=data_config.event_key,
         imported_timestamp=current_timestamp,
         imported_timestamp_key=data_config.imported_timestamp_field,
         full_temp_file_location=full_temp_file_location,
         schema=data_schema,
+        until_collected_date_as_string=until_collected_date
     )
 
     kwargs["ti"].xcom_push(
@@ -217,12 +222,10 @@ def log_last_execution_and_cleanup(**kwargs):
     :return:
     """
     dag_context = kwargs["ti"]
-    latest_record_time = dag_context.xcom_pull(
+    latest_record_date = dag_context.xcom_pull(
         key="latest_collected_record_date_as_string",
         task_ids="download_and_semi_transform_crossref_data",
     )
-    latest_record_date = convert_latest_data_retrieved_to_string(
-        latest_record_time)
 
     data_config_dict = dag_context.xcom_pull(
         key="data_config",
@@ -267,6 +270,7 @@ log_last_execution_and_cleanup_task = create_python_task(
     log_last_execution_and_cleanup,
     trigger_rule="one_success",
 )
+
 
 [
         cleanup_task,

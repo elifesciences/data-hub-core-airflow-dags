@@ -57,8 +57,35 @@ def get_last_run_day_from_cloud_storage(
     :param number_of_previous_day_to_process:
     :return:
     """
+
+    publisher_last_run_date = download_s3_object(bucket, object_key)
+    empty_string = ""
+    publisher_last_run_date_list = [publisher for publisher in
+                                    publisher_last_run_date.split("\n")
+                                    if publisher.strip() is not empty_string]
+    last_download_date = {}
+    for publisher in publisher_last_run_date_list:
+        publisher_last_run_date = [x.strip().strip("\"").strip("\'")
+                                   for x in publisher.split(",")]
+        last_run_date = publisher_last_run_date[1] if \
+            len(publisher_last_run_date) > 1 else None
+        last_download_date[publisher_last_run_date[0]] = \
+            parse_get_last_run_date(last_run_date,
+                                    number_of_previous_day_to_process)
+
+    return last_download_date
+
+
+# pylint: disable=broad-except,no-else-return
+def parse_get_last_run_date(
+        date_as_string, number_of_previous_day_to_process=1
+):
+    """
+    :param date_as_string:
+    :param number_of_previous_day_to_process:
+    :return:
+    """
     try:
-        date_as_string = download_s3_object(bucket, object_key)
         pattern = r"^\d\d\d\d-\d\d-\d\d$"
         if (
                 date_as_string is not None
@@ -75,12 +102,13 @@ def get_last_run_day_from_cloud_storage(
         return ModuleConfig.CROSSREF_DATA_COLLECTION_BEGINNING
 
 
-# pylint: disable=fixme
+# pylint: disable=fixme,too-many-arguments
 def get_crossref_data_single_page(
         base_crossref_url: str,
         cursor=None,
         publisher_id: str = "",
         from_date_collected_as_string: str = "2019-08-01",
+        until_collected_date_as_string: str = None,
         message_key: str = "message",
 ):
     """
@@ -89,6 +117,7 @@ def get_crossref_data_single_page(
     :param publisher_id:
     :param from_date_collected_as_string:
     :param message_key:
+    :param until_collected_date_as_string:
     :return:
     """
     # TODO : specify all static url parameter via config
@@ -99,9 +128,10 @@ def get_crossref_data_single_page(
         + "&obj-id.prefix="
         + publisher_id
     )
+    if until_collected_date_as_string:
+        url += "&until-collected-date" + until_collected_date_as_string
     if cursor:
         url += "&cursor=" + cursor
-    # r = requests.get(url)
     session = requests.Session()
     http_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
     https_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
@@ -241,22 +271,24 @@ def cleanse_record_add_imported_timestamp_field(
     return new_record
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,too-many-locals
 def etl_crossref_data(
         base_crossref_url: str,
-        from_date_collected_as_string: str,
-        publisher_id: str,
+        latest_journal_download_date: dict,
+        publisher_ids: list,
         message_key,
         event_key,
         imported_timestamp_key,
         imported_timestamp,
         full_temp_file_location,
-        schema
+        schema,
+        until_collected_date_as_string: str = None
 ):
     """
+    :param until_collected_date_as_string:
     :param base_crossref_url:
-    :param from_date_collected_as_string:
-    :param publisher_id:
+    :param latest_journal_download_date:
+    :param publisher_ids:
     :param message_key:
     :param event_key:
     :param imported_timestamp_key:
@@ -265,36 +297,25 @@ def etl_crossref_data(
     :param schema:
     :return:
     """
+    publisher_last_updated_timestamp_list = []
     if os.path.exists(full_temp_file_location):
         os.remove(full_temp_file_location)
-    cursor, downloaded_data = get_crossref_data_single_page(
-        base_crossref_url=base_crossref_url,
-        from_date_collected_as_string=from_date_collected_as_string,
-        publisher_id=publisher_id,
-        message_key=message_key,
-    )
-    results = downloaded_data.get(message_key, {}).get(event_key, [])
-    latest_collected_record_timestamp = datetime.datetime.strptime(
-        "2000-01-01T00:00:00Z", ModuleConfig.CROSSREF_TIMESTAMP_FORMAT
-    )
-    latest_collected_record_timestamp = \
-        write_result_to_file_get_latest_record_timestamp(
-            results,
-            full_temp_file_location,
-            latest_collected_record_timestamp,
-            imported_timestamp_key,
-            imported_timestamp,
-            schema=schema)
-
-    while cursor:
+    for publisher_id in publisher_ids:
+        from_date_collected_as_string = \
+            latest_journal_download_date.\
+            get(publisher_id,
+                ModuleConfig.CROSSREF_DATA_COLLECTION_BEGINNING)
         cursor, downloaded_data = get_crossref_data_single_page(
             base_crossref_url=base_crossref_url,
-            cursor=cursor,
-            publisher_id=publisher_id,
             from_date_collected_as_string=from_date_collected_as_string,
+            publisher_id=publisher_id,
             message_key=message_key,
+            until_collected_date_as_string=until_collected_date_as_string
         )
         results = downloaded_data.get(message_key, {}).get(event_key, [])
+        latest_collected_record_timestamp = datetime.datetime.strptime(
+            "2000-01-01T00:00:00Z", ModuleConfig.CROSSREF_TIMESTAMP_FORMAT
+        )
         latest_collected_record_timestamp = \
             write_result_to_file_get_latest_record_timestamp(
                 results,
@@ -302,9 +323,38 @@ def etl_crossref_data(
                 latest_collected_record_timestamp,
                 imported_timestamp_key,
                 imported_timestamp,
-                schema=schema
+                schema=schema)
+        publisher_last_updated_timestamp_list. \
+            append(",".join([publisher_id,
+                             convert_latest_data_retrieved_to_string(
+                                 latest_collected_record_timestamp)]
+                            )
+                   )
+
+        while cursor:
+            cursor, downloaded_data = get_crossref_data_single_page(
+                base_crossref_url=base_crossref_url,
+                cursor=cursor,
+                publisher_id=publisher_id,
+                from_date_collected_as_string=from_date_collected_as_string,
+                message_key=message_key,
+                until_collected_date_as_string=until_collected_date_as_string
             )
-    return latest_collected_record_timestamp
+            results = downloaded_data.get(message_key, {}).get(event_key, [])
+            latest_collected_record_timestamp = \
+                write_result_to_file_get_latest_record_timestamp(
+                    results,
+                    full_temp_file_location,
+                    latest_collected_record_timestamp,
+                    imported_timestamp_key,
+                    imported_timestamp,
+                    schema=schema
+                )
+            publisher_last_updated_timestamp_list.\
+                append(",".join([publisher_id,
+                                 convert_latest_data_retrieved_to_string(
+                                     latest_collected_record_timestamp)]))
+    return "\n".join(publisher_last_updated_timestamp_list)
 
 
 def add_timestamp_field_to_schema(schema_json, imported_timestamp_field_name):
@@ -357,7 +407,7 @@ class CrossRefimportDataPipelineConfig:
             "NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS"
         )
         self.message_key = self.data_config.get("MESSAGE_KEY")
-        self.publisher_id = self.data_config.get("PUBLISHER_ID")
+        self.publisher_ids = self.data_config.get("PUBLISHER_ID_PREFIXES")
         self.crossref_event_base_url = self.data_config.get(
             "CROSSREF_EVENT_BASE_URL")
         self.event_key = self.data_config.get("EVENT_KEY")

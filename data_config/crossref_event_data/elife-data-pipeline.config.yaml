@@ -6,15 +6,16 @@ DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION: 'replace'
 TABLE: 'crossref_event'
 LOCAL_TEMPFILE_DIR: '/airflow_temp'
 STATE_FILE:
-  BUCKET: 'prod-elife-data-pipeline'
+  BUCKET: 'ci-elife-data-pipeline'
   OBJECT_NAME: 'airflow_test/crossref_event/date_state'
 SCHEMA_FILE:
-  BUCKET: 'prod-elife-data-pipeline'
+  BUCKET: 'ci-elife-data-pipeline'
   OBJECT_NAME: 'airflow_test/crossref_event/data_schema/crossref_event_schema.json'
 TEMP_OBJECT_DIR:
-  BUCKET: 'prod-elife-data-pipeline'
+  BUCKET: 'ci-elife-data-pipeline'
   TEMP_OBJECT_PREFIX: 'airflow_test/crossref_event/tempfiles/'
-PUBLISHER_ID: '10.7554'
+PUBLISHER_ID_PREFIXES:
+  - '10.7554'
 CROSSREF_EVENT_BASE_URL: "https://api.eventdata.crossref.org/v1/events?rows=10000"
 MESSAGE_KEY: 'message'
 EVENT_KEY: 'events'

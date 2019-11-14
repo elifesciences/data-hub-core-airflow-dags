@@ -11,18 +11,20 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     semi_clean_crossref_record,
     write_result_to_file_get_latest_record_timestamp,
     etl_crossref_data,
+    convert_latest_data_retrieved_to_string,
 )
 import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
     as etl_crossref_event_data_util_module
 
 
 @pytest.fixture(name="mock_download_s3_object")
-def _download_s3_object(latest_date, test_download_exception: bool = False):
+def _download_s3_object(publisher_latest_date,
+                        test_download_exception: bool = False):
     with patch.object(
             etl_crossref_event_data_util_module,
             "download_s3_object"
     ) as mock:
-        mock.return_value = latest_date
+        mock.return_value = publisher_latest_date
         if test_download_exception:
             mock.side_effect = BaseException
             mock.return_value = (
@@ -77,10 +79,12 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
     :return:
     """
     test_data = TestData()
+    publisher_id = "pub_id"
     result = etl_crossref_data(
         base_crossref_url="base_crossref_url",
-        from_date_collected_as_string="from_date_collected_as_string",
-        publisher_id="pub_id",
+        latest_journal_download_date={publisher_id:
+                                      "from_date_collected_as_string"},
+        publisher_ids=[publisher_id],
         message_key=test_data.data_downloaded_message_key,
         event_key=test_data.data_downloaded_event_key,
         imported_timestamp_key=test_data.data_imported_timestamp_key,
@@ -89,24 +93,24 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
         schema=test_data.source_data_schema,
     )
     mock_open_file.assert_called_with("temp_file_loc", "a")
-    assert result == test_data.get_max_timestamp()
+    assert result == test_data.get_publisher_max_timestamp(publisher_id)
     assert mock_download_crossref.called_with(
         base_crossref_url="base_crossref_url",
         from_date_collected_as_string="from_date_collected_as_string",
-        publisher_id="publisher_id",
+        publisher_id=publisher_id,
         message_key="message_key",
     )
 
 
 # pylint: disable=unused-argument
 @pytest.mark.parametrize(
-    "latest_date, number_of_prv_days, "
+    "publisher_latest_date, number_of_prv_days, "
     "data_download_start_date, "
     "test_download_exception",
     [
-        ("2019-10-23", 1, "2019-10-22", False),
-        ("2016-09-23", 7, "2016-09-16", False),
-        ("2016-09-23", 7, "2016-09-16", True),
+        ("A,2019-10-23", 1, {"A": "2019-10-22"}, False),
+        ("A,2016-09-23", 7, {"A": "2016-09-16"}, False),
+        ("A,2016-09-23", 7, {"A": "2016-09-16"}, True),
     ],
 )
 def test_get_last_run_day_from_cloud_storage(
@@ -364,6 +368,27 @@ class TestData:
             except Exception:
                 continue
         return max(all_timestamp)
+
+    # pylint: disable=broad-except
+    def get_publisher_max_timestamp(self, publisher_id):
+        """
+        :param publisher_id:
+        :return:
+        """
+        all_string_timestamp = [time.get("timestamp")
+                                for time in self.get_data()]
+        all_timestamp = []
+        for string_timestamp in all_string_timestamp:
+            try:
+                all_timestamp.append(
+                    datetime.datetime.strptime(
+                        string_timestamp,
+                        "%Y-%m-%dT%H:%M:%SZ"))
+            except Exception:
+                continue
+        return ",".join([publisher_id,
+                         convert_latest_data_retrieved_to_string(
+                             max(all_timestamp))])
 
     def get_expected_processed_crossref_test_data(self):
         """
