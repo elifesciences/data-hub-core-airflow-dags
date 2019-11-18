@@ -39,8 +39,8 @@ def test_dag_runs_data_imported():
         "current_timestamp": "2012-10-01 00:00:00",
     }
     print("TAYOS",)
-    execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id, conf=config)
-    print(execution_date)
+    #execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id, conf=config)
+    #print(execution_date)
     #is_running = True
     #while is_running:
     #    is_running = AIRFLW_API.is_dag_running(dag_id, execution_date)
