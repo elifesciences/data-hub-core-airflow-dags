@@ -19,7 +19,7 @@ def test_dag_runs_data_imported():
     """
     :return:
     """
-
+    print("DAG about to tbe loaded")
     try:
         simple_query(
             query=TestQueryTemplate.CLEAN_TABLE_QUERY,
@@ -29,7 +29,7 @@ def test_dag_runs_data_imported():
         )
     except Exception:
         LOGGER.info("table not cleaned, maybe it does not exist")
-
+    print("DAG about to tbe loaded step 2")
     dag_id = "Load_Crossref_Event_Into_Bigquery"
     config = {
         "dataset": DATASET,
