@@ -3,7 +3,7 @@ test
 @author: mowonibi
 """
 import logging
-#import time
+import time
 from tests.end2end_test.end_to_end_test_helper import AirflowAPI, simple_query
 
 LOGGER = logging.getLogger(__name__)
@@ -38,13 +38,13 @@ def test_dag_runs_data_imported():
         "latest_download_date": {"10.7554": "2019-09-30"},
         "current_timestamp": "2012-10-01 00:00:00",
     }
-    print("TAYOS", )
+    print("TAYOS",)
     execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id, conf=config)
-    print(execution_date)
-    #is_running = True
-    #while is_running:
-    #    is_running = AIRFLW_API.is_dag_running(dag_id, execution_date)
-    #    time.sleep(5)
+    is_running = True
+    while is_running:
+        is_running = AIRFLW_API.is_dag_running(dag_id, execution_date)
+        print("it is running")
+        time.sleep(5)
     #assert not is_running
     #assert AIRFLW_API.get_dag_status(dag_id, execution_date) == "success"
 
