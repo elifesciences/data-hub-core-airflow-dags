@@ -68,7 +68,7 @@ services:
         command: scheduler
 
     ci-test-client:
-        image:  elifesciences/datahub--core-dags-dev
+        image:  elifesciences/datahub-core-dags-dev
         depends_on:
             - scheduler
         environment:
