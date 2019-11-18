@@ -46,8 +46,8 @@ services:
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image:  elifesciences/datahub-core-dags-dev
-        ports:
-            - "8080:8080"
+        #ports:
+        #    - "8080:8080"
         entrypoint: /entrypoint.sh
         command: webserver
 
@@ -99,9 +99,9 @@ services:
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
         image: elifesciences/datahub-core-dags-dev
         hostname: dask-scheduler
-        ports:
-            - "8786:8786"
-            - "8787:8787"
+        #ports:
+        #    - "8786:8786"
+        #    - "8787:8787"
         entrypoint: [ ]
         command: ["dask-scheduler"]
         volumes:

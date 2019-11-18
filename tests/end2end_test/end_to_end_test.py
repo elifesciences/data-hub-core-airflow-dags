@@ -34,7 +34,7 @@ def test_dag_runs_data_imported():
     config = {
         "dataset": DATASET,
         "table": TABLE,
-        "until_collected_date": "2019-10-08",
+        "until_collected_date": "2019-10-04",
         "latest_download_date": {"10.7554": "2019-09-30"},
         "current_timestamp": "2012-10-01 00:00:00",
     }
