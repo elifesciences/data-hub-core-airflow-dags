@@ -35,7 +35,7 @@ def test_dag_runs_data_imported():
         "dataset": DATASET,
         "table": TABLE,
         "until_collected_date": "2019-10-08",
-        "latest_download_date": {"10.7554": "2019-09-18"},
+        "latest_download_date": {"10.7554": "2019-09-30"},
         "current_timestamp": "2012-10-01 00:00:00",
     }
     execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id, conf=config)

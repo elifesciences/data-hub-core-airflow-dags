@@ -26,9 +26,12 @@ echo "running flake8"
 flake8 flake8  tests/ data_pipeline/
 
 echo $1
+ls .
+ls /usr/local/airflow/.aws/credentials
+cat
 if  [ $1 == "with-end-to-end" ]; then
     echo "running end to end tests"
-    pytest tests/end2end_test/ -p no:cacheprovider -s --disable-warnings
+    pytest tests/end2end_test/ -p no:cacheprovider -s
 fi
 
 echo "done"
