@@ -20,7 +20,7 @@ pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/bigquery-views-pylint \
-  pylint tests/ data_pipeline/
+#  pylint tests/ data_pipeline/
 
 echo "running flake8"
 #flake8 flake8  tests/ data_pipeline/
