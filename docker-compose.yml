@@ -2,12 +2,24 @@ version: '3'
 
 services:
     datahub-dags:
+        environment:
+            GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         build:
             context: .
         image: elifesciences/datahub-dags
         command: ''
+        ports:
+            - "8080:8080"
 
     datahub-dags-dev:
+        environment:
+            GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         build:
             context: .
             dockerfile: Dockerfile
@@ -15,4 +27,99 @@ services:
                 install_dev: y
         image:  elifesciences/datahub-dags-dev
         command: /bin/sh -c exit 0
+        ports:
+            - "8080:8080"
         entrypoint: []
+
+    webserver:
+        depends_on:
+            - postgres
+            - dask-worker
+            - dask-scheduler
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        image:  elifesciences/datahub-dags-dev
+        ports:
+            - "8080:8080"
+        entrypoint: /entrypoint.sh
+        command: webserver
+
+    scheduler:
+        image:  elifesciences/datahub-dags-dev
+        depends_on:
+            - webserver
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        entrypoint: /entrypoint.sh
+        command: scheduler
+
+    ci-test-client:
+        image:  elifesciences/datahub-dags-dev
+        depends_on:
+            - scheduler
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW_HOST=webserver
+            - AIRFLOW_PORT=8080
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        entrypoint: /entrypoint.sh
+
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    dask-scheduler:
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+        image: elifesciences/datahub-dags-dev
+        hostname: dask-scheduler
+        ports:
+            - "8786:8786"
+            - "8787:8787"
+        entrypoint: [ ]
+        command: ["dask-scheduler"]
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+
+    dask-worker:
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+        depends_on:
+          - dask-scheduler
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        image: elifesciences/datahub-dags-dev
+        hostname: dask-worker
+        entrypoint: [ ]
+        command: ["dask-worker", "tcp://dask-scheduler:8786"]

@@ -11,75 +11,84 @@ from datetime import timezone
 from datetime import timedelta
 import requests
 from data_pipeline.utils.cloud_data_store.s3_data_service \
-    import download_s3_object
+    import download_s3_object_as_string
 
 
 # pylint: disable=too-few-public-methods
-class ModuleConfig:
+class EtlModuleConfig:
     """
-    configuration for module
+    configuration for module and the data downloaded from crossref
     """
-    CROSSREF_DATA_COLLECTION_BEGINNING = "2000-01-01"
+    DEFAULT_DATA_COLLECTION_START_DATE = "2000-01-01"
+    # config for the crossref data
     CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY = "timestamp"
     CROSSREF_TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
     MESSAGE_NEXT_CURSOR_KEY = "next-cursor"
+    # config for bigquery schema
     BQ_SCHEMA_FIELD_NAME_KEY = "name"
     BQ_SCHEMA_SUBFIELD_KEY = "fields"
     BQ_SCHEMA_FIELD_TYPE_KEY = "type"
+    # date format used for y application for maintaining download state
     STATE_FILE_DATE_FORMAT = '%Y-%m-%d'
 
 
-def get_date_days_before_as_string(number_of_days_before):
+def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
     """
     :param number_of_days_before:
-    :return:
+    :return: date of some days before now as string
     """
     dtobj = datetime.datetime.now(
         timezone.utc) - timedelta(number_of_days_before)
-    return dtobj.strftime(ModuleConfig.STATE_FILE_DATE_FORMAT)
+    return dtobj.strftime(EtlModuleConfig.STATE_FILE_DATE_FORMAT)
 
 
-def convert_latest_data_retrieved_to_string(datetime_obj):
+def convert_datetime_to_date_string(datetime_obj: datetime) -> str:
     """
     :param datetime_obj:
-    :return:
+    :return: date string
     """
-    return datetime_obj.strftime(ModuleConfig.STATE_FILE_DATE_FORMAT)
+    return datetime_obj.strftime(EtlModuleConfig.STATE_FILE_DATE_FORMAT)
 
 
 # pylint: disable=broad-except,no-else-return
-def get_last_run_day_from_cloud_storage(
-        bucket: str, object_key: str, number_of_previous_day_to_process=1
-):
+def get_new_data_download_start_date_from_cloud_storage(
+        bucket: str, object_key: str,
+        no_of_prior_days_to_last_data_collected_date: int = 0
+) -> dict:
     """
     :param bucket:
     :param object_key:
-    :param number_of_previous_day_to_process:
+    :param no_of_prior_days_to_last_data_collected_date:
+    number of days to the last data collection date to process,
+    this is to ensure that there is overalap in data downloaded
     :return:
     """
 
-    publisher_last_run_date = download_s3_object(bucket, object_key)
+    journal_last_record_date_file_content = \
+        download_s3_object_as_string(bucket, object_key)
     empty_string = ""
-    publisher_last_run_date_list = [publisher for publisher in
-                                    publisher_last_run_date.split("\n")
-                                    if publisher.strip() is not empty_string]
-    last_download_date = {}
-    for publisher in publisher_last_run_date_list:
-        publisher_last_run_date = [x.strip().strip("\"").strip("\'")
-                                   for x in publisher.split(",")]
-        last_run_date = publisher_last_run_date[1] if \
-            len(publisher_last_run_date) > 1 else None
-        last_download_date[publisher_last_run_date[0]] = \
-            parse_get_last_run_date(last_run_date,
-                                    number_of_previous_day_to_process)
+    journal_last_record_date_list = \
+        [publisher for publisher in
+         journal_last_record_date_file_content.split("\n")
+         if publisher.strip() is not empty_string]
+    journal_last_record_date = {}
+    for journal in journal_last_record_date_list:
+        journal_last_record_date_file_content = \
+            [x.strip().strip("\"").strip("\'")
+             for x in journal.split(",")]
+        last_run_date = journal_last_record_date_file_content[1] if \
+            len(journal_last_record_date_file_content) > 1 else None
+        journal_last_record_date[journal_last_record_date_file_content[0]] = \
+            get_new_journal_download_start_date(
+                last_run_date, no_of_prior_days_to_last_data_collected_date)
 
-    return last_download_date
+    return journal_last_record_date
 
 
 # pylint: disable=broad-except,no-else-return
-def parse_get_last_run_date(
+def get_new_journal_download_start_date(
         date_as_string, number_of_previous_day_to_process=1
-):
+) -> str:
     """
     :param date_as_string:
     :param number_of_previous_day_to_process:
@@ -92,29 +101,29 @@ def parse_get_last_run_date(
                 and len(re.findall(pattern, date_as_string.strip())) == 1
         ):
             dtobj = datetime.datetime.strptime(
-                date_as_string.strip(), ModuleConfig.STATE_FILE_DATE_FORMAT
+                date_as_string.strip(), EtlModuleConfig.STATE_FILE_DATE_FORMAT
             ) - timedelta(number_of_previous_day_to_process)
-            return dtobj.strftime(ModuleConfig.STATE_FILE_DATE_FORMAT)
+            return dtobj.strftime(EtlModuleConfig.STATE_FILE_DATE_FORMAT)
         else:
-            return get_date_days_before_as_string(
+            return get_date_of_days_before_as_string(
                 number_of_previous_day_to_process)
     except BaseException:
-        return ModuleConfig.CROSSREF_DATA_COLLECTION_BEGINNING
+        return EtlModuleConfig.DEFAULT_DATA_COLLECTION_START_DATE
 
 
 # pylint: disable=fixme,too-many-arguments
 def get_crossref_data_single_page(
         base_crossref_url: str,
         cursor=None,
-        publisher_id: str = "",
+        journal_doi_prefix: str = "",
         from_date_collected_as_string: str = "2019-08-01",
         until_collected_date_as_string: str = None,
         message_key: str = "message",
-):
+) -> (str, dict):
     """
     :param base_crossref_url:
     :param cursor:
-    :param publisher_id:
+    :param journal_doi_prefix:
     :param from_date_collected_as_string:
     :param message_key:
     :param until_collected_date_as_string:
@@ -126,12 +135,13 @@ def get_crossref_data_single_page(
         + "&from-collected-date="
         + from_date_collected_as_string
         + "&obj-id.prefix="
-        + publisher_id
+        + journal_doi_prefix
     )
     if until_collected_date_as_string:
-        url += "&until-collected-date" + until_collected_date_as_string
+        url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
         url += "&cursor=" + cursor
+
     session = requests.Session()
     http_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
     https_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
@@ -140,7 +150,7 @@ def get_crossref_data_single_page(
     session_request = session.get(url)
     session_request.raise_for_status()
     resp = session_request.json()
-    return resp[message_key][ModuleConfig.MESSAGE_NEXT_CURSOR_KEY], resp
+    return resp[message_key][EtlModuleConfig.MESSAGE_NEXT_CURSOR_KEY], resp
 
 
 # pylint: disable=broad-except,too-many-arguments
@@ -148,33 +158,35 @@ def write_result_to_file_get_latest_record_timestamp(
         json_list,
         full_temp_file_location: str,
         previous_latest_timestamp,
-        imported_timestamp_key,
-        imported_timestamp,
+        datahub_imported_timestamp_key,
+        datahub_imported_timestamp,
         schema
-):
+) -> datetime:
     """
-    :param json_list:
+    :param json_list: list or records downloaded
     :param full_temp_file_location:
-    :param previous_latest_timestamp:
-    :param imported_timestamp_key:
-    :param imported_timestamp:
-    :param schema:
+    :param previous_latest_timestamp: to compare with if its later
+    :param datahub_imported_timestamp_key:
+    json timestamp key to use to add timestamp to reach record
+    :param datahub_imported_timestamp:
+    timestamp in which the data is imported into biguqery
+    :param schema: bigquery data schema for the record to be inserted
     :return:
     """
     latest_collected_record_timestamp = previous_latest_timestamp
     with open(full_temp_file_location, "a") as write_file:
         for record in json_list:
-            n_record = cleanse_record_add_imported_timestamp_field(
-                record, imported_timestamp_key,
-                imported_timestamp, schema=schema)
+            n_record = transform_record(
+                record, datahub_imported_timestamp_key,
+                datahub_imported_timestamp, schema=schema)
             write_file.write(json.dumps(n_record))
             write_file.write("\n")
             try:
                 record_collection_timestamp = datetime.datetime.strptime(
                     n_record.get(
-                        ModuleConfig.CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY
+                        EtlModuleConfig.CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY
                     ),
-                    ModuleConfig.CROSSREF_TIMESTAMP_FORMAT
+                    EtlModuleConfig.CROSSREF_TIMESTAMP_FORMAT
                 )
             except Exception:
                 record_collection_timestamp = latest_collected_record_timestamp
@@ -187,12 +199,13 @@ def write_result_to_file_get_latest_record_timestamp(
     return latest_collected_record_timestamp
 
 
-def convert_bq_schema_field_list_to_dict(json_list, ):
+def convert_bq_schema_field_list_to_dict(json_list, ) -> dict:
     """
-    :param json_list:
-    :return:
+    :param json_list: list of fields of biquery record
+    :return: dictionary  of biquery field record
+    where each key of of dictionary is the field name
     """
-    k_name = ModuleConfig.BQ_SCHEMA_FIELD_NAME_KEY.lower()
+    k_name = EtlModuleConfig.BQ_SCHEMA_FIELD_NAME_KEY.lower()
     schema_list_as_dict = dict()
     for bq_schema_field in json_list:
         bq_field_name_list = [
@@ -208,7 +221,8 @@ def convert_bq_schema_field_list_to_dict(json_list, ):
 def standardize_field_name(field_name):
     """
     :param field_name:
-    :return:
+    :return:input sting witn non alphanumeric
+     characters replaced with underscore
     """
     return re.sub(r'\W', '_', field_name)
 
@@ -216,9 +230,11 @@ def standardize_field_name(field_name):
 # pylint: disable=inconsistent-return-statements,broad-except,no-else-return
 def semi_clean_crossref_record(record, schema):
     """
+    iteratively filters the record with only field specified in schemaa
+    renames json field names to field names permistted in bigquery
     :param record:
     :param schema:
-    :return:
+    :return: list or dictionary representing the record subset
     """
     if isinstance(record, dict):
         list_as_p_dict = convert_bq_schema_field_list_to_dict(schema)
@@ -231,16 +247,16 @@ def semi_clean_crossref_record(record, schema):
                     record_item_val = semi_clean_crossref_record(
                         record_item_val,
                         list_as_p_dict.get(new_key).get(
-                            ModuleConfig.BQ_SCHEMA_SUBFIELD_KEY
+                            EtlModuleConfig.BQ_SCHEMA_SUBFIELD_KEY
                         )
                     )
                 if list_as_p_dict.get(new_key).get(
-                        ModuleConfig.BQ_SCHEMA_FIELD_TYPE_KEY
+                        EtlModuleConfig.BQ_SCHEMA_FIELD_TYPE_KEY
                 ).lower() == 'timestamp':
                     try:
                         datetime.datetime.strptime(
                             record_item_val,
-                            ModuleConfig.CROSSREF_TIMESTAMP_FORMAT
+                            EtlModuleConfig.CROSSREF_TIMESTAMP_FORMAT
                         )
                     except BaseException:
                         record_item_val = None
@@ -256,10 +272,11 @@ def semi_clean_crossref_record(record, schema):
         return new_list
 
 
-def cleanse_record_add_imported_timestamp_field(
+def transform_record(
         record, imported_timestamp_key, imported_timestamp, schema
-):
+) -> dict:
     """
+    cleanse record, add datahub imported timestamp field
     :param record:
     :param imported_timestamp_key:
     :param imported_timestamp:
@@ -275,46 +292,47 @@ def cleanse_record_add_imported_timestamp_field(
 def etl_crossref_data(
         base_crossref_url: str,
         latest_journal_download_date: dict,
-        publisher_ids: list,
-        message_key,
-        event_key,
-        imported_timestamp_key,
+        journal_doi_prefixes: list,
+        message_key: str,
+        event_key: str,
+        imported_timestamp_key: str,
         imported_timestamp,
-        full_temp_file_location,
-        schema,
+        full_temp_file_location: str,
+        schema: dict,
         until_collected_date_as_string: str = None
-):
+) -> str:
     """
     :param until_collected_date_as_string:
     :param base_crossref_url:
     :param latest_journal_download_date:
-    :param publisher_ids:
+    :param journal_doi_prefixes:
     :param message_key:
     :param event_key:
     :param imported_timestamp_key:
     :param imported_timestamp:
     :param full_temp_file_location:
     :param schema:
-    :return:
+    :return: string containing journal doi prefix, and latest record timestamp
+    this ideally should be written to s3
     """
-    publisher_last_updated_timestamp_list = []
+    journal_last_collection_timestamp_list = []
     if os.path.exists(full_temp_file_location):
         os.remove(full_temp_file_location)
-    for publisher_id in publisher_ids:
+    for journal_doi_prefix in journal_doi_prefixes:
         from_date_collected_as_string = \
             latest_journal_download_date.\
-            get(publisher_id,
-                ModuleConfig.CROSSREF_DATA_COLLECTION_BEGINNING)
+            get(journal_doi_prefix,
+                EtlModuleConfig.DEFAULT_DATA_COLLECTION_START_DATE)
         cursor, downloaded_data = get_crossref_data_single_page(
             base_crossref_url=base_crossref_url,
             from_date_collected_as_string=from_date_collected_as_string,
-            publisher_id=publisher_id,
+            journal_doi_prefix=journal_doi_prefix,
             message_key=message_key,
             until_collected_date_as_string=until_collected_date_as_string
         )
         results = downloaded_data.get(message_key, {}).get(event_key, [])
         latest_collected_record_timestamp = datetime.datetime.strptime(
-            "2000-01-01T00:00:00Z", ModuleConfig.CROSSREF_TIMESTAMP_FORMAT
+            "2000-01-01T00:00:00Z", EtlModuleConfig.CROSSREF_TIMESTAMP_FORMAT
         )
         latest_collected_record_timestamp = \
             write_result_to_file_get_latest_record_timestamp(
@@ -324,9 +342,9 @@ def etl_crossref_data(
                 imported_timestamp_key,
                 imported_timestamp,
                 schema=schema)
-        publisher_last_updated_timestamp_list. \
-            append(",".join([publisher_id,
-                             convert_latest_data_retrieved_to_string(
+        journal_last_collection_timestamp_list. \
+            append(",".join([journal_doi_prefix,
+                             convert_datetime_to_date_string(
                                  latest_collected_record_timestamp)]
                             )
                    )
@@ -335,7 +353,7 @@ def etl_crossref_data(
             cursor, downloaded_data = get_crossref_data_single_page(
                 base_crossref_url=base_crossref_url,
                 cursor=cursor,
-                publisher_id=publisher_id,
+                journal_doi_prefix=journal_doi_prefix,
                 from_date_collected_as_string=from_date_collected_as_string,
                 message_key=message_key,
                 until_collected_date_as_string=until_collected_date_as_string
@@ -350,14 +368,15 @@ def etl_crossref_data(
                     imported_timestamp,
                     schema=schema
                 )
-            publisher_last_updated_timestamp_list.\
-                append(",".join([publisher_id,
-                                 convert_latest_data_retrieved_to_string(
+            journal_last_collection_timestamp_list.\
+                append(",".join([journal_doi_prefix,
+                                 convert_datetime_to_date_string(
                                      latest_collected_record_timestamp)]))
-    return "\n".join(publisher_last_updated_timestamp_list)
+    return "\n".join(journal_last_collection_timestamp_list)
 
 
-def add_timestamp_field_to_schema(schema_json, imported_timestamp_field_name):
+def add_datahub_timestamp_field_to_bigquery_schema(
+        schema_json, imported_timestamp_field_name) -> dict:
     """
     :param schema_json:
     :param imported_timestamp_field_name:
@@ -386,7 +405,7 @@ def current_timestamp_as_string():
 
 class CrossRefimportDataPipelineConfig:
     """
-    parse config
+    parse configuartion file for the data pipeline
     """
     # pylint: disable=too-many-instance-attributes, too-few-public-methods
     def __init__(self, data_config):
@@ -452,3 +471,14 @@ class CrossRefimportDataPipelineConfig:
         self.data_config['STATE_FILE']['OBJECT_NAME'] = \
             self.get_state_object_name_based_on_deployment_env(deployment_env)
         return self.data_config
+
+
+class ExternalTriggerConfig:
+    """
+    configuration for external trigger parameter keys
+    """
+    UNTIL_TIME_COLLECTED_PARAM_KEY = "until_collected_date"
+    CURRENT_TIMESTAMP_PARAM_KEY = 'current_timestamp'
+    LATEST_DOWNLOAD_DATE_PARAM_KEY = 'latest_download_date'
+    BQ_DATASET_PARAM_KEY = 'dataset'
+    BQ_TABLE_PARAM_KEY = 'table'

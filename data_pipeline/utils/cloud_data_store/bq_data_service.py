@@ -6,6 +6,7 @@ written by tayowonibi
 import logging
 import os
 from math import ceil
+from typing import List
 
 from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client
@@ -55,7 +56,8 @@ def load_file_into_bq(
                     job.output_rows, dataset_name, table_name)
 
 
-def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
+def load_tuple_list_into_bq(tuple_list_to_insert: List[tuple],
+                            dataset_name: str, table_name: str) -> List[dict]:
     """
     :param tuple_list_to_insert:
     :param dataset_name:
@@ -81,7 +83,8 @@ def load_tuple_list_into_bq(tuple_list_to_insert, dataset_name, table_name):
 
 
 def create_table_if_not_exist(
-        project_name: str, dataset_name: str, table_name: str, json_schema
+        project_name: str, dataset_name: str,
+        table_name: str, json_schema: dict
 ):
     """
     :param project_name:
@@ -96,7 +99,7 @@ def create_table_if_not_exist(
             client = bigquery.Client()
             table_id = compose_full_table_name(
                 project_name, dataset_name, table_name)
-            schema = get_schema_from_json(json_schema)
+            schema = get_schemafield_list_from_json_list(json_schema)
             table = bigquery.Table(table_id, schema=schema)
             table = client.create_table(table, True)  # API request
             LOGGER.info(
@@ -112,7 +115,7 @@ def create_table_if_not_exist(
 def does_bigquery_table_exist(
         project_name: str,
         dataset_name: str,
-        table_name: str):
+        table_name: str) -> bool:
     """
     :param project_name:
     :param dataset_name:
@@ -131,7 +134,7 @@ def does_bigquery_table_exist(
 def compose_full_table_name(
         project_name: str,
         dataset_name: str,
-        table_name: str):
+        table_name: str) -> str:
     """
     :param project_name:
     :param dataset_name:
@@ -141,7 +144,8 @@ def compose_full_table_name(
     return ".".join([project_name, dataset_name, table_name])
 
 
-def get_schema_from_json(json_schema):
+def get_schemafield_list_from_json_list(json_schema: List[dict])\
+        -> List[SchemaField]:
     """
     :param json_schema:
     :return:

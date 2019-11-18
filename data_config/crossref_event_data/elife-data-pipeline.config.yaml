@@ -4,7 +4,7 @@ DATASET: 'de_dev'
 #will modifiy the dataset name and data state name
 DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION: 'replace'
 TABLE: 'crossref_event'
-LOCAL_TEMPFILE_DIR: '/airflow_temp'
+LOCAL_TEMPFILE_DIR: '/usr/local/airflow/airflow_temp'
 STATE_FILE:
   BUCKET: 'ci-elife-data-pipeline'
   OBJECT_NAME: 'airflow_test/crossref_event/date_state'
@@ -19,5 +19,5 @@ PUBLISHER_ID_PREFIXES:
 CROSSREF_EVENT_BASE_URL: "https://api.eventdata.crossref.org/v1/events?rows=10000"
 MESSAGE_KEY: 'message'
 EVENT_KEY: 'events'
-NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS: 7 #in case the data pipeline server goes down or the crossref collected data is not yet in db
+NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS: 2 #ijust ensure that there is no date for which data was not downloaded
 IMPORTED_TIMESTAMP_FIELD: 'data_hub_imported_timestamp'

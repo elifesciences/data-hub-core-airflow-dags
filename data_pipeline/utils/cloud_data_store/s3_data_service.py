@@ -1,6 +1,6 @@
 """
 s3 data service
-written by tayowonibi
+written by m.owonibi
 """
 import json
 import yaml
@@ -8,7 +8,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def download_s3_yaml_object_as_json(bucket: str, object_key: str):
+def download_s3_yaml_object_as_json(bucket: str, object_key: str) -> dict:
     """
     :param bucket:
     :param object_key:
@@ -23,7 +23,7 @@ def download_s3_yaml_object_as_json(bucket: str, object_key: str):
         return None
 
 
-def download_s3_json_object(bucket: str, object_key: str):
+def download_s3_json_object(bucket: str, object_key: str) -> dict:
     """
     :param bucket:
     :param object_key:
@@ -38,7 +38,7 @@ def download_s3_json_object(bucket: str, object_key: str):
         return None
 
 
-def download_s3_object(bucket: str, object_key: str):
+def download_s3_object_as_string(bucket: str, object_key: str) -> str:
     """
     :param bucket:
     :param object_key:
@@ -53,7 +53,7 @@ def download_s3_object(bucket: str, object_key: str):
         return None
 
 
-def upload_s3_object(bucket: str, object_key: str, data_object):
+def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:
     """
     :param bucket:
     :param object_key:

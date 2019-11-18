@@ -7,11 +7,13 @@ elifePipeline {
             commit = elifeGitRevision()
         }
 
-        stage 'Build and run tests', {
-            try {
-                sh "make test"
-            } finally {
-                sh "make ci-clean"
+        stage 'Build and run test   s', {
+        withDataPipelineGcpCredentials {
+                try {
+                    sh "make ci-end2end-test"
+                } finally {
+                    sh "make ci-clean"
+                }
             }
         }
     }

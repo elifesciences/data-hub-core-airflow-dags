@@ -6,12 +6,12 @@ import datetime
 import pytest
 
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
-    get_last_run_day_from_cloud_storage,
+    get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
     semi_clean_crossref_record,
     write_result_to_file_get_latest_record_timestamp,
     etl_crossref_data,
-    convert_latest_data_retrieved_to_string,
+    convert_datetime_to_date_string,
 )
 import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
     as etl_crossref_event_data_util_module
@@ -22,14 +22,14 @@ def _download_s3_object(publisher_latest_date,
                         test_download_exception: bool = False):
     with patch.object(
             etl_crossref_event_data_util_module,
-            "download_s3_object"
+            "download_s3_object_as_string"
     ) as mock:
         mock.return_value = publisher_latest_date
         if test_download_exception:
             mock.side_effect = BaseException
             mock.return_value = (
                 etl_crossref_event_data_util_module.
-                ModuleConfig.CROSSREF_DATA_COLLECTION_BEGINNING)
+                EtlModuleConfig.DEFAULT_DATA_COLLECTION_START_DATE)
         yield mock
 
 
@@ -64,8 +64,8 @@ def test_write_result_to_file_get_latest_record_timestamp(
         previous_latest_timestamp=datetime.datetime.strptime(
             "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
         ),
-        imported_timestamp_key=test_data.data_imported_timestamp_key,
-        imported_timestamp=test_data.data_imported_timestamp,
+        datahub_imported_timestamp_key=test_data.data_imported_timestamp_key,
+        datahub_imported_timestamp=test_data.data_imported_timestamp,
         schema=test_data.source_data_schema,
     )
     mock_open_file.assert_called_with("tempfileloc", "a")
@@ -84,7 +84,7 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
         base_crossref_url="base_crossref_url",
         latest_journal_download_date={publisher_id:
                                       "from_date_collected_as_string"},
-        publisher_ids=[publisher_id],
+        journal_doi_prefixes=[publisher_id],
         message_key=test_data.data_downloaded_message_key,
         event_key=test_data.data_downloaded_event_key,
         imported_timestamp_key=test_data.data_imported_timestamp_key,
@@ -126,7 +126,7 @@ def test_get_last_run_day_from_cloud_storage(
     :param test_download_exception:
     :return:
     """
-    from_date = get_last_run_day_from_cloud_storage(
+    from_date = get_new_data_download_start_date_from_cloud_storage(
         "bucket", "object_key", number_of_prv_days
     )
     mock_download_s3_object.assert_called_with("bucket", "object_key")
@@ -387,7 +387,7 @@ class TestData:
             except Exception:
                 continue
         return ",".join([publisher_id,
-                         convert_latest_data_retrieved_to_string(
+                         convert_datetime_to_date_string(
                              max(all_timestamp))])
 
     def get_expected_processed_crossref_test_data(self):
