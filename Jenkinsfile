@@ -7,7 +7,7 @@ elifePipeline {
             commit = elifeGitRevision()
         }
 
-        stage 'Build and run test   s', {
+        stage 'Build and run tests', {
         withDataPipelineGcpCredentials {
                 try {
                     sh "make ci-end2end-test"
