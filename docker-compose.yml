@@ -119,7 +119,7 @@ services:
         volumes:
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
-        image: elifesciences/datahub-core=dags-dev
+        image: elifesciences/datahub-core-dags-dev
         hostname: dask-worker
         entrypoint: [ ]
         command: ["dask-worker", "tcp://dask-scheduler:8786"]
