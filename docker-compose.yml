@@ -9,7 +9,7 @@ services:
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         build:
             context: .
-        image: elifesciences/datahub-dags
+        image: elifesciences/datahub-core-dags
         command: ''
         ports:
             - "8080:8080"
@@ -25,7 +25,7 @@ services:
             dockerfile: Dockerfile
             args:
                 install_dev: y
-        image:  elifesciences/datahub-dags-dev
+        image:  elifesciences/datahub-core-dags-dev
         command: /bin/sh -c exit 0
         ports:
             - "8080:8080"
@@ -45,14 +45,14 @@ services:
         volumes:
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
-        image:  elifesciences/datahub-dags-dev
+        image:  elifesciences/datahub-core-dags-dev
         ports:
             - "8080:8080"
         entrypoint: /entrypoint.sh
         command: webserver
 
     scheduler:
-        image:  elifesciences/datahub-dags-dev
+        image:  elifesciences/datahub-core-dags-dev
         depends_on:
             - webserver
         environment:
@@ -68,7 +68,7 @@ services:
         command: scheduler
 
     ci-test-client:
-        image:  elifesciences/datahub-dags-dev
+        image:  elifesciences/datahub--core-dags-dev
         depends_on:
             - scheduler
         environment:
@@ -97,7 +97,7 @@ services:
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
             - AIRFLOW__CORE__EXECUTOR=DaskExecutor
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
-        image: elifesciences/datahub-dags-dev
+        image: elifesciences/datahub-core-dags-dev
         hostname: dask-scheduler
         ports:
             - "8786:8786"
@@ -119,7 +119,7 @@ services:
         volumes:
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
-        image: elifesciences/datahub-dags-dev
+        image: elifesciences/datahub-core=dags-dev
         hostname: dask-worker
         entrypoint: [ ]
         command: ["dask-worker", "tcp://dask-scheduler:8786"]
