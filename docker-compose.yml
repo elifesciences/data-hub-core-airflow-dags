@@ -6,7 +6,7 @@ services:
             GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         build:
             context: .
         image: elifesciences/datahub-core-dags
@@ -44,7 +44,7 @@ services:
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image:  elifesciences/datahub-core-dags-devv
         #ports:
         #    - "8080:8080"
@@ -63,7 +63,7 @@ services:
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         entrypoint: /entrypoint.sh
         command: scheduler
 
@@ -81,7 +81,7 @@ services:
             - AIRFLOW_PORT=8080
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         entrypoint: /entrypoint.sh
 
     postgres:
@@ -106,7 +106,7 @@ services:
         command: ["dask-scheduler"]
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
 
     dask-worker:
         environment:
@@ -118,7 +118,7 @@ services:
           - dask-scheduler
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/credentials:/usr/local/airflow/.aws/credentials
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/datahub-core-dags-devv
         hostname: dask-worker
         entrypoint: [ ]
