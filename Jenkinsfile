@@ -10,6 +10,7 @@ elifePipeline {
         stage 'Build and run tests', {
         withDataPipelineGcpCredentials {
                 try {
+                    sh "docker rmi elifesciences/datahub-core-dags-devv"
                     sh "make build-dev"
                     sh "make ci-end2end-test"
                 } finally {

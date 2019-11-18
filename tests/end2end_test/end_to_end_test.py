@@ -3,7 +3,7 @@ test
 @author: mowonibi
 """
 import logging
-import time
+#import time
 from tests.end2end_test.end_to_end_test_helper import AirflowAPI, simple_query
 
 LOGGER = logging.getLogger(__name__)
