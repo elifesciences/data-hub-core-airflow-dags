@@ -20,7 +20,7 @@ def test_dag_runs_data_imported():
     :return:
     """
     print("DAG about to tbe loaded")
-
+    time.sleep(15)
     print("DAG about to tbe loaded step 2")
     dag_id = "Load_Crossref_Event_Into_Bigquery"
     config = {
