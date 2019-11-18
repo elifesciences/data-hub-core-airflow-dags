@@ -42,7 +42,7 @@ def test_dag_runs_data_imported():
     is_running = True
     while is_running:
         is_running = AIRFLW_API.is_dag_running(dag_id, execution_date)
-        time.sleep(3)
+        time.sleep(5)
     assert not is_running
     assert AIRFLW_API.get_dag_status(dag_id, execution_date) == "success"
 
