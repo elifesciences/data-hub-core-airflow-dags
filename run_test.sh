@@ -19,11 +19,11 @@ echo "running dag validation tests"
 pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
-PYLINTHOME=/tmp/bigquery-views-pylint \
-#  pylint tests/ data_pipeline/
+PYLINTHOME=/tmp/datahub-dags-pylint \
+ pylint tests/ data_pipeline/
 
 echo "running flake8"
-#flake8 flake8  tests/ data_pipeline/
+flake8 flake8  tests/ data_pipeline/
 
 
 if  [ $1 == "with-end-to-end" ]; then

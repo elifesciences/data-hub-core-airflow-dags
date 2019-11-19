@@ -86,7 +86,6 @@ class AirflowAPI:
                                  json_param={"conf": conf, })
 
         pattern = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d"
-        print("dddd", data)
         return re.findall(pattern, data["message"])[0]
 
     def dag_state(self, dag_id, execution_date):
@@ -95,7 +94,6 @@ class AirflowAPI:
         :param execution_date:
         :return:
         """
-        print("kkkk", "%s/api/experimental/dags/%s/dag_runs/%s" % (self.airflow_url, dag_id, execution_date))
         return requests.get(
             "%s/api/experimental/dags/%s/dag_runs/%s"
             % (self.airflow_url, dag_id, execution_date)
@@ -107,7 +105,6 @@ class AirflowAPI:
         :param execution_date:
         :return:
         """
-        print("abou to tun")
         response = self.dag_state(dag_id, execution_date)
         json_response = json.loads(response.text)
         if json_response.get("state").lower() == "running":
