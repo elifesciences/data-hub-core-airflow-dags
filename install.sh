@@ -1,9 +1,11 @@
 #!/bin/bash
 
 set -e
-pip install -r requirements.txt
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-pip install -e . --no-dependencies
-cp dags $1 -r
+pip install -r $DIR/requirements.txt
+
+pip install -e $DIR/ --no-dependencies
+cp $DIR/dags $1 -r
 
 
