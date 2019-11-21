@@ -120,7 +120,7 @@ def create_bq_table_if_not_exist(**kwargs):
     table = data_config.table \
         if externally_triggered_parameters is None else \
         externally_triggered_parameters.get(
-            ExternalTriggerConfig.BQ_TABLE_PARAM_KEY, data_config.dataset)
+            ExternalTriggerConfig.BQ_TABLE_PARAM_KEY, data_config.table)
 
     does_table_exist = does_bigquery_table_exist(
         project_name=data_config.project_name,
