@@ -1,6 +1,6 @@
 """
-Primarily written to  . . . .
-Writes the data primarily to  . . . . .
+Primarily written for doing the backend heavy lifting for
+crossref event data download
 @author: mowonibi
 """
 import os

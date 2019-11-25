@@ -31,7 +31,7 @@ def _download_s3_object(publisher_latest_date,
             mock.side_effect = BaseException
             mock.return_value = (
                 etl_crossref_event_data_util_module.
-                    EtlModuleConstant.DEFAULT_DATA_COLLECTION_START_DATE)
+                EtlModuleConstant.DEFAULT_DATA_COLLECTION_START_DATE)
         yield mock
 
 
@@ -130,25 +130,21 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
 # pylint: disable=unused-argument
 @pytest.mark.parametrize(
     "publisher_latest_date, number_of_prv_days, "
-    "data_download_start_date, "
-    "test_download_exception",
+    "data_download_start_date",
     [
-        ("A,2019-10-23", 1, {"A": "2019-10-22"}, False),
-        ("A,2016-09-23", 7, {"A": "2016-09-16"}, False),
-        ("A,2016-09-23", 7, {"A": "2016-09-16"}, True),
+        ("A,2019-10-23", 1, {"A": "2019-10-22"}),
+        ("A,2016-09-23", 7, {"A": "2016-09-16"})
     ],
 )
 def test_get_last_run_day_from_cloud_storage(
         mock_download_s3_object,
         number_of_prv_days,
         data_download_start_date,
-        test_download_exception
 ):
     """
     :param mock_download_s3_object:
     :param number_of_prv_days:
     :param data_download_start_date:
-    :param test_download_exception:
     :return:
     """
     from_date = get_new_data_download_start_date_from_cloud_storage(
