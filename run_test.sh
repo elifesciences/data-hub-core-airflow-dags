@@ -26,7 +26,7 @@ echo "running flake8"
 flake8 flake8  tests/ data_pipeline/
 
 
-if  [ $1 == "with-end-to-end" ]; then
+if [[ $1  &&  $1 == "with-end-to-end" ]]; then
     echo "running end to end tests"
     pytest tests/end2end_test/ -p no:cacheprovider -s
 fi

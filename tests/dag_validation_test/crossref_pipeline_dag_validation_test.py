@@ -12,7 +12,7 @@ def test_task_count(dagbag):
     assert len(dag.tasks) == 4
 
 
-def test_contain__all_tasks(dagbag):
+def test_contain_all_tasks(dagbag):
     """
     :return:
     """

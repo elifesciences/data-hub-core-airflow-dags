@@ -9,8 +9,10 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
     semi_clean_crossref_record,
-    write_result_to_file_get_latest_record_timestamp,
-    etl_crossref_data,
+    preprocess_json_record,
+    get_latest_json_record_list_timestamp,
+    write_result_to_file,
+    etl_crossref_data_return_latest_timestamp,
     convert_datetime_to_date_string,
 )
 import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
@@ -29,7 +31,7 @@ def _download_s3_object(publisher_latest_date,
             mock.side_effect = BaseException
             mock.return_value = (
                 etl_crossref_event_data_util_module.
-                EtlModuleConfig.DEFAULT_DATA_COLLECTION_START_DATE)
+                    EtlModuleConstant.DEFAULT_DATA_COLLECTION_START_DATE)
         yield mock
 
 
@@ -50,26 +52,49 @@ def _get_crossref_data_single_page():
         yield mock
 
 
-def test_write_result_to_file_get_latest_record_timestamp(
-        mock_open_file):
+def test_write_result_to_file_get_latest_record_timestamp():
+    """
+    :return:
+    """
+    test_data = TestData()
+    max_timestamp = test_data.get_max_timestamp()
+    n_results = (
+        preprocess_json_record(
+            test_data.get_data(),
+            test_data.data_imported_timestamp_key,
+            test_data.data_imported_timestamp,
+            test_data.source_data_schema)
+    )
+    latest_collected_record_timestamp = (
+        get_latest_json_record_list_timestamp(
+            n_results,
+            datetime.datetime.strptime(
+                "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
+            )
+        )
+    )
+
+    assert max_timestamp == latest_collected_record_timestamp
+
+
+def test_write_result_to_file(mock_open_file):
     """
     :param mock_open_file:
     :return:
     """
     test_data = TestData()
-    max_timestamp = test_data.get_max_timestamp()
-    result = write_result_to_file_get_latest_record_timestamp(
-        test_data.get_data(),
-        "tempfileloc",
-        previous_latest_timestamp=datetime.datetime.strptime(
-            "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
-        ),
-        datahub_imported_timestamp_key=test_data.data_imported_timestamp_key,
-        datahub_imported_timestamp=test_data.data_imported_timestamp,
-        schema=test_data.source_data_schema,
+    n_results = (
+        preprocess_json_record(
+            test_data.get_data(),
+            test_data.data_imported_timestamp_key,
+            test_data.data_imported_timestamp,
+            test_data.source_data_schema)
+    )
+    write_result_to_file(
+        n_results,
+        "tempfileloc"
     )
     mock_open_file.assert_called_with("tempfileloc", "a")
-    assert max_timestamp == result
 
 
 def test_etl_crossref_data(mock_download_crossref, mock_open_file):
@@ -80,10 +105,10 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
     """
     test_data = TestData()
     publisher_id = "pub_id"
-    result = etl_crossref_data(
+    result = etl_crossref_data_return_latest_timestamp(
         base_crossref_url="base_crossref_url",
         latest_journal_download_date={publisher_id:
-                                      "from_date_collected_as_string"},
+                                      "2000-01-01"},
         journal_doi_prefixes=[publisher_id],
         message_key=test_data.data_downloaded_message_key,
         event_key=test_data.data_downloaded_event_key,
