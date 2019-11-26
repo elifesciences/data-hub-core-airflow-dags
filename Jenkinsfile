@@ -8,7 +8,7 @@ elifePipeline {
         }
 
         stage 'Build and run tests', {
-        withDataPipelineGcpCredentials {
+            withDataPipelineGcpCredentials {
                 try {
                     sh "make build-dev"
                     sh "make ci-end2end-test"
