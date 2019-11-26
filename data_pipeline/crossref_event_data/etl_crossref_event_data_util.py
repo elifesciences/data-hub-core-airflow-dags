@@ -11,7 +11,7 @@ from datetime import timedelta
 from typing import Iterable
 import requests
 from data_pipeline.utils.cloud_data_store.s3_data_service \
-    import download_s3_object_as_string
+    import download_s3_json_object
 
 
 # pylint: disable=too-few-public-methods
@@ -80,29 +80,15 @@ def get_new_data_download_start_date_from_cloud_storage(
     :return:
     """
 
-    journal_last_record_date_file_content = (
-        download_s3_object_as_string(bucket, object_key)
+    journal_last_record_date = (
+        download_s3_json_object(bucket, object_key)
     )
-    journal_last_record_date_list = (
-        [publisher for publisher in
-         journal_last_record_date_file_content.split("\n")
-         if publisher.strip()]
-    )
-    journal_last_record_date = {}
-    for journal in journal_last_record_date_list:
-        journal_last_record_date_file_content = (
-            [x.strip().strip("\"").strip("\'")
-             for x in journal.split(",")]
-        )
-        last_run_date = (
-            journal_last_record_date_file_content[1] if
-            len(journal_last_record_date_file_content) > 1 else None
-        )
-        journal_last_record_date[journal_last_record_date_file_content[0]] = (
+    for journal in journal_last_record_date:
+        journal_last_record_date[journal] = (
             get_new_journal_download_start_date_as_str(
-                last_run_date, no_of_prior_days_to_last_data_collected_date)
+                journal_last_record_date.get(journal),
+                no_of_prior_days_to_last_data_collected_date)
         )
-
     return journal_last_record_date
 
 
@@ -409,23 +395,8 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
     )
     journal_latest_timestamp = \
         latest_collected_record_timestamp
-    journal_latest_timestamp, cursor = (
-        per_doi_download_page_etl(
-            base_crossref_url=base_crossref_url,
-            from_date_collected_as_string=from_date_as_string,
-            until_collected_date_as_string=until_date_as_string,
-            journal_doi_prefix=journal_doi_prefix,
-            cursor=None,
-            message_key=message_key,
-            event_key=event_key,
-            imported_timestamp_key=imported_timestamp_key,
-            imported_timestamp=imported_timestamp,
-            full_temp_file_location=full_temp_file_location,
-            schema=schema,
-            journal_previous_timestamp=journal_latest_timestamp
-        )
-    )
-    while cursor:
+    cursor = None
+    while True:
         journal_latest_timestamp, cursor = (
             per_doi_download_page_etl(
                 base_crossref_url=base_crossref_url,
@@ -442,6 +413,8 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
                 journal_previous_timestamp=journal_latest_timestamp
             )
         )
+        if not cursor:
+            break
     return journal_latest_timestamp
 
 
@@ -493,10 +466,13 @@ def etl_crossref_data_return_latest_timestamp(
                 until_date_as_string
             )
         )
-        journal_latest_timestamp[journal_doi_prefix] = latest_timestamp
 
-    return "\n".join([key + "," + convert_datetime_to_date_string(value)
-                      for key, value in journal_latest_timestamp.items()])
+        journal_latest_timestamp[journal_doi_prefix] = \
+            convert_datetime_to_date_string(latest_timestamp)
+
+    return json.dumps(
+        journal_latest_timestamp, ensure_ascii=False, indent=4
+    ).encode('UTF-8')
 
 
 def add_datahub_timestamp_field_to_bigquery_schema(
@@ -525,83 +501,3 @@ def current_timestamp_as_string():
     """
     dtobj = datetime.datetime.now(timezone.utc)
     return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-class CrossRefImportDataPipelineConfig:
-    """
-    parse configuartion file for the data pipeline
-    """
-    # pylint: disable=too-many-instance-attributes, too-few-public-methods
-    def __init__(self, data_config):
-        self.data_config = data_config
-        self.project_name = self.data_config.get("projectName")
-        self.dataset = self.data_config.get("dataset")
-        self.table = self.data_config.get("table")
-        self.imported_timestamp_field = self.data_config.get(
-            "importedTimestampField")
-        self.schema_file_s3_bucket = self.data_config.get(
-            "schemaFile").get("bucket")
-        self.state_file_name_key = self.data_config.get(
-            "stateFile").get("objectName")
-        self.state_file_bucket = self.data_config.get("stateFile")\
-            .get("bucket")
-        self.number_of_previous_day_to_process = self.data_config.get(
-            "numberOfPreviousDayToProcess"
-        )
-        self.message_key = self.data_config.get("messageKey")
-        self.publisher_ids = self.data_config.get("publisherIdPrefixes")
-        self.crossref_event_base_url = self.data_config.get(
-            "CrossrefEventBaseUrl")
-        self.event_key = self.data_config.get("eventKey")
-        self.schema_file_object_name = self.data_config.get(
-            "schemaFile").get("objectName")
-        self.deployment_env_based_name_modification = self.data_config.\
-            get("deploymentEnvBasedObjectNameModification")
-
-    def get_dataset_name_based_on_deployment_env(self, deployment_env):
-        """
-        :param deployment_env:
-        :return:
-        """
-        dataset_name = self.dataset
-        if self.deployment_env_based_name_modification == "replace":
-            dataset_name = deployment_env
-        elif self.deployment_env_based_name_modification == "append":
-            dataset_name = "_".join([self.dataset, deployment_env])
-
-        return dataset_name
-
-    def get_state_object_name_based_on_deployment_env(self, deployment_env):
-        """
-        :param deployment_env:
-        :return:
-        """
-        download_state_file = "_".join(
-            [self.state_file_name_key, deployment_env]
-            ) if self.deployment_env_based_name_modification \
-            in {"replace", "append"} \
-            else self.state_file_name_key
-
-        return download_state_file
-
-    def modify_config_based_on_deployment_env(self, deployment_env):
-        """
-        :param deployment_env:
-        :return:
-        """
-        self.data_config['DATASET'] = \
-            self.get_dataset_name_based_on_deployment_env(deployment_env)
-        self.data_config['STATE_FILE']['OBJECT_NAME'] = \
-            self.get_state_object_name_based_on_deployment_env(deployment_env)
-        return self.data_config
-
-
-class ExternalTriggerConfig:
-    """
-    configuration for external trigger parameter keys
-    """
-    UNTIL_TIME_COLLECTED_PARAM_KEY = "until_collected_date"
-    CURRENT_TIMESTAMP_PARAM_KEY = 'current_timestamp'
-    LATEST_DOWNLOAD_DATE_PARAM_KEY = 'latest_download_date'
-    BQ_DATASET_PARAM_KEY = 'dataset'
-    BQ_TABLE_PARAM_KEY = 'table'

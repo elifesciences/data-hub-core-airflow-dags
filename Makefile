@@ -23,7 +23,7 @@ venv-activate:
 dev-install:
 	SLUGIFY_USES_TEXT_UNIDECODE=yes $(PIP) install -r requirements.txt
 	$(PIP) install -r requirements.dev.txt
-	$(PIP) install -e .
+	$(PIP) install -e . --no-deps
 
 dev-venv: venv-create dev-install
 
@@ -41,7 +41,6 @@ dev-unittest:
 
 dev-dagtest:
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/dag_validation_test
-
 
 
 dev-integration-test:

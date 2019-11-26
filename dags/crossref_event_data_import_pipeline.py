@@ -15,9 +15,11 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,
-    CrossRefImportDataPipelineConfig,
     add_datahub_timestamp_field_to_bigquery_schema,
     current_timestamp_as_string,
+)
+from data_pipeline.crossref_event_data.helper_class import (
+    CrossRefImportDataPipelineConfig,
     ExternalTriggerConfig
 )
 from data_pipeline.utils.cloud_data_store.bq_data_service import (
@@ -150,9 +152,7 @@ def crossref_data_etl(**kwargs):
     latest_journal_download_date = (
         get_new_data_download_start_date_from_cloud_storage(
             bucket=data_config.state_file_bucket,
-            object_key=data_config.state_file_name_key,
-            no_of_prior_days_to_last_data_collected_date=data_config.
-            number_of_previous_day_to_process,
+            object_key=data_config.state_file_name_key
         )
     )
     task_run_instance_fullname = get_task_run_instance_fullname(kwargs)

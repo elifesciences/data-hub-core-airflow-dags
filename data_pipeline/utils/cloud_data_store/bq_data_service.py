@@ -9,7 +9,7 @@ from math import ceil
 from typing import List
 
 from google.cloud import bigquery
-from google.cloud.bigquery import LoadJobConfig, Client
+from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
 
@@ -72,13 +72,31 @@ def load_tuple_list_into_bq(tuple_list_to_insert: List[tuple],
 
     for indx in range(ceil(len(tuple_list_to_insert) / MAX_ROWS_INSERTABLE)):
         errors.extend(
-            client.insert_rows(
+            load_tuple_list_page_into_bq(
+                client,
                 table,
                 tuple_list_to_insert[indx * MAX_ROWS_INSERTABLE:
                                      (indx + 1) * MAX_ROWS_INSERTABLE],
             )
         )
     LOGGER.info("Loaded  data into %s:%s.", dataset_name, table_name)
+    return errors
+
+
+def load_tuple_list_page_into_bq(client: Client, table: bq_table,
+                                 tuple_list_to_insert: List[tuple],
+                                 ) -> List[dict]:
+    """
+    :param table:
+    :param client:
+    :param tuple_list_to_insert:
+    :return:
+    """
+
+    errors = client.insert_rows(
+        table,
+        tuple_list_to_insert
+    )
     return errors
 
 

@@ -1,6 +1,7 @@
 """
 test for crossref data pipeline utilities
 """
+import json
 from unittest.mock import patch
 import datetime
 import pytest
@@ -24,7 +25,7 @@ def _download_s3_object(publisher_latest_date,
                         test_download_exception: bool = False):
     with patch.object(
             etl_crossref_event_data_util_module,
-            "download_s3_object_as_string"
+            "download_s3_json_object"
     ) as mock:
         mock.return_value = publisher_latest_date
         if test_download_exception:
@@ -47,7 +48,7 @@ def _get_crossref_data_single_page():
             etl_crossref_event_data_util_module,
             "get_crossref_data_single_page"
     ) as mock:
-        test_data = TestData()
+        test_data = UnitTestData()
         mock.return_value = (None, test_data.get_downloaded_crossref_data())
         yield mock
 
@@ -56,7 +57,7 @@ def test_write_result_to_file_get_latest_record_timestamp():
     """
     :return:
     """
-    test_data = TestData()
+    test_data = UnitTestData()
     max_timestamp = test_data.get_max_timestamp()
     results = (
         preprocess_json_record(
@@ -82,7 +83,7 @@ def test_write_result_to_file(mock_open_file):
     :param mock_open_file:
     :return:
     """
-    test_data = TestData()
+    test_data = UnitTestData()
     results = (
         preprocess_json_record(
             test_data.get_data(),
@@ -111,7 +112,7 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
     :param mock_open_file:
     :return:
     """
-    test_data = TestData()
+    test_data = UnitTestData()
     publisher_id = "pub_id"
     result = etl_crossref_data_return_latest_timestamp(
         base_crossref_url="base_crossref_url",
@@ -125,6 +126,7 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
         full_temp_file_location="temp_file_loc",
         schema=test_data.source_data_schema,
     )
+    result = json.loads(result)
     mock_open_file.assert_called_with("temp_file_loc", "a")
     assert result == test_data.get_publisher_max_timestamp(publisher_id)
     assert mock_download_crossref.called_with(
@@ -140,8 +142,8 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
     "publisher_latest_date, number_of_prv_days, "
     "data_download_start_date",
     [
-        ("A,2019-10-23", 1, {"A": "2019-10-22"}),
-        ("A,2016-09-23", 7, {"A": "2016-09-16"})
+        ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
+        ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
     ],
 )
 def test_get_last_run_day_from_cloud_storage(
@@ -166,7 +168,7 @@ def test_convert_bq_schema_field_list_to_dict():
     """
     :return:
     """
-    test_data = TestData()
+    test_data = UnitTestData()
     source_data = test_data.data_bq_schema_field_list_to_convert_to_dict
     expected_converted_data = (
         test_data.data_bq_schema_field_list_to_convert_to_dict_result
@@ -180,7 +182,7 @@ def test_semi_clean_crossref_record():
     """
     :return:
     """
-    test_data = TestData()
+    test_data = UnitTestData()
     assert (
         test_data.test_data_all_field_present_result ==
         semi_clean_crossref_record(
@@ -215,7 +217,7 @@ def test_semi_clean_crossref_record():
 
 
 # pylint: disable=too-many-instance-attributes
-class TestData:
+class UnitTestData:
     """
     test data mgt class
     """
@@ -415,9 +417,10 @@ class TestData:
                         "%Y-%m-%dT%H:%M:%SZ"))
             except Exception:
                 continue
-        return ",".join([publisher_id,
-                         convert_datetime_to_date_string(
-                             max(all_timestamp))])
+        return {
+            publisher_id:
+            convert_datetime_to_date_string(max(all_timestamp))
+        }
 
     def get_expected_processed_crossref_test_data(self):
         """
