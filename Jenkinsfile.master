@@ -1,7 +1,5 @@
 elifePipeline {
     def commit
-    def DockerImage image
-    def DockerImage latest
 
     lock('data-pipeline--prod') {
         node('containers-jenkins-plugin') {
