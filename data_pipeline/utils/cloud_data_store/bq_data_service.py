@@ -93,23 +93,21 @@ def create_table_if_not_exist(
     :param json_schema:
     :return:
     """
-    try:
-        if not does_bigquery_table_exist(
-                project_name, dataset_name, table_name):
-            client = bigquery.Client()
-            table_id = compose_full_table_name(
-                project_name, dataset_name, table_name)
-            schema = get_schemafield_list_from_json_list(json_schema)
-            table = bigquery.Table(table_id, schema=schema)
-            table = client.create_table(table, True)  # API request
-            LOGGER.info(
-                (
-                    "Created table %s.%s.%s",
-                    table.project, table.dataset_id, table.table_id
-                )
+
+    if not does_bigquery_table_exist(
+            project_name, dataset_name, table_name):
+        client = bigquery.Client()
+        table_id = compose_full_table_name(
+            project_name, dataset_name, table_name)
+        schema = get_schemafield_list_from_json_list(json_schema)
+        table = bigquery.Table(table_id, schema=schema)
+        table = client.create_table(table, True)  # API request
+        LOGGER.info(
+            (
+                "Created table %s.%s.%s",
+                table.project, table.dataset_id, table.table_id
             )
-    except OSError:
-        LOGGER.error("Table Not Created")
+        )
 
 
 def does_bigquery_table_exist(

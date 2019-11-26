@@ -1,22 +1,22 @@
-PROJECT_NAME: 'elife-data-pipeline'
-DATASET: 'de_dev'
+projectName: 'elife-data-pipeline'
+dataset: 'de_dev'
 #possible values for DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION include "replace", "append", "do-not-modify"
 #will modifiy the dataset name and data state name
-DEPLOYMENT_ENV_BASED_OBJECT_NAME_MODIFICATION: 'replace'
-TABLE: 'crossref_event'
-STATE_FILE:
-  BUCKET: 'ci-elife-data-pipeline'
-  OBJECT_NAME: 'airflow_test/crossref_event/date_state'
-SCHEMA_FILE:
-  BUCKET: 'ci-elife-data-pipeline'
-  OBJECT_NAME: 'airflow_test/crossref_event/data_schema/crossref_event_schema.json'
-TEMP_OBJECT_DIR:
-  BUCKET: 'ci-elife-data-pipeline'
-  TEMP_OBJECT_PREFIX: 'airflow_test/crossref_event/tempfiles/'
-PUBLISHER_ID_PREFIXES:
+deploymentEnvBasedObjectNameModification: 'replace'
+table: 'crossref_event'
+stateFile:
+  bucket: 'ci-elife-data-pipeline'
+  objectName: 'airflow_test/crossref_event/date_state'
+schemaFile:
+  bucket: 'ci-elife-data-pipeline'
+  objectName: 'airflow_test/crossref_event/data_schema/crossref_event_schema.json'
+tempOjectDir:
+  bucket: 'ci-elife-data-pipeline'
+  tempObjectPrefix: 'airflow_test/crossref_event/tempfiles/'
+publisherIdPrefixes:
   - '10.7554'
-CROSSREF_EVENT_BASE_URL: "https://api.eventdata.crossref.org/v1/events?rows=10000"
-MESSAGE_KEY: 'message'
-EVENT_KEY: 'events'
-NUMBER_OF_PREVIOUS_DAYS_TO_PROCESS: 0 #ijust ensure that there is no date for which data was not downloaded
-IMPORTED_TIMESTAMP_FIELD: 'data_hub_imported_timestamp'
+CrossrefEventBaseUrl: "https://api.eventdata.crossref.org/v1/events?rows=10000"
+messageKey: 'message'
+eventKey: 'events'
+numberOfPreviousDayToProcess: 0 #ijust ensure that there is no date for which data was not downloaded
+importedTimestampField: 'data_hub_imported_timestamp'

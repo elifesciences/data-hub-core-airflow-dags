@@ -3,9 +3,22 @@ s3 data service
 written by m.owonibi
 """
 import json
+from contextlib import contextmanager
 import yaml
 import boto3
-from botocore.exceptions import ClientError
+
+
+@contextmanager
+def s3_open_binary_read(bucket: str, object_key: str):
+    """
+    :param bucket:
+    :param object_key:
+    :return:
+    """
+    s3_client = boto3.client('s3')
+    response = s3_client.get_object(Bucket=bucket, Key=object_key)
+    streaming_body = response['Body']
+    yield streaming_body
 
 
 def download_s3_yaml_object_as_json(bucket: str, object_key: str) -> dict:
@@ -14,13 +27,9 @@ def download_s3_yaml_object_as_json(bucket: str, object_key: str) -> dict:
     :param object_key:
     :return:
     """
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.get_object(Bucket=bucket, Key=object_key)
-        file_content_as_json = yaml.safe_load(response["Body"])
-        return file_content_as_json
-    except ClientError:
-        return None
+    with s3_open_binary_read(bucket=bucket, object_key=object_key)\
+            as streaming_body:
+        return yaml.safe_load(streaming_body)
 
 
 def download_s3_json_object(bucket: str, object_key: str) -> dict:
@@ -29,13 +38,9 @@ def download_s3_json_object(bucket: str, object_key: str) -> dict:
     :param object_key:
     :return:
     """
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.get_object(Bucket=bucket, Key=object_key)
-        json_obj = json.load(response["Body"])
-        return json_obj
-    except ClientError:
-        return None
+    with s3_open_binary_read(bucket=bucket, object_key=object_key)\
+            as streaming_body:
+        return json.load(streaming_body)
 
 
 def download_s3_object_as_string(bucket: str, object_key: str) -> str:
@@ -44,13 +49,10 @@ def download_s3_object_as_string(bucket: str, object_key: str) -> str:
     :param object_key:
     :return:
     """
-    s3_client = boto3.client('s3')
-    try:
-        response = s3_client.get_object(Bucket=bucket, Key=object_key)
-        file_content = response["Body"].read()
+    with s3_open_binary_read(bucket=bucket, object_key=object_key) \
+            as streaming_body:
+        file_content = streaming_body.read()
         return file_content.decode('utf-8')
-    except ClientError:
-        return None
 
 
 def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:
@@ -61,8 +63,5 @@ def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:
     :return:
     """
     s3_client = boto3.client('s3')
-    try:
-        s3_client.put_object(Body=data_object, Bucket=bucket, Key=object_key)
-        return True
-    except ClientError:
-        return False
+    s3_client.put_object(Body=data_object, Bucket=bucket, Key=object_key)
+    return True

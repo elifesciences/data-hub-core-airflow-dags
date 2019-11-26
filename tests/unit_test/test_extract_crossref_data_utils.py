@@ -58,7 +58,7 @@ def test_write_result_to_file_get_latest_record_timestamp():
     """
     test_data = TestData()
     max_timestamp = test_data.get_max_timestamp()
-    n_results = (
+    results = (
         preprocess_json_record(
             test_data.get_data(),
             test_data.data_imported_timestamp_key,
@@ -67,7 +67,7 @@ def test_write_result_to_file_get_latest_record_timestamp():
     )
     latest_collected_record_timestamp = (
         get_latest_json_record_list_timestamp(
-            n_results,
+            results,
             datetime.datetime.strptime(
                 "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
             )
@@ -83,16 +83,24 @@ def test_write_result_to_file(mock_open_file):
     :return:
     """
     test_data = TestData()
-    n_results = (
+    results = (
         preprocess_json_record(
             test_data.get_data(),
             test_data.data_imported_timestamp_key,
             test_data.data_imported_timestamp,
             test_data.source_data_schema)
     )
-    write_result_to_file(
-        n_results,
+    written_json = write_result_to_file(
+        results,
         "tempfileloc"
+    )
+    (
+        get_latest_json_record_list_timestamp(
+            written_json,
+            datetime.datetime.strptime(
+                "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
+            )
+        )
     )
     mock_open_file.assert_called_with("tempfileloc", "a")
 

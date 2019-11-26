@@ -141,7 +141,6 @@ def crossref_data_etl(**kwargs):
         key="data_config",
         task_ids="get_data_config")
     data_config = CrossRefImportDataPipelineConfig(data_config_dict)
-    Path(data_config.temp_file_dir).mkdir(parents=True, exist_ok=True)
 
     data_schema = dag_context.xcom_pull(
         key="data_schema",
@@ -201,7 +200,7 @@ def crossref_data_etl(**kwargs):
             imported_timestamp_key=data_config.imported_timestamp_field,
             full_temp_file_location=full_temp_file_location,
             schema=data_schema,
-            until_collected_date_as_string=until_collected_date
+            until_date_as_string=until_collected_date
         )
 
         load_file_into_bq(

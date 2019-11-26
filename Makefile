@@ -21,13 +21,9 @@ venv-activate:
 	bash -c "venv/bin/activate"
 
 dev-install:
-	$(PIP) install -e .
-
-	export SLUGIFY_USES_TEXT_UNIDECODE=yes
-
-	$(PIP) install -r requirements.txt
-
+	SLUGIFY_USES_TEXT_UNIDECODE=yes $(PIP) install -r requirements.txt
 	$(PIP) install -r requirements.dev.txt
+	$(PIP) install -e .
 
 dev-venv: venv-create dev-install
 
@@ -68,7 +64,7 @@ ci-test-exclude-e2e: build-dev
 	$(DOCKER_COMPOSE) run --rm datahub-dags-dev ./run_test.sh
 
 
-ci-end2end-test:
+ci-end2end-test: build-dev
 	$(DOCKER_COMPOSE) run --rm  ci-test-client ./run_test.sh with-end-to-end
 
 ci-env: build-dev
