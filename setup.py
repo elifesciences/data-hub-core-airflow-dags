@@ -13,7 +13,7 @@ PACKAGES = [x for x in PACKAGES
             if x not in {'dags', 'tests'}]
 
 setup(
-    name='data_pipeline',
+    name='data-hub-core-airflow-dags',
     version='0.0.1',
     install_requires=REQUIRED_PACKAGES,
     packages=PACKAGES,
