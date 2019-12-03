@@ -223,17 +223,11 @@ def convert_bq_schema_field_list_to_dict(json_list, ) -> dict:
     :return: dictionary  of biquery field record
     where each key of of dictionary is the field name
     """
-    k_name = EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY.lower()
-    schema_list_as_dict = dict()
-    for bq_schema_field in json_list:
-        bq_field_name_list = [
-            v for k, v in bq_schema_field.items() if k.lower() == k_name]
-        bq_schema_field_lower_case_key_name = {
-            k.lower(): v for k, v in bq_schema_field.items()}
-        if len(bq_field_name_list) == 1:
-            schema_list_as_dict[bq_field_name_list[0]
-                                ] = bq_schema_field_lower_case_key_name
-    return schema_list_as_dict
+    return {
+        bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
+        bq_schema_field
+        for bq_schema_field in json_list
+        }
 
 
 def standardize_field_name(field_name):
