@@ -4,6 +4,8 @@ test for s3_data_service
 from unittest.mock import patch
 import pytest
 import boto3
+from botocore.compat import six
+from botocore.response import StreamingBody
 from data_pipeline.utils.cloud_data_store.s3_data_service import (
     download_s3_yaml_object_as_json,
 )
@@ -13,8 +15,12 @@ from data_pipeline.utils.cloud_data_store.s3_data_service import (
 def _download_yaml():
     with patch.object(boto3, "client") as mock:
         test_data = UnitTestData()
+        data = test_data.source_yaml
+        body = six.BytesIO(data.encode())
+        streaming_body = StreamingBody(body, len(data.encode()))
+        resp = {"Body": streaming_body}
         mock.return_value.get_object.return_value = (
-            test_data.get_source_yaml_s3_response()
+            resp
         )
         yield mock
 
@@ -23,8 +29,12 @@ def _download_yaml():
 def _download_string():
     with patch.object(boto3, "client") as mock:
         test_data = UnitTestData()
+        data = test_data.source_sample_string
+        body = six.BytesIO(data.encode())
+        streaming_body = StreamingBody(body, len(data.encode()))
+        resp = {"Body": streaming_body}
         mock.return_value.get_object.return_value = (
-            test_data.get_source_string_s3_response()
+            resp
         )
         yield mock
 
@@ -47,7 +57,7 @@ def test_download_yaml_as_json_file(mock_download_yaml):
 
 def test_download_string_file(mock_download_string):
     """
-    :param mock_download_yaml:
+    :param mock_download_string:
     :return:
     """
     test_data = UnitTestData()

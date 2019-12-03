@@ -112,8 +112,8 @@ def get_new_journal_download_start_date_as_str(
 def get_crossref_data_single_page(
         base_crossref_url: str,
         cursor=None,
-        journal_doi_prefix: str = "",
-        from_date_collected_as_string: str = "2019-08-01",
+        journal_doi_prefix: str = None,
+        from_date_collected_as_string: str = None,
         until_collected_date_as_string: str = None,
         message_key: str = "message",
 ) -> (str, dict):
@@ -139,34 +139,34 @@ def get_crossref_data_single_page(
     if cursor:
         url += "&cursor=" + cursor
 
-    session = requests.Session()
     http_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
     https_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
-    session.mount("http://", http_session_mount)
-    session.mount("https://", https_session_mount)
-    session_request = session.get(url)
-    session_request.raise_for_status()
-    resp = session_request.json()
+    with requests.Session() as session:
+        session.mount("http://", http_session_mount)
+        session.mount("https://", https_session_mount)
+        session_request = session.get(url)
+        session_request.raise_for_status()
+        resp = session_request.json()
     return resp[message_key][EtlModuleConstant.MESSAGE_NEXT_CURSOR_KEY], resp
 
 
 def preprocess_json_record(
         json_list,
-        datahub_imported_timestamp_key,
-        datahub_imported_timestamp,
+        data_hub_imported_timestamp_key,
+        data_hub_imported_timestamp,
         schema
 ) -> Iterable[dict]:
     """
     :param json_list:
-    :param datahub_imported_timestamp_key:
-    :param datahub_imported_timestamp:
+    :param data_hub_imported_timestamp_key:
+    :param data_hub_imported_timestamp:
     :param schema:
     :return:
     """
     return (
         transform_record(record,
-                         datahub_imported_timestamp_key,
-                         datahub_imported_timestamp,
+                         data_hub_imported_timestamp_key,
+                         data_hub_imported_timestamp,
                          schema=schema)
         for record in json_list
     )
@@ -294,7 +294,7 @@ def transform_record(
         record, imported_timestamp_key, imported_timestamp, schema
 ) -> dict:
     """
-    cleanse record, add datahub imported timestamp field
+    cleanse record, add data hub imported timestamp field
     :param record:
     :param imported_timestamp_key:
     :param imported_timestamp:
@@ -475,7 +475,7 @@ def etl_crossref_data_return_latest_timestamp(
     ).encode('UTF-8')
 
 
-def add_datahub_timestamp_field_to_bigquery_schema(
+def add_data_hub_timestamp_field_to_bigquery_schema(
         schema_json, imported_timestamp_field_name) -> dict:
     """
     :param schema_json:

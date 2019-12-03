@@ -15,7 +15,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,
-    add_datahub_timestamp_field_to_bigquery_schema,
+    add_data_hub_timestamp_field_to_bigquery_schema,
     current_timestamp_as_string,
 )
 from data_pipeline.crossref_event_data.helper_class import (
@@ -31,8 +31,6 @@ from data_pipeline.utils.cloud_data_store.s3_data_service import (
     download_s3_json_object,
     upload_s3_object,
 )
-
-# pylint: disable=invalid-name, pointless-statement
 
 
 LOGGER = logging.getLogger(__name__)
@@ -95,7 +93,7 @@ def get_data_config(**kwargs):
         else data_config.modify_config_based_on_deployment_env(dep_env)
     )
 
-    kwargs["ti"].xcom_push(key="data_config", value=env_based_data_config)
+    kwargs["ti"].xcom_push(key="sample_data_config", value=env_based_data_config)
 
 
 def create_bq_table_if_not_exist(**kwargs):
@@ -105,14 +103,14 @@ def create_bq_table_if_not_exist(**kwargs):
     """
     dag_context = kwargs["ti"]
     data_config_dict = dag_context.xcom_pull(
-        key="data_config",
+        key="sample_data_config",
         task_ids="get_data_config")
     data_config = CrossRefImportDataPipelineConfig(data_config_dict)
 
     schema_json = download_s3_json_object(
         data_config.schema_file_s3_bucket, data_config.schema_file_object_name
     )
-    new_schema = add_datahub_timestamp_field_to_bigquery_schema(
+    new_schema = add_data_hub_timestamp_field_to_bigquery_schema(
         schema_json, data_config.imported_timestamp_field)
 
     kwargs["ti"].xcom_push(key="data_schema", value=new_schema)
@@ -140,7 +138,7 @@ def crossref_data_etl(**kwargs):
     """
     dag_context = kwargs["ti"]
     data_config_dict = dag_context.xcom_pull(
-        key="data_config",
+        key="sample_data_config",
         task_ids="get_data_config")
     data_config = CrossRefImportDataPipelineConfig(data_config_dict)
 
@@ -228,7 +226,7 @@ def log_last_record_date(**kwargs):
     )
 
     data_config_dict = dag_context.xcom_pull(
-        key="data_config",
+        key="sample_data_config",
         task_ids="get_data_config")
     data_config = CrossRefImportDataPipelineConfig(data_config_dict)
     state_file_name_key = data_config.state_file_name_key
@@ -239,6 +237,7 @@ def log_last_record_date(**kwargs):
         data_object=latest_record_date)
 
 
+## pylint: disable=invalid-name, pointless-statement
 get_data_config_task = create_python_task(
     dag, "get_data_config", get_data_config, retries=5
 )

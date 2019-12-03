@@ -18,7 +18,10 @@ def s3_open_binary_read(bucket: str, object_key: str):
     s3_client = boto3.client('s3')
     response = s3_client.get_object(Bucket=bucket, Key=object_key)
     streaming_body = response['Body']
-    yield streaming_body
+    try:
+        yield streaming_body
+    finally:
+        streaming_body.close()
 
 
 def download_s3_yaml_object_as_json(bucket: str, object_key: str) -> dict:

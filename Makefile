@@ -1,7 +1,9 @@
 #!/usr/bin/make -f
 
-DOCKER_COMPOSE_DEV = docker-compose
-DOCKER_COMPOSE = $(DOCKER_COMPOSE_DEV)
+DOCKER_COMPOSE_CI = docker-compose
+DOCKER_COMPOSE_DEV = docker-compose -f docker-compose.yml -f docker-compose.dev.override.yml
+DOCKER_COMPOSE = $(DOCKER_COMPOSE_CI)
+
 
 VENV = venv
 PIP = $(VENV)/bin/pip
@@ -42,32 +44,27 @@ dev-unittest:
 dev-dagtest:
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/dag_validation_test
 
-
-dev-integration-test:
-	pip install -e .  --no-dependencies
-	airflow upgradedb
+dev-integration-test: dev-install
+	(VENV)/bin/airflow upgradedb
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/integration_test
 
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
 build:
-	$(DOCKER_COMPOSE) build datahub_image
-
+	$(DOCKER_COMPOSE) build data-hub_image
 
 build-dev:
-	$(DOCKER_COMPOSE) build datahub-dags-dev
-
+	$(DOCKER_COMPOSE) build data-hub-dags-dev
 
 ci-test-exclude-e2e: build-dev
-	$(DOCKER_COMPOSE) run --rm datahub-dags-dev ./run_test.sh
-
+	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
 
 ci-end2end-test: build-dev
-	$(DOCKER_COMPOSE) run --rm  ci-test-client ./run_test.sh with-end-to-end
+	$(DOCKER_COMPOSE) run --rm  test-client
 
-ci-env: build-dev
-	$(DOCKER_COMPOSE) up  scheduler
+dev-env: build-dev
+	$(DOCKER_COMPOSE_DEV) up  scheduler
 
 ci-clean:
 	$(DOCKER_COMPOSE) down -v

@@ -18,26 +18,29 @@ LOGGER = logging.getLogger(__name__)
 MAX_ROWS_INSERTABLE = 1000
 
 
+# pylint: disable=too-many-arguments
 def load_file_into_bq(
         filename: str,
         dataset_name: str,
         table_name: str,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
-        rows_to_skip=0
+        rows_to_skip=0,
+        project_name: str = None,
 ):
     """
+    :param project_name:
     :param filename:
     :param dataset_name:
     :param table_name:
     :param source_format:
     :param rows_to_skip:
-    :param bq_ignore_unknown_values:
     :return:
     """
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
         return
-    client = Client()
+    client = Client(project=project_name) \
+        if project_name else Client()
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
     job_config = LoadJobConfig()
