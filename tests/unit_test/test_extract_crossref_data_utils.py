@@ -1,6 +1,3 @@
-"""
-test for crossref data pipeline utilities
-"""
 import json
 from unittest.mock import patch
 import datetime
@@ -54,9 +51,6 @@ def _get_crossref_data_single_page():
 
 
 def test_write_result_to_file_get_latest_record_timestamp():
-    """
-    :return:
-    """
     test_data = UnitTestData()
     max_timestamp = test_data.get_max_timestamp()
     results = (
@@ -79,10 +73,6 @@ def test_write_result_to_file_get_latest_record_timestamp():
 
 
 def test_write_result_to_file(mock_open_file):
-    """
-    :param mock_open_file:
-    :return:
-    """
     test_data = UnitTestData()
     results = (
         preprocess_json_record(
@@ -107,11 +97,6 @@ def test_write_result_to_file(mock_open_file):
 
 
 def test_etl_crossref_data(mock_download_crossref, mock_open_file):
-    """
-    :param mock_download_crossref:
-    :param mock_open_file:
-    :return:
-    """
     test_data = UnitTestData()
     publisher_id = "pub_id"
     result = etl_crossref_data_return_latest_timestamp(
@@ -151,12 +136,6 @@ def test_get_last_run_day_from_cloud_storage(
         number_of_prv_days,
         data_download_start_date,
 ):
-    """
-    :param mock_download_s3_object:
-    :param number_of_prv_days:
-    :param data_download_start_date:
-    :return:
-    """
     from_date = get_new_data_download_start_date_from_cloud_storage(
         "bucket", "object_key", number_of_prv_days
     )
