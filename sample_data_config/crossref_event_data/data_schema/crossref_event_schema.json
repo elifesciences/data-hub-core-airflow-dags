@@ -1,0 +1,430 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "action",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "evidence_record",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "imported_timestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "license",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "message_action",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "_type",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "familyName",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "givenName",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "author",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dateModified",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "datePublished",
+        "type": "DATE"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "method",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "issn",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "periodical",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pid",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "publisher",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "registrantId",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "verification",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "volumeNumber",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_type_id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "obj",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "obj_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "occurred_at",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "relation_type_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "source_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "source_token",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "alternative_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "api_url",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "fields": [
+              {
+                "mode": "NULLABLE",
+                "name": "_type",
+                "type": "STRING"
+              },
+              {
+                "mode": "NULLABLE",
+                "name": "name",
+                "type": "STRING"
+              }
+            ],
+            "mode": "NULLABLE",
+            "name": "affiliation",
+            "type": "RECORD"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "familyName",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "givenName",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "url",
+            "type": "STRING"
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "author",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dateModified",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "datePublished",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_id",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "funder",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "issued",
+        "type": "TIMESTAMP"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "json_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "jurisdiction",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "name",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "original_tweet_author",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "original_tweet_url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "pid",
+        "type": "STRING"
+      },
+      {
+        "mode": "REPEATED",
+        "name": "proxyIdentifiers",
+        "type": "STRING"
+      },
+      {
+        "fields": [
+          {
+            "mode": "NULLABLE",
+            "name": "_type",
+            "type": "STRING"
+          },
+          {
+            "mode": "NULLABLE",
+            "name": "name",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "publisher",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "registrantId",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "title",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "version",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_subtype_id",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "work_type_id",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "subj",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "subj_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "terms",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "timestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "updated_reason",
+    "type": "STRING"
+  }
+]
