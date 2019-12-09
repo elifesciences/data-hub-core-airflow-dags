@@ -1,0 +1,34 @@
+#spreadsheetId: '1VnpuiY3o4iCEIEWjCKfXFFyowxTfTxzno2VU5UnRINE'
+spreadsheetId: "1uJeTI0aL7Zu-sm1itVvOMbstWvgcEykh72n5oteMtsA"
+importedTimestampFieldName: "imported_timestamp"
+gcpProjectName: 'elife-data-pipeline'
+sheets :
+  - sheetName : 'BREs'
+    sheetRange : ''
+    headerLineIndex : 0
+    dataValuesStartLineIndex : 1
+    projectName : 'elife-data-pipeline'
+    datasetName : 'ci'
+    tableName : 'BRE_Keywords'
+    tableWriteAppend: "true"
+    schema:
+      bucket: 'ci-elife-data-pipeline'
+      objectName: "airflow_test/spreadsheet_data/BRE_keywords/schema/bre_keywords.json"
+    fixedSheetMetadata :
+      - metadataSchemaFieldName : 'editor_role'
+        fixedSheetValue: "BRE"
+
+  - sheetName : 'Senior Editors'
+    sheetRange : ''
+    headerLineIndex : 0
+    dataValuesStartLineIndex : 1
+    projectName : 'elife-data-pipeline'
+    datasetName : 'ci'
+    tableName : 'BRE_Keywords'
+    tableWriteAppend: "true"
+    schema:
+      bucket: 'ci-elife-data-pipeline'
+      objectName: "airflow_test/spreadsheet_data/BRE_keywords/schema/bre_keywords.json"
+    fixedSheetMetadata :
+      - metadataSchemaFieldName : 'editor_role'
+        fixedSheetValue: "Senior Editor"

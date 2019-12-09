@@ -10,15 +10,12 @@ from datetime import timezone
 from datetime import timedelta
 from typing import Iterable
 import requests
-from data_pipeline.utils.cloud_data_store.s3_data_service \
+from data_pipeline.utils.data_store.s3_data_service \
     import download_s3_json_object
 
 
 # pylint: disable=too-few-public-methods
 class EtlModuleConstant:
-    """
-    configuration for module and the data downloaded from crossref
-    """
     DEFAULT_DATA_COLLECTION_START_DATE = "2000-01-01"
     # config for the crossref data
     CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY = "timestamp"
@@ -33,10 +30,6 @@ class EtlModuleConstant:
 
 
 def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
-    """
-    :param number_of_days_before:
-    :return: date of some days before now as string
-    """
     dtobj = datetime.datetime.now(
         timezone.utc) - timedelta(number_of_days_before)
     return dtobj.strftime(EtlModuleConstant.STATE_FILE_DATE_FORMAT)
@@ -45,22 +38,12 @@ def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
 def convert_datetime_to_date_string(
         datetime_obj: datetime,
         time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT) -> str:
-    """
-    :param time_format:
-    :param datetime_obj:
-    :return: date string
-    """
     return datetime_obj.strftime(time_format)
 
 
 def parse_datetime_from_str(
         date_as_string: str,
         time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT):
-    """
-    :param time_format:
-    :param date_as_string:
-    :return:
-    """
     return datetime.datetime.strptime(
         date_as_string.strip(), time_format
     )
@@ -71,15 +54,6 @@ def get_new_data_download_start_date_from_cloud_storage(
         bucket: str, object_key: str,
         no_of_prior_days_to_last_data_collected_date: int = 0
 ) -> dict:
-    """
-    :param bucket:
-    :param object_key:
-    :param no_of_prior_days_to_last_data_collected_date:
-    number of days to the last data collection date to process,
-    this is to ensure that there is overalap in data downloaded
-    :return:
-    """
-
     journal_last_record_date = (
         download_s3_json_object(bucket, object_key)
     )
@@ -425,20 +399,6 @@ def etl_crossref_data_return_latest_timestamp(
         schema: list,
         until_date_as_string: str = None
 ) -> str:
-    """
-    :param until_date_as_string:
-    :param base_crossref_url:
-    :param latest_journal_download_date:
-    :param journal_doi_prefixes:
-    :param message_key:
-    :param event_key:
-    :param imported_timestamp_key:
-    :param imported_timestamp:
-    :param full_temp_file_location:
-    :param schema:
-    :return: string containing journal doi prefix, and latest record timestamp
-    this ideally should be written to s3
-    """
     journal_latest_timestamp = {}
     for journal_doi_prefix in journal_doi_prefixes:
         from_date_as_string = (
@@ -471,11 +431,6 @@ def etl_crossref_data_return_latest_timestamp(
 
 def add_data_hub_timestamp_field_to_bigquery_schema(
         schema_json, imported_timestamp_field_name) -> dict:
-    """
-    :param schema_json:
-    :param imported_timestamp_field_name:
-    :return:
-    """
     new_schema = [
         x for x in schema_json
         if imported_timestamp_field_name not in x.keys()]
@@ -490,8 +445,5 @@ def add_data_hub_timestamp_field_to_bigquery_schema(
 
 
 def current_timestamp_as_string():
-    """
-    :return:
-    """
     dtobj = datetime.datetime.now(timezone.utc)
     return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")

@@ -1,6 +1,3 @@
-"""
-dag for  crossref data import into bigquery
-"""
 import os
 import logging
 from datetime import timedelta
@@ -22,11 +19,11 @@ from data_pipeline.crossref_event_data.helper_class import (
     CrossRefImportDataPipelineConfig,
     ExternalTriggerConfig
 )
-from data_pipeline.utils.cloud_data_store.bq_data_service import (
+from data_pipeline.utils.data_store.bq_data_service import (
     create_table_if_not_exist,
     load_file_into_bq,
 )
-from data_pipeline.utils.cloud_data_store.s3_data_service import (
+from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_yaml_object_as_json,
     download_s3_json_object,
     upload_s3_object,
@@ -40,7 +37,7 @@ CROSSREF_CONFIG_S3_BUCKET_NAME = 'CROSSREF_CONFIG_S3_BUCKET'
 DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE = "ci-elife-data-pipeline"
 CROSSREF_CONFIG_S3_OBJECT_KEY_NAME = 'CROSSREF_CONFIG_S3_OBJECT_KEY'
 DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE = (
-    "airflow_test/crossref_event/elife-data-pipeline.config.yaml"
+    "airflow_test/crossref_event/elife-bre_distribution.config.yaml"
 )
 CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY = 'CROSS_REF_IMPORT_SCHEDULE_INTERVAL'
 DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = None

@@ -1,8 +1,3 @@
-"""
-bq data service
-written by tayowonibi
-"""
-
 import logging
 import os
 from math import ceil
@@ -12,6 +7,8 @@ from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
+from google.cloud.bigquery import WriteDisposition
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,18 +21,11 @@ def load_file_into_bq(
         dataset_name: str,
         table_name: str,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+        write_mode=WriteDisposition.WRITE_APPEND,
+        auto_detect_schema=False,
         rows_to_skip=0,
         project_name: str = None,
 ):
-    """
-    :param project_name:
-    :param filename:
-    :param dataset_name:
-    :param table_name:
-    :param source_format:
-    :param rows_to_skip:
-    :return:
-    """
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
         return
@@ -44,6 +34,8 @@ def load_file_into_bq(
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
     job_config = LoadJobConfig()
+    job_config.write_disposition = write_mode
+    job_config.autodetect = auto_detect_schema
     job_config.source_format = source_format
     if source_format is bigquery.SourceFormat.CSV:
         job_config.skip_leading_rows = rows_to_skip
@@ -61,12 +53,6 @@ def load_file_into_bq(
 
 def load_tuple_list_into_bq(tuple_list_to_insert: List[tuple],
                             dataset_name: str, table_name: str) -> List[dict]:
-    """
-    :param tuple_list_to_insert:
-    :param dataset_name:
-    :param table_name:
-    :return:
-    """
     client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request

@@ -1,0 +1,77 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "Last_Name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "First_Name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Middle_Name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Institution",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Country",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Other_Country_Not_US_UK_Germany",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Continent",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Gender",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Year_Of_Independence",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Current_Year",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Years_Since_Independence",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Career_Stage",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "Career_Stage_With_NAs",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "data_import_timestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "metadata_example",
+    "type": "STRING"
+  }
+]

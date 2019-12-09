@@ -5,11 +5,11 @@ from unittest.mock import patch
 from math import ceil
 import pytest
 
-from data_pipeline.utils.cloud_data_store.bq_data_service import (
+from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     load_tuple_list_into_bq,
 )
-import data_pipeline.utils.cloud_data_store.bq_data_service \
+import data_pipeline.utils.data_store.bq_data_service \
     as bq_data_service_module
 
 

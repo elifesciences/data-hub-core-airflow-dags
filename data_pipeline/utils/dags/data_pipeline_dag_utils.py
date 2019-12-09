@@ -6,7 +6,9 @@ import logging
 from datetime import timedelta
 
 import airflow
+
 from airflow.operators.python_operator import PythonOperator
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,21 +31,16 @@ def create_python_task(
         task_id,
         python_callable,
         trigger_rule='all_success',
-        retries=0):
-    """
-    :param dag:
-    :param task_id:
-    :param python_callable:
-    :param trigger_rule:
-    :param retries:
-    :return:
-    """
+        retries=0,
+        op_kwargs=None):
+
     return PythonOperator(
         task_id=task_id,
         dag=dag,
         python_callable=python_callable,
         trigger_rule=trigger_rule,
-        retries=retries)
+        retries=retries,
+        op_kwargs=op_kwargs)
 
 
 def get_task_run_instance_fullname(task_context):
@@ -53,3 +50,5 @@ def get_task_run_instance_fullname(task_context):
     """
     return '___'.join([task_context.get('dag').dag_id, task_context.get(
         'run_id'), task_context.get('task').task_id])
+
+

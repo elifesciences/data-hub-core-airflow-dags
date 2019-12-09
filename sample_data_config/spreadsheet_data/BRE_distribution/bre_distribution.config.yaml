@@ -1,0 +1,55 @@
+spreadsheetId: '1nQcLBO_yIumkXousRg_-l9Kx1HmiG7NcvDg1vkrdK-0'
+importedTimestampFieldName: "data_import_timestamp"
+gcpProjectName: 'elife-data-pipeline'
+sheets :
+  - sheetName : 'BRE distribution_current'
+    sheetRange : ''
+    headerLineIndex : 0
+    dataValuesStartLineIndex : 1
+    projectName : 'elife-data-pipeline'
+    datasetName : 'ci'
+    tableName : 'BRE_Distribution'
+    tableWriteAppend: "true"
+    schema:
+      bucket: 'ci-elife-data-pipeline'
+      objectName: "airflow_test/spreadsheet_data/BRE_distribution/schema/bre_distribution_current.json"
+    metadata :
+      - metadataSchemaFieldName : 'metadata_example'
+        metadataLineIndex: 1
+    headerMappingToSchema:
+      - dataSource : 'Last name'
+        dataDestination : 'Last_Name'
+      - dataSource : 'First name'
+        dataDestination : 'First_Name'
+      - dataSource : 'Middle name'
+        dataDestination : 'Middle_Name'
+      - dataSource : 'Institution'
+        dataDestination : 'Institution'
+      - dataSource : 'Country'
+        dataDestination : 'Country'
+      - dataSource : 'Other country (not US, UK, Germany)'
+        dataDestination : 'Other_Country_Not_US_UK_Germany'
+      - dataSource : 'Continent'
+        dataDestination : 'Continent'
+      - dataSource : 'Gender'
+        dataDestination : 'Gender'
+      - dataSource : 'Year of independence'
+        dataDestination : 'Year_Of_Independence'
+      - dataSource : 'Current year'
+        dataDestination : 'Current_Year'
+      - dataSource : 'Years since independence'
+        dataDestination : 'Years_Since_Independence'
+      - dataSource : 'Career stage'
+        dataDestination : 'Career_Stage'
+      - dataSource : 'Career stage with NAs'
+        dataDestination : 'Career_Stage_With_NAs'
+  - sheetName : 'Country and continent list'
+    sheetRange : 'A:B'
+    tableName : 'bre_countries'
+    tableWriteAppend: "false"
+    headerLineIndex: 0
+    dataValuesStartLineIndex: 1
+    datasetName: 'ci'
+    schema:
+      bucket: 'ci-elife-data-pipeline'
+      objectName: "airflow_test/spreadsheet_data/BRE_distribution/schema/country_name_schema.json"
