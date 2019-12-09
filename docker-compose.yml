@@ -1,0 +1,110 @@
+version: '3'
+
+services:
+    data-hub-dags:
+        environment:
+            GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        build:
+            context: .
+        image: elifesciences/data-hub-core-dags
+        command: ''
+
+
+    data-hub-dags-dev:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            args:
+                install_dev: y
+        image:  elifesciences/data-hub-core-dags-dev
+        command: /bin/sh -c exit 0
+        entrypoint: []
+
+    webserver:
+        depends_on:
+            - postgres
+            - dask-worker
+            - dask-scheduler
+        environment:
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        image:  elifesciences/data-hub-core-dags-dev
+        entrypoint: /entrypoint.sh
+        command: webserver
+
+    scheduler:
+        image:  elifesciences/data-hub-core-dags-dev
+        depends_on:
+            - webserver
+        environment:
+            - AIRFLOW_HOST=webserver
+            - AIRFLOW_PORT=8080
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+        entrypoint: /entrypoint.sh
+        command: scheduler
+
+    test-client:
+        image:  elifesciences/data-hub-core-dags-dev
+        depends_on:
+            - scheduler
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/airflow/.config/gcloud/credentials.json
+            - LOAD_EX=n
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW_HOST=webserver
+            - AIRFLOW_PORT=8080
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        command: >
+            bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
+            && ./run_test.sh with-end-to-end"
+
+
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    dask-scheduler:
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+        image: elifesciences/data-hub-core-dags-dev
+        hostname: dask-scheduler
+        entrypoint: [ ]
+        command: ["dask-scheduler"]
+
+    dask-worker:
+        environment:
+            - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/airflow/.config/gcloud/credentials.json
+            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+        depends_on:
+          - dask-scheduler
+        volumes:
+            - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        image: elifesciences/data-hub-core-dags-dev
+        hostname: dask-worker
+        ports:
+          - "8793:8793"
+        entrypoint: []
+        command: >
+            bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
+            && ./worker.sh tcp://dask-scheduler:8786"
