@@ -156,11 +156,6 @@ def write_result_to_file(
 
 
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
-    """
-    :param json_list: list of fields of biquery record
-    :return: dictionary  of biquery field record
-    where each key of of dictionary is the field name
-    """
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
             bq_schema_field
@@ -338,7 +333,7 @@ def etl_crossref_data_return_latest_timestamp(
 
     return json.dumps(
         journal_latest_timestamp, ensure_ascii=False, indent=4
-    ).encode("UTF-8")
+    )
 
 
 def add_data_hub_timestamp_field_to_bigquery_schema(
