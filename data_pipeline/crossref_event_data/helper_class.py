@@ -53,13 +53,13 @@ class CrossRefImportDataPipelineConfig:
 
     def modify_config_based_on_env(self, deployment_env):
 
-        self.data_config["DATASET"] = (
+        self.data_config["dataset"] = (
             self.get_dataset_name_based_on_deployment_env(
                 deployment_env
             )
         )
-        self.data_config["STATE_FILE"][
-            "OBJECT_NAME"
+        self.data_config["stateFile"][
+            "objectName"
         ] = self.get_state_object_name_based_on_deployment_env(deployment_env)
         return self.data_config
 
