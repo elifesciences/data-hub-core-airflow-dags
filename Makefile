@@ -29,7 +29,6 @@ dev-install:
 
 dev-venv: venv-create dev-install
 
-
 dev-flake8:
 	$(PYTHON) -m flake8 data_pipeline dags tests
 
@@ -50,7 +49,6 @@ dev-integration-test: dev-install
 
 dev-test: dev-lint dev-unittest dev-dagtest
 
-
 build:
 	$(DOCKER_COMPOSE) build data-hub_image
 
@@ -64,7 +62,7 @@ ci-end2end-test: build-dev
 	$(DOCKER_COMPOSE) run --rm  test-client
 
 dev-env: build-dev
-	$(DOCKER_COMPOSE_DEV) up  scheduler
+	$(DOCKER_COMPOSE_DEV) up  --scale dask-worker=5 scheduler
 
 ci-clean:
 	$(DOCKER_COMPOSE) down -v

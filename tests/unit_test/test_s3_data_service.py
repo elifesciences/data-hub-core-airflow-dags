@@ -6,7 +6,7 @@ import pytest
 import boto3
 from botocore.compat import six
 from botocore.response import StreamingBody
-from data_pipeline.utils.cloud_data_store.s3_data_service import (
+from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_yaml_object_as_json,
 )
 

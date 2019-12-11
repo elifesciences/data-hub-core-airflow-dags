@@ -12,7 +12,6 @@ services:
         image: elifesciences/data-hub-core-dags
         command: ''
 
-
     data-hub-dags-dev:
         build:
             context: .
@@ -68,8 +67,7 @@ services:
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
-            && ./run_test.sh with-end-to-end"
-
+            &&./run_test.sh with-end-to-end"
 
     postgres:
         image: postgres:9.6
@@ -102,8 +100,6 @@ services:
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/data-hub-core-dags-dev
         hostname: dask-worker
-        ports:
-          - "8793:8793"
         entrypoint: []
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud

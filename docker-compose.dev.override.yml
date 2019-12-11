@@ -16,3 +16,6 @@ services:
     dask-worker:
         volumes:
             - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+        command: >
+            bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
+            && ./worker.sh tcp://dask-scheduler:8786"
