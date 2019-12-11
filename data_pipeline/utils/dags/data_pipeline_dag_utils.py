@@ -1,8 +1,11 @@
 import logging
+import json
 from datetime import timedelta
 
 import airflow
 from airflow.operators.python_operator import PythonOperator
+from airflow.api.common.experimental.trigger_dag import trigger_dag
+from airflow.utils import timezone
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,3 +41,29 @@ def get_task_run_instance_fullname(task_context):
             task_context.get("task").task_id,
         ]
     )
+
+
+def simple_trigger_dag(dag_id, conf: dict, suffix=''):
+    run_id = _get_full_run_id(
+        conf=conf,
+        default_run_id=f'trig__{timezone.utcnow().isoformat()}{suffix}'
+    )
+    trigger_dag(
+        dag_id=dag_id,
+        run_id=run_id,
+        conf=json.dumps(conf),
+        execution_date=None,
+        replace_microseconds=False
+    )
+
+
+def _get_full_run_id(conf: dict, default_run_id: str) -> str:
+    run_name = conf.get('run_name')
+    if run_name:
+        return truncate_run_id(f'{default_run_id}_{run_name}')
+    return truncate_run_id(default_run_id)
+
+
+def truncate_run_id(run_id: str) -> str:
+    # maximum is 250
+    return run_id[:250]
