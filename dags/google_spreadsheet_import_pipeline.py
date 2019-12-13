@@ -39,10 +39,8 @@ def google_spreadsheet_data_etl(**kwargs):
     dep_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    env_based_data_config = (
-        data_config if dep_env is None
-        else data_config.set_dataset_name(dep_env)
-    )
+    data_config.set_dataset_name(dep_env)
+
     etl_google_spreadsheet(env_based_data_config)
 
 

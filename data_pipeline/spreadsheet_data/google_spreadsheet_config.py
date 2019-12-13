@@ -51,9 +51,10 @@ class MultiCsvSheet:
             for sheet in multi_sheet_config.get("sheets")
         }
 
-    def set_dataset_name(self, env):
-        for _, sheet_config in self.sheets_config.items():
-            sheet_config.set_dataset_name(new_dataset_name=env)
+    def set_dataset_name(self, env=None):
+        if env:
+            for _, sheet_config in self.sheets_config.items():
+                sheet_config.set_dataset_name(new_dataset_name=env)
 
 
 # pylint: disable=too-many-instance-attributes, simplifiable-if-expression
