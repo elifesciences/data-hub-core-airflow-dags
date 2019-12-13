@@ -51,7 +51,7 @@ class MultiCsvSheet:
             for sheet in multi_sheet_config.get("sheets")
         }
 
-    def set_dataset_name(self, env=None):
+    def set_dataset_name(self, env: str = None):
         if env:
             for _, sheet_config in self.sheets_config.items():
                 sheet_config.set_dataset_name(new_dataset_name=env)

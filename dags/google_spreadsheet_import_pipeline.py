@@ -41,7 +41,7 @@ def google_spreadsheet_data_etl(**kwargs):
     )
     data_config.set_dataset_name(dep_env)
 
-    etl_google_spreadsheet(env_based_data_config)
+    etl_google_spreadsheet(data_config)
 
 
 G_SPREADSHEET_ETL_TASK = create_python_task(

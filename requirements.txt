@@ -6,4 +6,4 @@ dateparser==0.7.2
 dask[complete]==2.8.1
 distributed==2.8.1
 google-api-python-client==1.7.11
-airflow-prometheus-exporter
+airflow-prometheus-exporter==1.0.4
