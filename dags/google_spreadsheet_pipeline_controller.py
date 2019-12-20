@@ -21,7 +21,7 @@ GOOGLE_SPREADSHEET_CONFIG_S3_OBJECT_KEY_NAME = (
     "GOOGLE_SPREADSHEET_CONFIG_S3_OBJECT_KEY"
 )
 DEFAULT_GOOGLE_SPREADSHEET_CONFIG_S3_OBJECT_KEY_VALUE = (
-    "airflow_test/spreadsheet_data/spreadsheet.config.yaml"
+    "airflow_test/spreadsheet_data/spreadsheet-data-pipeline.config.yaml"
 )
 
 DEPLOYMENT_ENV = "DEPLOYMENT_ENV"
