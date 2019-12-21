@@ -1,6 +1,3 @@
-"""
-dag for  crossref data import into bigquery
-"""
 import os
 import logging
 from datetime import timedelta
@@ -17,6 +14,7 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     etl_crossref_data_return_latest_timestamp,
     add_data_hub_timestamp_field_to_bigquery_schema,
     current_timestamp_as_string,
+    get_yaml_file_as_dict,
 )
 from data_pipeline.crossref_event_data.helper_class import (
     CrossRefImportDataPipelineConfig,
@@ -27,7 +25,6 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
 )
 from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_yaml_object_as_json,
     download_s3_json_object,
     upload_s3_object,
 )
@@ -35,23 +32,14 @@ from data_pipeline.utils.data_store.s3_data_service import (
 
 LOGGER = logging.getLogger(__name__)
 DAG_ID = "Load_Crossref_Event_Into_Bigquery"
-# below are should be given as environment variables
-CROSSREF_CONFIG_S3_BUCKET_NAME = "CROSSREF_CONFIG_S3_BUCKET"
-DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE = "ci-elife-data-pipeline"
-CROSSREF_CONFIG_S3_OBJECT_KEY_NAME = "CROSSREF_CONFIG_S3_OBJECT_KEY"
-DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE = (
-    "airflow_test/crossref_event/crossref-event-data-pipeline.config.yaml"
-)
-CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY = "CROSS_REF_IMPORT_SCHEDULE_INTERVAL"
-DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL = None
 
-DEPLOYMENT_ENV = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV_VALUE = None
-
-# keys for  external parameters passed to the dag when extenally triggered
+CROSSREF_CONFIG_FILE_PATH_ENV_NAME = "CROSSREF_CONFIG_FILE_PATH"
+CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME = "CROSS_REF_IMPORT_SCHEDULE_INTERVAL"
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
+DEFAULT_DEPLOYMENT_ENV = "ci"
 
 
-def get_env_var_or_use_default(env_var_name, default_value):
+def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
@@ -59,44 +47,31 @@ CROSSREF_DAG = DAG(
     dag_id=DAG_ID,
     default_args=get_default_args(),
     schedule_interval=get_env_var_or_use_default(
-        CROSS_REF_IMPORT_SCHEDULE_INTERVAL_KEY,
-        DEFAULT_CROSS_REF_IMPORT_SCHEDULE_INTERVAL,
+        CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(minutes=60),
 )
 
 
 def get_data_config(**kwargs):
-    data_config_dict = download_s3_yaml_object_as_json(
-        get_env_var_or_use_default(
-            CROSSREF_CONFIG_S3_BUCKET_NAME,
-            DEFAULT_CROSSREF_CONFIG_S3_BUCKET_VALUE
-        ),
-        get_env_var_or_use_default(
-            CROSSREF_CONFIG_S3_OBJECT_KEY_NAME,
-            DEFAULT_CROSSREF_CONFIG_S3_OBJECT_KEY_VALUE,
-        ),
+    conf_file_path = get_env_var_or_use_default(
+        CROSSREF_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-
-    data_config = CrossRefImportDataPipelineConfig(data_config_dict)
-    dep_env = get_env_var_or_use_default(DEPLOYMENT_ENV,
-                                         DEFAULT_DEPLOYMENT_ENV_VALUE)
-    env_based_data_config = (
-        data_config_dict
-        if dep_env is None
-        else data_config.modify_config_based_on_env(dep_env)
-    )
-
-    kwargs["ti"].xcom_push(key="sample_data_config",
-                           value=env_based_data_config)
+    deployment_env = get_env_var_or_use_default(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
+    data_config_dict = get_yaml_file_as_dict(conf_file_path)
+    data_config = CrossRefImportDataPipelineConfig(
+        data_config_dict, deployment_env)
+    print("FDFD FDFDFD FDF DFD FDF DFD FD FDF ",data_config.state_file_name_key, "DFDFDFDFFDF")
+    kwargs["ti"].xcom_push(key="data_config",
+                           value=data_config)
 
 
 def create_bq_table_if_not_exist(**kwargs):
     dag_context = kwargs["ti"]
-    data_config_dict = dag_context.xcom_pull(
-        key="sample_data_config", task_ids="get_data_config"
+    data_config = dag_context.xcom_pull(
+        key="data_config", task_ids="get_data_config"
     )
-    data_config = CrossRefImportDataPipelineConfig(data_config_dict)
 
     schema_json = download_s3_json_object(
         data_config.schema_file_s3_bucket, data_config.schema_file_object_name
@@ -123,9 +98,9 @@ def create_bq_table_if_not_exist(**kwargs):
 
 def crossref_data_etl(**kwargs):
     dag_context = kwargs["ti"]
-    data_config = CrossRefImportDataPipelineConfig(
-        dag_context.xcom_pull(key="sample_data_config",
-                              task_ids="get_data_config")
+    data_config = dag_context.xcom_pull(
+        key="data_config",
+        task_ids="get_data_config"
     )
 
     data_schema = dag_context.xcom_pull(
@@ -177,8 +152,8 @@ def crossref_data_etl(**kwargs):
                 base_crossref_url=data_config.crossref_event_base_url,
                 latest_journal_download_date=latest_journal_download_date,
                 journal_doi_prefixes=data_config.publisher_ids,
-                message_key=data_config.message_key,
-                event_key=data_config.event_key,
+                message_key=data_config.MESSAGE_KEY,
+                event_key=data_config.EVENT_KEY,
                 imported_timestamp=current_timestamp,
                 imported_timestamp_key=data_config.imported_timestamp_field,
                 full_temp_file_location=full_temp_file_location,
@@ -205,10 +180,9 @@ def log_last_record_date(**kwargs):
         task_ids="crossref_event_data_etl",
     )
 
-    data_config_dict = dag_context.xcom_pull(
-        key="sample_data_config", task_ids="get_data_config"
+    data_config = dag_context.xcom_pull(
+        key="data_config", task_ids="get_data_config"
     )
-    data_config = CrossRefImportDataPipelineConfig(data_config_dict)
     state_file_name_key = data_config.state_file_name_key
     state_file_bucket = data_config.state_file_bucket
     upload_s3_object(

@@ -1,5 +1,5 @@
 projectName: 'elife-data-pipeline'
-dataset: {ENV}
+dataset: '{ENV}'
 table: 'crossref_event'
 stateFile:
   bucket: 'prod-elife-data-pipeline'

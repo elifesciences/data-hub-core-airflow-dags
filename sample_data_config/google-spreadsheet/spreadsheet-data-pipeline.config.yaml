@@ -31,7 +31,7 @@ spreadsheets:
         sheetRange: ''
         headerLineIndex: 0
         dataValuesStartLineIndex: 1
-        datasetName: {ENV}
+        datasetName: "{ENV}"
         tableName: 'BRE_Distribution'
         tableWriteAppend: "true"
         metadata:

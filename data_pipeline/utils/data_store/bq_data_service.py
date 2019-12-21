@@ -88,7 +88,7 @@ def create_table_if_not_exist(
         project_name: str,
         dataset_name: str,
         table_name: str,
-        json_schema: dict
+        json_schema: list
 ):
 
     if not does_bigquery_table_exist(project_name, dataset_name, table_name):

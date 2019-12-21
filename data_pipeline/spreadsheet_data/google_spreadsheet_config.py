@@ -1,7 +1,6 @@
 class MultiSpreadsheetConfig:
     def __init__(self,
                  multi_spreadsheet_config: dict,
-                 deployment_env: str = None
                  ):
         self.gcp_project = multi_spreadsheet_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_spreadsheet_config.get(
@@ -12,7 +11,6 @@ class MultiSpreadsheetConfig:
                 spreadsheet,
                 self.gcp_project,
                 self.import_timestamp_field_name,
-                deployment_env,
             )
             for spreadsheet in multi_spreadsheet_config.get("spreadsheets")
         }
@@ -22,20 +20,19 @@ def extend_spreadsheet_config_dict(
         spreadsheet_config_dict,
         gcp_project: str,
         imported_timestamp_field_name: str,
-        deployment_env: str = None,
 ):
     spreadsheet_config_dict["gcpProjectName"] = gcp_project
     spreadsheet_config_dict[
         "importedTimestampFieldName"
     ] = imported_timestamp_field_name
-    if deployment_env:
-        spreadsheet_config_dict["datasetName"] = deployment_env
 
     return spreadsheet_config_dict
 
 
 class MultiCsvSheet:
-    def __init__(self, multi_sheet_config: dict):
+    def __init__(self, multi_sheet_config: dict,
+                 deployment_env: str,
+                 ):
         self.spreadsheet_id = multi_sheet_config.get("spreadsheetId")
         self.import_timestamp_field_name = multi_sheet_config.get(
             "importedTimestampFieldName"
@@ -47,14 +44,10 @@ class MultiCsvSheet:
                 self.spreadsheet_id,
                 self.gcp_project,
                 self.import_timestamp_field_name,
+                deployment_env,
             )
             for sheet in multi_sheet_config.get("sheets")
         }
-
-    def set_dataset_name(self, env: str = None):
-        if env:
-            for _, sheet_config in self.sheets_config.items():
-                sheet_config.set_dataset_name(new_dataset_name=env)
 
 
 # pylint: disable=too-many-instance-attributes, simplifiable-if-expression
@@ -65,6 +58,8 @@ class CsvSheetConfig:
             spreadsheet_id: str,
             gcp_project: str,
             imported_timestamp_field_name: str,
+            deployment_env: str,
+            environment_placeholder: str = "{ENV}"
     ):
         self.gcp_project = gcp_project
         self.import_timestamp_field_name = imported_timestamp_field_name
@@ -76,7 +71,9 @@ class CsvSheetConfig:
             "dataValuesStartLineIndex"
         )
         self.table_name = csv_sheet_config.get("tableName")
-        self.dataset_name = csv_sheet_config.get("datasetName")
+        self.dataset_name = csv_sheet_config.get(
+            "datasetName"
+        ).replace(environment_placeholder, deployment_env)
         self.table_write_append = (
             True
             if csv_sheet_config.get("tableWriteAppend", "").lower() == "true"
@@ -93,5 +90,3 @@ class CsvSheetConfig:
             for record in csv_sheet_config.get("fixedSheetMetadata", [])
         }
 
-    def set_dataset_name(self, new_dataset_name: str):
-        self.dataset_name = new_dataset_name

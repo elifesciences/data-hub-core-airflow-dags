@@ -16,9 +16,8 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
 
 LOGGER = logging.getLogger(__name__)
 
-DEPLOYMENT_ENV = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV_VALUE = None
-
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
+DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 DAG_ID = "Google_Spreadsheet_Data_Pipeline"
 G_SPREADSHEET_DAG = DAG(
@@ -35,12 +34,10 @@ def get_env_var_or_use_default(env_var_name, default_value):
 
 def google_spreadsheet_data_etl(**kwargs):
     data_config_dict = kwargs["dag_run"].conf
-    data_config = MultiCsvSheet(data_config_dict)
     dep_env = get_env_var_or_use_default(
-        DEPLOYMENT_ENV, DEFAULT_DEPLOYMENT_ENV_VALUE
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    data_config.set_dataset_name(dep_env)
-
+    data_config = MultiCsvSheet(data_config_dict, dep_env)
     etl_google_spreadsheet(data_config)
 
 

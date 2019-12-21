@@ -60,6 +60,7 @@ ci-test-exclude-e2e: build-dev
 
 ci-end2end-test: build-dev
 	$(DOCKER_COMPOSE) run --rm  test-client
+	make ci-clean
 
 dev-env: build-dev
 	$(DOCKER_COMPOSE_DEV) up  --scale dask-worker=1 scheduler
