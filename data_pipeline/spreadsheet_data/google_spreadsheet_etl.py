@@ -1,22 +1,24 @@
+import datetime
 import json
 import re
-import datetime
 from datetime import timezone
 from tempfile import NamedTemporaryFile
-from google.cloud.bigquery import WriteDisposition
+
 import yaml
+from google.cloud.bigquery import WriteDisposition
+
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiCsvSheet,
     CsvSheetConfig,
-)
-from data_pipeline.utils.data_store.google_spreadsheet_service import (
-    download_google_spreadsheet_single_sheet,
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
     get_table_schema_field_names,
     extend_table_schema_field_names,
+)
+from data_pipeline.utils.data_store.google_spreadsheet_service import (
+    download_google_spreadsheet_single_sheet,
 )
 
 
@@ -157,7 +159,7 @@ def transform_load_data(
     )
 
 
-def write_to_file(json_list, full_temp_file_location):
+def write_to_file(json_list: list, full_temp_file_location: str):
     with open(full_temp_file_location, "a") as write_file:
         for record in json_list:
             write_file.write(json.dumps(record, ensure_ascii=False))

@@ -1,9 +1,6 @@
-"""
-test
-@author: mowonibi
-"""
 import logging
 import time
+
 from tests.end2end_test.end_to_end_test_helper import AirflowAPI, simple_query
 
 LOGGER = logging.getLogger(__name__)
@@ -16,9 +13,6 @@ PROJECT = "elife-data-pipeline"  # change  all to env variable
 
 # pylint: disable=broad-except
 def test_dag_runs_data_imported():
-    """
-    :return:
-    """
     try:
         simple_query(
             query=TestQueryTemplate.CLEAN_TABLE_QUERY,

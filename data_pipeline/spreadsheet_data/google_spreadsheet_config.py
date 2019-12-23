@@ -50,7 +50,8 @@ class MultiCsvSheet:
         }
 
 
-# pylint: disable=too-many-instance-attributes, simplifiable-if-expression
+# pylint: disable=too-many-instance-attributes,too-many-arguments,
+# pylint: disable=simplifiable-if-expression
 class CsvSheetConfig:
     def __init__(
             self,
@@ -89,4 +90,3 @@ class CsvSheetConfig:
                 record.get("fixedSheetValue")
             for record in csv_sheet_config.get("fixedSheetMetadata", [])
         }
-
