@@ -1,10 +1,11 @@
 import os
+
 from airflow import DAG
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import get_yaml_file_as_dict
+
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig,
 )
-
+from data_pipeline.spreadsheet_data.google_spreadsheet_etl import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import get_default_args, simple_trigger_dag, create_python_task
 
 GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -24,7 +25,7 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
-def get_data_config(**kwargs):
+def trigger_dag(**kwargs):
     conf_file_path = get_env_var_or_use_default(
         SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME, ""
     )
@@ -45,5 +46,5 @@ SPREADSHEET_CONTROLLER_DAG = DAG(
 
 TRIGGER_SPEADSHEET_ETL_DAG_TASK = create_python_task(
     SPREADSHEET_CONTROLLER_DAG, "trigger_google_spreadsheet_etl_dag",
-    get_data_config,
+    trigger_dag,
 )
