@@ -1,14 +1,11 @@
-import os
 import logging
+import os
 from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
 from airflow import DAG
-from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    get_default_args,
-    create_python_task,
-    get_task_run_instance_fullname,
-)
+
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,
@@ -20,6 +17,11 @@ from data_pipeline.crossref_event_data.helper_class import (
     CrossRefImportDataPipelineConfig,
     ExternalTriggerConfig,
 )
+from data_pipeline.utils.dags.data_pipeline_dag_utils import (
+    get_default_args,
+    create_python_task,
+    get_task_run_instance_fullname,
+)
 from data_pipeline.utils.data_store.bq_data_service import (
     create_table_if_not_exist,
     load_file_into_bq,
@@ -29,12 +31,13 @@ from data_pipeline.utils.data_store.s3_data_service import (
     upload_s3_object,
 )
 
-
 LOGGER = logging.getLogger(__name__)
 DAG_ID = "Load_Crossref_Event_Into_Bigquery"
 
 CROSSREF_CONFIG_FILE_PATH_ENV_NAME = "CROSSREF_CONFIG_FILE_PATH"
-CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME = "CROSS_REF_IMPORT_SCHEDULE_INTERVAL"
+CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME = (
+    "CROSS_REF_IMPORT_SCHEDULE_INTERVAL"
+)
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
@@ -62,7 +65,6 @@ def get_data_config(**kwargs):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = CrossRefImportDataPipelineConfig(
         data_config_dict, deployment_env)
-    print("FDFD FDFDFD FDF DFD FDF DFD FD FDF ",data_config.state_file_name_key, "DFDFDFDFFDF")
     kwargs["ti"].xcom_push(key="data_config",
                            value=data_config)
 
@@ -80,7 +82,9 @@ def create_bq_table_if_not_exist(**kwargs):
         schema_json, data_config.imported_timestamp_field
     )
 
-    kwargs["ti"].xcom_push(key="data_schema", value=new_schema)
+    kwargs["ti"].xcom_push(
+        key="data_schema", value=new_schema
+    )
     externally_triggered_parameters = kwargs["dag_run"].conf or {}
     dataset = externally_triggered_parameters.get(
         ExternalTriggerConfig.BQ_DATASET_PARAM_KEY, data_config.dataset

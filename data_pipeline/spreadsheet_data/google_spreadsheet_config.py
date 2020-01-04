@@ -65,12 +65,12 @@ class CsvSheetConfig:
         self.gcp_project = gcp_project
         self.import_timestamp_field_name = imported_timestamp_field_name
         self.spreadsheet_id = spreadsheet_id
-        self.sheet_name = csv_sheet_config.get("sheetName")
-        self.sheet_range = csv_sheet_config.get("sheetRange")
         self.header_line_index = csv_sheet_config.get("headerLineIndex")
         self.data_values_start_line_index = csv_sheet_config.get(
             "dataValuesStartLineIndex"
         )
+        self.sheet_name = csv_sheet_config.get("sheetName")
+        self.sheet_range = csv_sheet_config.get("sheetRange")
         self.table_name = csv_sheet_config.get("tableName")
         self.dataset_name = csv_sheet_config.get(
             "datasetName"

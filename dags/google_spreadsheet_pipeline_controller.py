@@ -5,8 +5,14 @@ from airflow import DAG
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig,
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import get_yaml_file_as_dict
-from data_pipeline.utils.dags.data_pipeline_dag_utils import get_default_args, simple_trigger_dag, create_python_task
+from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+    get_yaml_file_as_dict
+)
+from data_pipeline.utils.dags.data_pipeline_dag_utils import (
+    get_default_args,
+    simple_trigger_dag,
+    create_python_task
+)
 
 GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME = (
     "GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL"
@@ -25,6 +31,7 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
+# pylint: disable=unused-argument
 def trigger_dag(**kwargs):
     conf_file_path = get_env_var_or_use_default(
         SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME, ""
