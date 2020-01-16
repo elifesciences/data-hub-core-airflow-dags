@@ -1,0 +1,47 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: "imported_timestamp"
+spreadsheets:
+  #- spreadsheetId: "11VnpuiY3o4iCEIEWjCKfXFFyowxTfTxzno2VU5UnRINE"
+  #  sheets :
+  #    - sheetName : 'BREs'
+  #      sheetRange : ''
+  #      headerLineIndex : 0
+  #      dataValuesStartLineIndex : 1
+  #      datasetName : {ENV}
+  #      tableName : 'BRE_Keywords'
+  #      tableWriteAppend: "true"
+  #      fixedSheetMetadata :
+  #        - metadataSchemaFieldName : 'editor_role'
+  #          fixedSheetValue: "BRE"
+  #
+  #    - sheetName : 'Senior Editors'
+  #      sheetRange : ''
+  #      headerLineIndex : 0
+  #      dataValuesStartLineIndex : 1
+  #      datasetName : {ENV}
+  #      tableName : 'BRE_Keywords'
+  #      tableWriteAppend: "true"
+  #      fixedSheetMetadata :
+  #        - metadataSchemaFieldName : 'editor_role'
+  #          fixedSheetValue: "Senior Editor"
+
+  - spreadsheetId: '1nQcLBO_yIumkXousRg_-l9Kx1HmiG7NcvDg1vkrdK-0'
+    sheets:
+      - sheetName: 'BRE distribution_current'
+        sheetRange: ''
+        headerLineIndex: 0
+        dataValuesStartLineIndex: 1
+        datasetName: "{ENV}"
+        tableName: 'BRE_Distribution'
+        tableWriteAppend: "true"
+        metadata:
+          - metadataSchemaFieldName: 'metadata_example'
+            metadataLineIndex: 1
+
+  #    - sheetName: 'Country and continent list'
+  #      sheetRange: 'A:B'
+  #      tableName: .....
+  #      tableWriteAppend: "false"
+  #      headerLineIndex: 0
+  #      dataValuesStartLineIndex: 1
+  #      datasetName: {ENV}
