@@ -1,8 +1,11 @@
+import datetime
 import json
 from unittest.mock import patch
-import datetime
+
 import pytest
 
+import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
+    as etl_crossref_event_data_util_module
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
@@ -13,8 +16,6 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     etl_crossref_data_return_latest_timestamp,
     convert_datetime_to_date_string,
 )
-import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
-    as etl_crossref_event_data_util_module
 
 
 @pytest.fixture(name="mock_download_s3_object")
@@ -50,7 +51,7 @@ def _get_crossref_data_single_page():
         yield mock
 
 
-def test_write_result_to_file_get_latest_record_timestamp():
+def test_should_get_latest_timestamp_after_data_processing():
     test_data = UnitTestData()
     max_timestamp = test_data.get_max_timestamp()
     results = (
@@ -72,7 +73,7 @@ def test_write_result_to_file_get_latest_record_timestamp():
     assert max_timestamp == latest_collected_record_timestamp
 
 
-def test_write_result_to_file(mock_open_file):
+def test_should_write_result_to_file(mock_open_file):
     test_data = UnitTestData()
     results = (
         preprocess_json_record(
@@ -96,7 +97,9 @@ def test_write_result_to_file(mock_open_file):
     mock_open_file.assert_called_with("tempfileloc", "a")
 
 
-def test_etl_crossref_data(mock_download_crossref, mock_open_file):
+def test_should_download_crossref_event_data(
+        mock_download_crossref, mock_open_file
+):
     test_data = UnitTestData()
     publisher_id = "pub_id"
     result = etl_crossref_data_return_latest_timestamp(
@@ -131,7 +134,7 @@ def test_etl_crossref_data(mock_download_crossref, mock_open_file):
         ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
     ],
 )
-def test_get_last_run_day_from_cloud_storage(
+def test_should_get_last_data_collection_date_from_cloud_storage(
         mock_download_s3_object,
         number_of_prv_days,
         data_download_start_date,
@@ -143,10 +146,7 @@ def test_get_last_run_day_from_cloud_storage(
     assert from_date == data_download_start_date
 
 
-def test_convert_bq_schema_field_list_to_dict():
-    """
-    :return:
-    """
+def test_should_convert_bq_schema_field_list_to_dict():
     test_data = UnitTestData()
     source_data = test_data.data_bq_schema_field_list_to_convert_to_dict
     expected_converted_data = (
@@ -157,10 +157,7 @@ def test_convert_bq_schema_field_list_to_dict():
     assert returned_data == expected_converted_data
 
 
-def test_semi_clean_crossref_record():
-    """
-    :return:
-    """
+def test_extracted_data_when_schema_and_source_data_fields_are_similar():
     test_data = UnitTestData()
     assert (
         test_data.test_data_all_field_present_result ==
@@ -170,6 +167,9 @@ def test_semi_clean_crossref_record():
         )
     )
 
+
+def test_extracted_data_when_source_data_has_more_fields_than_schema():
+    test_data = UnitTestData()
     assert (
         test_data.test_data_more_field_present_result ==
         semi_clean_crossref_record(
@@ -178,6 +178,9 @@ def test_semi_clean_crossref_record():
         )
     )
 
+
+def test_extracted_data_when_source_data_has_no_parseable_timestamp_string():
+    test_data = UnitTestData()
     assert (
         test_data.test_data_non_parseable_timestamp_present_result
         == semi_clean_crossref_record(
@@ -186,6 +189,9 @@ def test_semi_clean_crossref_record():
         )
     )
 
+
+def test_extracted_data_when_source_data_has_less_fields_than_schema():
+    test_data = UnitTestData()
     assert (
         test_data.test_data_some_field_present_result ==
         semi_clean_crossref_record(
@@ -197,9 +203,6 @@ def test_semi_clean_crossref_record():
 
 # pylint: disable=too-many-instance-attributes
 class UnitTestData:
-    """
-    test data mgt class
-    """
     def __init__(self):
         self.source_data_schema = [
             {"mode": "NULLABLE", "name": "_type", "type": "STRING"},
@@ -350,9 +353,6 @@ class UnitTestData:
         self.data_downloaded_event_key = "event_key"
 
     def get_data(self):
-        """
-        :return:
-        """
         all_source_data_combined = [
             self.test_data_some_field_present,
             self.test_data_non_parseable_timestamp_present,
@@ -363,9 +363,6 @@ class UnitTestData:
 
     # pylint: disable=broad-except
     def get_max_timestamp(self):
-        """
-        :return:
-        """
         all_string_timestamp = [time.get("timestamp")
                                 for time in self.get_data()]
         all_timestamp = []
@@ -402,9 +399,6 @@ class UnitTestData:
         }
 
     def get_expected_processed_crossref_test_data(self):
-        """
-        :return:
-        """
         data = [
             self.test_data_some_field_present_result,
             self.test_data_non_parseable_timestamp_present_result,
@@ -419,9 +413,6 @@ class UnitTestData:
         return modified_data
 
     def get_downloaded_crossref_data(self):
-        """
-        :return:
-        """
         data_downloaded__with_event_key = dict()
         data_downloaded = dict()
         data_downloaded__with_event_key[
