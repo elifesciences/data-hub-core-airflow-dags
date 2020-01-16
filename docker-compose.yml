@@ -100,6 +100,7 @@ services:
         volumes:
             - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - ./credentials.json:/tmp/credentials.json
+            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/data-hub-core-dags-dev
         hostname: dask-worker
         entrypoint: []
