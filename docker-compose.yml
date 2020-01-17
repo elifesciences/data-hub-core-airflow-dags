@@ -12,7 +12,6 @@ services:
         image: elifesciences/data-hub-core-dags
         command: ''
 
-
     data-hub-dags-dev:
         build:
             context: .
@@ -70,7 +69,6 @@ services:
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
             && ./run_test.sh with-end-to-end"
 
-
     postgres:
         image: postgres:9.6
         environment:
@@ -95,15 +93,16 @@ services:
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
             - AIRFLOW__CORE__EXECUTOR=DaskExecutor
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+            - DEPLOYMENT_ENV=ci
+            - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
         depends_on:
           - dask-scheduler
         volumes:
+            - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/data-hub-core-dags-dev
         hostname: dask-worker
-        ports:
-          - "8793:8793"
         entrypoint: []
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud

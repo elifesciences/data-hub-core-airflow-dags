@@ -4,7 +4,6 @@ from setuptools import (
     find_packages
 )
 
-
 with open(os.path.join('requirements.txt'), 'r') as f:
     REQUIRED_PACKAGES = f.readlines()
 PACKAGES = find_packages()

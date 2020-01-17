@@ -1,8 +1,6 @@
-"""
-test for  dags
-"""
 import importlib
 import os
+
 import pytest
 from airflow import models as af_models
 
@@ -10,8 +8,7 @@ from tests.dag_validation_test.conftest import DAG_FILES, DAG_PATH
 
 
 @pytest.mark.parametrize("dag_file", DAG_FILES)
-def test_all_dag_integrity(dag_file):
-    """Import dag files and check for DAG."""
+def test_dag_should_contain_no_cycle(dag_file):
     module_name, _ = os.path.splitext(dag_file)
     module_path = os.path.join(DAG_PATH, dag_file)
 
@@ -31,10 +28,7 @@ def test_all_dag_integrity(dag_file):
         dag.test_cycle()
 
 
-def test_is_all_dag_imported(dagbag):
-    """
-    :return:
-    """
+def test_should_successfully_import_all_dags(dagbag):
     assert len(dagbag.import_errors) == 0, \
         "DAG import failures. Errors: {}".format(
             dagbag.import_errors)

@@ -1,17 +1,12 @@
-"""
-bq data service
-written by tayowonibi
-"""
-
 import logging
 import os
 from math import ceil
 from typing import List
-
 from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
+from google.cloud.bigquery import WriteDisposition
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,49 +19,42 @@ def load_file_into_bq(
         dataset_name: str,
         table_name: str,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
+        write_mode=WriteDisposition.WRITE_APPEND,
+        auto_detect_schema=False,
         rows_to_skip=0,
         project_name: str = None,
 ):
-    """
-    :param project_name:
-    :param filename:
-    :param dataset_name:
-    :param table_name:
-    :param source_format:
-    :param rows_to_skip:
-    :return:
-    """
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
         return
-    client = Client(project=project_name) \
-        if project_name else Client()
+    client = Client(project=project_name) if project_name else Client()
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
     job_config = LoadJobConfig()
+    job_config.write_disposition = write_mode
+    job_config.autodetect = auto_detect_schema
     job_config.source_format = source_format
     if source_format is bigquery.SourceFormat.CSV:
         job_config.skip_leading_rows = rows_to_skip
 
     with open(filename, "rb") as source_file:
-
         job = client.load_table_from_file(
-            source_file, destination=table_ref, job_config=job_config)
+            source_file, destination=table_ref, job_config=job_config
+        )
 
         # Waits for table cloud_data_store to complete
         job.result()
-        LOGGER.info("Loaded %s rows into %s:%s.",
-                    job.output_rows, dataset_name, table_name)
+        LOGGER.info(
+            "Loaded %s rows into %s:%s.",
+            job.output_rows,
+            dataset_name,
+            table_name
+        )
 
 
-def load_tuple_list_into_bq(tuple_list_to_insert: List[tuple],
-                            dataset_name: str, table_name: str) -> List[dict]:
-    """
-    :param tuple_list_to_insert:
-    :param dataset_name:
-    :param table_name:
-    :return:
-    """
+def load_tuple_list_into_bq(
+        tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
+) -> List[dict]:
     client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
@@ -78,69 +66,50 @@ def load_tuple_list_into_bq(tuple_list_to_insert: List[tuple],
             load_tuple_list_page_into_bq(
                 client,
                 table,
-                tuple_list_to_insert[indx * MAX_ROWS_INSERTABLE:
-                                     (indx + 1) * MAX_ROWS_INSERTABLE],
+                tuple_list_to_insert[
+                    indx * MAX_ROWS_INSERTABLE:
+                    (indx + 1) * MAX_ROWS_INSERTABLE
+                ],
             )
         )
     LOGGER.info("Loaded  data into %s:%s.", dataset_name, table_name)
     return errors
 
 
-def load_tuple_list_page_into_bq(client: Client, table: bq_table,
-                                 tuple_list_to_insert: List[tuple],
-                                 ) -> List[dict]:
-    """
-    :param table:
-    :param client:
-    :param tuple_list_to_insert:
-    :return:
-    """
+def load_tuple_list_page_into_bq(
+        client: Client, table: bq_table, tuple_list_to_insert: List[tuple],
+) -> List[dict]:
 
-    errors = client.insert_rows(
-        table,
-        tuple_list_to_insert
-    )
+    errors = client.insert_rows(table, tuple_list_to_insert)
     return errors
 
 
 def create_table_if_not_exist(
-        project_name: str, dataset_name: str,
-        table_name: str, json_schema: dict
+        project_name: str,
+        dataset_name: str,
+        table_name: str,
+        json_schema: list
 ):
-    """
-    :param project_name:
-    :param dataset_name:
-    :param table_name:
-    :param json_schema:
-    :return:
-    """
 
-    if not does_bigquery_table_exist(
-            project_name, dataset_name, table_name):
+    if not does_bigquery_table_exist(project_name, dataset_name, table_name):
         client = bigquery.Client()
         table_id = compose_full_table_name(
-            project_name, dataset_name, table_name)
+            project_name, dataset_name, table_name
+        )
         schema = get_schemafield_list_from_json_list(json_schema)
         table = bigquery.Table(table_id, schema=schema)
         table = client.create_table(table, True)  # API request
         LOGGER.info(
-            (
-                "Created table %s.%s.%s",
-                table.project, table.dataset_id, table.table_id
-            )
+            "Created table %s.%s.%s",
+            table.project,
+            table.dataset_id,
+            table.table_id
         )
 
 
 def does_bigquery_table_exist(
-        project_name: str,
-        dataset_name: str,
-        table_name: str) -> bool:
-    """
-    :param project_name:
-    :param dataset_name:
-    :param table_name:
-    :return:
-    """
+        project_name: str, dataset_name: str, table_name: str
+) -> bool:
     table_id = compose_full_table_name(project_name, dataset_name, table_name)
     client = bigquery.Client()
     try:
@@ -151,23 +120,13 @@ def does_bigquery_table_exist(
 
 
 def compose_full_table_name(
-        project_name: str,
-        dataset_name: str,
-        table_name: str) -> str:
-    """
-    :param project_name:
-    :param dataset_name:
-    :param table_name:
-    :return:
-    """
+        project_name: str, dataset_name: str, table_name: str
+) -> str:
     return ".".join([project_name, dataset_name, table_name])
 
 
-def get_schemafield_list_from_json_list(json_schema: List[dict])\
-        -> List[SchemaField]:
-    """
-    :param json_schema:
-    :return:
-    """
+def get_schemafield_list_from_json_list(
+        json_schema: List[dict]
+) -> List[SchemaField]:
     schema = [SchemaField.from_api_repr(x) for x in json_schema]
     return schema

@@ -1,25 +1,18 @@
-"""
-@author: mowonibi
-"""
-import os
-from urllib.parse import urljoin
-import re
-import logging
-from typing import List
 import json
+import logging
+import os
+import re
+from typing import List
+from urllib.parse import urljoin
+
 import requests
 from google.cloud import bigquery
 
+# pylint: disable=no-else-return
 LOGGER = logging.getLogger(__name__)
 
 
-# pylint: disable=no-else-return
-
-
 class AirflowAPI:
-    """
-    test class
-    """
 
     def __init__(self):
         airflow_host = os.getenv("AIRFLOW_HOST")
@@ -28,12 +21,6 @@ class AirflowAPI:
 
     # pylint: disable=no-self-use
     def send_request(self, url, method="GET", json_param=None):
-        """
-        :param url:
-        :param method:
-        :param json_param:
-        :return:
-        """
         params = {
             "url": url,
         }
@@ -53,32 +40,18 @@ class AirflowAPI:
         return resp.json()
 
     def unpause_dag(self, dag_id):
-        """
-        :param dag_id:
-        :return:
-        """
-
         return requests.get(
             "%s/api/experimental/dags/%s/paused/false" %
             (self.airflow_url, dag_id)
         )
 
     def pause_dag(self, dag_id):
-        """
-        :param dag_id:
-        :return:
-        """
         return requests.get(
             "%s/api/experimental/dags/%s/paused/true" %
             (self.airflow_url, dag_id)
         )
 
     def trigger_dag(self, dag_id, conf=None):
-        """
-        :param dag_id:
-        :param conf:
-        :return:
-        """
         self.unpause_dag(dag_id)
         endpoint = "/api/experimental/dags/{}/dag_runs".format(dag_id)
         url = urljoin(self.airflow_url, endpoint)
@@ -89,22 +62,12 @@ class AirflowAPI:
         return re.findall(pattern, data["message"])[0]
 
     def dag_state(self, dag_id, execution_date):
-        """
-        :param dag_id:
-        :param execution_date:
-        :return:
-        """
         return requests.get(
             "%s/api/experimental/dags/%s/dag_runs/%s"
             % (self.airflow_url, dag_id, execution_date)
         )
 
     def is_dag_running(self, dag_id, execution_date):
-        """
-        :param dag_id:
-        :param execution_date:
-        :return:
-        """
         response = self.dag_state(dag_id, execution_date)
         json_response = json.loads(response.text)
         if json_response.get("state").lower() == "running":
@@ -113,11 +76,6 @@ class AirflowAPI:
         return False
 
     def get_dag_status(self, dag_id, execution_date):
-        """
-        :param dag_id:
-        :param execution_date:
-        :return:
-        """
         response = self.dag_state(dag_id, execution_date)
         json_response = json.loads(response.text)
         return json_response.get("state").lower()
@@ -125,13 +83,6 @@ class AirflowAPI:
 
 def simple_query(project: str, dataset: str, table: str, query: str) \
         -> List[dict]:
-    """
-    :param table:
-    :param project:
-    :param dataset:
-    :param query:
-    :return:
-    """
     bigquery_client = bigquery.Client()
     _query = \
         query.format(project=project, dataset=dataset, table=table).strip()

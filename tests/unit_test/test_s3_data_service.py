@@ -1,12 +1,11 @@
-"""
-test for s3_data_service
-"""
 from unittest.mock import patch
-import pytest
+
 import boto3
+import pytest
 from botocore.compat import six
 from botocore.response import StreamingBody
-from data_pipeline.utils.cloud_data_store.s3_data_service import (
+
+from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_yaml_object_as_json,
 )
 
@@ -39,11 +38,7 @@ def _download_string():
         yield mock
 
 
-def test_download_yaml_as_json_file(mock_download_yaml):
-    """
-    :param mock_download_yaml:
-    :return:
-    """
+def test_should_download_yaml_as_json_file(mock_download_yaml):
     test_data = UnitTestData()
     json_resp = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
@@ -55,11 +50,7 @@ def test_download_yaml_as_json_file(mock_download_yaml):
     assert json_resp == test_data.expected_yaml_to_json_value
 
 
-def test_download_string_file(mock_download_string):
-    """
-    :param mock_download_string:
-    :return:
-    """
+def test_should_download_string_file(mock_download_string):
     test_data = UnitTestData()
     resp = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
@@ -72,9 +63,6 @@ def test_download_string_file(mock_download_string):
 
 
 class UnitTestData:
-    """
-    test class data
-    """
 
     def __init__(self):
         self.source_bucket = "test_bucket"
@@ -93,17 +81,11 @@ class UnitTestData:
         self.source_sample_string = "sample_string"
 
     def get_source_yaml_s3_response(self):
-        """
-        :return:
-        """
         response = dict()
         response["Body"] = self.source_yaml
         return response
 
     def get_source_string_s3_response(self):
-        """
-        :return:
-        """
         response = dict()
         response["Body"] = self.source_sample_string
         return response

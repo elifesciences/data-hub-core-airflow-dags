@@ -1,11 +1,7 @@
-"""
-conftest
-by m.owonibi
-"""
 import os
-from airflow import models as af_models
-import pytest
 
+import pytest
+from airflow import models as af_models
 
 DAG_PATH = os.path.join(os.path.dirname(__file__), "../..", "dags")
 DAG_FILES = [f for f in os.listdir(DAG_PATH) if f.endswith("pipeline.py")]

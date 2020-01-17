@@ -1,21 +1,12 @@
-"""
-test for  dags
-"""
 DAG_ID = 'Load_Crossref_Event_Into_Bigquery'
 
 
 def test_task_count(dagbag):
-    """
-    :return:
-    """
     dag = dagbag.get_dag(DAG_ID)
     assert len(dag.tasks) == 4
 
 
-def test_contain_all_tasks(dagbag):
-    """
-    :return:
-    """
+def test_dag_should_contain_all_tasks(dagbag):
     dag = dagbag.get_dag(DAG_ID)
 
     tasks = dag.tasks
@@ -32,10 +23,7 @@ def test_contain_all_tasks(dagbag):
     assert task_ids == expected_ids
 
 
-def test_dependencies_of_crossref_event_data_etl_task(dagbag):
-    """
-    :return:
-    """
+def test_are_tasks_around_etl_task_correctly_ordered(dagbag):
     dag = dagbag.get_dag(DAG_ID)
     crossref_data_etl_task = dag.get_task('crossref_event_data_etl')
 
