@@ -56,27 +56,32 @@ CROSSREF_DAG = DAG(
 )
 
 
+def data_config_from_xcom(context):
+    dag_context = context["ti"]
+    data_config_dict = dag_context.xcom_pull(
+        key="data_config_dict", task_ids="get_data_config"
+    )
+    deployment_env = get_env_var_or_use_default(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
+    data_config = CrossRefImportDataPipelineConfig(
+        data_config_dict, deployment_env)
+    return data_config
+
+
 def get_data_config(**kwargs):
     conf_file_path = get_env_var_or_use_default(
         CROSSREF_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-    deployment_env = get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    data_config = CrossRefImportDataPipelineConfig(
-        data_config_dict, deployment_env)
-    kwargs["ti"].xcom_push(key="data_config",
-                           value=data_config)
+    kwargs["ti"].xcom_push(key="data_config_dict",
+                           value=data_config_dict)
 
 
 def create_bq_table_if_not_exist(**kwargs):
-    dag_context = kwargs["ti"]
-    data_config = dag_context.xcom_pull(
-        key="data_config", task_ids="get_data_config"
-    )
-
+    data_config = data_config_from_xcom(kwargs)
     schema_json = download_s3_json_object(
-        data_config.schema_file_s3_bucket, data_config.schema_file_object_name
+        data_config.schema_file_s3_bucket,
+        data_config.schema_file_object_name
     )
     new_schema = add_data_hub_timestamp_field_to_bigquery_schema(
         schema_json, data_config.imported_timestamp_field
@@ -101,12 +106,8 @@ def create_bq_table_if_not_exist(**kwargs):
 
 
 def crossref_data_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
     dag_context = kwargs["ti"]
-    data_config = dag_context.xcom_pull(
-        key="data_config",
-        task_ids="get_data_config"
-    )
-
     data_schema = dag_context.xcom_pull(
         key="data_schema", task_ids="create_table_if_not_exist"
     )
@@ -183,10 +184,7 @@ def log_last_record_date(**kwargs):
         key="latest_collected_record_date_as_string",
         task_ids="crossref_event_data_etl",
     )
-
-    data_config = dag_context.xcom_pull(
-        key="data_config", task_ids="get_data_config"
-    )
+    data_config = data_config_from_xcom(kwargs)
     state_file_name_key = data_config.state_file_name_key
     state_file_bucket = data_config.state_file_bucket
     upload_s3_object(
