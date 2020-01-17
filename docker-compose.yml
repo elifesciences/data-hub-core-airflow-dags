@@ -96,11 +96,13 @@ services:
             - DEPLOYMENT_ENV=ci
             - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+            - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
         depends_on:
           - dask-scheduler
         volumes:
             - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+            - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/data-hub-core-dags-dev

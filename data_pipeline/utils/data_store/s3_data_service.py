@@ -1,11 +1,8 @@
-"""
-s3 data service
-written by m.owonibi
-"""
 import json
 from contextlib import contextmanager
-import yaml
+
 import boto3
+import yaml
 
 
 @contextmanager
