@@ -67,7 +67,7 @@ services:
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
-            &&./run_test.sh with-end-to-end"
+            && ./run_test.sh with-end-to-end"
 
     postgres:
         image: postgres:9.6
@@ -95,12 +95,10 @@ services:
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
             - DEPLOYMENT_ENV=ci
             - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
         depends_on:
           - dask-scheduler
         volumes:
             - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         image: elifesciences/data-hub-core-dags-dev

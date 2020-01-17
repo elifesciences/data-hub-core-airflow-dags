@@ -6,6 +6,9 @@ from datetime import timedelta
 from typing import Iterable
 import yaml
 import requests
+from requests.adapters import HTTPAdapter
+# pylint: disable=import-error
+from requests.packages.urllib3.util.retry import Retry
 from data_pipeline.utils.data_store.s3_data_service import \
     download_s3_json_object
 
@@ -24,6 +27,26 @@ class EtlModuleConstant:
     BQ_SCHEMA_FIELD_TYPE_KEY = "type"
     # date format used for y application for maintaining download state
     STATE_FILE_DATE_FORMAT = "%Y-%m-%d"
+
+
+def requests_retry_session(
+        retries=10,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+        session=None,
+):
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
 
 
 def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
@@ -98,12 +121,7 @@ def get_crossref_data_single_page(
         url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
         url += "&cursor=" + cursor
-
-    http_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
-    https_session_mount = requests.adapters.HTTPAdapter(max_retries=10)
-    with requests.Session() as session:
-        session.mount("http://", http_session_mount)
-        session.mount("https://", https_session_mount)
+    with requests_retry_session() as session:
         session_request = session.get(url)
         session_request.raise_for_status()
         resp = session_request.json()
