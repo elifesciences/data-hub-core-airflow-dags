@@ -2,11 +2,11 @@ projectName: 'elife-data-pipeline'
 dataset: '{ENV}'
 table: 'crossref_event'
 stateFile:
-  bucket: 'prod-elife-data-pipeline'
+  bucket: 'ci-elife-data-pipeline'
   objectName: 'airflow-config/crossref-event/{ENV}-date-state.json'
 schemaFile:
   url:
-  bucket: 'prod-elife-data-pipeline'
+  bucket: 'ci-elife-data-pipeline'
   objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
 publisherIdPrefixes:
   - '10.7554'
