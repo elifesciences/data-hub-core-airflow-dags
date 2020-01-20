@@ -1,0 +1,34 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: "imported_timestamp"
+stateFile:
+  defaultBucketName: ci-elife-data-pipeline
+  defaultSystemGeneratedObjectPrefix: airflow-config/s3-csv/s3-csv
+s3Csv:
+  - bucketName: elife-ejp-ftp
+    objectKeyPattern:
+      - ejp_query_tool_query_id_15a*
+    headerLineIndex: 3
+    dataValuesStartLineIndex: 4
+    datasetName: "{ENV}"
+    tableName: 'ejp_query_tool_query_id_15a_test'
+    tableWriteAppend: "true"
+    stateFile:
+      bucketName: ci-elife-data-pipeline
+      objectName: airflow-config/s3-csv/first-example.json
+    metadata:
+      - metadataSchemaFieldName: 'metadata_example'
+        metadataLineIndex: 1
+  - bucketName: elife-ejp-ftp
+    objectKeyPattern:
+      - ejp_query_tool_query_id_04e*
+    headerLineIndex: 3
+    dataValuesStartLineIndex: 4
+    datasetName: "{ENV}"
+    tableName: 'ejp_query_tool_query_id_04e_test'
+    tableWriteAppend: "true"
+    stateFile:
+      bucketName: ci-elife-data-pipeline
+      objectName: airflow-config/s3-csv/first-example2.json
+    metadata:
+      - metadataSchemaFieldName: 'metadata_example'
+        metadataLineIndex: 1
