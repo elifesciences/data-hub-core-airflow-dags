@@ -24,7 +24,8 @@ SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME = (
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
-TARGET_DAG = "Google_Spreadsheet_Data_Pipeline"
+TARGET_DAG_ID = "Google_Spreadsheet_Data_Pipeline"
+DAG_ID = 'Google_Spreadsheet_Import_Pipeline_Controller'
 
 
 def get_env_var_or_use_default(env_var_name, default_value=None):
@@ -40,18 +41,18 @@ def trigger_dag(**kwargs):
 
     data_config = MultiSpreadsheetConfig(data_config_dict,)
     for _, spreadsheet_config in data_config.spreadsheets_config.items():
-        simple_trigger_dag(dag_id=TARGET_DAG, conf=spreadsheet_config)
+        simple_trigger_dag(dag_id=TARGET_DAG_ID, conf=spreadsheet_config)
 
 
 SPREADSHEET_CONTROLLER_DAG = DAG(
-    dag_id="Google_Spreadsheet_Import_Pipeline_Controller",
+    dag_id=DAG_ID,
     default_args=get_default_args(),
     schedule_interval=get_env_var_or_use_default(
         GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME
     ),
 )
 
-TRIGGER_SPEADSHEET_ETL_DAG_TASK = create_python_task(
+TRIGGER_SPREADSHEET_ETL_DAG_TASK = create_python_task(
     SPREADSHEET_CONTROLLER_DAG, "trigger_google_spreadsheet_etl_dag",
     trigger_dag,
 )

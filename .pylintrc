@@ -2,3 +2,4 @@
 disable=
     missing-docstring,
     too-few-public-methods,
+    duplicate-code
