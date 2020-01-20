@@ -44,7 +44,6 @@ def process_csv_sheet(
     downloaded_data = download_google_spreadsheet_single_sheet(
         csv_sheet_config.spreadsheet_id, sheet_with_range
     )
-    print(downloaded_data)
     record_import_timestamp_as_string = current_timestamp_as_string()
     transform_load_data(
         record_list=downloaded_data,

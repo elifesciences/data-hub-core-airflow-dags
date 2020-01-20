@@ -17,7 +17,8 @@ class TestData:
         ['michael', 'jackson', '7',
          'University of California', 'United States'
          ],
-        ['Robert', 'De Niro', '', 'Univ of Cambridge', 'France']
+        ['Robert', 'De Niro', '', 'Univ of Cambridge', 'France'],
+        ['Wayne', 'Rooney', '', '', 'England']
     ]
     TEST_SPREADSHEET_CONFIG_DATA = {
         "spreadsheetId": "spreadsheet_id",
