@@ -33,14 +33,21 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
             process_csv_sheet(csv_sheet_config, named_temp_file.name)
 
 
-def process_csv_sheet(
-        csv_sheet_config: CsvSheetConfig, temp_file: str,
+def get_sheet_range_from_config(
+        csv_sheet_config: CsvSheetConfig
 ):
     sheet_with_range = (
         csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
         if csv_sheet_config.sheet_range
         else csv_sheet_config.sheet_name
     )
+    return sheet_with_range
+
+
+def process_csv_sheet(
+        csv_sheet_config: CsvSheetConfig, temp_file: str,
+):
+    sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
         csv_sheet_config.spreadsheet_id, sheet_with_range
     )
@@ -53,7 +60,7 @@ def process_csv_sheet(
     )
 
 
-def extend_table_schema(
+def get_new_table_column_names(
         csv_sheet_config: CsvSheetConfig,
         standardized_csv_header: list,
         record_metadata: dict
@@ -67,7 +74,8 @@ def extend_table_schema(
         f_name.lower() for f_name in existing_table_field_names
     ]
 
-    new_table_field_names = standardized_csv_header[:]
+    new_table_field_names = standardized_csv_header.copy()
+
     new_table_field_names.extend(
         [key.lower() for key in record_metadata.keys()]
     )
@@ -77,14 +85,7 @@ def extend_table_schema(
     new_col_names = list(
         new_table_field_name_set - existing_table_field_names_set
     )
-
-    if len(new_col_names) > 0:
-        extend_table_schema_field_names(
-            csv_sheet_config.gcp_project,
-            csv_sheet_config.dataset_name,
-            csv_sheet_config.table_name,
-            new_col_names,
-        )
+    return new_col_names
 
 
 def update_metadata_with_provenance(
@@ -94,15 +95,16 @@ def update_metadata_with_provenance(
         "spreadsheet_id": csv_sheet_config.spreadsheet_id,
         "sheet_name": csv_sheet_config.sheet_name,
     }
-    record_metadata["provenance"] = provenance
-    return record_metadata
+    return {
+        **record_metadata,
+        "provenance": provenance
+    }
 
 
-def transform_load_data(
+def get_record_metadata(
         record_list,
         csv_sheet_config: CsvSheetConfig,
         record_import_timestamp_as_string: str,
-        full_temp_file_location: str,
 ):
     record_metadata = {
         metadata_col_name: ",".join(record_list[line_index_in_data])
@@ -116,11 +118,42 @@ def transform_load_data(
     record_metadata = update_metadata_with_provenance(
         record_metadata, csv_sheet_config
     )
+    return record_metadata
+
+
+def get_standardized_csv_header(csv_header):
+    return [
+        standardize_field_name(field.lower())
+        for field in csv_header
+    ]
+
+
+def get_write_disposition(csv_sheet_config):
+    write_disposition = (
+        WriteDisposition.WRITE_APPEND
+        if csv_sheet_config.table_write_append
+        else WriteDisposition.WRITE_TRUNCATE
+    )
+    return write_disposition
+
+
+def transform_load_data(
+        record_list,
+        csv_sheet_config: CsvSheetConfig,
+        record_import_timestamp_as_string: str,
+        full_temp_file_location: str,
+):
+
+    record_metadata = get_record_metadata(
+        record_list,
+        csv_sheet_config,
+        record_import_timestamp_as_string
+    )
 
     csv_header = record_list[csv_sheet_config.header_line_index]
-    standardized_csv_header = [
-        standardize_field_name(field.lower()) for field in csv_header
-    ]
+    standardized_csv_header = get_standardized_csv_header(
+        csv_header
+    )
 
     auto_detect_schema = True
     if does_bigquery_table_exist(
@@ -128,11 +161,18 @@ def transform_load_data(
             csv_sheet_config.dataset_name,
             csv_sheet_config.table_name,
     ):
-        extend_table_schema(
+        new_col_names = get_new_table_column_names(
             csv_sheet_config,
             standardized_csv_header,
             record_metadata
         )
+        if new_col_names:
+            extend_table_schema_field_names(
+                csv_sheet_config.gcp_project,
+                csv_sheet_config.dataset_name,
+                csv_sheet_config.table_name,
+                new_col_names,
+            )
         auto_detect_schema = False
 
     processed_record = process_record_list(
@@ -140,14 +180,8 @@ def transform_load_data(
         record_metadata,
         standardized_csv_header,
     )
-
     write_to_file(processed_record, full_temp_file_location)
-    write_disposition = (
-        WriteDisposition.WRITE_APPEND
-        if csv_sheet_config.table_write_append
-        else WriteDisposition.WRITE_TRUNCATE
-    )
-
+    write_disposition = get_write_disposition(csv_sheet_config)
     load_file_into_bq(
         filename=full_temp_file_location,
         table_name=csv_sheet_config.table_name,
