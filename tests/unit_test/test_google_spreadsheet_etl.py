@@ -324,7 +324,9 @@ class TestTransformAndLoadData:
             mock_process_record_list, mock_write_to_file,
     ):
         mock_does_bigquery_table_exist.return_value = True
-        mock_get_new_table_column_names.return_value = ["new_column_1"]
+        mock_get_new_table_column_names.return_value = {
+            "new_column_1": "STRING"
+        }
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
@@ -482,15 +484,16 @@ class TestTableSchema:
             "metadata_col_1": 0,
             "metadata_col_2": 0
         }
-        expected_ret_value = ['col_4', 'metadata_col_2']
-        expected_ret_value.sort()
+        expected_ret_value = {
+            "col_4": "STRING",
+            "metadata_col_2": "STRING"
+        }
 
         return_value = get_new_table_column_names(
             TestTableSchema.test_config,
             standardized_csv_header,
             record_metadata
         )
-        return_value.sort()
         assert expected_ret_value == return_value
 
     def test_should_get_new_cols_from_csv_header_and_metadata(
@@ -506,17 +509,18 @@ class TestTableSchema:
             "metadata_col_1": 0,
             "metadata_col_2": 0
         }
-        expected_ret_value = [
-            'col_4', 'metadata_col_1', 'col_1',
-            'metadata_col_2', 'col_2'
-        ]
-        expected_ret_value.sort()
+        expected_ret_value = {
+            "col_4": "STRING",
+            "metadata_col_1": "STRING",
+            "col_1": "STRING",
+            "metadata_col_2": "STRING",
+            "col_2": "STRING"
+        }
 
         return_value = get_new_table_column_names(
             TestTableSchema.test_config,
             standardized_csv_header,
             record_metadata
         )
-        return_value.sort()
 
         assert expected_ret_value == return_value

@@ -67,12 +67,25 @@ class AirflowAPI:
             % (self.airflow_url, dag_id, execution_date)
         )
 
+    def is_triggered_dag_running(self, dag_id):
+        response = requests.get(
+            "%s/api/experimental/dags/%s/dag_runs"
+            % (self.airflow_url, dag_id)
+        )
+        dag_runs = json.loads(response.text)
+        states = [
+            dag_run.get("state").lower() == "success"
+            for dag_run in dag_runs
+        ]
+        return all(states)
+
     def is_dag_running(self, dag_id, execution_date):
+        if not (execution_date and dag_id):
+            return False
         response = self.dag_state(dag_id, execution_date)
         json_response = json.loads(response.text)
         if json_response.get("state").lower() == "running":
             return True
-
         return False
 
     def get_dag_status(self, dag_id, execution_date):

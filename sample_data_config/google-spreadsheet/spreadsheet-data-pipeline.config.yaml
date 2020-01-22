@@ -25,18 +25,18 @@ spreadsheets:
   #        - metadataSchemaFieldName : 'editor_role'
   #          fixedSheetValue: "Senior Editor"
 
-  - spreadsheetId: '1nQcLBO_yIumkXousRg_-l9Kx1HmiG7NcvDg1vkrdK-0'
+  - spreadsheetId: '1Nl1rPUSgWzWxDgwkmreU37l3RVrSH12D0MHUD4LA6tU'
     sheets:
-      - sheetName: 'BRE distribution_current'
+      - sheetName: 'sheet_0'
         sheetRange: ''
         headerLineIndex: 0
         dataValuesStartLineIndex: 1
         datasetName: "{ENV}"
-        tableName: 'BRE_Distribution'
+        tableName: 'test_table_name'
         tableWriteAppend: "true"
         metadata:
           - metadataSchemaFieldName: 'metadata_example'
-            metadataLineIndex: 1
+            metadataLineIndex: 4
 
   #    - sheetName: 'Country and continent list'
   #      sheetRange: 'A:B'

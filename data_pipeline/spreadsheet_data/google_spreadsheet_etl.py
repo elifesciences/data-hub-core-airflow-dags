@@ -81,11 +81,19 @@ def get_new_table_column_names(
     )
     existing_table_field_names_set = set(existing_table_field_names)
     new_table_field_name_set = set(new_table_field_names)
-
     new_col_names = list(
         new_table_field_name_set - existing_table_field_names_set
     )
-    return new_col_names
+    new_col_as_dict = {
+        col_name: "STRING" for col_name in new_col_names
+        if col_name.lower() != csv_sheet_config.import_timestamp_field_name
+    }
+    if csv_sheet_config.import_timestamp_field_name in set(new_col_names):
+        new_col_as_dict[
+            csv_sheet_config.import_timestamp_field_name
+        ] = "TIMESTAMP"
+
+    return new_col_as_dict
 
 
 def update_metadata_with_provenance(
