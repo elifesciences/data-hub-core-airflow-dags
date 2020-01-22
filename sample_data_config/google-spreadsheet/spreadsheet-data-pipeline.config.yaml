@@ -32,7 +32,7 @@ spreadsheets:
         headerLineIndex: 0
         dataValuesStartLineIndex: 1
         datasetName: "{ENV}"
-        tableName: 'test_table_name'
+        tableName: 'test_google_spreadsheet'
         tableWriteAppend: "true"
         metadata:
           - metadataSchemaFieldName: 'metadata_example'
