@@ -130,3 +130,42 @@ def get_schemafield_list_from_json_list(
 ) -> List[SchemaField]:
     schema = [SchemaField.from_api_repr(x) for x in json_schema]
     return schema
+
+
+def get_table_schema_field_names(
+        project_name: str,
+        dataset_name: str,
+        table_name: str
+):
+    client = bigquery.Client()
+
+    dataset_ref = client.dataset(dataset_name, project=project_name)
+    table_ref = dataset_ref.table(table_name)
+    try:
+        table = client.get_table(table_ref)  # API Request
+        return [field.name for field in table.schema]
+    except NotFound:
+        return []
+
+
+def extend_table_schema_field_names(
+        project_name: str, dataset_name: str,
+        table_name: str, new_field_names: dict
+):
+    client = bigquery.Client()
+
+    dataset_ref = client.dataset(dataset_name, project=project_name)
+    table_ref = dataset_ref.table(table_name)
+    table = client.get_table(table_ref)  # Make an API request.
+    original_schema = table.schema
+    new_schema = original_schema[:]  # Creates a copy of the schema.
+    for field_name, field_type in new_field_names.items():
+        new_schema.append(
+            bigquery.SchemaField(
+                field_name,
+                field_type.upper()
+            )
+        )
+
+    table.schema = new_schema
+    client.update_table(table, ["schema"])  # Make an API request.
