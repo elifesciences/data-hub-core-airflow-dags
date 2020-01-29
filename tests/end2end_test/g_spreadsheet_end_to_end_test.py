@@ -1,16 +1,17 @@
+import os
 import logging
 import time
 
 from dags.google_spreadsheet_pipeline_controller import (
-    get_env_var_or_use_default,
     DAG_ID,
     TARGET_DAG_ID,
     SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME,
-    DEPLOYMENT_ENV_ENV_NAME,
-    DEFAULT_DEPLOYMENT_ENV_VALUE,
     get_yaml_file_as_dict,
 )
 
+from dags.google_spreadsheet_import_pipeline import (
+    DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
+)
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig, MultiCsvSheet
 )
@@ -62,11 +63,11 @@ def test_dag_runs_data_imported():
 
 
 def get_project_dataset_table():
-    conf_file_path = get_env_var_or_use_default(
-        SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME, ""
+    conf_file_path = os.getenv(
+        SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    dep_env = get_env_var_or_use_default(
+    dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
     multi_data_config = MultiSpreadsheetConfig(data_config_dict,)

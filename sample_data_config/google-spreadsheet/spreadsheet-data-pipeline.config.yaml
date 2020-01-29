@@ -20,28 +20,28 @@ spreadsheets:
   #      dataValuesStartLineIndex : 1
   #      datasetName : {ENV}
   #      tableName : 'BRE_Keywords'
-  #      tableWriteAppend: "true"
-  #      fixedSheetMetadata :
+  #      tableWriteAppend: true
+  #      fixedSheetRecordMetadata :
   #        - metadataSchemaFieldName : 'editor_role'
   #          fixedSheetValue: "Senior Editor"
 
   - spreadsheetId: '1Nl1rPUSgWzWxDgwkmreU37l3RVrSH12D0MHUD4LA6tU'
     sheets:
       - sheetName: 'sheet_0'
-        sheetRange: ''
+        sheetRange: 'A:D'
         headerLineIndex: 0
         dataValuesStartLineIndex: 1
         datasetName: "{ENV}"
         tableName: 'test_google_spreadsheet'
-        tableWriteAppend: "true"
-        metadata:
+        tableWriteAppend: true
+        inSheetRecordMetadata:
           - metadataSchemaFieldName: 'metadata_example'
             metadataLineIndex: 4
 
   #    - sheetName: 'Country and continent list'
   #      sheetRange: 'A:B'
   #      tableName: .....
-  #      tableWriteAppend: "false"
+  #      tableWriteAppend: false
   #      headerLineIndex: 0
   #      dataValuesStartLineIndex: 1
   #      datasetName: {ENV}

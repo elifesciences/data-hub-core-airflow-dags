@@ -5,12 +5,13 @@ from data_pipeline.spreadsheet_data import google_spreadsheet_etl
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     process_record_list,
     etl_google_spreadsheet,
-    get_new_table_column_names,
+    get_new_table_columns_schema,
     update_metadata_with_provenance,
     process_record,
     transform_load_data,
     get_record_metadata,
-    get_standardized_csv_header
+    get_standardized_csv_header,
+    get_sheet_range_from_config
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiCsvSheet, CsvSheetConfig
@@ -20,12 +21,12 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
 
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
-    ['michael', 'jackson', '7',
+    ['Michael', 'Bonbi', '7',
      'University of California', 'United States'
      ],
-    ['Robert', 'De Niro', '', 'Univ of Cambridge', 'France'],
-    ['Wayne', 'Rooney', '', '', 'England'],
-    ['Angela', 'Merkel', '21', '', 'China']
+    ['Robert', 'Alfonso', '', 'Univ of Cambridge', 'France'],
+    ['Michael', 'Shayne', '', '', 'England'],
+    ['Fred', 'Fredrick', '21', '', 'China']
 ]
 
 
@@ -43,63 +44,64 @@ def _process_record():
         yield mock
 
 
-@pytest.fixture(name="mock_process_record_list")
+@pytest.fixture(name="mock_process_record_list", autouse=True)
 def _process_record_list():
     with patch.object(google_spreadsheet_etl,
                       "process_record_list") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_process_csv_sheet")
+@pytest.fixture(name="mock_process_csv_sheet", autouse=True)
 def _process_csv_sheet():
     with patch.object(google_spreadsheet_etl,
                       "process_csv_sheet") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_get_standardized_csv_header")
+@pytest.fixture(name="mock_get_standardized_csv_header", autouse=True)
 def _get_standardized_csv_header():
     with patch.object(google_spreadsheet_etl,
                       "get_standardized_csv_header") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_load_file_into_bq")
+@pytest.fixture(name="mock_load_file_into_bq", autouse=True)
 def _load_file_into_bq():
     with patch.object(google_spreadsheet_etl,
                       "load_file_into_bq") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_does_bigquery_table_exist")
+@pytest.fixture(name="mock_does_bigquery_table_exist", autouse=True)
 def _does_bigquery_table_exist():
     with patch.object(google_spreadsheet_etl,
                       "does_bigquery_table_exist") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_get_new_table_column_names")
-def _get_new_table_column_names():
+@pytest.fixture(name="mock_get_new_table_columns_schema", autouse=True)
+def _get_new_table_columns_schema():
     with patch.object(google_spreadsheet_etl,
-                      "get_new_table_column_names") as mock:
+                      "get_new_table_columns_schema") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_extend_table_schema_field_names")
+@pytest.fixture(name="mock_extend_table_schema_field_names", autouse=True)
 def _extend_table_schema_field_names():
     with patch.object(google_spreadsheet_etl,
                       "extend_table_schema_field_names") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_write_to_file")
+@pytest.fixture(name="mock_write_to_file", autouse=True)
 def _write_to_file():
     with patch.object(google_spreadsheet_etl,
                       "write_to_file") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_download_google_spreadsheet_single_sheet")
+@pytest.fixture(name="mock_download_google_spreadsheet_single_sheet",
+                autouse=True)
 def _download_google_spreadsheet_single_sheet():
     with patch.object(google_spreadsheet_etl,
                       "download_google_spreadsheet_single_sheet") as mock:
@@ -109,43 +111,70 @@ def _download_google_spreadsheet_single_sheet():
 
 class TestRecordMetadata:
     @staticmethod
-    def get_csv_config(in_sheet_metadata=None, fixed_metadata=None):
+    def get_csv_config(update_dict: dict = None):
+
         csv_config_dict = {
             **TestRecordMetadata.csv_config_dict,
-            "metadata": in_sheet_metadata if in_sheet_metadata else [],
-            "fixedSheetMetadata": fixed_metadata if fixed_metadata else []
+            **update_dict
+        } if update_dict else {
+            **TestRecordMetadata.csv_config_dict,
         }
+        gcp_project = ""
+        deployment_env = ""
         return CsvSheetConfig(
             csv_config_dict,
-            "spreadsheet_id",
-            "", "imported_timestamp_field_name", ""
+            "spreadsheet_id", gcp_project,
+            "imported_timestamp_field_name",
+            deployment_env
         )
+
     csv_config_dict = {
         "sheetName": "sheet name-0",
         "datasetName": "{ENV}-dataset",
         "tableWriteAppend": "true"
     }
 
-    test_timestamp = "2020-10-01T10:15:13Z"
+    test_timestamp_str = "2020-10-01T10:15:13Z"
+
+    def test_contain_only_provenance_and_timestamp(self):
+
+        config = TestRecordMetadata.get_csv_config()
+        expected_record_metadata = {
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
+            'provenance': {
+                'spreadsheet_id': 'spreadsheet_id',
+                'sheet_name': 'sheet name-0'
+            }
+        }
+        returned_metadata = get_record_metadata(
+            TEST_DOWNLOADED_SHEET,
+            config,
+            TestRecordMetadata.test_timestamp_str
+        )
+        assert expected_record_metadata == returned_metadata
 
     def test_should_merge_all_values_in_a_list_element_on_a_line(self):
-        in_sheet_metadata = [
-            {
-                "metadataSchemaFieldName": "metadata_example_01",
-                "metadataLineIndex": 0
-            },
-            {
-                "metadataSchemaFieldName": "metadata_example_02",
-                "metadataLineIndex": 1
-            }
-        ]
+        in_sheet_metadata = {
+            "inSheetRecordMetadata":
+                [
+                    {
+                        "metadataSchemaFieldName": "metadata_example_01",
+                        "metadataLineIndex": 0
+                    },
+                    {
+                        "metadataSchemaFieldName": "metadata_example_02",
+                        "metadataLineIndex": 1
+                    }
+                ]
+        }
+
         config = TestRecordMetadata.get_csv_config(
-            in_sheet_metadata=in_sheet_metadata
+            in_sheet_metadata
         )
         expected_record_metadata = {
             'metadata_example_01': 'First Name,Last_Name,Age,Univ,Country',
             'metadata_example_02':
-                'michael,jackson,7,University of California,United States',
+                'Michael,Bonbi,7,University of California,United States',
             'imported_timestamp_field_name':
                 '2020-10-01T10:15:13Z',
             'provenance': {
@@ -156,19 +185,22 @@ class TestRecordMetadata:
         returned_metadata = get_record_metadata(
             TEST_DOWNLOADED_SHEET,
             config,
-            TestRecordMetadata.test_timestamp
+            TestRecordMetadata.test_timestamp_str
         )
         assert expected_record_metadata == returned_metadata
 
-    def test_should_contain_values_static_values_from_config(self):
-        csv_config_dict = [
-            {
-                "metadataSchemaFieldName": "fixed_sheet_field_name",
-                "fixedSheetValue": "fixed_sheet_value"
-            }
-        ]
+    def test_should_contain_static_values_from_config(self):
+        fixed_metadata = {
+            "fixedSheetRecordMetadata":
+                [
+                    {
+                        "metadataSchemaFieldName": "fixed_sheet_field_name",
+                        "fixedSheetValue": "fixed_sheet_value"
+                    }
+                ]
+        }
         config = TestRecordMetadata.get_csv_config(
-            fixed_metadata=csv_config_dict
+            fixed_metadata
         )
         expected_record_metadata = {
             'imported_timestamp_field_name':
@@ -183,48 +215,35 @@ class TestRecordMetadata:
         returned_metadata = get_record_metadata(
             TEST_DOWNLOADED_SHEET,
             config,
-            TestRecordMetadata.test_timestamp
-        )
-        assert expected_record_metadata == returned_metadata
-
-    def test_should_be_empty(self):
-
-        config = TestRecordMetadata.get_csv_config()
-        expected_record_metadata = {
-            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
-            'provenance': {
-                'spreadsheet_id': 'spreadsheet_id',
-                'sheet_name': 'sheet name-0'
-            }
-        }
-        returned_metadata = get_record_metadata(
-            TEST_DOWNLOADED_SHEET,
-            config,
-            TestRecordMetadata.test_timestamp
+            TestRecordMetadata.test_timestamp_str
         )
         assert expected_record_metadata == returned_metadata
 
     def test_should_contain_static_values_in_metadata_and_values_in_csv_data(
             self
     ):
-        in_sheet_metadata = [
-            {
-                "metadataSchemaFieldName": "metadata_example_1",
-                "metadataLineIndex": 1
-            }
-            ]
-        fixed_sheet_metadata = [
-            {
-                "metadataSchemaFieldName": "fixed_sheet_field_name",
-                "fixedSheetValue": "fixed_sheet_value"
-            }
-        ]
+        sheet_metadata = {
+            "inSheetRecordMetadata":
+                [
+                    {
+                        "metadataSchemaFieldName": "metadata_example_1",
+                        "metadataLineIndex": 1
+                    }
+                ],
+            "fixedSheetRecordMetadata":
+                [
+                    {
+                        "metadataSchemaFieldName": "fixed_sheet_field_name",
+                        "fixedSheetValue": "fixed_sheet_value"
+                    }
+                ]
+        }
         config = TestRecordMetadata.get_csv_config(
-            in_sheet_metadata, fixed_sheet_metadata
+            sheet_metadata
         )
         expected_record_metadata = {
             'metadata_example_1':
-                'michael,jackson,7,University of California,United States',
+                'Michael,Bonbi,7,University of California,United States',
             'imported_timestamp_field_name':
                 '2020-10-01T10:15:13Z',
             'fixed_sheet_field_name': 'fixed_sheet_value',
@@ -236,7 +255,7 @@ class TestRecordMetadata:
         returned_metadata = get_record_metadata(
             TEST_DOWNLOADED_SHEET,
             config,
-            TestRecordMetadata.test_timestamp
+            TestRecordMetadata.test_timestamp_str
         )
         assert expected_record_metadata == returned_metadata
 
@@ -263,16 +282,16 @@ class TestCsvHeader:
 
     def test_should_extract_from_line_specified_in_config(
             self,
-            mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_get_new_table_column_names,
-            mock_extend_table_schema_field_names,
-            mock_process_record_list, mock_write_to_file,
+            mock_does_bigquery_table_exist,
             mock_get_standardized_csv_header
     ):
+        record_import_timestamp_as_string = ""
+        full_temp_file_location = ""
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestCsvHeader.sheet_config,
-            "", ""
+            record_import_timestamp_as_string,
+            full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
         mock_get_standardized_csv_header.assert_called_with(
@@ -282,7 +301,9 @@ class TestCsvHeader:
 
 class TestTransformAndLoadData:
     @staticmethod
-    def get_csv_config(key=None, value=None):
+    def get_csv_config(update_dict: dict = None):
+        if update_dict is None:
+            update_dict = dict()
         config_dict = {
             "sheetName": "sheet name-0",
             "headerLineIndex": 0,
@@ -291,60 +312,79 @@ class TestTransformAndLoadData:
             "tableName": "table_name_1",
             "tableWriteAppend": "true",
         }
-        config_dict.update(
-            {key: value}
-        )
+        if update_dict:
+            config_dict.update(
+                update_dict
+            )
+        gcp_project = ""
+        deployment_env = ""
         return CsvSheetConfig(
             config_dict,
-            "spreadsheet_id", "",
-            "imported_timestamp_field_name", ""
+            "spreadsheet_id", gcp_project,
+            "imported_timestamp_field_name",
+            deployment_env
         )
 
     def test_should_not_extend_non_existing_table(
             self,
-            mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_get_new_table_column_names,
+            mock_does_bigquery_table_exist,
+            mock_get_new_table_columns_schema,
             mock_extend_table_schema_field_names,
-            mock_process_record_list, mock_write_to_file,
     ):
         mock_does_bigquery_table_exist.return_value = False
+        record_import_timestamp_as_string = ""
+        full_temp_file_location = ""
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
-            "", ""
+            record_import_timestamp_as_string,
+            full_temp_file_location
         )
-        assert not mock_get_new_table_column_names.called
-        assert not mock_extend_table_schema_field_names.called
+        mock_get_new_table_columns_schema.assert_not_called()
+        mock_extend_table_schema_field_names.assert_not_called()
 
     def test_should_only_extend_table_when_new_column_exist(
             self,
-            mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_get_new_table_column_names,
+            mock_does_bigquery_table_exist,
+            mock_get_new_table_columns_schema,
             mock_extend_table_schema_field_names,
-            mock_process_record_list, mock_write_to_file,
     ):
         mock_does_bigquery_table_exist.return_value = True
-        mock_get_new_table_column_names.return_value = {
+        mock_get_new_table_columns_schema.return_value = {
             "new_column_1": "STRING"
         }
+        csv_sheet_config = (
+            TestTransformAndLoadData.get_csv_config()
+        )
+        record_import_timestamp_as_string = ""
+        full_temp_file_location = ""
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
-            TestTransformAndLoadData.get_csv_config(),
-            "", ""
+            csv_sheet_config,
+            record_import_timestamp_as_string,
+            full_temp_file_location
         )
-        assert mock_extend_table_schema_field_names.called
+
+        mock_extend_table_schema_field_names.assert_called()
+        assert mock_extend_table_schema_field_names.called_with(
+            csv_sheet_config.gcp_project,
+            csv_sheet_config.dataset_name,
+            csv_sheet_config.table_name,
+            mock_get_new_table_columns_schema.return_value
+        )
 
     def test_should_transform_write_and_load_to_bq(
             self,
             mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_get_new_table_column_names,
-            mock_extend_table_schema_field_names,
             mock_process_record_list, mock_write_to_file,
     ):
+        record_import_timestamp_as_string = ""
+        full_temp_file_location = ""
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
-            "", ""
+            record_import_timestamp_as_string,
+            full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
         mock_process_record_list.assert_called()
@@ -386,8 +426,18 @@ class TestProcessData:
     def test_should_call_process_record_function_n_times(
             self, mock_process_record
     ):
-        list(process_record_list([[], []], {}, []))
-        assert mock_process_record.call_count == 2
+        records_to_process = [["record_1"], ["record_2"]]
+        records_length = len(records_to_process)
+        records_header = ["header"]
+        record_metadata = {}
+        list(
+            process_record_list(
+                records_to_process,
+                record_metadata,
+                records_header
+            )
+        )
+        assert mock_process_record.call_count == records_length
 
     def test_should_call_process_csv_sheet_function_n_times(
             self, mock_process_csv_sheet
@@ -395,8 +445,11 @@ class TestProcessData:
         multi_csv_config = MultiCsvSheet(
             TestProcessData.multi_csv_config_dict, "dep_env"
         )
+        spreadsheets_count = len(
+            multi_csv_config.sheets_config.values()
+        )
         etl_google_spreadsheet(multi_csv_config)
-        assert mock_process_csv_sheet.call_count == 2
+        assert mock_process_csv_sheet.call_count == spreadsheets_count
 
 
 class TestRecord:
@@ -428,7 +481,7 @@ class TestRecord:
         )
         assert expected_return == actual_return
 
-    def test_should_update_record_metadata_with_provenance_(self):
+    def test_should_update_record_metadata_with_provenance(self):
         test_config = CsvSheetConfig(
             {
                 "sheetName": "sheet name-0",
@@ -489,7 +542,7 @@ class TestTableSchema:
             "metadata_col_2": "STRING"
         }
 
-        return_value = get_new_table_column_names(
+        return_value = get_new_table_columns_schema(
             TestTableSchema.test_config,
             standardized_csv_header,
             record_metadata
@@ -517,10 +570,53 @@ class TestTableSchema:
             "col_2": "STRING"
         }
 
-        return_value = get_new_table_column_names(
+        return_value = get_new_table_columns_schema(
             TestTableSchema.test_config,
             standardized_csv_header,
             record_metadata
         )
 
         assert expected_ret_value == return_value
+
+
+class TestSpreadSheetSheetWithRange:
+    def test_should_have_no_range(self):
+        sheet_config = CsvSheetConfig(
+            {
+                "sheetName": "sheet name-0",
+                "headerLineIndex": 0,
+                "datasetName": "{ENV}-dataset",
+                "tableWriteAppend": "true",
+            },
+            "spreadsheet_id", "s_id",
+            "imported_timestamp_field_name", ""
+        )
+
+        sheet_with_range = get_sheet_range_from_config(
+            sheet_config
+        )
+        expected_sheet_with_range = "sheet name-0"
+        assert sheet_with_range == (
+            expected_sheet_with_range
+        )
+
+    def test_should_have_range(self):
+        sheet_config = CsvSheetConfig(
+            {
+                "sheetName": "sheet name-0",
+                "sheetRange": "A:B",
+                "headerLineIndex": 0,
+                "datasetName": "{ENV}-dataset",
+                "tableWriteAppend": "true",
+            },
+            "spreadsheet_id", "s_id",
+            "imported_timestamp_field_name", ""
+        )
+
+        sheet_with_range = get_sheet_range_from_config(
+            sheet_config
+        )
+        expected_sheet_with_range = "sheet name-0!A:B"
+        assert sheet_with_range == (
+            expected_sheet_with_range
+        )

@@ -28,13 +28,9 @@ G_SPREADSHEET_DAG = DAG(
 )
 
 
-def get_env_var_or_use_default(env_var_name, default_value):
-    return os.getenv(env_var_name, default_value)
-
-
 def google_spreadsheet_data_etl(**kwargs):
     data_config_dict = kwargs["dag_run"].conf
-    dep_env = get_env_var_or_use_default(
+    dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
     data_config = MultiCsvSheet(data_config_dict, dep_env)

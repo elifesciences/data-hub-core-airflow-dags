@@ -7,11 +7,11 @@ class MultiSpreadsheetConfig:
             "importedTimestampFieldName"
         )
         self.spreadsheets_config = {
-            spreadsheet.get("spreadsheetId"): extend_spreadsheet_config_dict(
-                spreadsheet,
-                self.gcp_project,
-                self.import_timestamp_field_name,
-            )
+            spreadsheet.get("spreadsheetId"): {
+                **spreadsheet,
+                "gcpProjectName": self.gcp_project,
+                "importedTimestampFieldName": self.import_timestamp_field_name
+            }
             for spreadsheet in multi_spreadsheet_config.get("spreadsheets")
         }
 
@@ -75,18 +75,16 @@ class CsvSheetConfig:
         self.dataset_name = csv_sheet_config.get(
             "datasetName"
         ).replace(environment_placeholder, deployment_env)
-        self.table_write_append = (
-            True
-            if csv_sheet_config.get("tableWriteAppend", "").lower() == "true"
-            else False
+        self.table_write_append_enabled = (
+            csv_sheet_config.get("tableWriteAppend", False)
         )
-        self.metadata = {
+        self.in_sheet_record_metadata = {
             record.get("metadataSchemaFieldName"):
                 record.get("metadataLineIndex")
-            for record in csv_sheet_config.get("metadata", [])
+            for record in csv_sheet_config.get("inSheetRecordMetadata", [])
         }
-        self.fixed_sheet_metadata = {
+        self.fixed_sheet_record_metadata = {
             record.get("metadataSchemaFieldName"):
                 record.get("fixedSheetValue")
-            for record in csv_sheet_config.get("fixedSheetMetadata", [])
+            for record in csv_sheet_config.get("fixedSheetRecordMetadata", [])
         }

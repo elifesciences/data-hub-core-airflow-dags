@@ -3,6 +3,7 @@ import json
 import re
 from datetime import timezone
 from tempfile import NamedTemporaryFile
+from typing import Iterable
 
 import yaml
 from google.cloud.bigquery import WriteDisposition
@@ -28,7 +29,7 @@ def current_timestamp_as_string():
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
-    for _, csv_sheet_config in spreadsheet_config.sheets_config.items():
+    for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with NamedTemporaryFile() as named_temp_file:
             process_csv_sheet(csv_sheet_config, named_temp_file.name)
 
@@ -60,7 +61,7 @@ def process_csv_sheet(
     )
 
 
-def get_new_table_column_names(
+def get_new_table_columns_schema(
         csv_sheet_config: CsvSheetConfig,
         standardized_csv_header: list,
         record_metadata: dict
@@ -117,12 +118,12 @@ def get_record_metadata(
     record_metadata = {
         metadata_col_name: ",".join(record_list[line_index_in_data])
         for metadata_col_name, line_index_in_data
-        in csv_sheet_config.metadata.items()
+        in csv_sheet_config.in_sheet_record_metadata.items()
     }
     record_metadata[
         csv_sheet_config.import_timestamp_field_name
     ] = record_import_timestamp_as_string
-    record_metadata.update(csv_sheet_config.fixed_sheet_metadata)
+    record_metadata.update(csv_sheet_config.fixed_sheet_record_metadata)
     record_metadata = update_metadata_with_provenance(
         record_metadata, csv_sheet_config
     )
@@ -139,7 +140,7 @@ def get_standardized_csv_header(csv_header):
 def get_write_disposition(csv_sheet_config):
     write_disposition = (
         WriteDisposition.WRITE_APPEND
-        if csv_sheet_config.table_write_append
+        if csv_sheet_config.table_write_append_enabled
         else WriteDisposition.WRITE_TRUNCATE
     )
     return write_disposition
@@ -169,7 +170,7 @@ def transform_load_data(
             csv_sheet_config.dataset_name,
             csv_sheet_config.table_name,
     ):
-        new_col_names = get_new_table_column_names(
+        new_col_names = get_new_table_columns_schema(
             csv_sheet_config,
             standardized_csv_header,
             record_metadata
@@ -200,8 +201,8 @@ def transform_load_data(
     )
 
 
-def write_to_file(json_list: list, full_temp_file_location: str):
-    with open(full_temp_file_location, "a") as write_file:
+def write_to_file(json_list: Iterable, full_temp_file_location: str):
+    with open(full_temp_file_location, "w") as write_file:
         for record in json_list:
             write_file.write(json.dumps(record, ensure_ascii=False))
             write_file.write("\n")
@@ -215,14 +216,10 @@ def process_record(record: list,
                    record_metadata: dict,
                    standardized_csv_header: list
                    ):
-    record_length = len(record)
-    record_as_dict = {
-        field_name: record[record_col_index]
-        for record_col_index, field_name in enumerate(standardized_csv_header)
-        if record_col_index < record_length
+    return {
+        **record_metadata,
+        **dict(zip(standardized_csv_header, record))
     }
-    record_as_dict.update(record_metadata)
-    return record_as_dict
 
 
 def process_record_list(
