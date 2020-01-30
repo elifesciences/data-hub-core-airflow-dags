@@ -1,5 +1,6 @@
 import fnmatch
 import re
+from collections import defaultdict
 
 from typing import Iterable
 
@@ -43,7 +44,7 @@ class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
         hook = S3HookNewFileMonitor(
             aws_conn_id=self.aws_conn_id, verify=self.verify
         )
-        self.log.info("Poking for keys in  s3 bucket")
+        self.log.info("Poking for keys in s3 bucket")
         return hook.is_new_file_present(
             bucket_key_wildcard_pattern_with_latest_date, s3_bucket
         )
@@ -69,15 +70,13 @@ class S3HookNewFileMonitor(S3Hook):
             bucket_key_wildcard_pattern_with_latest_date: dict,
             bucket_name: str
     ):
-        new_object_key_names = dict()
+        new_object_key_names = defaultdict(list)
         object_key_names_iter = self.iter_filter_s3_object_meta_after(
             bucket_key_wildcard_pattern_with_latest_date,
             bucket_name
         )
         for bucket_key_pattern, key_object in object_key_names_iter:
-            new_object_key_names[bucket_key_pattern] = (
-                [*new_object_key_names.get(bucket_key_pattern, []), key_object]
-            )
+            new_object_key_names[bucket_key_pattern].append(key_object)
 
         return new_object_key_names
 
