@@ -10,7 +10,7 @@ from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiCsvSheet,
-    CsvSheetConfig,
+    BaseCsvSheetConfig,
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
@@ -35,7 +35,7 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
 
 
 def get_sheet_range_from_config(
-        csv_sheet_config: CsvSheetConfig
+        csv_sheet_config: BaseCsvSheetConfig
 ):
     sheet_with_range = (
         csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
@@ -46,7 +46,7 @@ def get_sheet_range_from_config(
 
 
 def process_csv_sheet(
-        csv_sheet_config: CsvSheetConfig, temp_file: str,
+        csv_sheet_config: BaseCsvSheetConfig, temp_file: str,
 ):
     sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
@@ -62,7 +62,7 @@ def process_csv_sheet(
 
 
 def get_new_table_columns_schema(
-        csv_sheet_config: CsvSheetConfig,
+        csv_sheet_config,
         standardized_csv_header: list,
         record_metadata: dict
 ):
@@ -98,7 +98,7 @@ def get_new_table_columns_schema(
 
 
 def update_metadata_with_provenance(
-        record_metadata, csv_sheet_config: CsvSheetConfig
+        record_metadata, csv_sheet_config: BaseCsvSheetConfig
 ):
     provenance = {
         "spreadsheet_id": csv_sheet_config.spreadsheet_id,
@@ -112,7 +112,7 @@ def update_metadata_with_provenance(
 
 def get_record_metadata(
         record_list,
-        csv_sheet_config: CsvSheetConfig,
+        csv_sheet_config: BaseCsvSheetConfig,
         record_import_timestamp_as_string: str,
 ):
     record_metadata = {
@@ -148,7 +148,7 @@ def get_write_disposition(csv_sheet_config):
 
 def transform_load_data(
         record_list,
-        csv_sheet_config: CsvSheetConfig,
+        csv_sheet_config: BaseCsvSheetConfig,
         record_import_timestamp_as_string: str,
         full_temp_file_location: str,
 ):
@@ -208,8 +208,8 @@ def write_to_file(json_list: Iterable, full_temp_file_location: str):
             write_file.write("\n")
 
 
-def standardize_field_name(field_name):
-    return re.sub(r"\W", "_", field_name)
+def standardize_field_name(field_name: str):
+    return re.sub(r"\W", "_", field_name.strip().strip('"').strip("'"))
 
 
 def process_record(record: list,

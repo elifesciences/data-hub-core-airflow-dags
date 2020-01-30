@@ -14,7 +14,7 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     get_sheet_range_from_config
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
-    MultiCsvSheet, CsvSheetConfig
+    MultiCsvSheet, BaseCsvSheetConfig
 )
 
 # pylint: disable=unused-argument,too-many-arguments
@@ -121,7 +121,7 @@ class TestRecordMetadata:
         }
         gcp_project = ""
         deployment_env = ""
-        return CsvSheetConfig(
+        return BaseCsvSheetConfig(
             csv_config_dict,
             "spreadsheet_id", gcp_project,
             "imported_timestamp_field_name",
@@ -261,7 +261,7 @@ class TestRecordMetadata:
 
 
 class TestCsvHeader:
-    sheet_config = CsvSheetConfig(
+    sheet_config = BaseCsvSheetConfig(
         {
             "sheetName": "sheet name-0",
             "headerLineIndex": 0,
@@ -318,7 +318,7 @@ class TestTransformAndLoadData:
             )
         gcp_project = ""
         deployment_env = ""
-        return CsvSheetConfig(
+        return BaseCsvSheetConfig(
             config_dict,
             "spreadsheet_id", gcp_project,
             "imported_timestamp_field_name",
@@ -413,7 +413,7 @@ class TestProcessData:
         ]
     }
 
-    sheet_config = CsvSheetConfig(
+    sheet_config = BaseCsvSheetConfig(
         {
             "sheetName": "sheet name-0",
             "headerLineIndex": 0,
@@ -482,7 +482,7 @@ class TestRecord:
         assert expected_return == actual_return
 
     def test_should_update_record_metadata_with_provenance(self):
-        test_config = CsvSheetConfig(
+        test_config = BaseCsvSheetConfig(
             {
                 "sheetName": "sheet name-0",
                 "datasetName": "{ENV}-dataset",
@@ -508,7 +508,7 @@ class TestRecord:
 
 
 class TestTableSchema:
-    test_config = CsvSheetConfig(
+    test_config = BaseCsvSheetConfig(
         {
             "sheetName": "sheet name-0",
             "datasetName": "{ENV}-dataset",
@@ -581,7 +581,7 @@ class TestTableSchema:
 
 class TestSpreadSheetSheetWithRange:
     def test_should_have_no_range(self):
-        sheet_config = CsvSheetConfig(
+        sheet_config = BaseCsvSheetConfig(
             {
                 "sheetName": "sheet name-0",
                 "headerLineIndex": 0,
@@ -601,7 +601,7 @@ class TestSpreadSheetSheetWithRange:
         )
 
     def test_should_have_range(self):
-        sheet_config = CsvSheetConfig(
+        sheet_config = BaseCsvSheetConfig(
             {
                 "sheetName": "sheet name-0",
                 "sheetRange": "A:B",

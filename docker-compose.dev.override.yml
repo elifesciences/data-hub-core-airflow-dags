@@ -16,3 +16,7 @@ services:
     dask-worker:
         volumes:
             - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+
+    test-client:
+        volumes:
+            - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
