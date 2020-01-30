@@ -1,3 +1,6 @@
+from data_pipeline.utils.common.csv_config import BaseCsvConfig
+
+
 class MultiSpreadsheetConfig:
     def __init__(self,
                  multi_spreadsheet_config: dict,
@@ -39,7 +42,7 @@ class MultiCsvSheet:
         )
         self.gcp_project = multi_sheet_config.get("gcpProjectName")
         self.sheets_config = {
-            sheet.get("sheetName"): CsvSheetConfig(
+            sheet.get("sheetName"): BaseCsvSheetConfig(
                 sheet,
                 self.spreadsheet_id,
                 self.gcp_project,
@@ -52,7 +55,7 @@ class MultiCsvSheet:
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
-class CsvSheetConfig:
+class BaseCsvSheetConfig(BaseCsvConfig):
     def __init__(
             self,
             csv_sheet_config: dict,
@@ -62,29 +65,16 @@ class CsvSheetConfig:
             deployment_env: str,
             environment_placeholder: str = "{ENV}"
     ):
-        self.gcp_project = gcp_project
-        self.import_timestamp_field_name = imported_timestamp_field_name
-        self.spreadsheet_id = spreadsheet_id
-        self.header_line_index = csv_sheet_config.get("headerLineIndex")
-        self.data_values_start_line_index = csv_sheet_config.get(
-            "dataValuesStartLineIndex"
+        super(
+            BaseCsvSheetConfig, self
+        ).__init__(
+            csv_sheet_config=csv_sheet_config,
+            deployment_env=deployment_env,
+            gcp_project=gcp_project,
+            environment_placeholder=environment_placeholder,
+            imported_timestamp_field_name=imported_timestamp_field_name
         )
+        self.spreadsheet_id = spreadsheet_id
+
         self.sheet_name = csv_sheet_config.get("sheetName")
         self.sheet_range = csv_sheet_config.get("sheetRange")
-        self.table_name = csv_sheet_config.get("tableName")
-        self.dataset_name = csv_sheet_config.get(
-            "datasetName"
-        ).replace(environment_placeholder, deployment_env)
-        self.table_write_append_enabled = (
-            csv_sheet_config.get("tableWriteAppend", False)
-        )
-        self.in_sheet_record_metadata = {
-            record.get("metadataSchemaFieldName"):
-                record.get("metadataLineIndex")
-            for record in csv_sheet_config.get("inSheetRecordMetadata", [])
-        }
-        self.fixed_sheet_record_metadata = {
-            record.get("metadataSchemaFieldName"):
-                record.get("fixedSheetValue")
-            for record in csv_sheet_config.get("fixedSheetRecordMetadata", [])
-        }

@@ -8,7 +8,7 @@ from datetime import timezone, datetime
 from botocore.exceptions import ClientError
 from dateutil import tz
 
-from data_pipeline.s3_csv_data.s3_csv_config import S3CsvConfig
+from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
@@ -76,7 +76,7 @@ def upload_s3_object_json(
 
 
 def get_initial_state(
-        data_config: S3CsvConfig,
+        data_config: S3BaseCsvConfig,
         latest_processed_file_date: str =
         DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
 ):
@@ -87,7 +87,7 @@ def get_initial_state(
 
 
 def get_stored_state(
-        data_config: S3CsvConfig
+        data_config: S3BaseCsvConfig
 ):
     try:
         downloaded_state = download_s3_json_object(
@@ -119,7 +119,7 @@ def get_csv_data_from_s3(s3_bucket_name: str, s3_object_name: str):
     )
 
 
-def get_sorted_in_sheet_metadata_index(csv_config: S3CsvConfig):
+def get_sorted_in_sheet_metadata_index(csv_config: S3BaseCsvConfig):
     record_metadata = [
         {line_index_in_data: metadata_col_name}
         for metadata_col_name, line_index_in_data
@@ -131,7 +131,7 @@ def get_sorted_in_sheet_metadata_index(csv_config: S3CsvConfig):
 
 
 def extend_table_if_new_col_exist(
-        csv_config: S3CsvConfig,
+        csv_config: S3BaseCsvConfig,
         standardized_csv_header: list,
         record_metadata
 ):
@@ -151,7 +151,7 @@ def extend_table_if_new_col_exist(
 
 def get_record_metadata(
         record_list: list,
-        csv_config: S3CsvConfig,
+        csv_config: S3BaseCsvConfig,
         s3_object_name: str,
         record_import_timestamp_as_string: str
 ):
@@ -175,7 +175,7 @@ def get_record_metadata(
 
 def get_standardized_csv_header(
         record_list: list,
-        csv_config: S3CsvConfig
+        csv_config: S3BaseCsvConfig
 ):
     csv_header = record_list[csv_config.header_line_index].split(",")
     standardized_csv_header = [
@@ -187,7 +187,7 @@ def get_standardized_csv_header(
 def get_csv_dict_reader(
         csv_string: str,
         standardized_csv_header: list,
-        csv_config: S3CsvConfig
+        csv_config: S3BaseCsvConfig
 ):
     csv_string_stream = io.StringIO(
         csv_string
@@ -204,7 +204,7 @@ def get_csv_dict_reader(
 
 def transform_load_data(
         s3_object_name: str,
-        csv_config: S3CsvConfig,
+        csv_config: S3BaseCsvConfig,
         record_import_timestamp_as_string: str,
         full_temp_file_location: str,
 ):

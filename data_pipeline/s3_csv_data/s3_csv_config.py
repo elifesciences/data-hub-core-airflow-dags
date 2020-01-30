@@ -1,5 +1,7 @@
 import hashlib
 
+from data_pipeline.utils.common.csv_config import BaseCsvConfig
+
 
 class MultiS3CsvConfig:
     def __init__(self,
@@ -72,42 +74,25 @@ def extend_s3_csv_config_dict(
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
-class S3CsvConfig:
+class S3BaseCsvConfig(BaseCsvConfig):
     def __init__(
             self,
             csv_sheet_config: dict,
             deployment_env: str,
             environment_placeholder: str = "{ENV}"
     ):
-        self.gcp_project = csv_sheet_config.get("gcpProjectName")
-        self.import_timestamp_field_name = csv_sheet_config.get(
-            "importedTimestampFieldName"
+        super(
+            S3BaseCsvConfig, self
+        ).__init__(
+            csv_sheet_config=csv_sheet_config,
+            deployment_env=deployment_env,
+            environment_placeholder=environment_placeholder,
         )
+
         self.s3_bucket_name = csv_sheet_config.get("bucketName")
         self.s3_object_key_pattern_list = csv_sheet_config.get(
             "objectKeyPattern"
         )
-        self.header_line_index = csv_sheet_config.get("headerLineIndex")
-        self.data_values_start_line_index = csv_sheet_config.get(
-            "dataValuesStartLineIndex"
-        )
-        self.table_name = csv_sheet_config.get("tableName")
-        self.dataset_name = csv_sheet_config.get(
-            "datasetName"
-        ).replace(environment_placeholder, deployment_env)
-        self.table_write_append_enabled = csv_sheet_config.get(
-            "tableWriteAppend", False
-        )
-        self.fixed_sheet_record_metadata = {
-            record.get("metadataSchemaFieldName"):
-                record.get("fixedSheetValue")
-            for record in csv_sheet_config.get("fixedSheetRecordMetadata", [])
-        }
-        self.in_sheet_record_metadata = {
-            record.get("metadataSchemaFieldName"):
-                record.get("metadataLineIndex")
-            for record in csv_sheet_config.get("inSheetRecordMetadata", [])
-        }
         self.etl_id = csv_sheet_config.get(
             "dataPipelineId",
             get_s3_csv_etl_id(csv_sheet_config)

@@ -8,7 +8,7 @@ from airflow.models import Variable
 from airflow.models.dagrun import DagRun
 from airflow.operators.python_operator import ShortCircuitOperator
 
-from data_pipeline.s3_csv_data.s3_csv_config import S3CsvConfig
+from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
     current_timestamp_as_string,
     transform_load_data,
@@ -59,7 +59,7 @@ def is_dag_etl_running(**context):
     dep_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    data_config = S3CsvConfig(context[NamedLiterals.DAG_RUN].conf, dep_env)
+    data_config = S3BaseCsvConfig(context[NamedLiterals.DAG_RUN].conf, dep_env)
     dag_run_var_value = Variable.get(
         data_config.etl_id, None
     )
