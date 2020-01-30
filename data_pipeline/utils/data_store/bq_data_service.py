@@ -150,7 +150,7 @@ def get_table_schema_field_names(
 
 def extend_table_schema_field_names(
         project_name: str, dataset_name: str,
-        table_name: str, new_field_names: list
+        table_name: str, new_field_names: dict
 ):
     client = bigquery.Client()
 
@@ -159,8 +159,13 @@ def extend_table_schema_field_names(
     table = client.get_table(table_ref)  # Make an API request.
     original_schema = table.schema
     new_schema = original_schema[:]  # Creates a copy of the schema.
-    for field in new_field_names:
-        new_schema.append(bigquery.SchemaField(field, "STRING"))
+    for field_name, field_type in new_field_names.items():
+        new_schema.append(
+            bigquery.SchemaField(
+                field_name,
+                field_type.upper()
+            )
+        )
 
     table.schema = new_schema
     client.update_table(table, ["schema"])  # Make an API request.
