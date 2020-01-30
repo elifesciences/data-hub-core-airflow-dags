@@ -14,11 +14,12 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     transform_load_data,
     get_stored_state,
     update_object_latest_dates,
+    upload_s3_object_json,
+    NamedLiterals
 )
 from data_pipeline.utils.dags.airflow_s3_util_extension import (
-    S3NewKeySensor,
-    S3HookNewFileMonitor,
-    DEFAULT_AWS_CONN_ID
+    S3NewKeyFromLastDataDownloadDateSensor,
+    S3HookNewFileMonitor
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
@@ -35,14 +36,6 @@ S3_CSV_ETL_DAG = DAG(
     default_args=get_default_args(),
     dagrun_timeout=timedelta(minutes=60),
 )
-
-
-class NamedLiterals:
-    DAG_RUN = 'dag_run'
-    RUN_ID = 'run_id'
-    DAG_RUNNING_STATUS = 'running'
-    S3_FILE_METADATA_NAME_KEY = "Key"
-    S3_FILE_METADATA_LAST_MODIFIED_KEY = "LastModified"
 
 
 def get_env_var_or_use_default(env_var_name, default_value):
@@ -92,7 +85,10 @@ def etl_new_csv_files(**context):
     obj_pattern_with_latest_dates = (
         get_stored_state(data_config)
     )
-    hook = S3HookNewFileMonitor(aws_conn_id=DEFAULT_AWS_CONN_ID, verify=None)
+    hook = S3HookNewFileMonitor(
+        aws_conn_id=NamedLiterals.DEFAULT_AWS_CONN_ID,
+        verify=None
+    )
     new_s3_files = hook.get_new_object_key_names(
         obj_pattern_with_latest_dates,
         data_config.s3_bucket_name
@@ -116,12 +112,15 @@ def etl_new_csv_files(**context):
                     record_import_timestamp_as_string,
                     named_temp_file.name
                 )
-                update_object_latest_dates(
+                updated_obj_pattern_with_latest_dates = update_object_latest_dates(
                     obj_pattern_with_latest_dates,
                     object_key_pattern,
                     matching_file_metadata.get(
                         NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
-                    ),
+                    )
+                )
+                upload_s3_object_json(
+                    updated_obj_pattern_with_latest_dates,
                     data_config.state_file_bucket_name,
                     data_config.state_file_object_name
                 )
@@ -133,7 +132,7 @@ SHOULD_REMAINING_TASK_EXECUTE = ShortCircuitOperator(
     dag=S3_CSV_ETL_DAG)
 
 
-NEW_S3_FILE_SENSOR = S3NewKeySensor(
+NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
     task_id='s3_key_sensor_task',
     poke_interval=60 * 1,
     timeout=60 * 60 * 24 * 1,

@@ -1,27 +1,30 @@
 import fnmatch
 import re
 
+from typing import Iterable
+
 from airflow.hooks.S3_hook import S3Hook
 from airflow.sensors.base_sensor_operator import BaseSensorOperator
 from airflow.utils.decorators import apply_defaults
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3CsvConfig
-
-DEFAULT_AWS_CONN_ID = "aws_default"
+from data_pipeline.s3_csv_data.s3_csv_etl import NamedLiterals
 
 
 # pylint: disable=abstract-method,too-many-arguments
-class S3NewKeySensor(BaseSensorOperator):
+class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
     @apply_defaults
     def __init__(
             self,
             state_info_extract_from_config_callable,
             *args,
-            aws_conn_id=DEFAULT_AWS_CONN_ID,
+            aws_conn_id=NamedLiterals.DEFAULT_AWS_CONN_ID,
             verify=None,
             **kwargs
     ):
-        super(S3NewKeySensor, self).__init__(*args, **kwargs)
+        super(
+            S3NewKeyFromLastDataDownloadDateSensor, self
+        ).__init__(*args, **kwargs)
 
         self.object_state_info_extract_from_config_callable = (
             state_info_extract_from_config_callable
@@ -51,54 +54,46 @@ class S3HookNewFileMonitor(S3Hook):
             self,
             bucket_key_wildcard_pattern_with_latest_date: dict,
             bucket_name: str,
-            delimiter="",
-            page_size=None,
-            max_items=None,
     ):
+        object_key_names_iter = self.iter_filter_s3_object_meta_after(
+            bucket_key_wildcard_pattern_with_latest_date,
+            bucket_name
+        )
+        for _ in object_key_names_iter:
+            return True
 
-        config = {
-            "PageSize": page_size,
-            "MaxItems": max_items,
-        }
-        for (
-                bucket_key_pattern,
-                latest_file_deposit_datetime,
-        ) in bucket_key_wildcard_pattern_with_latest_date.items():
-            prefix = re.split(r"[*]", bucket_key_pattern, 1)[0]
-
-            paginator = self.get_conn().get_paginator("list_objects_v2")
-            response = paginator.paginate(
-                Bucket=bucket_name,
-                Prefix=prefix,
-                Delimiter=delimiter,
-                PaginationConfig=config,
-            )
-            for page in response:
-                if "Contents" in page:
-                    for k in page["Contents"]:
-                        if (
-                                k["LastModified"]
-                                > latest_file_deposit_datetime
-                                and
-                                fnmatch.fnmatch(k["Key"], bucket_key_pattern)
-                        ):
-                            return True
         return False
 
     def get_new_object_key_names(
+            self,
+            bucket_key_wildcard_pattern_with_latest_date: dict,
+            bucket_name: str
+    ):
+        new_object_key_names = dict()
+        object_key_names_iter = self.iter_filter_s3_object_meta_after(
+            bucket_key_wildcard_pattern_with_latest_date,
+            bucket_name
+        )
+        for bucket_key_pattern, key_object in object_key_names_iter:
+            new_object_key_names[bucket_key_pattern] = (
+                [*new_object_key_names.get(bucket_key_pattern, []), key_object]
+            )
+
+        return new_object_key_names
+
+    def iter_filter_s3_object_meta_after(
             self,
             bucket_key_wildcard_pattern_with_latest_date: dict,
             bucket_name: str,
             delimiter="",
             page_size=None,
             max_items=None,
-    ):
+    ) -> Iterable[dict]:
 
         config = {
             "PageSize": page_size,
             "MaxItems": max_items,
         }
-        new_object_key_names = dict()
         for (
                 bucket_key_pattern,
                 latest_file_deposit_datetime,
@@ -112,14 +107,15 @@ class S3HookNewFileMonitor(S3Hook):
                 Delimiter=delimiter,
                 PaginationConfig=config,
             )
-
             for page in response:
                 if "Contents" in page:
-                    new_object_key_names[bucket_key_pattern] = [
-                        k
-                        for k in page["Contents"]
-                        if k["LastModified"] > latest_file_deposit_datetime
-                        and fnmatch.fnmatch(k["Key"], bucket_key_pattern)
-                    ]
-
-        return new_object_key_names
+                    for key_object in page["Contents"]:
+                        if (
+                                key_object["LastModified"]
+                                > latest_file_deposit_datetime
+                                and
+                                fnmatch.fnmatch(
+                                    key_object["Key"], bucket_key_pattern
+                                )
+                        ):
+                            yield bucket_key_pattern, key_object

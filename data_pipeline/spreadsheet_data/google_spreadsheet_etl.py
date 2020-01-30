@@ -62,7 +62,7 @@ def process_csv_sheet(
 
 
 def get_new_table_columns_schema(
-        csv_sheet_config: CsvSheetConfig,
+        csv_sheet_config,
         standardized_csv_header: list,
         record_metadata: dict
 ):
@@ -208,8 +208,8 @@ def write_to_file(json_list: Iterable, full_temp_file_location: str):
             write_file.write("\n")
 
 
-def standardize_field_name(field_name):
-    return re.sub(r"\W", "_", field_name)
+def standardize_field_name(field_name: str):
+    return re.sub(r"\W", "_", field_name.strip().strip('"').strip("'"))
 
 
 def process_record(record: list,

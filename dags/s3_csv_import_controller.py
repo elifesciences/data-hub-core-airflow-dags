@@ -35,7 +35,6 @@ def trigger_dag(**context):
         S3_CSV_CONFIG_FILE_PATH_ENV_NAME, ""
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
-
     data_config = MultiS3CsvConfig(data_config_dict,)
     for s3_csv_config in data_config.s3_csv_config:
         simple_trigger_dag(dag_id=TARGET_DAG, conf=s3_csv_config)

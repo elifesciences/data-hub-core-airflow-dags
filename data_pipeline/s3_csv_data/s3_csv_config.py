@@ -12,7 +12,7 @@ class MultiS3CsvConfig:
         self.s3_csv_config = [
             extend_s3_csv_config_with_state_file_info(
                 extend_s3_csv_config_dict(
-                    extend_with_etl_id(s3_csv),
+                    s3_csv,
                     self.gcp_project,
                     self.import_timestamp_field_name,
                 ),
@@ -26,18 +26,22 @@ def extend_s3_csv_config_with_state_file_info(
         s3_csv_config_dict: dict,
         default_state_file_config: dict
 ):
+    s3_state_file_info = s3_csv_config_dict.get("stateFile")
     if not (
             s3_csv_config_dict.get("stateFile", {}).get("bucketName")
             and s3_csv_config_dict.get("stateFile", {}).get("objectName")
     ):
+
         s3_state_file_info = {
             "bucketName": default_state_file_config.get("defaultBucketName"),
             "objectName": default_state_file_config.get(
                 "defaultSystemGeneratedObjectPrefix"
             ) + get_s3_csv_etl_id(s3_csv_config_dict) + ".json"
         }
-        s3_csv_config_dict["stateFile"] = s3_state_file_info
-    return s3_csv_config_dict
+    return {
+        **s3_csv_config_dict,
+        "stateFile": s3_state_file_info
+    }
 
 
 def generate_hash(string_to_hash: str):
@@ -51,11 +55,6 @@ def get_s3_csv_etl_id(data_config_dict: dict):
         + data_config_dict.get("bucketName", "")
     )
     return generate_hash(etl_dag_run_id)
-
-
-def extend_with_etl_id(s3_csv_config_dict: dict):
-    s3_csv_config_dict["id"] = get_s3_csv_etl_id(s3_csv_config_dict)
-    return s3_csv_config_dict
 
 
 def extend_s3_csv_config_dict(
@@ -96,22 +95,23 @@ class S3CsvConfig:
         self.dataset_name = csv_sheet_config.get(
             "datasetName"
         ).replace(environment_placeholder, deployment_env)
-        self.table_write_append = (
-            True
-            if csv_sheet_config.get("tableWriteAppend", "").lower() == "true"
-            else False
+        self.table_write_append_enabled = csv_sheet_config.get(
+            "tableWriteAppend", False
         )
-        self.metadata = {
-            record.get("metadataSchemaFieldName"):
-                record.get("metadataLineIndex")
-            for record in csv_sheet_config.get("metadata", [])
-        }
-        self.fixed_sheet_metadata = {
+        self.fixed_sheet_record_metadata = {
             record.get("metadataSchemaFieldName"):
                 record.get("fixedSheetValue")
-            for record in csv_sheet_config.get("fixedSheetMetadata", [])
+            for record in csv_sheet_config.get("fixedSheetRecordMetadata", [])
         }
-        self.etl_id = csv_sheet_config.get("id")
+        self.in_sheet_record_metadata = {
+            record.get("metadataSchemaFieldName"):
+                record.get("metadataLineIndex")
+            for record in csv_sheet_config.get("inSheetRecordMetadata", [])
+        }
+        self.etl_id = csv_sheet_config.get(
+            "dataPipelineId",
+            get_s3_csv_etl_id(csv_sheet_config)
+        )
         self.state_file_bucket_name = csv_sheet_config.get(
             "stateFile", {}
         ).get("bucketName")
