@@ -38,10 +38,6 @@ S3_CSV_ETL_DAG = DAG(
 )
 
 
-def get_env_var_or_use_default(env_var_name, default_value):
-    return os.getenv(env_var_name, default_value)
-
-
 def update_prev_run_id_var_val(**context):
     dag_context = context["ti"]
     data_config = dag_context.xcom_pull(
@@ -56,7 +52,7 @@ def update_prev_run_id_var_val(**context):
 
 
 def is_dag_etl_running(**context):
-    dep_env = get_env_var_or_use_default(
+    dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
     data_config = S3BaseCsvConfig(context[NamedLiterals.DAG_RUN].conf, dep_env)

@@ -25,14 +25,10 @@ DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 TARGET_DAG = "S3_CSV_Data_Pipeline"
 
 
-def get_env_var_or_use_default(env_var_name, default_value=None):
-    return os.getenv(env_var_name, default_value)
-
-
 # pylint: disable=unused-argument
 def trigger_dag(**context):
-    conf_file_path = get_env_var_or_use_default(
-        S3_CSV_CONFIG_FILE_PATH_ENV_NAME, ""
+    conf_file_path = os.getenv(
+        S3_CSV_CONFIG_FILE_PATH_ENV_NAME
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiS3CsvConfig(data_config_dict,)
@@ -42,7 +38,7 @@ def trigger_dag(**context):
 
 S3_CSV_CONTROLLER_DAG = DAG(
     dag_id="S3_CSV_Import_Pipeline_Controller",
-    schedule_interval=get_env_var_or_use_default(
+    schedule_interval=os.getenv(
         S3_CSV_SCHEDULE_INTERVAL_ENV_NAME
     ),
     default_args=get_default_args(),
