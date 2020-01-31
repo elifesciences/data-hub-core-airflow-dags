@@ -22,7 +22,9 @@ class BaseCsvConfig:
         self.data_values_start_line_index = csv_sheet_config.get(
             "dataValuesStartLineIndex"
         )
-        self.table_name = csv_sheet_config.get("tableName")
+        self.table_name = csv_sheet_config.get(
+            "tableName"
+        ).replace(environment_placeholder, deployment_env)
         self.dataset_name = csv_sheet_config.get(
             "datasetName"
         ).replace(environment_placeholder, deployment_env)

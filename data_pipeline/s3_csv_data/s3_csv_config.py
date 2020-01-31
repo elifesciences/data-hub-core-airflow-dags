@@ -89,7 +89,9 @@ class S3BaseCsvConfig(BaseCsvConfig):
             environment_placeholder=environment_placeholder,
         )
 
-        self.s3_bucket_name = csv_sheet_config.get("bucketName")
+        self.s3_bucket_name = csv_sheet_config.get(
+            "bucketName"
+        ).replace(environment_placeholder, deployment_env)
         self.s3_object_key_pattern_list = csv_sheet_config.get(
             "objectKeyPattern"
         ).replace(environment_placeholder, deployment_env)
@@ -99,7 +101,9 @@ class S3BaseCsvConfig(BaseCsvConfig):
         )
         self.state_file_bucket_name = csv_sheet_config.get(
             "stateFile", {}
-        ).get("bucketName")
+        ).get(
+            "bucketName"
+        ).replace(environment_placeholder, deployment_env)
         self.state_file_object_name = csv_sheet_config.get(
             "stateFile", {}
         ).get("objectName").replace(
