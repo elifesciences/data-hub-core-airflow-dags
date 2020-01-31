@@ -90,10 +90,10 @@ class S3BaseCsvConfig(BaseCsvConfig):
         )
 
         self.s3_bucket_name = csv_sheet_config.get(
-            "bucketName"
+            "bucketName", ""
         ).replace(environment_placeholder, deployment_env)
         self.s3_object_key_pattern_list = csv_sheet_config.get(
-            "objectKeyPattern"
+            "objectKeyPattern", ""
         ).replace(environment_placeholder, deployment_env)
         self.etl_id = csv_sheet_config.get(
             "dataPipelineId",
@@ -102,10 +102,10 @@ class S3BaseCsvConfig(BaseCsvConfig):
         self.state_file_bucket_name = csv_sheet_config.get(
             "stateFile", {}
         ).get(
-            "bucketName"
+            "bucketName", ""
         ).replace(environment_placeholder, deployment_env)
         self.state_file_object_name = csv_sheet_config.get(
             "stateFile", {}
-        ).get("objectName").replace(
+        ).get("objectName", "").replace(
             environment_placeholder, deployment_env
         )

@@ -10,10 +10,10 @@ class CrossRefImportDataPipelineConfig:
         self.data_config = data_config
         self.project_name = self.data_config.get("projectName")
         self.dataset = self.data_config.get(
-            "dataset"
+            "dataset", ""
         ).replace(environment_placeholder, deployment_env)
         self.table = self.data_config.get(
-            "table"
+            "table", ""
         ).replace(environment_placeholder, deployment_env)
         self.imported_timestamp_field = (
             self.data_config.get("importedTimestampField")
@@ -25,10 +25,12 @@ class CrossRefImportDataPipelineConfig:
             self.data_config.get("stateFile").get("bucket")
         ).replace(environment_placeholder, deployment_env)
         self.schema_file_s3_bucket = (
-            self.data_config.get("schemaFile").get("bucket")
+            self.data_config.get("schemaFile", {}).get("bucket", "")
         ).replace(environment_placeholder, deployment_env)
-        self.schema_file_object_name = self.data_config.get("schemaFile").get(
-            "objectName"
+        self.schema_file_object_name = self.data_config.get(
+            "schemaFile", {}
+        ).get(
+            "objectName", ""
         ).replace(environment_placeholder, deployment_env)
         self.publisher_ids = self.data_config.get("publisherIdPrefixes")
         self.crossref_event_base_url = (
