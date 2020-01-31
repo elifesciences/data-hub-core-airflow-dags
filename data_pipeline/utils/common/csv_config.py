@@ -1,10 +1,9 @@
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 class BaseCsvConfig:
+
     def __init__(
             self,
             csv_sheet_config: dict,
-            deployment_env: str,
-            environment_placeholder: str = "{ENV}",
             gcp_project: str = None,
             imported_timestamp_field_name: str = None
     ):
@@ -24,10 +23,10 @@ class BaseCsvConfig:
         )
         self.table_name = csv_sheet_config.get(
             "tableName", ""
-        ).replace(environment_placeholder, deployment_env)
+        )
         self.dataset_name = csv_sheet_config.get(
             "datasetName", ""
-        ).replace(environment_placeholder, deployment_env)
+        )
         self.table_write_append_enabled = csv_sheet_config.get(
             "tableWriteAppend", False
         )
