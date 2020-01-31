@@ -2,7 +2,7 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: "imported_timestamp"
 stateFile:
   defaultBucketName: ci-elife-data-pipeline
-  defaultSystemGeneratedObjectPrefix: airflow-config/s3-csv/s3-csv
+  defaultSystemGeneratedObjectPrefix: airflow-config/s3-csv/state/s3-csv
 s3Csv:
   - bucketName: elife-ejp-ftp
     objectKeyPattern:
@@ -15,9 +15,9 @@ s3Csv:
     tableWriteAppend: True
     stateFile:
       bucketName: ci-elife-data-pipeline
-      objectName: airflow-config/s3-csv/first-example.json
-    metadata:
-      - metadataSchemaFieldName: 'metadata_example'
+      objectName: airflow-config/s3-csv/state/query_id_15a.json
+    inSheetRecordMetadata:
+      - metadataSchemaFieldName: 'date_generated'
         metadataLineIndex: 1
   - bucketName: elife-ejp-ftp
     objectKeyPattern:
@@ -30,10 +30,10 @@ s3Csv:
     tableWriteAppend: True
     stateFile:
       bucketName: ci-elife-data-pipeline
-      objectName: airflow-config/s3-csv/first-example2.json
+      objectName: airflow-config/s3-csv/state/query_id_04e.json
     #fixedSheetRecordMetadata :
     #  - metadataSchemaFieldName : 'some schema'
     #    fixedSheetValue: "Some value"
     inSheetRecordMetadata:
-      - metadataSchemaFieldName: 'metadata_example'
+      - metadataSchemaFieldName: 'date_generated'
         metadataLineIndex: 1
