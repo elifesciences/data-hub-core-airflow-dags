@@ -1,4 +1,7 @@
 from data_pipeline.utils.common.csv_config import BaseCsvConfig
+from data_pipeline.utils.common.common import (
+    update_deployment_env_placeholder
+)
 
 
 class MultiSpreadsheetConfig:
@@ -65,13 +68,16 @@ class BaseCsvSheetConfig(BaseCsvConfig):
             deployment_env: str,
             environment_placeholder: str = "{ENV}"
     ):
+        updated_csv_sheet_config = update_deployment_env_placeholder(
+            csv_sheet_config,
+            deployment_env,
+            environment_placeholder
+        )
         super(
             BaseCsvSheetConfig, self
         ).__init__(
-            csv_sheet_config=csv_sheet_config,
-            deployment_env=deployment_env,
+            csv_sheet_config=updated_csv_sheet_config,
             gcp_project=gcp_project,
-            environment_placeholder=environment_placeholder,
             imported_timestamp_field_name=imported_timestamp_field_name
         )
         self.spreadsheet_id = spreadsheet_id

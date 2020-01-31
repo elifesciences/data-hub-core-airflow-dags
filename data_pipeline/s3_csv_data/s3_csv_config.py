@@ -1,6 +1,9 @@
 import hashlib
 
 from data_pipeline.utils.common.csv_config import BaseCsvConfig
+from data_pipeline.utils.common.common import (
+    update_deployment_env_placeholder
+)
 
 
 class MultiS3CsvConfig:
@@ -81,25 +84,29 @@ class S3BaseCsvConfig(BaseCsvConfig):
             deployment_env: str,
             environment_placeholder: str = "{ENV}"
     ):
+        updated_config = (
+            update_deployment_env_placeholder(
+                original_dict=csv_sheet_config,
+                deployment_env=deployment_env,
+                environment_placeholder=environment_placeholder
+            )
+        )
         super(
             S3BaseCsvConfig, self
         ).__init__(
-            csv_sheet_config=csv_sheet_config,
-            deployment_env=deployment_env,
-            environment_placeholder=environment_placeholder,
+            csv_sheet_config=updated_config,
         )
-
-        self.s3_bucket_name = csv_sheet_config.get("bucketName")
+        self.s3_bucket_name = csv_sheet_config.get(
+            "bucketName", ""
+        )
         self.s3_object_key_pattern_list = csv_sheet_config.get(
-            "objectKeyPattern"
+            "objectKeyPattern", ""
         )
         self.etl_id = csv_sheet_config.get(
             "dataPipelineId",
             get_s3_csv_etl_id(csv_sheet_config)
         )
         self.state_file_bucket_name = csv_sheet_config.get(
-            "stateFile", {}
-        ).get("bucketName")
+            "stateFile", {}).get("bucketName")
         self.state_file_object_name = csv_sheet_config.get(
-            "stateFile", {}
-        ).get("objectName")
+            "stateFile", {}).get("objectName")
