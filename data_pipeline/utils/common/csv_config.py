@@ -23,10 +23,10 @@ class BaseCsvConfig:
             "dataValuesStartLineIndex"
         )
         self.table_name = csv_sheet_config.get(
-            "tableName"
+            "tableName", ""
         ).replace(environment_placeholder, deployment_env)
         self.dataset_name = csv_sheet_config.get(
-            "datasetName"
+            "datasetName", ""
         ).replace(environment_placeholder, deployment_env)
         self.table_write_append_enabled = csv_sheet_config.get(
             "tableWriteAppend", False
