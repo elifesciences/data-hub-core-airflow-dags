@@ -39,11 +39,15 @@ S3_CSV_ETL_DAG = DAG(
 
 
 def update_prev_run_id_var_val(**context):
+    dep_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
+    )
     dag_context = context["ti"]
-    data_config = dag_context.xcom_pull(
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="Should_Remaining_Tasks_Execute"
     )
+    data_config = S3BaseCsvConfig(data_config_dict, dep_env)
     run_id = context.get(NamedLiterals.RUN_ID)
     Variable.set(
         data_config.etl_id,
@@ -55,7 +59,8 @@ def is_dag_etl_running(**context):
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    data_config = S3BaseCsvConfig(context[NamedLiterals.DAG_RUN].conf, dep_env)
+    data_config_dict = context[NamedLiterals.DAG_RUN].conf
+    data_config = S3BaseCsvConfig(data_config_dict, dep_env)
     dag_run_var_value = Variable.get(
         data_config.etl_id, None
     )
@@ -68,16 +73,21 @@ def is_dag_etl_running(**context):
             return False
 
     context["ti"].xcom_push(key="data_config",
-                            value=data_config)
+                            value=data_config_dict)
     return True
 
 
 def etl_new_csv_files(**context):
+    dep_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
+    )
     dag_context = context["ti"]
-    data_config = dag_context.xcom_pull(
+    data_config_dict = dag_context.xcom_pull(
         key="data_config",
         task_ids="Should_Remaining_Tasks_Execute"
     )
+    data_config = S3BaseCsvConfig(data_config_dict, dep_env)
+
     obj_pattern_with_latest_dates = (
         get_stored_state(data_config)
     )
