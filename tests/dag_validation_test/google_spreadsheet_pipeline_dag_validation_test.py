@@ -6,6 +6,17 @@ from dags.google_spreadsheet_pipeline_controller import (
 )
 
 
+def dag_should_contain_named_tasks(dagbag, dag_id, task_list):
+    dag = dagbag.get_dag(dag_id)
+    tasks = dag.tasks
+    task_ids = list(map(lambda task: task.task_id, tasks))
+    task_ids.sort()
+    expected_ids = task_list
+    expected_ids.sort()
+
+    assert task_ids == expected_ids
+
+
 def test_dags_should_contain_one_task(dagbag):
     controller_dag = dagbag.get_dag(CONTROLLER_DAG_ID)
     target_dag = dagbag.get_dag(TARGET_DAG_ID)
@@ -21,11 +32,4 @@ def test_dags_should_contain_one_task(dagbag):
     ],
 )
 def test_dag_should_contain_named_tasks(dagbag, dag_id, task_list):
-    dag = dagbag.get_dag(dag_id)
-    tasks = dag.tasks
-    task_ids = list(map(lambda task: task.task_id, tasks))
-    task_ids.sort()
-    expected_ids = task_list
-    expected_ids.sort()
-
-    assert task_ids == expected_ids
+    dag_should_contain_named_tasks(dagbag, dag_id, task_list)

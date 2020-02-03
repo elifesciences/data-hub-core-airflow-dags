@@ -23,6 +23,7 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 TARGET_DAG = "S3_CSV_Data_Pipeline"
+DAG_ID = "S3_CSV_Import_Pipeline_Controller"
 
 
 # pylint: disable=unused-argument
