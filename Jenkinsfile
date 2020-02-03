@@ -21,9 +21,6 @@ elifePipeline {
         }
 
         elifeMainlineOnly {
-            stage 'Merge to master', {
-                elifeGitMoveToBranch commit, 'master'
-            }
             stage 'Build data pipeline image with latest commit', {
                 triggerImageBuild(jenkins_image_building_ci_pipeline, git_url, commit)
             }
