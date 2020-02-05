@@ -220,6 +220,7 @@ def transform_load_data(
     standardized_csv_header = get_standardized_csv_header(
         record_list, csv_config
     )
+
     auto_detect_schema = True
     if does_bigquery_table_exist(
             csv_config.gcp_project,
