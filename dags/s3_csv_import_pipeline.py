@@ -64,6 +64,7 @@ def is_dag_etl_running(**context):
     dag_run_var_value = Variable.get(
         data_config.etl_id, None
     )
+
     if dag_run_var_value:
         dag_run_var_value_dict = json.loads(dag_run_var_value)
         prev_run_id = dag_run_var_value_dict.get(NamedLiterals.RUN_ID)
