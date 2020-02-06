@@ -1,7 +1,3 @@
-"""
-s3 data service
-written by m.owonibi
-"""
 import json
 from contextlib import contextmanager
 import yaml
@@ -47,3 +43,11 @@ def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:
     s3_client = boto3.client("s3")
     s3_client.put_object(Body=data_object, Bucket=bucket, Key=object_key)
     return True
+
+
+def delete_s3_object(bucket, object_key):
+    s3_client = boto3.client('s3')
+    s3_client.delete_object(
+        Bucket=bucket,
+        Key=object_key
+    )
