@@ -99,14 +99,14 @@ class S3BaseCsvConfig(BaseCsvConfig):
         self.s3_bucket_name = csv_sheet_config.get(
             "bucketName", ""
         )
-        self.s3_object_key_pattern_list = csv_sheet_config.get(
+        self.s3_object_key_pattern_list = updated_config.get(
             "objectKeyPattern", ""
         )
-        self.etl_id = csv_sheet_config.get(
+        self.etl_id = updated_config.get(
             "dataPipelineId",
             get_s3_csv_etl_id(csv_sheet_config)
         )
-        self.state_file_bucket_name = csv_sheet_config.get(
+        self.state_file_bucket_name = updated_config.get(
             "stateFile", {}).get("bucketName")
-        self.state_file_object_name = csv_sheet_config.get(
+        self.state_file_object_name = updated_config.get(
             "stateFile", {}).get("objectName")
