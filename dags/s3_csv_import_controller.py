@@ -23,10 +23,11 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 TARGET_DAG = "S3_CSV_Data_Pipeline"
+DAG_ID = "S3_CSV_Import_Pipeline_Controller"
 
 
 # pylint: disable=unused-argument
-def trigger_dag(**context):
+def trigger_s3_csv_import_pipeline_dag(**context):
     conf_file_path = os.getenv(
         S3_CSV_CONFIG_FILE_PATH_ENV_NAME
     )
@@ -47,5 +48,5 @@ S3_CSV_CONTROLLER_DAG = DAG(
 
 TRIGGER_S3_CSV_ETL_DAG_TASK = create_python_task(
     S3_CSV_CONTROLLER_DAG, "trigger_s3_csv_etl_dag",
-    trigger_dag,
+    trigger_s3_csv_import_pipeline_dag,
 )

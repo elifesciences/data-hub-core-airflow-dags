@@ -74,7 +74,7 @@ class AirflowAPI:
         )
         dag_runs = json.loads(response.text)
         states = [
-            dag_run.get("state").lower() == "success"
+            dag_run.get("state").lower() == "running"
             for dag_run in dag_runs
         ]
         return all(states)

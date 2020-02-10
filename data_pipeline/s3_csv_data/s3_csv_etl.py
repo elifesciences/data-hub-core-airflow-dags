@@ -28,8 +28,8 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string
 )
 
+
 LOGGER = logging.getLogger(__name__)
-DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-10-10 21:10:13"
 
 
 def convert_datetime_string_to_datetime(
@@ -77,8 +77,7 @@ def upload_s3_object_json(
 
 def get_initial_state(
         data_config: S3BaseCsvConfig,
-        latest_processed_file_date: str =
-        DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+        latest_processed_file_date: str
 ):
     return {
         object_name_pattern: latest_processed_file_date
@@ -87,7 +86,8 @@ def get_initial_state(
 
 
 def get_stored_state(
-        data_config: S3BaseCsvConfig
+        data_config: S3BaseCsvConfig,
+        default_latest_file_date,
 ):
     try:
         downloaded_state = download_s3_json_object(
@@ -97,13 +97,15 @@ def get_stored_state(
         stored_state = {
             object_pattern:
                 downloaded_state.get(
-                    object_pattern, DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+                    object_pattern, default_latest_file_date
                 )
             for object_pattern in data_config.s3_object_key_pattern_list
         }
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
-            stored_state = get_initial_state(data_config)
+            stored_state = get_initial_state(data_config,
+                                             default_latest_file_date
+                                             )
         else:
             raise ex
     return {
@@ -220,6 +222,7 @@ def transform_load_data(
     standardized_csv_header = get_standardized_csv_header(
         record_list, csv_config
     )
+
     auto_detect_schema = True
     if does_bigquery_table_exist(
             csv_config.gcp_project,

@@ -18,6 +18,7 @@ class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
     def __init__(
             self,
             state_info_extract_from_config_callable,
+            default_initial_s3_last_modified_date,
             *args,
             aws_conn_id=NamedLiterals.DEFAULT_AWS_CONN_ID,
             verify=None,
@@ -32,6 +33,9 @@ class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
         )
         self.aws_conn_id = aws_conn_id
         self.verify = verify
+        self.default_initial_s3_last_modified_date = (
+            default_initial_s3_last_modified_date
+        )
 
     def poke(self, context):
         data_conf_dict = context["dag_run"].conf
@@ -39,7 +43,8 @@ class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
         s3_bucket = data_config.s3_bucket_name
         bucket_key_wildcard_pattern_with_latest_date = (
             self.object_state_info_extract_from_config_callable(
-                data_config)
+                data_config,
+                self.default_initial_s3_last_modified_date)
         )
         hook = S3HookNewFileMonitor(
             aws_conn_id=self.aws_conn_id, verify=self.verify
