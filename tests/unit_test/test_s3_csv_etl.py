@@ -147,7 +147,7 @@ class TestSheetRecordMetadata:
         config = TestSheetRecordMetadata.get_s3_csv_config()
         expected_record_metadata = {
             'imported_timestamp': TestSheetRecordMetadata.test_timestamp_str,
-            'provenance': {'s3_bucket': '', 's3_object': 's3_object'}
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}
         }
         string_record_list = [
             "string rec 1",
@@ -190,7 +190,7 @@ class TestSheetRecordMetadata:
             'metadata_example_1': 'rec1 col1, rec1 col2, rec1 col3 ',
             'metadata_example_2': 'rec2 col1, rec2 col2, rec2 col3 ',
             'imported_timestamp': TestSheetRecordMetadata.test_timestamp_str,
-            'provenance': {'s3_bucket': '', 's3_object': 's3_object'}
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}
         }
 
         s3_object = "s3_object"
@@ -218,7 +218,7 @@ class TestSheetRecordMetadata:
         expected_record_metadata = {
             'imported_timestamp': '2020-10-01T10:15:13Z',
             'fixed_sheet_field_name': 'fixed_sheet_value',
-            'provenance': {'s3_bucket': '', 's3_object': 's3_object'}
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}
         }
 
         string_record_list = [
@@ -267,7 +267,7 @@ class TestSheetRecordMetadata:
             'metadata_example_1': 'rec2 col1, rec2 col2, rec2 col3 ',
             'imported_timestamp': TestSheetRecordMetadata.test_timestamp_str,
             'fixed_sheet_field_name': 'fixed_sheet_value',
-            'provenance': {'s3_bucket': '', 's3_object': 's3_object'}}
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}}
 
         assert expected_record_metadata == returned_metadata
 
@@ -604,7 +604,7 @@ class TestRecordWithMetadata:
         expected_value = {
             'metadata_key': 'metadata_value',
             'provenance': {
-                's3_bucket': 's3_bucket', 's3_object': 's3_object'
+                's3_bucket': 's3_bucket', 'source_filename': 's3_object'
             }
         }
         s3_bucket = "s3_bucket"
