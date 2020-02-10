@@ -26,6 +26,10 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task
 )
 
+INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
+    "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
+)
+DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-10-10 21:10:13"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
@@ -90,7 +94,9 @@ def etl_new_csv_files(**context):
     data_config = S3BaseCsvConfig(data_config_dict, dep_env)
 
     obj_pattern_with_latest_dates = (
-        get_stored_state(data_config)
+        get_stored_state(data_config,
+                         get_default_initial_s3_last_modified_date()
+                         )
     )
     hook = S3HookNewFileMonitor(
         aws_conn_id=NamedLiterals.DEFAULT_AWS_CONN_ID,
@@ -133,6 +139,12 @@ def etl_new_csv_files(**context):
                 )
 
 
+def get_default_initial_s3_last_modified_date():
+    return os.getenv(
+        INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME,
+        DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+    )
+
 SHOULD_REMAINING_TASK_EXECUTE = ShortCircuitOperator(
     task_id='Should_Remaining_Tasks_Execute',
     python_callable=is_dag_etl_running,
@@ -144,6 +156,9 @@ NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
     poke_interval=60 * 1,
     timeout=60 * 60 * 24 * 1,
     state_info_extract_from_config_callable=get_stored_state,
+    default_initial_s3_last_modified_date = (
+        get_default_initial_s3_last_modified_date()
+    ),
     dag=S3_CSV_ETL_DAG)
 
 

@@ -76,22 +76,17 @@ class TaskContext:
     task_instance = TI(task=task1, execution_date=exec_date)
 
     @staticmethod
-    def get_context():
+    def get_context(task_instance=None):
+        t_instance = (
+            task_instance
+            if task_instance
+            else TaskContext.task_instance
+        )
 
         context_conf = TaskContext()
         context = {
             NamedLiterals.DAG_RUN: context_conf,
-            "ti": TaskContext.task_instance
-        }
-        return context
-
-    @staticmethod
-    def get_context_2(task_instance):
-
-        context_conf = TaskContext()
-        context = {
-            NamedLiterals.DAG_RUN: context_conf,
-            "ti": task_instance
+            "ti": t_instance
         }
         return context
 
@@ -144,7 +139,7 @@ class TestUpdateVariableVal:
             mock_variable_set
     ):
         mock_task_instance.xcom_pull.return_value = TaskContext.conf_dict
-        context = TaskContext.get_context_2(mock_task_instance)
+        context = TaskContext.get_context(mock_task_instance)
         run_id = "run_id"
         context = {
             **context,

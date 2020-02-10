@@ -14,11 +14,13 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     get_initial_state,
     get_stored_state,
     update_metadata_with_provenance,
-    merge_record_with_metadata,
-    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+    merge_record_with_metadata
 )
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig
+)
+from dags.s3_csv_import_pipeline import (
+    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
 )
 
 TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country'
@@ -461,7 +463,9 @@ class TestProcessData:
             standardized_csv_header,
             csv_config
         )
-        records_length = 4
+        records_split = TEST_DOWNLOADED_SHEET.split("\n")
+
+        records_length = len(records_split) - 2
         record_metadata = {}
         list(
             process_record_list(
@@ -517,7 +521,10 @@ class TestStoredState:
     )
 
     def test_should_get_default_initial_state(self):
-        returned_state = get_initial_state(TestStoredState.csv_config)
+        returned_state = get_initial_state(
+            TestStoredState.csv_config,
+            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+        )
         expected_state = {
             'obj_key_pattern_1*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
             'obj_key_pattern_2*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
@@ -538,7 +545,10 @@ class TestStoredState:
 
     def test_should_get_initial_state_for_csv_config_keys(
             self):
-        returned_state = get_initial_state(TestStoredState.csv_config)
+        returned_state = get_initial_state(
+            TestStoredState.csv_config,
+            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+        )
 
         assert set(
             TestStoredState.csv_config.s3_object_key_pattern_list
@@ -554,11 +564,12 @@ class TestStoredState:
         mock_download_s3_json_object.side_effect = side_effect
 
         get_stored_state(
-            TestStoredState.csv_config
+            TestStoredState.csv_config,
+            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         )
-        mock_get_initial_state.assert_called()
         mock_get_initial_state.assert_called_with(
-            TestStoredState.csv_config
+            TestStoredState.csv_config,
+            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         )
 
     def test_should_not_get_default_state_when_no_key_failure(
@@ -570,7 +581,8 @@ class TestStoredState:
             'obj_key_pattern_2*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         }
         get_stored_state(
-            TestStoredState.csv_config
+            TestStoredState.csv_config,
+            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         )
         mock_get_initial_state.assert_not_called()
 

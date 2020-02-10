@@ -21,7 +21,7 @@ from data_pipeline.s3_csv_data.s3_csv_config import (
 from data_pipeline.utils.data_store.s3_data_service import delete_s3_object
 
 LOGGER = logging.getLogger(__name__)
-AIRFLW_API = AirflowAPI()
+AIRFLOW_API = AirflowAPI()
 
 
 # pylint: disable=broad-except
@@ -49,21 +49,21 @@ def test_dag_runs_data_imported():
     except Exception:
         LOGGER.info("s3 object not deleted, may not exist")
 
-    AIRFLW_API.unpause_dag(TARGET_DAG)
-    execution_date = AIRFLW_API.trigger_dag(dag_id=DAG_ID)
+    AIRFLOW_API.unpause_dag(TARGET_DAG)
+    execution_date = AIRFLOW_API.trigger_dag(dag_id=DAG_ID)
     is_dag_running = True
     while is_dag_running:
-        is_dag_running = AIRFLW_API.is_dag_running(DAG_ID, execution_date)
+        is_dag_running = AIRFLOW_API.is_dag_running(DAG_ID, execution_date)
         if not is_dag_running:
             time.sleep(15)
-            is_dag_running = AIRFLW_API.is_triggered_dag_running(
+            is_dag_running = AIRFLOW_API.is_triggered_dag_running(
                 TARGET_DAG
             )
         LOGGER.info("etl in progress")
         time.sleep(5)
     time.sleep(15)
     assert not is_dag_running
-    assert AIRFLW_API.get_dag_status(DAG_ID, execution_date) == "success"
+    assert AIRFLOW_API.get_dag_status(DAG_ID, execution_date) == "success"
     query_response = simple_query(
         query=TestQueryTemplate.READ_COUNT_TABLE_QUERY,
         project=project_name,
