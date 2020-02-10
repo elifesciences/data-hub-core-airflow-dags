@@ -57,7 +57,9 @@ def update_object_latest_dates(
         file_modified_timestamp,
 ):
     new_obj_pattern_with_latest_dates = {
-        **obj_pattern_with_latest_dates,
+        **{key: convert_datetime_to_string(value)
+           for key, value
+           in obj_pattern_with_latest_dates.items()},
         object_pattern: convert_datetime_to_string(file_modified_timestamp)
     }
     return new_obj_pattern_with_latest_dates
