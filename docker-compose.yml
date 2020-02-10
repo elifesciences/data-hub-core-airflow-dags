@@ -30,7 +30,6 @@ services:
         environment:
             - LOAD_EX=n
             - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - INITIAL_S3_FILE_LAST_MODIFIED_DATE='2020-01-01 12:00:00'
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
             - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
@@ -50,7 +49,6 @@ services:
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
             - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
             - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
-            - INITIAL_S3_FILE_LAST_MODIFIED_DATE='2020-01-01 12:00:00'
         entrypoint: /entrypoint.sh
         command: scheduler
 
@@ -67,7 +65,6 @@ services:
             - AIRFLOW_HOST=webserver
             - AIRFLOW_PORT=8080
             - DEPLOYMENT_ENV=ci
-            - INITIAL_S3_FILE_LAST_MODIFIED_DATE='2020-01-01 12:00:00'
             - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
             - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
@@ -113,7 +110,6 @@ services:
             - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
             - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
             - DEPLOYMENT_ENV=ci
-            - INITIAL_S3_FILE_LAST_MODIFIED_DATE='2020-01-01 12:00:00'
             - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
             - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
