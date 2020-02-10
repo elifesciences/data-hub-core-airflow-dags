@@ -306,7 +306,7 @@ def update_metadata_with_provenance(
 ):
     provenance = {
         "s3_bucket": s3_bucket,
-        "s3_object": s3_object
+        "source_filename": s3_object
     }
     return {
         **record_metadata,
