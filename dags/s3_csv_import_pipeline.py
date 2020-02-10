@@ -29,7 +29,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
     "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
 )
-DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-10-10 21:10:13"
+DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-04-11 21:10:13"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
@@ -159,7 +159,12 @@ NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
     default_initial_s3_last_modified_date = (
         get_default_initial_s3_last_modified_date()
     ),
-    dag=S3_CSV_ETL_DAG)
+    dag=S3_CSV_ETL_DAG,
+    deployment_environment=os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV_VALUE
+    )
+)
 
 
 LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID = create_python_task(
