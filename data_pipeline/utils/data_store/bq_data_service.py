@@ -169,3 +169,76 @@ def extend_table_schema_field_names(
 
     table.schema = new_schema
     client.update_table(table, ["schema"])  # Make an API request.
+
+
+def extend_table_schema_recursively(
+        project_name: str, dataset_name: str,
+        table_name: str, new_fields: list
+):
+    client = bigquery.Client()
+    dataset_ref = client.dataset(dataset_name, project=project_name)
+    table_ref = dataset_ref.table(table_name)
+    table = client.get_table(table_ref)  # Make an API request.
+    original_schema = table.schema
+    original_schema_dict = [
+        schema_field.to_api_repr()
+        for schema_field in original_schema
+    ]
+    new_schema_dict = get_new_merged_schema(
+        original_schema_dict, new_fields
+    )
+    new_schema = [
+        SchemaField.from_api_repr(schema_field_dict)
+        for schema_field_dict in new_schema_dict
+    ]
+
+    table.schema = new_schema
+    client.update_table(table, ["schema"])  # Make an API request.
+
+
+def get_new_merged_schema(
+        existing_schema: list,
+        update_schema: list,
+):
+    new_schema = []
+    existing_schema_dict = {
+        schema_object.get("name").lower(): schema_object
+        for schema_object in existing_schema
+    }
+    update_schema_dict = {
+        schema_object.get("name").lower(): schema_object
+        for schema_object in update_schema
+    }
+    merged_dict = {
+        **existing_schema_dict,
+        **update_schema_dict
+    }
+    set_intersection = (
+        set(existing_schema_dict.keys()).intersection(
+            set(update_schema_dict.keys())
+        )
+    )
+    fields_to_recurse = [
+        obj_key
+        for obj_key in set_intersection
+        if existing_schema_dict.get(obj_key).get("fields") and
+        isinstance(existing_schema_dict.get(obj_key).get("fields"), list)
+    ]
+    new_schema.extend(
+        [
+            merged_dict.get(key)
+            for key, value in merged_dict.items()
+            if key not in fields_to_recurse
+        ]
+    )
+    for field_to_recurse in fields_to_recurse:
+        field = existing_schema_dict.get(field_to_recurse).copy()
+        field["fields"] = get_new_merged_schema(
+            existing_schema_dict.get(field_to_recurse).get("fields", []),
+            update_schema_dict.get(field_to_recurse).get("fields", []),
+        )
+        new_schema.append(
+            field
+        )
+
+    return new_schema
