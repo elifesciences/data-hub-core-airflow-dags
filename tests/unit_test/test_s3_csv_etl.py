@@ -82,6 +82,13 @@ def _get_new_table_columns_schema():
         yield mock
 
 
+@pytest.fixture(name="mock_extend_table_schema_recursively", autouse=True)
+def _extend_table_schema_recursively():
+    with patch.object(s3_csv_etl,
+                      "extend_table_schema_recursively") as mock:
+        yield mock
+
+
 @pytest.fixture(name="mock_extend_table_schema_field_names", autouse=True)
 def _extend_table_schema_field_names():
     with patch.object(s3_csv_etl,
