@@ -39,6 +39,8 @@ S3_CSV_ETL_DAG = DAG(
     schedule_interval=None,
     default_args=get_default_args(),
     dagrun_timeout=timedelta(minutes=60),
+    max_active_runs=20,
+    concurrency=30
 )
 
 
