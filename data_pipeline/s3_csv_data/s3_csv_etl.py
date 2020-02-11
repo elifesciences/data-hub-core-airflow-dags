@@ -13,6 +13,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
     extend_table_schema_field_names,
+    extend_table_schema_recursively
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     get_new_table_columns_schema,
@@ -153,6 +154,22 @@ def extend_table_if_new_col_exist(
         )
 
 
+def get_record_metadata_schema(
+        csv_config: S3BaseCsvConfig,
+):
+    rec_meta_schema = [
+        {
+            "name": key_name,
+            "type": "STRING"
+        }
+        for key_name in
+        list(csv_config.fixed_sheet_record_metadata.keys()) +
+        list(csv_config.in_sheet_record_metadata.keys())
+    ]
+
+    return rec_meta_schema
+
+
 def get_record_metadata(
         record_list: list,
         csv_config: S3BaseCsvConfig,
@@ -175,6 +192,15 @@ def get_record_metadata(
     )
 
     return record_metadata
+
+
+def get_record_metadata_with_provenance_schema(
+        csv_config: S3BaseCsvConfig,
+):
+    return [
+        *(get_record_metadata_schema(csv_config)),
+        *(get_provenance_schema())
+    ]
 
 
 def get_standardized_csv_header(
@@ -235,6 +261,17 @@ def transform_load_data(
             csv_config,
             standardized_csv_header,
             record_metadata
+        )
+        prov_meta_schema = (
+            get_record_metadata_with_provenance_schema(
+                csv_config
+            )
+        )
+        extend_table_schema_recursively(
+            csv_config.gcp_project,
+            csv_config.dataset_name,
+            csv_config.table_name,
+            prov_meta_schema,
         )
         auto_detect_schema = False
 
@@ -301,16 +338,40 @@ def merge_record_with_metadata(
     }
 
 
+def get_provenance_schema():
+    prov_dict = {
+        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
+        "type": "RECORD",
+        "fields": [
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_S3_BUCKET_FIELD_NAME,
+                "type": "STRING"
+            },
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_S3_OBJECT_FIELD_NAME,
+                "type": "STRING"
+            },
+        ]
+    }
+    prov_schema_list = [prov_dict]
+    return prov_schema_list
+
+
 def update_metadata_with_provenance(
         record_metadata, s3_bucket, s3_object
 ):
     provenance = {
-        "s3_bucket": s3_bucket,
-        "source_filename": s3_object
+        NamedLiterals.PROVENANCE_S3_BUCKET_FIELD_NAME:
+            s3_bucket,
+        NamedLiterals.PROVENANCE_S3_OBJECT_FIELD_NAME:
+            s3_object
     }
     return {
         **record_metadata,
-        "provenance": provenance
+        NamedLiterals.PROVENANCE_FIELD_NAME:
+            provenance
     }
 
 
@@ -321,3 +382,6 @@ class NamedLiterals:
     S3_FILE_METADATA_NAME_KEY = "Key"
     S3_FILE_METADATA_LAST_MODIFIED_KEY = "LastModified"
     DEFAULT_AWS_CONN_ID = "aws_default"
+    PROVENANCE_FIELD_NAME = "provenance"
+    PROVENANCE_S3_BUCKET_FIELD_NAME = "s3_bucket"
+    PROVENANCE_S3_OBJECT_FIELD_NAME = "source_filename"
