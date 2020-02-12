@@ -5,7 +5,6 @@ from data_pipeline.spreadsheet_data import google_spreadsheet_etl
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     process_record_list,
     etl_google_spreadsheet,
-    get_new_table_columns_schema,
     update_metadata_with_provenance,
     process_record,
     transform_load_data,
@@ -79,20 +78,6 @@ def _does_bigquery_table_exist():
         yield mock
 
 
-@pytest.fixture(name="mock_get_new_table_columns_schema", autouse=True)
-def _get_new_table_columns_schema():
-    with patch.object(google_spreadsheet_etl,
-                      "get_new_table_columns_schema") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_extend_table_schema_field_names", autouse=True)
-def _extend_table_schema_field_names():
-    with patch.object(google_spreadsheet_etl,
-                      "extend_table_schema_field_names") as mock:
-        yield mock
-
-
 @pytest.fixture(name="mock_write_to_file", autouse=True)
 def _write_to_file():
     with patch.object(google_spreadsheet_etl,
@@ -106,6 +91,16 @@ def _download_google_spreadsheet_single_sheet():
     with patch.object(google_spreadsheet_etl,
                       "download_google_spreadsheet_single_sheet") as mock:
         mock.return_value = TEST_DOWNLOADED_SHEET
+        yield mock
+
+
+@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist",
+                autouse=True)
+def _extend_nested_table_schema_if_new_fields_exist():
+    with patch.object(
+            google_spreadsheet_etl,
+            "extend_nested_table_schema_if_new_fields_exist"
+    ) as mock:
         yield mock
 
 
@@ -325,54 +320,6 @@ class TestTransformAndLoadData:
             deployment_env
         )
 
-    def test_should_not_extend_non_existing_table(
-            self,
-            mock_does_bigquery_table_exist,
-            mock_get_new_table_columns_schema,
-            mock_extend_table_schema_field_names,
-    ):
-        mock_does_bigquery_table_exist.return_value = False
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
-        transform_load_data(
-            TEST_DOWNLOADED_SHEET,
-            TestTransformAndLoadData.get_csv_config(),
-            record_import_timestamp_as_string,
-            full_temp_file_location
-        )
-        mock_get_new_table_columns_schema.assert_not_called()
-        mock_extend_table_schema_field_names.assert_not_called()
-
-    def test_should_only_extend_table_when_new_column_exist(
-            self,
-            mock_does_bigquery_table_exist,
-            mock_get_new_table_columns_schema,
-            mock_extend_table_schema_field_names,
-    ):
-        mock_does_bigquery_table_exist.return_value = True
-        mock_get_new_table_columns_schema.return_value = {
-            "new_column_1": "STRING"
-        }
-        csv_sheet_config = (
-            TestTransformAndLoadData.get_csv_config()
-        )
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
-        transform_load_data(
-            TEST_DOWNLOADED_SHEET,
-            csv_sheet_config,
-            record_import_timestamp_as_string,
-            full_temp_file_location
-        )
-
-        mock_extend_table_schema_field_names.assert_called()
-        assert mock_extend_table_schema_field_names.called_with(
-            csv_sheet_config.gcp_project,
-            csv_sheet_config.dataset_name,
-            csv_sheet_config.table_name,
-            mock_get_new_table_columns_schema.return_value
-        )
-
     def test_should_transform_write_and_load_to_bq(
             self,
             mock_load_file_into_bq, mock_does_bigquery_table_exist,
@@ -505,78 +452,6 @@ class TestRecord:
             test_config
         )
         assert expected_return == actual_return
-
-
-class TestTableSchema:
-    test_config = BaseCsvSheetConfig(
-        {
-            "sheetName": "sheet name-0",
-            "datasetName": "{ENV}-dataset",
-            "tableName": "table_name_1",
-            "tableWriteAppend": "true",
-            "metadata": [
-                {
-                    "metadataSchemaFieldName": "metadata_example",
-                    "metadataLineIndex": 0
-                }
-            ]
-        }, "spreadsheet_id", "",
-        "imported_timestamp_field_name", ""
-    )
-
-    def test_should_get_new_cols_from_csv_header(
-            self, mock_get_table_schema_field_names
-    ):
-        mock_get_table_schema_field_names.return_value = [
-            "col_1", "col_2", "col_3", "metadata_col_1"
-        ]
-        standardized_csv_header = [
-            "col_1", "col_2", "col_4"
-        ]
-        record_metadata = {
-            "metadata_col_1": 0,
-            "metadata_col_2": 0
-        }
-        expected_ret_value = {
-            "col_4": "STRING",
-            "metadata_col_2": "STRING"
-        }
-
-        return_value = get_new_table_columns_schema(
-            TestTableSchema.test_config,
-            standardized_csv_header,
-            record_metadata
-        )
-        assert expected_ret_value == return_value
-
-    def test_should_get_new_cols_from_csv_header_and_metadata(
-            self, mock_get_table_schema_field_names
-    ):
-        mock_get_table_schema_field_names.return_values = [
-            "col_1", "col_2", "col_3", "metadata_col_1"
-        ]
-        standardized_csv_header = [
-            "col_1", "col_2", "col_4"
-        ]
-        record_metadata = {
-            "metadata_col_1": 0,
-            "metadata_col_2": 0
-        }
-        expected_ret_value = {
-            "col_4": "STRING",
-            "metadata_col_1": "STRING",
-            "col_1": "STRING",
-            "metadata_col_2": "STRING",
-            "col_2": "STRING"
-        }
-
-        return_value = get_new_table_columns_schema(
-            TestTableSchema.test_config,
-            standardized_csv_header,
-            record_metadata
-        )
-
-        assert expected_ret_value == return_value
 
 
 class TestSpreadSheetSheetWithRange:

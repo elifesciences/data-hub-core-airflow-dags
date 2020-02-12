@@ -171,7 +171,7 @@ def extend_table_schema_field_names(
     client.update_table(table, ["schema"])  # Make an API request.
 
 
-def extend_table_schema_recursively(
+def extend_table_schema_with_nested_schema(
         project_name: str, dataset_name: str,
         table_name: str, new_fields: list
 ):
@@ -210,14 +210,15 @@ def get_new_merged_schema(
         for schema_object in update_schema
     }
     merged_dict = {
-        **existing_schema_dict,
-        **update_schema_dict
+        **update_schema_dict,
+        **existing_schema_dict
     }
     set_intersection = (
         set(existing_schema_dict.keys()).intersection(
             set(update_schema_dict.keys())
         )
     )
+
     fields_to_recurse = [
         obj_key
         for obj_key in set_intersection

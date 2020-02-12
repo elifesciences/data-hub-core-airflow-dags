@@ -15,11 +15,13 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
-    get_table_schema_field_names,
-    extend_table_schema_field_names,
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
     download_google_spreadsheet_single_sheet,
+)
+
+from data_pipeline.utils.common.common_csv_util import (
+    extend_nested_table_schema_if_new_fields_exist,
 )
 
 
@@ -61,48 +63,14 @@ def process_csv_sheet(
     )
 
 
-def get_new_table_columns_schema(
-        csv_sheet_config,
-        standardized_csv_header: list,
-        record_metadata: dict
-):
-    existing_table_field_names = get_table_schema_field_names(
-        project_name=csv_sheet_config.gcp_project,
-        dataset_name=csv_sheet_config.dataset_name,
-        table_name=csv_sheet_config.table_name,
-    )
-    existing_table_field_names = [
-        f_name.lower() for f_name in existing_table_field_names
-    ]
-
-    new_table_field_names = standardized_csv_header.copy()
-
-    new_table_field_names.extend(
-        [key.lower() for key in record_metadata.keys()]
-    )
-    existing_table_field_names_set = set(existing_table_field_names)
-    new_table_field_name_set = set(new_table_field_names)
-    new_col_names = list(
-        new_table_field_name_set - existing_table_field_names_set
-    )
-    new_col_as_dict = {
-        col_name: "STRING" for col_name in new_col_names
-        if col_name.lower() != csv_sheet_config.import_timestamp_field_name
-    }
-    if csv_sheet_config.import_timestamp_field_name in set(new_col_names):
-        new_col_as_dict[
-            csv_sheet_config.import_timestamp_field_name
-        ] = "TIMESTAMP"
-
-    return new_col_as_dict
-
-
 def update_metadata_with_provenance(
         record_metadata, csv_sheet_config: BaseCsvSheetConfig
 ):
     provenance = {
-        "spreadsheet_id": csv_sheet_config.spreadsheet_id,
-        "sheet_name": csv_sheet_config.sheet_name,
+        NamedLiterals.PROVENANCE_SPREADSHEET_ID:
+            csv_sheet_config.spreadsheet_id,
+        NamedLiterals.PROVENANCE_SHEET_NAME:
+            csv_sheet_config.sheet_name,
     }
     return {
         **record_metadata,
@@ -170,18 +138,14 @@ def transform_load_data(
             csv_sheet_config.dataset_name,
             csv_sheet_config.table_name,
     ):
-        new_col_names = get_new_table_columns_schema(
-            csv_sheet_config,
-            standardized_csv_header,
-            record_metadata
+        provenance_schema = (
+            google_spreadsheet_csv_provenance_schema()
         )
-        if new_col_names:
-            extend_table_schema_field_names(
-                csv_sheet_config.gcp_project,
-                csv_sheet_config.dataset_name,
-                csv_sheet_config.table_name,
-                new_col_names,
-            )
+        extend_nested_table_schema_if_new_fields_exist(
+            standardized_csv_header,
+            csv_sheet_config,
+            provenance_schema
+        )
         auto_detect_schema = False
 
     processed_record = process_record_list(
@@ -239,3 +203,30 @@ def process_record_list(
 def get_yaml_file_as_dict(file_location: str) -> dict:
     with open(file_location, 'r') as yaml_file:
         return yaml.safe_load(yaml_file)
+
+
+def google_spreadsheet_csv_provenance_schema():
+    prov_dict = {
+        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
+        "type": "RECORD",
+        "fields": [
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_SHEET_NAME,
+                "type": "STRING"
+            },
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_SPREADSHEET_ID,
+                "type": "STRING"
+            },
+        ]
+    }
+    prov_schema_list = [prov_dict]
+    return prov_schema_list
+
+
+class NamedLiterals:
+    PROVENANCE_FIELD_NAME = "provenance"
+    PROVENANCE_SHEET_NAME = "sheet_name"
+    PROVENANCE_SPREADSHEET_ID = "spreadsheet_id"
