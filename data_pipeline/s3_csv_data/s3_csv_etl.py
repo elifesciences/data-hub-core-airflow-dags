@@ -12,11 +12,8 @@ from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
-    extend_table_schema_field_names,
-    extend_table_schema_recursively
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
-    get_new_table_columns_schema,
     standardize_field_name,
     write_to_file,
     get_write_disposition
@@ -27,6 +24,9 @@ from data_pipeline.utils.data_store.s3_data_service import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string
+)
+from data_pipeline.utils.csv.metadata_schema import (
+    extend_nested_table_schema_if_new_fields_exist,
 )
 
 
@@ -135,74 +135,6 @@ def get_sorted_in_sheet_metadata_index(csv_config: S3BaseCsvConfig):
     )
 
 
-def extend_table_if_new_col_exist(
-        csv_config: S3BaseCsvConfig,
-        standardized_csv_header: list,
-        record_metadata
-):
-    new_col_names = get_new_table_columns_schema(
-        csv_config,
-        standardized_csv_header,
-        record_metadata
-    )
-    if new_col_names:
-        extend_table_schema_field_names(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-            new_col_names,
-        )
-
-
-def get_record_metadata_schema(
-        csv_config: S3BaseCsvConfig,
-):
-    rec_meta_schema = [
-        {
-            "name": key_name,
-            "type": "STRING"
-        }
-        for key_name in
-        list(csv_config.fixed_sheet_record_metadata.keys()) +
-        list(csv_config.in_sheet_record_metadata.keys())
-    ]
-
-    return rec_meta_schema
-
-
-def get_record_metadata(
-        record_list: list,
-        csv_config: S3BaseCsvConfig,
-        s3_object_name: str,
-        record_import_timestamp_as_string: str
-):
-    record_metadata = {
-        metadata_col_name: record_list[line_index_in_data]
-        for metadata_col_name, line_index_in_data
-        in csv_config.in_sheet_record_metadata.items()
-    }
-
-    record_metadata[
-        csv_config.import_timestamp_field_name
-    ] = record_import_timestamp_as_string
-
-    record_metadata.update(csv_config.fixed_sheet_record_metadata)
-    record_metadata = update_metadata_with_provenance(
-        record_metadata, csv_config.s3_bucket_name, s3_object_name
-    )
-
-    return record_metadata
-
-
-def get_record_metadata_with_provenance_schema(
-        csv_config: S3BaseCsvConfig,
-):
-    return [
-        *(get_record_metadata_schema(csv_config)),
-        *(get_provenance_schema())
-    ]
-
-
 def get_standardized_csv_header(
         record_list: list,
         csv_config: S3BaseCsvConfig
@@ -232,6 +164,45 @@ def get_csv_dict_reader(
     )
 
 
+def get_record_metadata(
+        record_list: list,
+        csv_config: S3BaseCsvConfig,
+        s3_object_name: str,
+        record_import_timestamp_as_string: str
+):
+    record_metadata = {
+        metadata_col_name: record_list[line_index_in_data]
+        for metadata_col_name, line_index_in_data
+        in csv_config.in_sheet_record_metadata.items()
+    }
+
+    record_metadata[
+        csv_config.import_timestamp_field_name
+    ] = record_import_timestamp_as_string
+
+    record_metadata.update(csv_config.fixed_sheet_record_metadata)
+    record_metadata = update_metadata_with_provenance(
+        record_metadata, csv_config.s3_bucket_name, s3_object_name
+    )
+    return record_metadata
+
+
+def update_metadata_with_provenance(
+        record_metadata, s3_bucket, s3_object
+):
+    provenance = {
+        NamedLiterals.PROVENANCE_S3_BUCKET_FIELD_NAME:
+            s3_bucket,
+        NamedLiterals.PROVENANCE_S3_OBJECT_FIELD_NAME:
+            s3_object
+    }
+    return {
+        **record_metadata,
+        NamedLiterals.PROVENANCE_FIELD_NAME:
+            provenance
+    }
+
+
 def transform_load_data(
         s3_object_name: str,
         csv_config: S3BaseCsvConfig,
@@ -257,21 +228,11 @@ def transform_load_data(
             csv_config.dataset_name,
             csv_config.table_name,
     ):
-        extend_table_if_new_col_exist(
-            csv_config,
+        provenance_schema = get_s3_csv_provenance_schema()
+        extend_nested_table_schema_if_new_fields_exist(
             standardized_csv_header,
-            record_metadata
-        )
-        prov_meta_schema = (
-            get_record_metadata_with_provenance_schema(
-                csv_config
-            )
-        )
-        extend_table_schema_recursively(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-            prov_meta_schema,
+            csv_config,
+            provenance_schema
         )
         auto_detect_schema = False
 
@@ -338,10 +299,10 @@ def merge_record_with_metadata(
     }
 
 
-def get_provenance_schema():
+def get_s3_csv_provenance_schema():
     prov_dict = {
-        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
         "type": "RECORD",
+        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
         "fields": [
             {
                 "name":
@@ -355,24 +316,7 @@ def get_provenance_schema():
             },
         ]
     }
-    prov_schema_list = [prov_dict]
-    return prov_schema_list
-
-
-def update_metadata_with_provenance(
-        record_metadata, s3_bucket, s3_object
-):
-    provenance = {
-        NamedLiterals.PROVENANCE_S3_BUCKET_FIELD_NAME:
-            s3_bucket,
-        NamedLiterals.PROVENANCE_S3_OBJECT_FIELD_NAME:
-            s3_object
-    }
-    return {
-        **record_metadata,
-        NamedLiterals.PROVENANCE_FIELD_NAME:
-            provenance
-    }
+    return [prov_dict]
 
 
 class NamedLiterals:

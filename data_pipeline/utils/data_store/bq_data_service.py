@@ -148,30 +148,7 @@ def get_table_schema_field_names(
         return []
 
 
-def extend_table_schema_field_names(
-        project_name: str, dataset_name: str,
-        table_name: str, new_field_names: dict
-):
-    client = bigquery.Client()
-
-    dataset_ref = client.dataset(dataset_name, project=project_name)
-    table_ref = dataset_ref.table(table_name)
-    table = client.get_table(table_ref)  # Make an API request.
-    original_schema = table.schema
-    new_schema = original_schema[:]  # Creates a copy of the schema.
-    for field_name, field_type in new_field_names.items():
-        new_schema.append(
-            bigquery.SchemaField(
-                field_name,
-                field_type.upper()
-            )
-        )
-
-    table.schema = new_schema
-    client.update_table(table, ["schema"])  # Make an API request.
-
-
-def extend_table_schema_recursively(
+def extend_table_schema_with_nested_schema(
         project_name: str, dataset_name: str,
         table_name: str, new_fields: list
 ):
@@ -210,14 +187,15 @@ def get_new_merged_schema(
         for schema_object in update_schema
     }
     merged_dict = {
-        **existing_schema_dict,
-        **update_schema_dict
+        **update_schema_dict,
+        **existing_schema_dict
     }
     set_intersection = (
         set(existing_schema_dict.keys()).intersection(
             set(update_schema_dict.keys())
         )
     )
+
     fields_to_recurse = [
         obj_key
         for obj_key in set_intersection

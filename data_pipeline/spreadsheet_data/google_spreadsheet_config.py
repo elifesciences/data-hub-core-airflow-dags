@@ -1,5 +1,5 @@
-from data_pipeline.utils.common.csv_config import BaseCsvConfig
-from data_pipeline.utils.common.common import (
+from data_pipeline.utils.csv.config import BaseCsvConfig
+from data_pipeline.utils.csv.config import (
     update_deployment_env_placeholder
 )
 

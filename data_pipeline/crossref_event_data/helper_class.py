@@ -1,4 +1,4 @@
-from data_pipeline.utils.common.common import (
+from data_pipeline.utils.csv.config import (
     update_deployment_env_placeholder
 )
 

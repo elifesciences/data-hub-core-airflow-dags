@@ -8,7 +8,6 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     get_record_metadata,
     transform_load_data,
     get_standardized_csv_header,
-    extend_table_if_new_col_exist,
     process_record_list,
     get_csv_dict_reader,
     get_initial_state,
@@ -35,13 +34,6 @@ TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country'
 def _does_bigquery_table_exist():
     with patch.object(s3_csv_etl,
                       "does_bigquery_table_exist") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_extend_table_if_new_col_exist", autouse=True)
-def _extend_table_if_new_col_exist():
-    with patch.object(s3_csv_etl,
-                      "extend_table_if_new_col_exist") as mock:
         yield mock
 
 
@@ -75,24 +67,13 @@ def _write_load_processed_data_to_bq():
         yield mock
 
 
-@pytest.fixture(name="mock_get_new_table_columns_schema", autouse=True)
-def _get_new_table_columns_schema():
-    with patch.object(s3_csv_etl,
-                      "get_new_table_columns_schema") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_extend_table_schema_recursively", autouse=True)
-def _extend_table_schema_recursively():
-    with patch.object(s3_csv_etl,
-                      "extend_table_schema_recursively") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_extend_table_schema_field_names", autouse=True)
-def _extend_table_schema_field_names():
-    with patch.object(s3_csv_etl,
-                      "extend_table_schema_field_names") as mock:
+@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist",
+                autouse=True)
+def _extend_nested_table_schema_if_new_fields_exist():
+    with patch.object(
+            s3_csv_etl,
+            "extend_nested_table_schema_if_new_fields_exist"
+    ) as mock:
         yield mock
 
 
@@ -355,12 +336,11 @@ class TestTransformAndLoadData:
     def test_should_not_extend_non_existing_table(
             self,
             mock_does_bigquery_table_exist,
-            mock_extend_table_if_new_col_exist,
     ):
         mock_does_bigquery_table_exist.return_value = False
         record_import_timestamp_as_string = ""
         full_temp_file_location = ""
-        s3_object_name = "s3_objec"
+        s3_object_name = "s3_object"
         transform_load_data(
             s3_object_name,
             TestTransformAndLoadData.get_csv_config(),
@@ -368,38 +348,6 @@ class TestTransformAndLoadData:
             full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
-        mock_extend_table_if_new_col_exist.assert_not_called()
-
-    def test_should_only_extend_table_when_new_column_exist(
-            self,
-            mock_get_new_table_columns_schema,
-            mock_extend_table_schema_field_names
-    ):
-        mock_get_new_table_columns_schema.return_value = {
-            "new_column": "STRING"
-        }
-        csv_config = (
-            TestTransformAndLoadData.get_csv_config()
-        )
-        standardized_csv_header = [
-            'first_name', 'last_name',
-            'age', 'univ', 'country'
-        ]
-        record_metadata = {}
-
-        extend_table_if_new_col_exist(
-            csv_config,
-            standardized_csv_header,
-            record_metadata
-        )
-        mock_get_new_table_columns_schema.assert_called()
-
-        assert mock_extend_table_schema_field_names.called_with(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-            mock_get_new_table_columns_schema.return_value
-        )
 
     def test_should_transform_write_and_load_to_bq(
             self,
