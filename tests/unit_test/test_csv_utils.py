@@ -1,15 +1,17 @@
 from unittest.mock import patch
 import pytest
-from data_pipeline.utils.common_csv import (
-    common_csv_util as common_csv_util_module
+from data_pipeline.utils.csv import (
+    metadata_schema as common_csv_util_module
 )
 
-from data_pipeline.utils.common_csv.common_csv_util import (
+from data_pipeline.utils.csv.metadata_schema import (
     get_record_metadata_schema,
     extend_nested_table_schema_if_new_fields_exist,
-    update_deployment_env_placeholder
 )
 
+from data_pipeline.utils.csv.config import (
+    update_deployment_env_placeholder
+)
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 
 

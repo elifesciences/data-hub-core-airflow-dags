@@ -1,7 +1,7 @@
 import hashlib
 
-from data_pipeline.utils.common_csv.csv_config import BaseCsvConfig
-from data_pipeline.utils.common_csv.common_csv_util import (
+from data_pipeline.utils.csv.config import BaseCsvConfig
+from data_pipeline.utils.csv.config import (
     update_deployment_env_placeholder
 )
 

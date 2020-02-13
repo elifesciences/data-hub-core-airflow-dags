@@ -25,7 +25,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string
 )
-from data_pipeline.utils.common_csv.common_csv_util import (
+from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
 
