@@ -8,6 +8,7 @@ import data_pipeline.utils.data_store.bq_data_service \
 from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     load_tuple_list_into_bq,
+    get_new_merged_schema
 )
 
 
@@ -112,3 +113,49 @@ def test_count_of_iteration_when_loading_list_of_rows_into_bq(mock_bq_client):
     )
     assert mock_bq_client.return_value.insert_rows.call_count == \
         number_of_iteration
+
+
+def test_should_get_merged_schema_similar_to_expected():
+    existing_schema = [
+        {"name": "imported_timestamp", "type": "TIMESTAMP"},
+        {"name": "univ", "type": "STRING"},
+        {"name": "country", "type": "STRING"},
+        {"type": "RECORD", "name": "provenance",
+         "fields":
+             [
+                 {"name": "s3_bucket", "type": "STRING"},
+                 {"name": "source_filename", "type": "STRING"}
+             ]
+         }
+    ]
+    new_schema = [
+        {"name": "country", "type": "STRING"},
+        {"name": "new_field", "type": "STRING"},
+        {"type": "RECORD", "name": "provenance",
+         "fields":
+             [
+                 {"name": "new_s3_bucket", "type": "STRING"},
+                 {"name": "source_filename", "type": "STRING"}
+             ]
+         }
+    ]
+    computed_schema = get_new_merged_schema(
+        existing_schema,
+        new_schema
+    )
+
+    expected_schema = [
+        {"name": "country", "type": "STRING"},
+        {"name": "new_field", "type": "STRING"},
+        {"name": "imported_timestamp", "type": "TIMESTAMP"},
+        {"name": "univ", "type": "STRING"},
+        {"type": "RECORD", "name": "provenance",
+         "fields":
+             [
+                 {"name": "new_s3_bucket", "type": "STRING"},
+                 {"name": "source_filename", "type": "STRING"},
+                 {"name": "s3_bucket", "type": "STRING"}
+             ]
+         }
+    ]
+    assert computed_schema == expected_schema

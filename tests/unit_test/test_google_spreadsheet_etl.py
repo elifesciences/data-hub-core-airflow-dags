@@ -338,6 +338,28 @@ class TestTransformAndLoadData:
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
 
+    def test_should_try_extend_table_if_table_does_exist(
+            self,
+            mock_load_file_into_bq, mock_does_bigquery_table_exist,
+            mock_process_record_list, mock_write_to_file,
+            mock_extend_nested_table_schema_if_new_fields_exist
+    ):
+        record_import_timestamp_as_string = ""
+        full_temp_file_location = ""
+        mock_does_bigquery_table_exist.return_value = True
+        transform_load_data(
+            TEST_DOWNLOADED_SHEET,
+            TestTransformAndLoadData.get_csv_config(),
+            record_import_timestamp_as_string,
+            full_temp_file_location
+        )
+        mock_does_bigquery_table_exist.assert_called()
+        mock_extend_nested_table_schema_if_new_fields_exist.\
+            assert_called()
+        mock_process_record_list.assert_called()
+        mock_write_to_file.assert_called()
+        mock_load_file_into_bq.assert_called()
+
 
 class TestProcessData:
     multi_csv_config_dict = {
