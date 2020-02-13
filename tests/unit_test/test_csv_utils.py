@@ -142,8 +142,10 @@ def test_should_replace_env_placeholder_in_config_dict():
         "tableWriteAppend": "false",
         "list_of_string": ["{ENV}_a", "dont_update"],
         "stateFile": {
-            "bucketName": "{ENV}_b_name",
-            "objectName": "{ENV}_obj_prefix"
+            "nested_layer_2": {
+                "bucketName": "{ENV}_b_name",
+                "objectName": "{ENV}_obj_prefix"
+            }
         }
     }
     updated_dict = update_deployment_env_placeholder(
@@ -157,10 +159,11 @@ def test_should_replace_env_placeholder_in_config_dict():
         "datasetName": "ci-data",
         "tableWriteAppend": "false",
         "list_of_string": ["ci_a", "dont_update"],
-        "stateFile":
-            {
+        "stateFile": {
+            "nested_layer_2": {
                 "bucketName": "ci_b_name",
                 "objectName": "ci_obj_prefix"
             }
+        }
     }
     assert updated_dict == expected_updated_dict

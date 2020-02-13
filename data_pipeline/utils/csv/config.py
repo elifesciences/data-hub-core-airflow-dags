@@ -46,16 +46,14 @@ def update_deployment_env_placeholder(
         original_dict: dict,
         deployment_env: str,
         environment_placeholder: str,
-        new_dict: dict = None,
 ):
-    new_dict = new_dict if new_dict else dict()
+    new_dict = dict()
     for key, val in original_dict.items():
         if isinstance(val, dict):
             tmp = update_deployment_env_placeholder(
                 val,
                 deployment_env,
-                environment_placeholder,
-                new_dict.get(key, {})
+                environment_placeholder
             )
             new_dict[key] = tmp
         elif isinstance(val, list):
