@@ -6,7 +6,8 @@ from data_pipeline.utils.common_csv import (
 
 from data_pipeline.utils.common_csv.common_csv_util import (
     get_record_metadata_schema,
-    extend_nested_table_schema_if_new_fields_exist
+    extend_nested_table_schema_if_new_fields_exist,
+    update_deployment_env_placeholder
 )
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
@@ -128,3 +129,36 @@ def test_should_try_extend_table_schema(
         config.table_name,
         generated_schema
     )
+
+
+def test_should_replace_env_placeholder_in_config_dict():
+    deployment_env_placeholder = "{ENV}"
+    deployment_env = "ci"
+    conf_dict = {
+        "dataPipelineId": "pipeline",
+        "datasetName": "{ENV}-data",
+        "tableWriteAppend": "false",
+        "list_of_string": ["{ENV}_a", "dont_update"],
+        "stateFile": {
+            "bucketName": "{ENV}_b_name",
+            "objectName": "{ENV}_obj_prefix"
+        }
+    }
+    updated_dict = update_deployment_env_placeholder(
+        conf_dict,
+        deployment_env,
+        deployment_env_placeholder
+    )
+
+    expected_updated_dict = {
+        "dataPipelineId": "pipeline",
+        "datasetName": "ci-data",
+        "tableWriteAppend": "false",
+        "list_of_string": ["ci_a", "dont_update"],
+        "stateFile":
+            {
+                "bucketName": "ci_b_name",
+                "objectName": "ci_obj_prefix"
+            }
+    }
+    assert updated_dict == expected_updated_dict
