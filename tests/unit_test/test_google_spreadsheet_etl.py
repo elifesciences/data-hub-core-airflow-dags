@@ -354,8 +354,10 @@ class TestTransformAndLoadData:
             full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
-        mock_extend_nested_table_schema_if_new_fields_exist.\
+        (
+            mock_extend_nested_table_schema_if_new_fields_exist.
             assert_called()
+        )
         mock_process_record_list.assert_called()
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
