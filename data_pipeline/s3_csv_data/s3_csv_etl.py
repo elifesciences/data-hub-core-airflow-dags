@@ -5,6 +5,7 @@ from csv import DictReader
 import json
 from datetime import timezone, datetime
 
+from bigquery_schema_generator.generate_schema import SchemaGenerator
 from botocore.exceptions import ClientError
 from dateutil import tz
 
@@ -12,6 +13,7 @@ from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
+    create_table,
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     standardize_field_name,
@@ -203,6 +205,18 @@ def update_metadata_with_provenance(
     }
 
 
+def generate_schema_from_file(full_temp_file_location):
+    file_reader = open(full_temp_file_location)
+    generator = SchemaGenerator(
+        input_format="json"
+    )
+    schema_map, _ = generator.deduce_schema(
+        file_reader
+    )
+    schema = generator.flatten_schema(schema_map)
+    return schema
+
+
 def transform_load_data(
         s3_object_name: str,
         csv_config: S3BaseCsvConfig,
@@ -222,7 +236,18 @@ def transform_load_data(
         record_list, csv_config
     )
 
-    auto_detect_schema = True
+    csv_dict_reader = get_csv_dict_reader(
+        csv_string,
+        standardized_csv_header,
+        csv_config
+    )
+    processed_record = process_record_list(
+        csv_dict_reader, record_metadata,
+    )
+
+    write_to_file(processed_record, full_temp_file_location)
+    write_disposition = get_write_disposition(csv_config)
+
     if does_bigquery_table_exist(
             csv_config.gcp_project,
             csv_config.dataset_name,
@@ -234,38 +259,21 @@ def transform_load_data(
             csv_config,
             provenance_schema
         )
-        auto_detect_schema = False
-
-    csv_dict_reader = get_csv_dict_reader(
-        csv_string,
-        standardized_csv_header,
-        csv_config
-    )
-    processed_record = process_record_list(
-        csv_dict_reader, record_metadata,
-    )
-
-    write_load_processed_data_to_bq(
-        processed_record,
-        full_temp_file_location,
-        auto_detect_schema,
-        csv_config,
-    )
-
-
-def write_load_processed_data_to_bq(
-        processed_record,
-        full_temp_file_location,
-        auto_detect_schema,
-        csv_config,
-):
-    write_to_file(processed_record, full_temp_file_location)
-    write_disposition = get_write_disposition(csv_config)
+    else:
+        schema = generate_schema_from_file(
+            full_temp_file_location
+        )
+        create_table(
+            csv_config.gcp_project,
+            csv_config.dataset_name,
+            csv_config.table_name,
+            schema
+        )
 
     load_file_into_bq(
         filename=full_temp_file_location,
         table_name=csv_config.table_name,
-        auto_detect_schema=auto_detect_schema,
+        auto_detect_schema=False,
         dataset_name=csv_config.dataset_name,
         write_mode=write_disposition,
         project_name=csv_config.gcp_project,

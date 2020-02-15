@@ -60,10 +60,10 @@ def _process_record_list():
         yield mock
 
 
-@pytest.fixture(name="mock_write_load_processed_data_to_bq", autouse=True)
-def _write_load_processed_data_to_bq():
+@pytest.fixture(name="mock_load_file_into_bq", autouse=True)
+def _load_file_into_bq():
     with patch.object(s3_csv_etl,
-                      "write_load_processed_data_to_bq") as mock:
+                      "load_file_into_bq") as mock:
         yield mock
 
 
@@ -96,6 +96,27 @@ def _download_s3_json_object():
     with patch.object(s3_csv_etl,
                       "download_s3_json_object") as mock:
 
+        yield mock
+
+
+@pytest.fixture(name="mock_create_table", autouse=True)
+def _create_table():
+    with patch.object(s3_csv_etl,
+                      "create_table") as mock:
+        yield mock
+
+
+@pytest.fixture(name="mock_generate_schema_from_file", autouse=True)
+def _generate_schema_from_file():
+    with patch.object(s3_csv_etl,
+                      "generate_schema_from_file") as mock:
+        yield mock
+
+
+@pytest.fixture(name="mock_write_to_file", autouse=True)
+def _write_to_file():
+    with patch.object(s3_csv_etl,
+                      "write_to_file") as mock:
         yield mock
 
 
@@ -336,6 +357,8 @@ class TestTransformAndLoadData:
     def test_should_not_extend_non_existing_table(
             self,
             mock_does_bigquery_table_exist,
+            mock_generate_schema_from_file,
+            mock_create_table
     ):
         mock_does_bigquery_table_exist.return_value = False
         record_import_timestamp_as_string = ""
@@ -347,14 +370,15 @@ class TestTransformAndLoadData:
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
+        mock_generate_schema_from_file.assert_called()
+        mock_create_table.assert_called()
 
     def test_should_transform_write_and_load_to_bq(
             self,
             mock_does_bigquery_table_exist,
             mock_get_csv_dict_reader,
             mock_process_record_list,
-            mock_write_load_processed_data_to_bq
+            mock_load_file_into_bq
 
     ):
         mock_does_bigquery_table_exist.return_value = True
@@ -370,7 +394,7 @@ class TestTransformAndLoadData:
         mock_does_bigquery_table_exist.assert_called()
         mock_get_csv_dict_reader.assert_called()
         mock_process_record_list.assert_called()
-        mock_write_load_processed_data_to_bq.assert_called()
+        mock_load_file_into_bq.assert_called()
 
 
 class TestProcessData:
