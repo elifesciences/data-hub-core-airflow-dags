@@ -436,7 +436,7 @@ class TestProcessData:
         etl_google_spreadsheet(multi_csv_config)
         assert mock_process_csv_sheet.call_count == spreadsheets_count
 
-    def test_should_be_called_with_similar_timestamp(
+    def test_should_be_called_with_identical_timestamp(
             self,
             mock_process_csv_sheet,
             mock_current_timestamp_as_string,
