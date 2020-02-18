@@ -31,9 +31,14 @@ def current_timestamp_as_string():
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
+    current_timestamp_as_str = current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with NamedTemporaryFile() as named_temp_file:
-            process_csv_sheet(csv_sheet_config, named_temp_file.name)
+            process_csv_sheet(
+                csv_sheet_config,
+                named_temp_file.name,
+                current_timestamp_as_str
+            )
 
 
 def get_sheet_range_from_config(
@@ -49,12 +54,13 @@ def get_sheet_range_from_config(
 
 def process_csv_sheet(
         csv_sheet_config: BaseCsvSheetConfig, temp_file: str,
+        timestamp_as_string: str
 ):
     sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
         csv_sheet_config.spreadsheet_id, sheet_with_range
     )
-    record_import_timestamp_as_string = current_timestamp_as_string()
+    record_import_timestamp_as_string = timestamp_as_string
     transform_load_data(
         record_list=downloaded_data,
         csv_sheet_config=csv_sheet_config,

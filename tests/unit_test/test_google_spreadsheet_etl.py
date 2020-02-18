@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, call
 import pytest
 
 from data_pipeline.spreadsheet_data import google_spreadsheet_etl
@@ -33,6 +33,20 @@ TEST_DOWNLOADED_SHEET = [
 def _get_table_schema_field_names():
     with patch.object(google_spreadsheet_etl,
                       "get_table_schema_field_names") as mock:
+        yield mock
+
+
+@pytest.fixture(name="mock_current_timestamp_as_string")
+def _current_timestamp_as_string():
+    with patch.object(google_spreadsheet_etl,
+                      "current_timestamp_as_string") as mock:
+        yield mock
+
+
+@pytest.fixture(name="mock_temporary_file")
+def _temporary_file():
+    with patch.object(google_spreadsheet_etl,
+                      "NamedTemporaryFile") as mock:
         yield mock
 
 
@@ -421,6 +435,36 @@ class TestProcessData:
         )
         etl_google_spreadsheet(multi_csv_config)
         assert mock_process_csv_sheet.call_count == spreadsheets_count
+
+    def test_should_be_called_with_similar_timestamp(
+            self,
+            mock_process_csv_sheet,
+            mock_current_timestamp_as_string,
+            mock_temporary_file
+    ):
+        current_timestamp_as_string = "2010-11-11T 10:10:10Z"
+        mock_current_timestamp_as_string.return_value = (
+            current_timestamp_as_string
+        )
+        multi_csv_config = MultiCsvSheet(
+            TestProcessData.multi_csv_config_dict, "dep_env"
+        )
+        temp_file = mock_temporary_file.return_value.__enter__()
+        expected_calls = []
+        for csv_sheet_config in multi_csv_config.sheets_config.values():
+            process_call = call(
+                csv_sheet_config,
+                temp_file.name,
+                current_timestamp_as_string
+            )
+            expected_calls.append(process_call)
+
+        etl_google_spreadsheet(multi_csv_config)
+        mock_process_csv_sheet.assert_has_calls(
+            expected_calls
+        )
+
+        assert True
 
 
 class TestRecord:
