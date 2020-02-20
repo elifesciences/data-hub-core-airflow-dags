@@ -1,3 +1,4 @@
+import os
 import io
 import logging
 import csv
@@ -270,14 +271,15 @@ def transform_load_data(
             schema
         )
 
-    load_file_into_bq(
-        filename=full_temp_file_location,
-        table_name=csv_config.table_name,
-        auto_detect_schema=False,
-        dataset_name=csv_config.dataset_name,
-        write_mode=write_disposition,
-        project_name=csv_config.gcp_project,
-    )
+    if os.stat(full_temp_file_location).st_size > 0:
+        load_file_into_bq(
+            filename=full_temp_file_location,
+            table_name=csv_config.table_name,
+            auto_detect_schema=False,
+            dataset_name=csv_config.dataset_name,
+            write_mode=write_disposition,
+            project_name=csv_config.gcp_project,
+        )
 
 
 def skip_stream_till_line(text_stream, till_line_index):
