@@ -1,4 +1,3 @@
-import os
 import io
 import logging
 import csv
@@ -220,14 +219,11 @@ def generate_schema_from_file(full_temp_file_location):
 
 def should_write_to_bq(
         csv_config,
-        record_list,
-        full_temp_file_location
+        record_list
 ):
     to_write_to_bq = (
-        (
-            len(record_list) >
-            csv_config.data_values_start_line_index + 1
-        ) or os.stat(full_temp_file_location).st_size > 0
+        len(record_list) >
+        csv_config.data_values_start_line_index + 1
     )
     return to_write_to_bq
 
@@ -287,7 +283,6 @@ def transform_load_data(
     to_write_to_bq = should_write_to_bq(
         csv_config,
         record_list,
-        full_temp_file_location
     )
 
     if to_write_to_bq:
