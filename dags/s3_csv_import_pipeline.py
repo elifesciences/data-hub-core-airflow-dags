@@ -74,11 +74,12 @@ def is_dag_etl_running(**context):
     if dag_run_var_value:
         dag_run_var_value_dict = json.loads(dag_run_var_value)
         prev_run_id = dag_run_var_value_dict.get(NamedLiterals.RUN_ID)
-        dag_run = DagRun.find(dag_id=DAG_ID, run_id=prev_run_id)[0]
-        run_status = dag_run.get_state()
-        if run_status == NamedLiterals.DAG_RUNNING_STATUS:
+        dag_runs = DagRun.find(dag_id=DAG_ID, run_id=prev_run_id)
+        if (len(dag_runs) > 0
+                and (dag_runs[0]).get_state()
+                == NamedLiterals.DAG_RUNNING_STATUS
+        ):
             return False
-
     context["ti"].xcom_push(key="data_config",
                             value=data_config_dict)
     return True
