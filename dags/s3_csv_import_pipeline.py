@@ -158,6 +158,7 @@ NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
     task_id='s3_key_sensor_task',
     poke_interval=60 * 5,
     timeout=60 * 60 * 24 * 1,
+    retries=0,
     state_info_extract_from_config_callable=get_stored_state,
     default_initial_s3_last_modified_date = (
         get_default_initial_s3_last_modified_date()

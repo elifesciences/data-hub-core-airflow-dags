@@ -1,10 +1,10 @@
 PyYAML==5.3
 apache-airflow[crypto,celery,postgres,hive,jdbc,ssh]==1.10.9
-boto3==1.12.1
+boto3==1.12.3
 google-cloud-bigquery==1.24.0
 google-oauth==1.0.0
 dateparser==0.7.2
-dask[complete]==2.10.1
-distributed==2.10.0
+dask[complete]==2.11.0
+distributed==2.11.0
 google-api-python-client==1.7.11
 bigquery-schema-generator==0.5.1
