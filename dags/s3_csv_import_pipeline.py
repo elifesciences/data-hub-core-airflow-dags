@@ -156,8 +156,8 @@ SHOULD_REMAINING_TASK_EXECUTE = ShortCircuitOperator(
 
 NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
     task_id='s3_key_sensor_task',
-    poke_interval=60 * 1,
-    timeout=60 * 60 * 24 * 1,
+    poke_interval=60 * 2,
+    timeout=60 * 10 ,
     state_info_extract_from_config_callable=get_stored_state,
     default_initial_s3_last_modified_date = (
         get_default_initial_s3_last_modified_date()
