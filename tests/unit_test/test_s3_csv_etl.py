@@ -38,10 +38,17 @@ def _does_bigquery_table_exist():
 
 
 @pytest.fixture(name="mock_file_stat_size", autouse=True)
-def __file_stat_size():
+def _file_stat_size():
     with patch.object(s3_csv_etl.os,
                       "stat") as mock:
         mock.return_value.st_size = 1
+        yield mock
+
+
+@pytest.fixture(name="mock_should_write_to_bq", autouse=True)
+def _should_write_to_bq():
+    with patch.object(s3_csv_etl,
+                      "should_write_to_bq") as mock:
         yield mock
 
 

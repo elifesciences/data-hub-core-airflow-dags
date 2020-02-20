@@ -218,6 +218,20 @@ def generate_schema_from_file(full_temp_file_location):
     return schema
 
 
+def should_write_to_bq(
+        csv_config,
+        record_list,
+        full_temp_file_location
+):
+    to_write_to_bq = (
+        (
+            len(record_list) >
+            csv_config.data_values_start_line_index + 1
+        ) or os.stat(full_temp_file_location).st_size > 0
+    )
+    return to_write_to_bq
+
+
 def transform_load_data(
         s3_object_name: str,
         csv_config: S3BaseCsvConfig,
@@ -270,8 +284,13 @@ def transform_load_data(
             csv_config.table_name,
             schema
         )
+    to_write_to_bq = should_write_to_bq(
+        csv_config,
+        record_list,
+        full_temp_file_location
+    )
 
-    if os.stat(full_temp_file_location).st_size > 0:
+    if to_write_to_bq:
         load_file_into_bq(
             filename=full_temp_file_location,
             table_name=csv_config.table_name,
