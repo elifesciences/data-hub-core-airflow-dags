@@ -144,6 +144,7 @@ def get_standardized_csv_header(
     csv_header = record_list[csv_config.header_line_index].split(",")
     standardized_csv_header = [
         standardize_field_name(field.lower()) for field in csv_header
+        if field.strip() != ""
     ]
     return standardized_csv_header
 
@@ -310,6 +311,7 @@ def process_record_list(
             record=record,
             record_metadata=record_metadata,
         )
+        n_record.pop(None, None)
         yield n_record
 
 

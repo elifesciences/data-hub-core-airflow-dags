@@ -22,11 +22,12 @@ from dags.s3_csv_import_pipeline import (
     DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
 )
 
-TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country'
-'Michael', 'Bonbi', '7','University of California', 'United States'
-'Robert', 'Alfonso', '', 'Univ of Cambridge', 'France'
-'Michael', 'Shayne', '', '', 'England'
-'Fred', 'Fredrick', '21', '', 'China'
+# pylint: disable=trailing-whitespace
+TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country', ''
+'Michael', 'Bonbi', '7','University of California', 'United States',
+'Robert', 'Alfonso', '', 'Univ of Cambridge', 'France',
+'Michael', 'Shayne', '', '', 'England',
+'Fred', 'Fredrick', '21', '', 'China',
 """
 
 
@@ -479,7 +480,8 @@ class TestProcessData:
                 ('last_name', " 'Bonbi'"),
                 ('age', " '7'"),
                 ('univ', "'University of California'"),
-                ('country', " 'United States'")
+                ('country', " 'United States'"),
+                (None, [''])
             ]
         )
         assert next(csv_dict_reader) == expected_value
