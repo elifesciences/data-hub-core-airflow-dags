@@ -43,7 +43,7 @@ def add_notification_emails_to_default_args():
         NOTIFICATION_EMAILS_ENV_NAME, ""
     )
     default_args = get_default_args()
-    if notification_emails != "":
+    if notification_emails:
         notification_emails = [
             mail.strip() for mail
             in notification_emails.split(",")
