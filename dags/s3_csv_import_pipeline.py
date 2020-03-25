@@ -33,11 +33,31 @@ DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-04-11 21:10:13"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
+NOTIFICATION_EMAILS_ENV_NAME = "AIRFLOW_NOTIFICATION_EMAIL_CSV_LIST"
+
 DAG_ID = "S3_CSV_Data_Pipeline"
+
+
+def add_notification_emails_to_default_args():
+    notification_emails = os.getenv(
+        NOTIFICATION_EMAILS_ENV_NAME, ""
+    )
+    default_args = get_default_args()
+    if notification_emails != "":
+        notification_emails = [
+            mail.strip() for mail
+            in notification_emails.split(",")
+        ]
+        default_args = {
+            **default_args,
+            'email': notification_emails
+        }
+    return default_args
+
 S3_CSV_ETL_DAG = DAG(
     dag_id=DAG_ID,
     schedule_interval=None,
-    default_args=get_default_args(),
+    default_args=add_notification_emails_to_default_args(),
     dagrun_timeout=timedelta(minutes=60),
     max_active_runs=20,
     concurrency=30
@@ -179,6 +199,7 @@ LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID = create_python_task(
 ETL_CSV = create_python_task(
     S3_CSV_ETL_DAG, "Etl_Csv",
     etl_new_csv_files,
+    email_on_failure=True
 )
 
 # pylint: disable=pointless-statement
