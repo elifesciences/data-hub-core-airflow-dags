@@ -12,7 +12,7 @@ PROJECT = "elife-data-pipeline"  # change  all to env variable
 
 
 # pylint: disable=broad-except
-def test_dag_runs_data_imported():
+def not_now_test_dag_runs_data_imported():
     try:
         simple_query(
             query=TestQueryTemplate.CLEAN_TABLE_QUERY,
