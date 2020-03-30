@@ -30,7 +30,9 @@ from data_pipeline.utils.data_store.s3_data_service import (
 from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
-
+from data_pipeline.utils.record_processing import (
+    process_record_values, DEFAULT_PROCESSING_STEPS
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -235,6 +237,9 @@ def transform_load_data(
         record_import_timestamp_as_string: str,
         full_temp_file_location: str,
 ):
+    default_value_processing_function_steps = (
+        [*DEFAULT_PROCESSING_STEPS]
+    )
     LOGGER.info('processing object: "%s"', s3_object_name)
     csv_string = get_csv_data_from_s3(
         csv_config.s3_bucket_name, s3_object_name
@@ -253,8 +258,13 @@ def transform_load_data(
         standardized_csv_header,
         csv_config
     )
+    if csv_config.record_processing_function_steps:
+        default_value_processing_function_steps.extend(
+            csv_config.record_processing_function_steps
+        )
     processed_record = process_record_list(
         csv_dict_reader, record_metadata,
+        default_value_processing_function_steps
     )
 
     write_to_file(processed_record, full_temp_file_location)
@@ -305,6 +315,7 @@ def skip_stream_till_line(text_stream, till_line_index):
 def process_record_list(
         reader: DictReader,
         record_metadata: dict,
+        value_processing_function_steps: list = None
 ):
     for record in reader:
         n_record = merge_record_with_metadata(
@@ -312,6 +323,10 @@ def process_record_list(
             record_metadata=record_metadata,
         )
         n_record.pop(None, None)
+        if value_processing_function_steps:
+            n_record = process_record_values(
+                n_record, value_processing_function_steps
+            )
         yield n_record
 
 
