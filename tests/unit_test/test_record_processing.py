@@ -25,7 +25,7 @@ def test_should_strip_when_qoute_is_at_both_ends():
     assert result == expected_result
 
 
-def test_should_not_strip_when_qoute_is_at_only_one_end():
+def test_should_not_strip_when_quote_is_at_only_one_end():
     test_data = [" 'test1 ", "test2\""]
     expected_result = ["'test1", "test2\""]
     result = [
@@ -53,5 +53,5 @@ def test_should_unescape_html_for_nested_record():
             'g': [{'f': 'k', 'm': '£682m'}, {'y': 'l'}]
         }
     }
-    actual_result = process_record_values(data, ["html_unencode"])
+    actual_result = process_record_values(data, ["html_unescape"])
     assert actual_result == expected_result

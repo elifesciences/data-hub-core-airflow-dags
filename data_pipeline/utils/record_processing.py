@@ -47,6 +47,6 @@ def strip_quotes(val):
 
 
 FUNCTION_NAME_MAPPING = {
-    "html_unencode": unescape_html_escaped_values_in_string,
+    "html_unescape": unescape_html_escaped_values_in_string,
     "strip_quotes": strip_quotes
 }

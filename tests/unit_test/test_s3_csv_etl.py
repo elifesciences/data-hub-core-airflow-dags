@@ -444,7 +444,7 @@ class TestProcessData:
             self
     ):
         processing_func_config = {
-            "recordProcessingSteps": ["html_unencode"]
+            "recordProcessingSteps": ["html_unescape"]
         }
         csv_header = [
             'first_name', 'last_name', 'age', 'univ', 'country', 'html_encoded'

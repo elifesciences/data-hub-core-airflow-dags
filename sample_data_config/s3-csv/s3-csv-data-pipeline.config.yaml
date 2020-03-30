@@ -56,4 +56,4 @@ s3Csv:
       - metadataSchemaFieldName: 'date_generated'
         metadataLineIndex: 1
     recordProcessingSteps: # html
-      - html_unencode
+      - html_unescape
