@@ -15,7 +15,7 @@ def test_should_unescape_html_should_return_unescaped_values():
     assert result == expected_result
 
 
-def test_should_strip_when_qoute_is_at_both_ends():
+def test_should_strip_when_quote_is_at_both_ends():
     test_data = [" 'test1' ", "\"test2\""]
     expected_result = ["test1", "test2"]
     result = [
