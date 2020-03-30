@@ -41,16 +41,16 @@ def test_should_unescape_html_for_nested_record():
         "b": {
             "c": "d",
             "e": "&pound;682m",
-            "f": ["a", "xx", "&pound;682m", "chi"],
-            "g": [{"f": "k", "er": "&pound;682m"}, {"y": "l"}]
+            "f": ["a", "y", "&pound;682m", "z"],
+            "g": [{"f": "k", "m": "&pound;682m"}, {"y": "l"}]
         }
     }
     expected_result = {
         'a': '£682m',
         'b': {
             'c': 'd', 'e': '£682m',
-            'f': ['a', 'xx', '£682m', 'chi'],
-            'g': [{'f': 'k', 'er': '£682m'}, {'y': 'l'}]
+            'f': ['a', 'y', '£682m', 'z'],
+            'g': [{'f': 'k', 'm': '£682m'}, {'y': 'l'}]
         }
     }
     actual_result = process_record_values(data, ["html_unencode"])
