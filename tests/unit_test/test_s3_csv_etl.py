@@ -18,16 +18,18 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig
 )
+from data_pipeline.utils.record_processing import DEFAULT_PROCESSING_STEPS
 from dags.s3_csv_import_pipeline import (
     DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
 )
 
+
 # pylint: disable=trailing-whitespace
-TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country', ''
-'Michael', 'Bonbi', '7','University of California', 'United States',
-'Robert', 'Alfonso', '', 'Univ of Cambridge', 'France',
-'Michael', 'Shayne', '', '', 'England',
-'Fred', 'Fredrick', '21', '', 'China',
+TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country','html_encoded', ''
+'Michael', 'Bonbi', '7','Univ of California', 'United States','&pound;682m',
+'Robert', 'Alfonso', '', 'Univ of Cambridge', 'France','test ampersand &amp;'
+'Michael', 'Shayne', '', '', 'England',''
+'Fred', 'Fredrick', '21', '', 'China',''
 """
 
 
@@ -85,7 +87,7 @@ def _extend_nested_table_schema_if_new_fields_exist():
         yield mock
 
 
-@pytest.fixture(name="mock_merge_record_with_metadata", autouse=True)
+@pytest.fixture(name="mock_merge_record_with_metadata")
 def _merge_record_with_metadata():
     with patch.object(s3_csv_etl,
                       "merge_record_with_metadata") as mock:
@@ -438,11 +440,47 @@ class TestProcessData:
             deployment_env
         )
 
+    def test_should_process_record_values_using_list_of_function_references(
+            self
+    ):
+        processing_func_config = {
+            "recordProcessingSteps": ["html_unescape"]
+        }
+        csv_header = [
+            'first_name', 'last_name', 'age', 'univ', 'country', 'html_encoded'
+        ]
+        csv_config = TestProcessData.get_csv_config(processing_func_config)
+        csv_dictionary_reader = get_csv_dict_reader(
+            TEST_DOWNLOADED_SHEET,
+            csv_header,
+            csv_config
+        )
+        processing_function_name_list = DEFAULT_PROCESSING_STEPS
+        processing_function_name_list.extend(
+            csv_config.record_processing_function_steps
+        )
+
+        record_metadata = {}
+        processed_record = list(
+            process_record_list(
+                csv_dictionary_reader,
+                record_metadata,
+                processing_function_name_list
+            )
+        )
+        expected_first_returned_record_value = {
+            'first_name': 'Michael', 'last_name': 'Bonbi', 'age': '7',
+            'univ': 'Univ of California',
+            'country': 'United States', 'html_encoded': '£682m'
+        }
+
+        assert processed_record[0] == expected_first_returned_record_value
+
     def test_should_call_process_record_function_n_times(
             self, mock_merge_record_with_metadata
     ):
         standardized_csv_header = [
-            'first_name', 'last_name', 'age', 'univ', 'country'
+            'first_name', 'last_name', 'age', 'univ', 'country', 'html_encoded'
         ]
         csv_config = TestProcessData.get_csv_config()
         csv_dict_reader = get_csv_dict_reader(
@@ -467,7 +505,7 @@ class TestProcessData:
     ):
         csv_config = TestProcessData.get_csv_config()
         standardized_csv_header = [
-            'first_name', 'last_name', 'age', 'univ', 'country'
+            'first_name', 'last_name', 'age', 'univ', 'country', 'html_encoded'
         ]
         csv_dict_reader = get_csv_dict_reader(
             TEST_DOWNLOADED_SHEET,
@@ -479,8 +517,9 @@ class TestProcessData:
                 ('first_name', "'Michael'"),
                 ('last_name', " 'Bonbi'"),
                 ('age', " '7'"),
-                ('univ', "'University of California'"),
+                ('univ', "'Univ of California'"),
                 ('country', " 'United States'"),
+                ('html_encoded', "'&pound;682m'"),
                 (None, [''])
             ]
         )

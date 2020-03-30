@@ -55,3 +55,5 @@ s3Csv:
     inSheetRecordMetadata:
       - metadataSchemaFieldName: 'date_generated'
         metadataLineIndex: 1
+    recordProcessingSteps: # html
+      - html_unescape

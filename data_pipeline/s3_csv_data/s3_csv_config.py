@@ -110,3 +110,6 @@ class S3BaseCsvConfig(BaseCsvConfig):
             "stateFile", {}).get("bucketName")
         self.state_file_object_name = updated_config.get(
             "stateFile", {}).get("objectName")
+        self.record_processing_function_steps = csv_sheet_config.get(
+            "recordProcessingSteps", None
+        )
