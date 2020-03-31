@@ -42,7 +42,9 @@ def strip_quotes(val):
     if isinstance(val, str):
         for to_strip_away in ["'", '"']:
             n_val = n_val.strip()
-            if n_val.endswith(to_strip_away) and n_val.startswith(to_strip_away):
+            if (n_val.endswith(to_strip_away) and n_val.startswith(
+                    to_strip_away)
+            ):
                 n_val = n_val.strip(to_strip_away)
     return n_val
 
