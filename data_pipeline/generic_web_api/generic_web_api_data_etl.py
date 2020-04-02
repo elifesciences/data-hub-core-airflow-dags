@@ -176,6 +176,7 @@ def get_next_cursor_from_data(data, web_config: WebApiConfig):
         )
     return next_cursor
 
+
 def get_items_list(data, web_config):
     item_list = data
     if isinstance(data, dict):
