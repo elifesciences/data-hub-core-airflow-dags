@@ -257,6 +257,7 @@ def per_doi_download_page_etl(
         message_key=message_key,
         until_collected_date_as_string=until_collected_date_as_string,
     )
+    print("message keu ", message_key)
     results = downloaded_data.get(message_key, {}).get(event_key, [])
     n_results = preprocess_json_record(
         results, imported_timestamp_key, imported_timestamp, schema

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+from data_pipeline.utils.csv.config import update_deployment_env_placeholder
 
 from urllib import parse
 
@@ -11,44 +11,51 @@ class WebApiConfig:
             self,
             web_api_config: dict,
             gcp_project: str = None,
-            imported_timestamp_field_name: str = None
+            imported_timestamp_field_name: str = None,
+            deployment_env: str = None,
+            deployment_env_placeholder: str = "{ENV}",
     ):
-        self.config_as_dict = web_api_config
+        api_config = update_deployment_env_placeholder(
+            web_api_config,deployment_env,
+            deployment_env_placeholder
+        ) if deployment_env else web_api_config
+        print(api_config)
+        self.config_as_dict = api_config
         self.gcp_project = (
             gcp_project or
-            web_api_config.get("gcpProjectName")
+            api_config.get("gcpProjectName")
         )
         self.import_timestamp_field_name = (
             imported_timestamp_field_name or
-            web_api_config.get(
+            api_config.get(
                 "importedTimestampFieldName"
             )
         )
-        self.dataset_name = web_api_config.get(
-            "datasetName", ""
+        self.dataset_name = api_config.get(
+            "dataset", ""
         )
-        self.table_name = web_api_config.get(
-            "tableName", ""
+        self.table_name = api_config.get(
+            "table", ""
         )
-        self.table_write_append_enabled = web_api_config.get(
+        self.table_write_append_enabled = api_config.get(
             "tableWriteAppend", False
         )
 
         self.schema_file_s3_bucket = (
-            web_api_config.get("schemaFile", {}).get("bucket")
+            api_config.get("schemaFile", {}).get("bucket")
         )
-        self.schema_file_object_name = web_api_config.get(
+        self.schema_file_object_name = api_config.get(
             "schemaFile", {}
         ).get("objectName")
 
-        self.state_file_bucket_name = web_api_config.get(
+        self.state_file_bucket_name = api_config.get(
             "stateFile", {}).get("bucketName")
-        self.state_file_object_name = web_api_config.get(
+        self.state_file_object_name = api_config.get(
             "stateFile", {}).get("objectName")
-        url_excluding_dynamic_parameters = web_api_config.get(
+        url_excluding_dynamic_parameters = api_config.get(
             "datataUrl"
         ).get("urlExcludingDynamicParameters")
-        dynamic_parameters = web_api_config.get(
+        dynamic_parameters = api_config.get(
             "datataUrl"
         ).get("dynamicParameters", {})
         page_number_param = dynamic_parameters.get(
@@ -72,28 +79,28 @@ class WebApiConfig:
             page_number_param
         )
         self.items_key_hierarchy_from_response_root_as_list = (
-            web_api_config.get("response", {}).get(
+            api_config.get("response", {}).get(
                 "itemsKeyFromResponseRoot", None
             )
         )
         self.total_item_count_key_hierarchy_from_response_root_as_list = (
-            web_api_config.get("response", {}).get(
+            api_config.get("response", {}).get(
                 "totalItemsCountKeyFromResponseRoot", None
             )
         )
         self.next_page_cursor_key_hierarchy_from_response_root_as_list = (
-            web_api_config.get("response", {}).get(
+            api_config.get("response", {}).get(
                 "nextPageCursorKeyFromResponseRoot", None
             )
         )
         self.item_timestamp_key_hierarchy_from_item_root_as_list = (
-            web_api_config.get("response", {}).get(
+            api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
                 "itemTimestampKeyFromItemRoot", None
             )
         )
         self.item_timestamp_format = (
-            web_api_config.get("response", {}).get(
+            api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
                 "timestampFormat", None
             )
@@ -124,14 +131,23 @@ class DynamicURLComposer:
             page_number: int = None,
             cursor: str = None
     ):
-        param_dict = {
-            self.from_date_param: datetime_to_string(from_date, self.date_format),
-            self.next_page_cursor: cursor,
-            self.to_date_param: datetime_to_string(to_date, self.date_format),
-            self.page_number_param: str(page_number)
-        }
+        start_date =datetime_to_string(to_date, self.date_format)
+        end_date = datetime_to_string(from_date, self.date_format)
+        param_dict = dict((key, value) for key, value in [
+            (self.from_date_param, start_date),
+            (self.next_page_cursor, cursor),
+            (self.to_date_param, end_date),
+            (self.page_number_param, page_number)
+            ] if key and value )
         url = self.url_excluding_dynamic_parameters
-        url_separator = "" if "?" in url else "?"
+        if "?" in url:
+            if url.strip().endswith("&"):
+                url_separator = ""
+            else:
+                url_separator = "&"
+        else:
+            url_separator = "?"
+
         params = "&".join(
             ["%s=%s" % (k, parse.quote(str(v))) for k, v in param_dict.items() if v and k]
         )
