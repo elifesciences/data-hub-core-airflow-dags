@@ -1,10 +1,7 @@
 from datetime import timezone, datetime
 import json
 from json.decoder import JSONDecodeError
-import requests
-from requests.adapters import HTTPAdapter
-# pylint: disable=import-error
-from requests.packages.urllib3.util.retry import Retry
+
 from typing import Iterable
 import dateparser
 from botocore.exceptions import ClientError
@@ -23,7 +20,8 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_bq_schema_field_list_to_dict,
     standardize_field_name,
-    write_result_to_file
+    write_result_to_file,
+    requests_retry_session
 )
 
 from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
@@ -70,26 +68,6 @@ def get_stored_state(
         else:
             raise ex
     return state
-
-
-def requests_retry_session(
-        retries=10,
-        backoff_factor=0.3,
-        status_forcelist=(500, 502, 504),
-        session=None,
-):
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
 
 
 def get_newline_delimited_json_string_as_json_list(json_string):
@@ -208,7 +186,6 @@ def get_items_list(data, web_config):
     return item_list
 
 
-
 def upload_latest_timestamp(data_config, latest_record_timestamp: datetime):
     latest_record_date = get_timestamp_as_string(latest_record_timestamp)
     state_file_name_key = data_config.state_file_object_name
@@ -294,7 +271,6 @@ def process_record_in_list(
             n_record = filter_record_by_schema(n_record, bq_schema)
         if provenance:
             n_record.update(provenance)
-
         yield n_record
 
 
