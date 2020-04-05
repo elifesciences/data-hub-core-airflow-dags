@@ -25,12 +25,24 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
 )
 
 from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
-from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
+from data_pipeline.generic_web_api.generic_web_api_config import (
+    WebApiConfig
+)
 
 
-def get_timestamp_as_string(timestamp: datetime):
+# pylint: disable=too-few-public-methods
+class ModuleConstant:
+    DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
+    BQ_SCHEMA_FIELD_NAME_KEY = "name"
+    BQ_SCHEMA_SUBFIELD_KEY = "fields"
+    BQ_SCHEMA_FIELD_TYPE_KEY = "type"
+
+
+def get_timestamp_as_string(
+        timestamp: datetime,
+        format: str = ModuleConstant.DEFAULT_TIMESTAMP_FORMAT):
     return timestamp.strftime(
-        ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        format
     )
 
 
@@ -52,7 +64,6 @@ def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
 
 def get_stored_state(
         data_config: WebApiConfig,
-        initial_start_date: str = None
 ):
     try:
         state = (
@@ -62,12 +73,22 @@ def get_stored_state(
             ) if data_config.state_file_bucket_name
             and data_config.state_file_object_name else None
         )
+        stored_state = parse_timestamp_from_str(
+            state, ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        )
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
-            state = initial_start_date
+            stored_state = parse_timestamp_from_str(
+                data_config.default_start_date,
+                data_config.url_composer.date_format
+            ) if (
+                    data_config.default_start_date and
+                    data_config.url_composer.date_format
+            ) else None
+
         else:
             raise ex
-    return state
+    return stored_state
 
 
 def get_newline_delimited_json_string_as_json_list(json_string):
@@ -89,9 +110,17 @@ def get_data_single_page(
         from_date=from_date,
         to_date=until_date,
         cursor=cursor,
-        page_number=page_number
+        page_number=page_number,
     )
+    print("\n\n\n\n\n\nURL \n\n\n", url)
+
     with requests_retry_session() as session:
+        if (
+                data_config.authentication and
+                data_config.authentication.authentication_type == "basic"
+        ):
+            session.auth = tuple(data_config.authentication.auth_val_list)
+        session.verify = False
         session_request = session.get(url)
         session_request.raise_for_status()
         resp = session_request.content
@@ -104,20 +133,20 @@ def get_data_single_page(
     return json_resp
 
 
-def download_web_api_data(
+def generic_web_api_data_etl(
         data_config: WebApiConfig,
         full_temp_file_location,
         from_date: datetime = None,
         until_date: datetime = None,
 ):
-    cursor = None
-    imported_timestamp = get_current_timestamp_as_string()
     stored_state = get_stored_state(
         data_config
     )
-    latest_record_timestamp = parse_timestamp_from_str(
-        stored_state, ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
-    ) if stored_state else None
+
+    from_date = from_date if from_date else stored_state
+    cursor = None
+    imported_timestamp = get_current_timestamp_as_string()
+    latest_record_timestamp = None
     page_number = 1 if data_config.url_composer.page_number_param else None
     while True:
         page_data = get_data_single_page(
@@ -127,11 +156,6 @@ def download_web_api_data(
             cursor=cursor,
             page_number=page_number,
         )
-        cursor = get_next_cursor_from_data(page_data, data_config)
-        page_number = get_next_page_number(
-            page_data, page_number, data_config
-        )
-
         items_list = get_items_list(
             page_data, data_config
         )
@@ -142,7 +166,15 @@ def download_web_api_data(
             file_location=full_temp_file_location,
             prev_page_latest_timestamp=latest_record_timestamp
         )
-        if not cursor and not page_number:
+        items_count = len(items_list)
+        cursor = get_next_cursor_from_data(page_data, data_config)
+        page_number = get_next_page_number(
+            items_count, page_number, data_config
+        )
+        from_date = get_next_start_date(
+            items_count,from_date,latest_record_timestamp, data_config
+        )
+        if cursor is None and page_number is None and from_date is None:
             break
 
     create_n_extend_table(data_config, full_temp_file_location)
@@ -159,12 +191,33 @@ def download_web_api_data(
     )
 
 
-def get_next_page_number(data, current_page, web_config: WebApiConfig):
-    item_list = []
+def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
+    next_page = None
     if web_config.url_composer.page_number_param:
-        item_list = get_items_list(data, web_config)
-    next_page = current_page + 1 if item_list else None
+        to_continue = items_count == web_config.page_size if web_config.page_size else items_count
+        next_page = current_page + 1 if to_continue else None
     return next_page
+
+
+def get_next_start_date(
+        items_count,
+        current_start_timestamp,
+        latest_record_timestamp,
+        web_config: WebApiConfig
+):
+    from_timestamp = None
+    if (
+            web_config.url_composer.page_number_param or
+            web_config.url_composer.next_page_cursor
+    ):
+        from_timestamp = current_start_timestamp
+    elif (
+            web_config.item_timestamp_key_hierarchy_from_item_root_as_list and
+            items_count
+    ):
+        from_timestamp = latest_record_timestamp
+
+    return from_timestamp
 
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
@@ -188,14 +241,15 @@ def get_items_list(data, web_config):
 
 
 def upload_latest_timestamp(data_config, latest_record_timestamp: datetime):
-    latest_record_date = get_timestamp_as_string(latest_record_timestamp)
-    state_file_name_key = data_config.state_file_object_name
-    state_file_bucket = data_config.state_file_bucket_name
-    upload_s3_object(
-        bucket=state_file_bucket,
-        object_key=state_file_name_key,
-        data_object=latest_record_date,
-    )
+    if data_config.state_file_object_name and data_config.state_file_bucket_name:
+        latest_record_date = get_timestamp_as_string(latest_record_timestamp)
+        state_file_name_key = data_config.state_file_object_name
+        state_file_bucket = data_config.state_file_bucket_name
+        upload_s3_object(
+            bucket=state_file_bucket,
+            object_key=state_file_name_key,
+            data_object=latest_record_date,
+        )
 
 
 def create_n_extend_table(
@@ -285,6 +339,7 @@ def standardize_record_keys(record_object):
                 item_val = standardize_record_keys(
                     item_val,
                 )
+            if item_val:
                 new_dict[new_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
@@ -344,26 +399,25 @@ def filter_record_by_schema(record_object, record_object_schema):
 def get_latest_record_list_timestamp(
         record_list, previous_latest_timestamp, data_config: WebApiConfig
 ):
-    latest_timestamp = None
-    if data_config.item_timestamp_key_hierarchy_from_item_root_as_list:
-        latest_collected_record_timestamp_list = [
-            parse_timestamp_from_str(
+    latest_collected_record_timestamp_list = [previous_latest_timestamp]
+    for record in record_list:
+        if data_config.item_timestamp_key_hierarchy_from_item_root_as_list:
+            record_timestamp = parse_timestamp_from_str(
                 get_dict_values_from_hierarchy_as_list(
                     record,
-                    data_config.item_timestamp_key_hierarchy_from_item_root_as_list),
+                    data_config.item_timestamp_key_hierarchy_from_item_root_as_list
+                ),
                 data_config.item_timestamp_format,
             )
-            for record in record_list
-        ]
-        latest_collected_record_timestamp_list.append(previous_latest_timestamp)
-        latest_collected_record_timestamp_list = [
-            timestamp for
-            timestamp in latest_collected_record_timestamp_list
-            if timestamp
-        ]
-        latest_timestamp = max(
-            latest_collected_record_timestamp_list
-        ) if latest_collected_record_timestamp_list else None
+            latest_collected_record_timestamp_list.append(record_timestamp)
+    latest_collected_record_timestamp_list = [
+        timestamp for
+        timestamp in latest_collected_record_timestamp_list
+        if timestamp
+    ]
+    latest_timestamp = max(
+        latest_collected_record_timestamp_list
+    ) if latest_collected_record_timestamp_list else None
     return latest_timestamp
 
 
@@ -377,11 +431,3 @@ def get_dict_values_from_hierarchy_as_list(data, hierachy: list):
         else:
             break
     return data_value
-
-
-# pylint: disable=too-few-public-methods
-class ModuleConstant:
-    DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-    BQ_SCHEMA_FIELD_NAME_KEY = "name"
-    BQ_SCHEMA_SUBFIELD_KEY = "fields"
-    BQ_SCHEMA_FIELD_TYPE_KEY = "type"

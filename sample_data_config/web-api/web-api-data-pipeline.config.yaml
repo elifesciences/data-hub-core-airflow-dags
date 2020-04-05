@@ -1,63 +1,113 @@
 projectName: 'elife-data-pipeline'
-importedTimestampFieldName: 'imported_timestamp'
+importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
-  - dataset: '{ENV}'
-    table: 'testtest_published_research_article'
+  #observer api
+  - dataset: '{ENV}' # for observer
+    table: test_published_research_article
     datataUrl:
-      urlExcludingDynamicParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
-    importedTimestampField: 'data_hub_imported_timestamp'
+      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
+  #elifescience people (and profile) api
   - dataset: '{ENV}'
-    table: 'testtest_people'
-    stateFile:
-      bucket: 'ci-elife-data-pipeline'
-      objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
-    schemaFile:
-      url:
-      bucket: #'ci-elife-data-pipeline'
-      objectName: #'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+    table: test_people_api
     datataUrl:
-      urlExcludingDynamicParameters: https://api.elifesciences.org/people?per-page=50
-      dynamicParameters:
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
+      configurableParameters:
         page: page
     response:
       itemsKeyFromResponseRoot:
         - items
 
+  #hypoothesis api
   - dataset: '{ENV}'
-    table: 'testtest_people'
+    table: 'hypothesis_data'
     stateFile:
-      bucket: 'ci-elife-data-pipeline'
-      objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
-    schemaFile:
-      url:
-      bucket: 'ci-elife-data-pipeline'
-      objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
-    response:
-      itemsKeyFromResponseRoot:
-        - a
-        - b
-      totalItemsCountKeyFromResponseRoot:
-        - c
-        - d
-      nextPageCursorKeyFromResponseRoot:
-        - c
-        - d
-      recordTimestamp:
-        timestampFormat: format
-        itemTimestampKeyFromItemRoot:
-          - e
-          - f
-
+      bucketName: 'ci-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
     datataUrl:
-      urlExcludingDynamicParameters: https://api.elifesciences.org/people?per-page=50
-      dynamicParameters:
-        page: page
-        nextPageCursor: next_page_cursor
-        fromDate: from_date
-        toDate: to_date
-        dateFormat: format
-      authentication:
-        type: basic
-        location:
-          authTokenFile: ""
-          envVariableHoldingAuthToken: ""
+      urlExcludingConfigurableParameters: https://hypothes.is/api/search?group=imRGyeeV&sort=updated&order=asc
+      pagingParameter: search_after
+      configurableParameters:
+        pageSize: limit
+        defaultPageSize: 100
+        fromDate: search_after
+        defaultStartDate: "2012-01-01T01:01:01.000000+00:00"
+        dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+
+    response:
+      recordTimestamp:
+        timestampFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+        itemTimestampKeyFromItemRoot:
+          - updated
+      itemsKeyFromResponseRoot:
+        - rows
+  #toggle api
+  - dataset: '{ENV}'
+    table: 'toggle_data'
+    stateFile:
+      bucketName: 'ci-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
+    datataUrl:
+      urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
+      configurableParameters:
+        fromDate: start_date
+        defaultStartDate: "2020-01-01T01:00:00+00:00"
+        #toDate: end_date
+        dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+    response:
+      recordTimestamp:
+        timestampFormat: "%Y-%m-%dT%H:%M:%S%z"
+        itemTimestampKeyFromItemRoot:
+          - stop
+    authentication:
+      auth_type: basic
+      orderedAuthenticationParamValues:
+        - #paramvValue: #
+          #valueFileLocation:
+          envVariableHoldingAuthValue: TOGGLE_API_TOKEN
+        - value: api_token
+          #valueFileLocation: #
+          #envVariableHoldingAuthValue: #
+
+  #- dataset: '{ENV}'
+  #  table: 'testtest_people'
+  #  stateFile:
+  #    bucketName: 'ci-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
+  #  schemaFile:
+  #    url:
+  #    bucketName: 'ci-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+  #  response:
+  #    itemsKeyFromResponseRoot:
+  #      - a
+  #      - b
+  #    totalItemsCountKeyFromResponseRoot:
+  #      - c
+  #      - d
+  #    nextPageCursorKeyFromResponseRoot:
+  #      - c
+  #      - d
+  #    recordTimestamp:
+  #      timestampFormat: format
+  #      itemTimestampKeyFromItemRoot:
+  #        - e
+  #        - f
+  #  datataUrl:
+  #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
+  #    configurableParameters:
+  #      page: page
+  #      defaultPageSize: 100
+  #      nextPageCursor: next_page_cursor
+  #      fromDate: from_date
+  #      defaultStartDate:
+  #      toDate: to_date
+  #      dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+  #  authentication:
+  #    auth_type: basic
+  #    orderedAuthenticationParamValues:
+  #      - value: #
+  #        valueFileLocation: #
+  #        envVariableHoldingAuthValue: #
+  #      - paramvValue: #
+  #        valueFileLocation:
+  #        envVariableHoldingAuthValue: #
