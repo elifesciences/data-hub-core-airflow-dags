@@ -1,11 +1,33 @@
 import os
 from datetime import datetime
-from data_pipeline.utils.csv.config import update_deployment_env_placeholder
-
 from urllib import parse
+
+from data_pipeline.utils.csv.config import update_deployment_env_placeholder
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
+# pylint: disable=too-many-locals
+class MultiWebApiConfig:
+    def __init__(
+            self,
+            multi_web_api_etl_config: dict,
+    ):
+        self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
+        self.import_timestamp_field_name = multi_web_api_etl_config.get(
+            "importedTimestampFieldName"
+        )
+        self.web_api_config = {
+            ind: {
+                **web_api,
+                "gcpProjectName": self.gcp_project,
+                "importedTimestampFieldName": self.import_timestamp_field_name
+            }
+            for ind, web_api in enumerate(
+                multi_web_api_etl_config.get("webApi")
+            )
+        }
+
+
 class WebApiConfig:
     def __init__(
             self,
@@ -16,7 +38,7 @@ class WebApiConfig:
             deployment_env_placeholder: str = "{ENV}",
     ):
         api_config = update_deployment_env_placeholder(
-            web_api_config,deployment_env,
+            web_api_config, deployment_env,
             deployment_env_placeholder
         ) if deployment_env else web_api_config
         self.config_as_dict = api_config
@@ -78,7 +100,7 @@ class WebApiConfig:
         next_page_cursor = configurable_parameters.get(
             "nextPageCursor", None
         )
-        self.url_composer = DynamicURLComposer(
+        self.url_manager = DynamicURLManager(
             url_excluding_configurable_parameters,
             from_date_param,
             to_date_param,
@@ -88,45 +110,43 @@ class WebApiConfig:
             page_size_param,
             self.page_size
         )
-        self.items_key_hierarchy_from_response_root_as_list = (
+        self.items_key_hierarchy_from_response_root = (
             api_config.get("response", {}).get(
                 "itemsKeyFromResponseRoot", None
             )
         )
-        self.total_item_count_key_hierarchy_from_response_root_as_list = (
+        self.total_item_count_key_hierarchy_from_response_root = (
             api_config.get("response", {}).get(
                 "totalItemsCountKeyFromResponseRoot", None
             )
         )
-        self.next_page_cursor_key_hierarchy_from_response_root_as_list = (
+        self.next_page_cursor_key_hierarchy_from_response_root = (
             api_config.get("response", {}).get(
                 "nextPageCursorKeyFromResponseRoot", None
             )
         )
-        self.item_timestamp_key_hierarchy_from_item_root_as_list = (
+        self.item_timestamp_key_hierarchy_from_item_root = (
             api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
-                "itemTimestampKeyFromItemRoot", None
-            )
+                    "itemTimestampKeyFromItemRoot", None)
         )
         self.item_timestamp_format = (
             api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
-                "timestampFormat", None
-            )
+                    "timestampFormat", None)
         )
         auth_type = api_config.get("authentication", {}).get(
-                "auth_type", None
+            "auth_type", None
         )
         auth_conf_list = api_config.get("authentication", {}).get(
-                "orderedAuthenticationParamValues", []
+            "orderedAuthenticationParamValues", []
         )
         self.authentication = WebApiAuthentication(
             auth_type, auth_conf_list
         ) if auth_type and auth_conf_list else None
 
 
-class DynamicURLComposer:
+class DynamicURLManager:
     def __init__(
             self,
             url_excluding_configurable_parameters: str,
@@ -138,7 +158,9 @@ class DynamicURLComposer:
             page_size_param: str = None,
             page_size: int = None,
     ):
-        self.url_excluding_configurable_parameters = url_excluding_configurable_parameters
+        self.url_excluding_configurable_parameters = (
+            url_excluding_configurable_parameters
+        )
         self.from_date_param = from_date_param
         self.to_date_param = to_date_param
         self.date_format = date_format
@@ -174,7 +196,10 @@ class DynamicURLComposer:
             url_separator = "?"
 
         params = "&".join(
-            ["%s=%s" % (k, parse.quote(str(v))) for k, v in param_dict.items() if v and k]
+            [
+                "%s=%s" % (k, parse.quote(str(v)))
+                for k, v in param_dict.items() if v and k
+            ]
         )
         return url + url_separator + params
 
@@ -202,17 +227,17 @@ class WebApiAuthentication:
 
 def get_auth_param_value(auth_val_conf: dict):
     val = (
-            auth_val_conf.get("value", None)
-            or
-            os.getenv(
-                auth_val_conf.get(
-                    "envVariableHoldingAuthValue", None),
-                None
-            )
-            or
-            read_file_content(
-                auth_val_conf.get("valueFileLocation")
-            )
+        auth_val_conf.get("value", None)
+        or
+        os.getenv(
+            auth_val_conf.get(
+                "envVariableHoldingAuthValue", None),
+            None
+        )
+        or
+        read_file_content(
+            auth_val_conf.get("valueFileLocation")
+        )
     )
 
     return val

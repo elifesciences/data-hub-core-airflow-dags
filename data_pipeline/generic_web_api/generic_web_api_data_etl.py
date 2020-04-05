@@ -40,9 +40,9 @@ class ModuleConstant:
 
 def get_timestamp_as_string(
         timestamp: datetime,
-        format: str = ModuleConstant.DEFAULT_TIMESTAMP_FORMAT):
+        timestamp_format: str = ModuleConstant.DEFAULT_TIMESTAMP_FORMAT):
     return timestamp.strftime(
-        format
+        timestamp_format
     )
 
 
@@ -54,7 +54,9 @@ def get_current_timestamp_as_string():
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
     if time_format:
-        timestamp_obj = datetime.strptime(timestamp_as_str.strip(), time_format)
+        timestamp_obj = datetime.strptime(
+            timestamp_as_str.strip(), time_format
+        )
     else:
         timestamp_obj = dateparser.parse(
             timestamp_as_str.strip()
@@ -80,10 +82,10 @@ def get_stored_state(
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = parse_timestamp_from_str(
                 data_config.default_start_date,
-                data_config.url_composer.date_format
+                data_config.url_manager.date_format
             ) if (
-                    data_config.default_start_date and
-                    data_config.url_composer.date_format
+                data_config.default_start_date and
+                data_config.url_manager.date_format
             ) else None
 
         else:
@@ -106,13 +108,12 @@ def get_data_single_page(
         until_date: datetime = None,
         page_number: int = None,
 ) -> (str, dict):
-    url = data_config.url_composer.get_url(
+    url = data_config.url_manager.get_url(
         from_date=from_date,
         to_date=until_date,
         cursor=cursor,
         page_number=page_number,
     )
-    print("\n\n\n\n\n\nURL \n\n\n", url)
 
     with requests_retry_session() as session:
         if (
@@ -147,7 +148,7 @@ def generic_web_api_data_etl(
     cursor = None
     imported_timestamp = get_current_timestamp_as_string()
     latest_record_timestamp = None
-    page_number = 1 if data_config.url_composer.page_number_param else None
+    page_number = 1 if data_config.url_manager.page_number_param else None
     while True:
         page_data = get_data_single_page(
             data_config=data_config,
@@ -172,7 +173,8 @@ def generic_web_api_data_etl(
             items_count, page_number, data_config
         )
         from_date = get_next_start_date(
-            items_count,from_date,latest_record_timestamp, data_config
+            items_count, from_date,
+            latest_record_timestamp, data_config
         )
         if cursor is None and page_number is None and from_date is None:
             break
@@ -193,8 +195,12 @@ def generic_web_api_data_etl(
 
 def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
     next_page = None
-    if web_config.url_composer.page_number_param:
-        to_continue = items_count == web_config.page_size if web_config.page_size else items_count
+    if web_config.url_manager.page_number_param:
+        to_continue = (
+            items_count == web_config.page_size
+            if web_config.page_size
+            else items_count
+        )
         next_page = current_page + 1 if to_continue else None
     return next_page
 
@@ -207,12 +213,12 @@ def get_next_start_date(
 ):
     from_timestamp = None
     if (
-            web_config.url_composer.page_number_param or
-            web_config.url_composer.next_page_cursor
+            web_config.url_manager.page_number_param or
+            web_config.url_manager.next_page_cursor
     ):
         from_timestamp = current_start_timestamp
     elif (
-            web_config.item_timestamp_key_hierarchy_from_item_root_as_list and
+            web_config.item_timestamp_key_hierarchy_from_item_root and
             items_count
     ):
         from_timestamp = latest_record_timestamp
@@ -222,10 +228,10 @@ def get_next_start_date(
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
     next_cursor = None
-    if web_config.url_composer.next_page_cursor:
+    if web_config.url_manager.next_page_cursor:
         next_cursor = get_dict_values_from_hierarchy_as_list(
             data,
-            web_config.next_page_cursor_key_hierarchy_from_response_root_as_list
+            web_config.next_page_cursor_key_hierarchy_from_response_root
         )
     return next_cursor
 
@@ -235,13 +241,16 @@ def get_items_list(data, web_config):
     if isinstance(data, dict):
         item_list = get_dict_values_from_hierarchy_as_list(
             data,
-            web_config.items_key_hierarchy_from_response_root_as_list
+            web_config.items_key_hierarchy_from_response_root
         )
     return item_list
 
 
 def upload_latest_timestamp(data_config, latest_record_timestamp: datetime):
-    if data_config.state_file_object_name and data_config.state_file_bucket_name:
+    if (
+            data_config.state_file_object_name and
+            data_config.state_file_bucket_name
+    ):
         latest_record_date = get_timestamp_as_string(latest_record_timestamp)
         state_file_name_key = data_config.state_file_object_name
         state_file_bucket = data_config.state_file_bucket_name
@@ -280,11 +289,14 @@ def create_n_extend_table(
 
 
 def get_bq_schema(data_config: WebApiConfig,):
-    if data_config.schema_file_object_name and data_config.schema_file_s3_bucket:
-       bq_schema = download_s3_json_object(
-           data_config.schema_file_s3_bucket,
-           data_config.schema_file_object_name
-       )
+    if (
+            data_config.schema_file_object_name and
+            data_config.schema_file_s3_bucket
+    ):
+        bq_schema = download_s3_json_object(
+            data_config.schema_file_s3_bucket,
+            data_config.schema_file_object_name
+        )
     else:
         bq_schema = None
     return bq_schema
@@ -401,11 +413,11 @@ def get_latest_record_list_timestamp(
 ):
     latest_collected_record_timestamp_list = [previous_latest_timestamp]
     for record in record_list:
-        if data_config.item_timestamp_key_hierarchy_from_item_root_as_list:
+        if data_config.item_timestamp_key_hierarchy_from_item_root:
             record_timestamp = parse_timestamp_from_str(
                 get_dict_values_from_hierarchy_as_list(
                     record,
-                    data_config.item_timestamp_key_hierarchy_from_item_root_as_list
+                    data_config.item_timestamp_key_hierarchy_from_item_root
                 ),
                 data_config.item_timestamp_format,
             )
