@@ -2,24 +2,37 @@ projectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   #observer api
-  - dataset: '{ENV}' # for observer
+  - dataset: '{ENV}'  for observer
     table: test_published_research_article
     datataUrl:
       urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
-  #elifescience people (and profile) api
+  #elifescience people api
   - dataset: '{ENV}'
     table: test_people_api
     datataUrl:
-      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
       configurableParameters:
+        pageSize: per-page
+        defaultPageSize: 100
         page: page
     response:
       itemsKeyFromResponseRoot:
         - items
-
+  #elifescience profile api
+  - dataset: '{ENV}'
+    table: atest_profile_api
+    datataUrl:
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/profiles?
+      configurableParameters:
+        pageSize: per-page
+        defaultPageSize: 100
+        page: page
+    response:
+      itemsKeyFromResponseRoot:
+        - items
   #hypoothesis api
   - dataset: '{ENV}'
-    table: 'hypothesis_data'
+    table: hypothesis_data
     stateFile:
       bucketName: 'ci-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
@@ -32,7 +45,6 @@ webApi:
         fromDate: search_after
         defaultStartDate: "2012-01-01T01:01:01.000000+00:00"
         dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
-
     response:
       recordTimestamp:
         timestampFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -42,7 +54,7 @@ webApi:
         - rows
   #toggle api
   - dataset: '{ENV}'
-    table: 'toggle_data'
+    table: atoggle_data
     stateFile:
       bucketName: 'ci-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
@@ -51,7 +63,6 @@ webApi:
       configurableParameters:
         fromDate: start_date
         defaultStartDate: "2020-01-01T01:00:00+00:00"
-        #toDate: end_date
         dateFormat: "%Y-%m-%dT%H:%M:%S%z"
     response:
       recordTimestamp:
@@ -61,12 +72,8 @@ webApi:
     authentication:
       auth_type: basic
       orderedAuthenticationParamValues:
-        - #paramvValue: #
-          #valueFileLocation:
-          envVariableHoldingAuthValue: TOGGLE_API_TOKEN
+        - envVariableHoldingAuthValue: TOGGLE_API_TOKEN
         - value: api_token
-          #valueFileLocation: #
-          #envVariableHoldingAuthValue: #
 
   #- dataset: '{ENV}'
   #  table: 'testtest_people'

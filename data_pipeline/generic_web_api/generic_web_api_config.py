@@ -12,7 +12,7 @@ class MultiWebApiConfig:
             self,
             multi_web_api_etl_config: dict,
     ):
-        self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
+        self.gcp_project = multi_web_api_etl_config.get("projectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
             "importedTimestampFieldName"
         )
@@ -61,14 +61,12 @@ class WebApiConfig:
         self.table_write_append_enabled = api_config.get(
             "tableWriteAppend", False
         )
-
         self.schema_file_s3_bucket = (
             api_config.get("schemaFile", {}).get("bucketName")
         )
         self.schema_file_object_name = api_config.get(
             "schemaFile", {}
         ).get("objectName")
-
         self.state_file_bucket_name = api_config.get(
             "stateFile", {}).get("bucketName")
         self.state_file_object_name = api_config.get(
@@ -76,7 +74,6 @@ class WebApiConfig:
         url_excluding_configurable_parameters = api_config.get(
             "datataUrl"
         ).get("urlExcludingConfigurableParameters")
-
         configurable_parameters = api_config.get(
             "datataUrl"
         ).get("configurableParameters", {})
@@ -178,6 +175,7 @@ class DynamicURLManager:
             page_size: int = None
     ):
         start_date = datetime_to_string(from_date, self.date_format)
+        print(start_date, from_date, self.date_format)
         end_date = datetime_to_string(to_date, self.date_format)
         param_dict = dict((key, value) for key, value in [
             (self.from_date_param, start_date),
@@ -188,7 +186,7 @@ class DynamicURLManager:
             ] if key and value)
         url = self.url_excluding_configurable_parameters
         if "?" in url:
-            if url.strip().endswith("&"):
+            if url.strip().endswith("&") or url.strip().endswith("?"):
                 url_separator = ""
             else:
                 url_separator = "&"
@@ -201,7 +199,8 @@ class DynamicURLManager:
                 for k, v in param_dict.items() if v and k
             ]
         )
-        return url + url_separator + params
+
+        return "https://www.toggl.com/api/v8/time_entries?start_date=2020-01-01T01%3A00%3A00%2B00%3A00" #url + url_separator + params
 
 
 def datetime_to_string(

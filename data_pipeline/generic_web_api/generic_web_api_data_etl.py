@@ -68,16 +68,18 @@ def get_stored_state(
         data_config: WebApiConfig,
 ):
     try:
-        state = (
-            download_s3_object_as_string(
-                data_config.state_file_bucket_name,
-                data_config.state_file_object_name
-            ) if data_config.state_file_bucket_name
-            and data_config.state_file_object_name else None
+        stored_state = (
+            parse_timestamp_from_str(
+                download_s3_object_as_string(
+                    data_config.state_file_bucket_name,
+                    data_config.state_file_object_name
+                ),
+                ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+            )
+            if data_config.state_file_bucket_name and
+            data_config.state_file_object_name else None
         )
-        stored_state = parse_timestamp_from_str(
-            state, ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
-        )
+
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = parse_timestamp_from_str(
@@ -268,6 +270,7 @@ def create_n_extend_table(
     schema = generate_schema_from_file(
         full_temp_file_location
     )
+
     if does_bigquery_table_exist(
             data_config.gcp_project,
             data_config.dataset_name,

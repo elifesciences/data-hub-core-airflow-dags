@@ -35,7 +35,7 @@ def trigger_web_api_data_import_pipeline_dag(**context):
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiWebApiConfig(data_config_dict,)
-    for web_api_config in data_config.web_api_config:
+    for web_api_config in data_config.web_api_config.values():
         simple_trigger_dag(dag_id=TARGET_DAG, conf=web_api_config)
 
 
@@ -45,7 +45,6 @@ WEB_API_CONTROLLER_DAG = DAG(
         WEB_API_SCHEDULE_INTERVAL_ENV_NAME
     ),
     default_args=get_default_args(),
-
 )
 
 TRIGGER_S3_CSV_ETL_DAG_TASK = create_python_task(
