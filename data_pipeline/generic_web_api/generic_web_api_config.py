@@ -200,7 +200,7 @@ class DynamicURLManager:
             ]
         )
 
-        return "https://www.toggl.com/api/v8/time_entries?start_date=2020-01-01T01%3A00%3A00%2B00%3A00" #url + url_separator + params
+        return url + url_separator + params
 
 
 def datetime_to_string(
