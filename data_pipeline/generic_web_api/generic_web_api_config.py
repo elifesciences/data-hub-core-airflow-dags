@@ -72,30 +72,30 @@ class WebApiConfig:
         self.state_file_object_name = api_config.get(
             "stateFile", {}).get("objectName")
         url_excluding_configurable_parameters = api_config.get(
-            "datataUrl"
+            "dataUrl"
         ).get("urlExcludingConfigurableParameters")
         configurable_parameters = api_config.get(
-            "datataUrl"
+            "dataUrl"
         ).get("configurableParameters", {})
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)
         page_number_param = configurable_parameters.get(
-            "page", None
+            "pageParameterName", None
         )
         page_size_param = configurable_parameters.get(
-            "pageSize", None
+            "pageSizeParameterName", None
         )
         self.page_size = configurable_parameters.get(
             "defaultPageSize", None
         )
         from_date_param = configurable_parameters.get(
-            "fromDate", None)
+            "fromDateParameterName", None)
         to_date_param = configurable_parameters.get(
-            "toDate", None)
+            "toDateParameterName", None)
         url_date_format = configurable_parameters.get(
             "dateFormat", None)
         next_page_cursor = configurable_parameters.get(
-            "nextPageCursor", None
+            "nextPageCursorParameterName", None
         )
         self.url_manager = DynamicURLManager(
             url_excluding_configurable_parameters,
@@ -193,11 +193,11 @@ class DynamicURLManager:
         else:
             url_separator = "?"
 
-        params = "&".join(
-            [
-                "%s=%s" % (k, parse.quote(str(v)))
-                for k, v in param_dict.items() if v and k
-            ]
+        params = parse.urlencode(
+            {
+                key: value
+                for key, value in param_dict.items() if key and value
+            }
         )
 
         return url + url_separator + params

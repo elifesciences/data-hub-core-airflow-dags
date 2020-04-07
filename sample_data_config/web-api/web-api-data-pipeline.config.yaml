@@ -12,9 +12,9 @@ webApi:
     datataUrl:
       urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
       configurableParameters:
-        pageSize: per-page
+        pageSizeParameterName: per-page
         defaultPageSize: 100
-        page: page
+        pageParameterName: page
     response:
       itemsKeyFromResponseRoot:
         - items
@@ -24,9 +24,9 @@ webApi:
     datataUrl:
       urlExcludingConfigurableParameters: https://api.elifesciences.org/profiles?
       configurableParameters:
-        pageSize: per-page
+        pageSizeParameterName: per-page
         defaultPageSize: 100
-        page: page
+        pageParameterName: page
     response:
       itemsKeyFromResponseRoot:
         - items
@@ -38,11 +38,10 @@ webApi:
       objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
     datataUrl:
       urlExcludingConfigurableParameters: https://hypothes.is/api/search?group=imRGyeeV&sort=updated&order=asc
-      pagingParameter: search_after
       configurableParameters:
-        pageSize: limit
+        pageSizeParameterName: limit
         defaultPageSize: 100
-        fromDate: search_after
+        fromDateParameterName: search_after
         defaultStartDate: "2012-01-01T01:01:01.000000+00:00"
         dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
     response:
@@ -61,7 +60,7 @@ webApi:
     datataUrl:
       urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
       configurableParameters:
-        fromDate: start_date
+        fromDateParameterName: start_date
         defaultStartDate: "2020-01-01T01:00:00+00:00"
         dateFormat: "%Y-%m-%dT%H:%M:%S%z"
     response:
@@ -102,12 +101,12 @@ webApi:
   #  datataUrl:
   #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
   #    configurableParameters:
-  #      page: page
+  #      pageParameterName: page
   #      defaultPageSize: 100
-  #      nextPageCursor: next_page_cursor
-  #      fromDate: from_date
+  #      nextPageCursorParameterName: next_page_cursor
+  #      fromDateParameterName: from_date
   #      defaultStartDate:
-  #      toDate: to_date
+  #      toDateParameterName: to_date
   #      dateFormat: "%Y-%m-%dT%H:%M:%S%z"
   #  authentication:
   #    auth_type: basic

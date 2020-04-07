@@ -97,7 +97,7 @@ def get_stored_state(
 
 def get_newline_delimited_json_string_as_json_list(json_string):
     return [
-        json.loads(line) for line in json_string.split("\n")
+        json.loads(line) for line in json_string.splitlines()
         if line.strip()
     ]
 
@@ -124,9 +124,9 @@ def get_data_single_page(
         ):
             session.auth = tuple(data_config.authentication.auth_val_list)
         session.verify = False
-        session_request = session.get(url)
-        session_request.raise_for_status()
-        resp = session_request.content
+        session_response = session.get(url)
+        session_response.raise_for_status()
+        resp = session_response.content
         try:
             json_resp = json.loads(resp)
         except JSONDecodeError:
@@ -181,7 +181,7 @@ def generic_web_api_data_etl(
         if cursor is None and page_number is None and from_date is None:
             break
 
-    create_n_extend_table(data_config, full_temp_file_location)
+    create_or_extend_table_schema(data_config, full_temp_file_location)
 
     load_file_into_bq(
         filename=full_temp_file_location,
@@ -190,7 +190,7 @@ def generic_web_api_data_etl(
         dataset_name=data_config.dataset_name,
         project_name=data_config.gcp_project,
     )
-    upload_latest_timestamp(
+    upload_latest_timestamp_as_pipeline_state(
         data_config, latest_record_timestamp
     )
 
@@ -198,12 +198,12 @@ def generic_web_api_data_etl(
 def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
     next_page = None
     if web_config.url_manager.page_number_param:
-        to_continue = (
+        has_more_items = (
             items_count == web_config.page_size
             if web_config.page_size
             else items_count
         )
-        next_page = current_page + 1 if to_continue else None
+        next_page = current_page + 1 if has_more_items else None
     return next_page
 
 
@@ -248,7 +248,7 @@ def get_items_list(data, web_config):
     return item_list
 
 
-def upload_latest_timestamp(data_config, latest_record_timestamp: datetime):
+def upload_latest_timestamp_as_pipeline_state(data_config, latest_record_timestamp: datetime):
     if (
             data_config.state_file_object_name and
             data_config.state_file_bucket_name
@@ -263,7 +263,7 @@ def upload_latest_timestamp(data_config, latest_record_timestamp: datetime):
         )
 
 
-def create_n_extend_table(
+def create_or_extend_table_schema(
         data_config: WebApiConfig,
         full_temp_file_location,
 ):
