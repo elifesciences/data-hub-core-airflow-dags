@@ -2,9 +2,7 @@ import os
 
 from airflow.models import DAG
 
-from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
-    get_yaml_file_as_dict
-)
+from data_pipeline import get_yaml_file_as_dict
 from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig
 )
@@ -24,7 +22,7 @@ WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
-TARGET_DAG = "Generic_Web_Api_Data_Pipeline"
+TARGET_DAG_ID = "Generic_Web_Api_Data_Pipeline"
 DAG_ID = "Web_Api_Data_Import_Pipeline_Controller"
 
 
@@ -36,7 +34,7 @@ def trigger_web_api_data_import_pipeline_dag(**context):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiWebApiConfig(data_config_dict,)
     for web_api_config in data_config.web_api_config.values():
-        simple_trigger_dag(dag_id=TARGET_DAG, conf=web_api_config)
+        simple_trigger_dag(dag_id=TARGET_DAG_ID, conf=web_api_config)
 
 
 WEB_API_CONTROLLER_DAG = DAG(

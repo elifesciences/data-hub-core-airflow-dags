@@ -6,12 +6,12 @@ from tempfile import TemporaryDirectory
 
 from airflow import DAG
 
+from data_pipeline import get_yaml_file_as_dict
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,
     add_data_hub_timestamp_field_to_bigquery_schema,
-    current_timestamp_as_string,
-    get_yaml_file_as_dict,
+    current_timestamp_as_string
 )
 from data_pipeline.crossref_event_data.helper_class import (
     CrossRefImportDataPipelineConfig,

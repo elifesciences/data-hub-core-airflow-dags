@@ -2,7 +2,7 @@ import pytest
 
 from dags.web_api_import_controller import (
     DAG_ID as CONTROLLER_DAG,
-    TARGET_DAG
+    TARGET_DAG_ID
 )
 from tests.dag_validation_test import (
     dag_should_contain_named_tasks
@@ -10,7 +10,7 @@ from tests.dag_validation_test import (
 
 
 def test_target_dag_should_contain_one_task(dagbag):
-    target_dag = dagbag.get_dag(TARGET_DAG)
+    target_dag = dagbag.get_dag(TARGET_DAG_ID)
     assert len(target_dag.tasks) == 1
 
 
@@ -23,7 +23,7 @@ def test_controller_dag_should_contain_one_task(dagbag):
     "dag_id, task_list",
     [
         (CONTROLLER_DAG, ['trigger_web_api_etl_dag']),
-        (TARGET_DAG,
+        (TARGET_DAG_ID,
          ['web_api_data_etl'])
     ],
 )

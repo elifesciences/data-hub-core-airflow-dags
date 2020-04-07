@@ -12,7 +12,7 @@ class MultiWebApiConfig:
             self,
             multi_web_api_etl_config: dict,
     ):
-        self.gcp_project = multi_web_api_etl_config.get("projectName")
+        self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
             "importedTimestampFieldName"
         )
