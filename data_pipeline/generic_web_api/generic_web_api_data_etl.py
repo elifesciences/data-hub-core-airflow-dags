@@ -248,7 +248,10 @@ def get_items_list(data, web_config):
     return item_list
 
 
-def upload_latest_timestamp_as_pipeline_state(data_config, latest_record_timestamp: datetime):
+def upload_latest_timestamp_as_pipeline_state(
+        data_config,
+        latest_record_timestamp: datetime
+):
     if (
             data_config.state_file_object_name and
             data_config.state_file_bucket_name
