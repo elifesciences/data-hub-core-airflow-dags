@@ -4,7 +4,6 @@ import datetime
 from datetime import timezone
 from datetime import timedelta
 from typing import Iterable
-import yaml
 import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
@@ -375,8 +374,3 @@ def current_timestamp_as_string():
 
     dtobj = datetime.datetime.now(timezone.utc)
     return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def get_yaml_file_as_dict(file_location: str) -> dict:
-    with open(file_location, 'r') as yaml_file:
-        return yaml.safe_load(yaml_file)

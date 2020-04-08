@@ -1,0 +1,119 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: 'data_hub_imported_timestamp'
+webApi:
+  #observer api
+  - dataset: '{ENV}'
+    table: test_published_research_article
+    dataUrl:
+      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
+  #elifescience people api
+  - dataset: '{ENV}'
+    table: test_people_api
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
+      configurableParameters:
+        pageSizeParameterName: per-page
+        defaultPageSize: 100
+        pageParameterName: page
+    response:
+      itemsKeyFromResponseRoot:
+        - items
+  #elifescience profile api
+  - dataset: '{ENV}'
+    table: atest_profile_api
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/profiles?
+      configurableParameters:
+        pageSizeParameterName: per-page
+        defaultPageSize: 100
+        pageParameterName: page
+    response:
+      itemsKeyFromResponseRoot:
+        - items
+  #hypoothesis api
+  - dataset: '{ENV}'
+    table: hypothesis_data
+    stateFile:
+      bucketName: 'ci-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
+    dataUrl:
+      urlExcludingConfigurableParameters: https://hypothes.is/api/search?group=imRGyeeV&sort=updated&order=asc
+      configurableParameters:
+        pageSizeParameterName: limit
+        defaultPageSize: 100
+        fromDateParameterName: search_after
+        defaultStartDate: "2012-01-01T01:01:01.000000+00:00"
+        dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+    response:
+      recordTimestamp:
+        timestampFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+        itemTimestampKeyFromItemRoot:
+          - updated
+      itemsKeyFromResponseRoot:
+        - rows
+  #toggle api
+  - dataset: '{ENV}'
+    table: atoggle_data
+    stateFile:
+      bucketName: 'ci-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
+    dataUrl:
+      urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
+      configurableParameters:
+        fromDateParameterName: start_date
+        defaultStartDate: "2020-01-01T01:00:00+00:00"
+        dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+    response:
+      recordTimestamp:
+        timestampFormat: "%Y-%m-%dT%H:%M:%S%z"
+        itemTimestampKeyFromItemRoot:
+          - stop
+    authentication:
+      auth_type: basic
+      orderedAuthenticationParamValues:
+        - envVariableHoldingAuthValue: TOGGLE_API_TOKEN
+        - value: api_token
+
+  #- dataset: '{ENV}'
+  #  table: 'testtest_people'
+  #  stateFile:
+  #    bucketName: 'ci-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
+  #  schemaFile:
+  #    url:
+  #    bucketName: 'ci-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+  #  response:
+  #    itemsKeyFromResponseRoot:
+  #      - a
+  #      - b
+  #    totalItemsCountKeyFromResponseRoot:
+  #      - c
+  #      - d
+  #    nextPageCursorKeyFromResponseRoot:
+  #      - c
+  #      - d
+  #    recordTimestamp:
+  #      timestampFormat: format
+  #      itemTimestampKeyFromItemRoot:
+  #        - e
+  #        - f
+  #  dataUrl:
+  #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
+  #    configurableParameters:
+  #      pageParameterName: page
+  #      defaultPageSize: 100
+  #      nextPageCursorParameterName: next_page_cursor
+  #      fromDateParameterName: from_date
+  #      defaultStartDate:
+  #      toDateParameterName: to_date
+  #      dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+  #  authentication:
+  #    auth_type: basic
+  #    orderedAuthenticationParamValues:
+  #      - value: #
+  #        valueFileLocation: #
+  #        envVariableHoldingAuthValue: #
+  #      - paramvValue: #
+  #        valueFileLocation:
+  #        envVariableHoldingAuthValue: #

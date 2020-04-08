@@ -4,11 +4,9 @@ from dags.s3_csv_import_controller import (
     DAG_ID as CONTROLLER_DAG_ID,
     TARGET_DAG as TARGET_DAG_ID
 )
-from tests.dag_validation_test.\
-    google_spreadsheet_pipeline_dag_validation_test\
-    import (
-        dag_should_contain_named_tasks
-    )
+from tests.dag_validation_test import (
+    dag_should_contain_named_tasks
+)
 
 
 def test_controller_dag_should_contain_one_task(dagbag):

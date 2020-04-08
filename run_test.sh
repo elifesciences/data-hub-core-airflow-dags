@@ -18,7 +18,7 @@ pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/datahub-dags-pylint \
- pylint tests/ data_pipeline/
+ pylint tests/ data_pipeline/ dags/
 
 echo "running flake8"
 flake8 flake8  tests/ data_pipeline/

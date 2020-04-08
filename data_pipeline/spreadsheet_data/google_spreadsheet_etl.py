@@ -5,7 +5,6 @@ from datetime import timezone
 from tempfile import NamedTemporaryFile
 from typing import Iterable
 
-import yaml
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
@@ -204,11 +203,6 @@ def process_record_list(
             standardized_csv_header=standardized_csv_header,
         )
         yield n_record
-
-
-def get_yaml_file_as_dict(file_location: str) -> dict:
-    with open(file_location, 'r') as yaml_file:
-        return yaml.safe_load(yaml_file)
 
 
 def google_spreadsheet_csv_provenance_schema():

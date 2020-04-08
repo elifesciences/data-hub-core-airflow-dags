@@ -5,9 +5,7 @@ from airflow import DAG
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig,
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
-    get_yaml_file_as_dict
-)
+from data_pipeline import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
     simple_trigger_dag,
