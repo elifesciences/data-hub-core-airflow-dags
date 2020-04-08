@@ -81,6 +81,7 @@ services:
             - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
             - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
             - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
+            - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
             - ./credentials.json:/tmp/credentials.json
             - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         command: >
