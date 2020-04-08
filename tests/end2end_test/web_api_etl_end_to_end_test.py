@@ -17,22 +17,20 @@ from tests.end2end_test.end_to_end_test_helper import (
     AirflowAPI
 )
 from tests.end2end_test import (
-    trigger_run_test_pipeline
+    trigger_run_test_pipeline,
+    DataPipelineCloudResource
 )
 
 
 # pylint: disable=broad-except
 def test_dag_runs_data_imported():
     airflow_api = AirflowAPI()
-    (
-        project_name, dataset_name, table_name,
-        state_file_bucket_name, state_file_object_name
-    ) = get_etl_pipeline_cloud_resource()
-
+    data_pipeline_cloud_resource = (
+        get_etl_pipeline_cloud_resource()
+    )
     trigger_run_test_pipeline(
         airflow_api, DAG_ID, TARGET_DAG_ID,
-        project_name, dataset_name, table_name,
-        state_file_bucket_name, state_file_object_name
+        data_pipeline_cloud_resource
     )
 
 
@@ -54,7 +52,7 @@ def get_etl_pipeline_cloud_resource():
         deployment_env=dep_env
     )
 
-    return (
+    return DataPipelineCloudResource(
         single_web_api_config.gcp_project,
         single_web_api_config.dataset_name,
         single_web_api_config.table_name,

@@ -8,6 +8,20 @@ from data_pipeline.utils.data_store.s3_data_service import delete_s3_object
 LOGGER = logging.getLogger(__name__)
 
 
+# pylint: disable=too-few-public-methods, missing-class-docstring
+class DataPipelineCloudResource:
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self, project_name, dataset_name, table_name,
+            state_file_bucket_name, state_file_object_name
+    ):
+        self.project_name = project_name
+        self.dataset_name = dataset_name
+        self.table_name = table_name
+        self.state_file_bucket_name = state_file_bucket_name
+        self.state_file_object_name = state_file_object_name
+
+
 # pylint: disable=broad-except
 def truncate_table(
         project_name: str,
@@ -55,21 +69,17 @@ def get_table_row_count(
 # pylint: disable=too-many-arguments
 def trigger_run_test_pipeline(
         airflow_api, dag_id, target_dag,
-        project_name,
-        dataset_name,
-        table_name,
-        state_file_bucket_name,
-        state_file_object_name
+        pipeline_cloud_resource: DataPipelineCloudResource
 ):
 
     truncate_table(
-        project_name,
-        dataset_name,
-        table_name,
+        pipeline_cloud_resource.project_name,
+        pipeline_cloud_resource.dataset_name,
+        pipeline_cloud_resource.table_name,
     )
     delete_statefile_if_exist(
-        state_file_bucket_name,
-        state_file_object_name
+        pipeline_cloud_resource.state_file_bucket_name,
+        pipeline_cloud_resource.state_file_object_name
     )
     airflow_api.unpause_dag(target_dag)
     execution_date = airflow_api.trigger_dag(dag_id=dag_id)
@@ -79,9 +89,9 @@ def trigger_run_test_pipeline(
     assert not is_dag_running
     assert airflow_api.get_dag_status(dag_id, execution_date) == "success"
     loaded_table_row_count = get_table_row_count(
-        project_name,
-        dataset_name,
-        table_name,
+        pipeline_cloud_resource.project_name,
+        pipeline_cloud_resource.dataset_name,
+        pipeline_cloud_resource.table_name,
     )
     assert loaded_table_row_count > 0
 
@@ -104,7 +114,6 @@ def wait_till_triggered_dag_run_ends(
     return is_dag_running
 
 
-# pylint: disable=too-few-public-methods, missing-class-docstring
 class TestQueryTemplate:
     CLEAN_TABLE_QUERY = """
     Delete from `{project}.{dataset}.{table}` where true

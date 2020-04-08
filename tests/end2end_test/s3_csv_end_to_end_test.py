@@ -13,33 +13,29 @@ from dags.s3_csv_import_controller import (
 from dags.s3_csv_import_pipeline import (
     DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
 )
+from tests.end2end_test import (
+    trigger_run_test_pipeline,
+    DataPipelineCloudResource
+)
 from tests.end2end_test.end_to_end_test_helper import (
     AirflowAPI
 )
-from tests.end2end_test import trigger_run_test_pipeline
+
 
 LOGGER = logging.getLogger(__name__)
 
 
 def test_dag_runs_data_imported():
     airflow_api = AirflowAPI()
-    (
-        project_name,
-        dataset_name,
-        table_name,
-        state_file_bucket_name,
-        state_file_object_name
-    ) = get_data_pipeline_cloud_resource()
 
+    data_pipeline_cloud_resource = (
+        get_data_pipeline_cloud_resource()
+    )
     trigger_run_test_pipeline(
         airflow_api,
         DAG_ID,
         TARGET_DAG,
-        project_name,
-        dataset_name,
-        table_name,
-        state_file_bucket_name,
-        state_file_object_name
+        data_pipeline_cloud_resource
     )
 
 
@@ -60,7 +56,7 @@ def get_data_pipeline_cloud_resource():
         multi_s3_object_pattern_config_dict, dep_env
     )
 
-    return (
+    return DataPipelineCloudResource(
         multi_s3_object_pattern_config.gcp_project,
         multi_s3_object_pattern_config.dataset_name,
         multi_s3_object_pattern_config.table_name,

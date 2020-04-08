@@ -320,15 +320,15 @@ def process_downloaded_data(
             data_etl_timestamp
     }
     bq_schema = get_bq_schema(data_config)
-    n_record_list = process_record_in_list(
+    processed_record_list = process_record_in_list(
         record_list=record_list, bq_schema=bq_schema,
         provenance=provenance
     )
-    n_record_list = write_result_to_file(
-        n_record_list, file_location
+    processed_record_list = write_result_to_file(
+        processed_record_list, file_location
     )
     current_page_latest_timestamp = get_latest_record_list_timestamp(
-        n_record_list, prev_page_latest_timestamp, data_config
+        processed_record_list, prev_page_latest_timestamp, data_config
     )
     return current_page_latest_timestamp
 
