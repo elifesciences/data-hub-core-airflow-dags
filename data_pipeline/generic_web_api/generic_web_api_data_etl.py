@@ -33,6 +33,7 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 # pylint: disable=too-few-public-methods
 class ModuleConstant:
     DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
+    DATA_IMPORT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
     BQ_SCHEMA_FIELD_NAME_KEY = "name"
     BQ_SCHEMA_SUBFIELD_KEY = "fields"
     BQ_SCHEMA_FIELD_TYPE_KEY = "type"
@@ -49,7 +50,7 @@ def get_timestamp_as_string(
 def get_current_timestamp_as_string():
     return datetime.now(
         timezone.utc
-    ).strftime(ModuleConstant.DEFAULT_TIMESTAMP_FORMAT)
+    ).strftime(ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT)
 
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
