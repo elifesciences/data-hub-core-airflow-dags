@@ -8,7 +8,7 @@ airflow trigger_dag --conf '{"maxDataAgeInDays":30}' airflow-log-cleanup
 """
 import os
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 import dateutil.parser
 import airflow
 from airflow.models import (
@@ -82,9 +82,9 @@ DATABASE_OBJECTS = [
     },
 ]
 
-session = settings.Session()
+SESSION = settings.Session()
 
-default_args = {
+DEFAULT_ARGS = {
     'depends_on_past': False,
     'email_on_failure': True,
     'email_on_retry': False,
@@ -93,15 +93,15 @@ default_args = {
     'retry_delay': timedelta(minutes=1)
 }
 
-dag = DAG(
+MAINTENANCE_DAG = DAG(
     DAG_ID,
-    default_args=default_args,
+    default_args=DEFAULT_ARGS,
     schedule_interval=SCHEDULE_INTERVAL,
     start_date=START_DATE
 )
 
 
-DEFAULT_MAX_DATA_AGE_IN_DAYS = 1
+DEFAULT_MAX_DATA_AGE_IN_DAYS = "30"
 MAX_CLEANUP_DATA_AGE_NAME = (
     "MAX_CLEANUP_DATA_AGE_IN_DAYS"
 )
@@ -121,18 +121,18 @@ def get_max_data_cleanup_configuration_function(**context):
     context["ti"].xcom_push(key="max_date", value=max_date.isoformat())
 
 
-get_configuration = PythonOperator(
+GET_CONFIGURATION = PythonOperator(
     task_id='get_configuration',
     python_callable=get_max_data_cleanup_configuration_function,
     provide_context=True,
-    dag=dag)
+    dag=MAINTENANCE_DAG)
 
 
 def cleanup_function(**context):
 
     logging.info("Retrieving max_execution_date from XCom")
     max_date = context["ti"].xcom_pull(
-        task_ids=get_configuration.task_id, key="max_date"
+        task_ids=GET_CONFIGURATION.task_id, key="max_date"
     )
     max_date = dateutil.parser.parse(max_date)  # stored as iso8601 str in xcom
 
@@ -142,25 +142,18 @@ def cleanup_function(**context):
     keep_last_filters = context["params"].get("keep_last_filters")
     keep_last_group_by = context["params"].get("keep_last_group_by")
 
-    logging.info("Configurations:")
-    logging.info("max_date:                 " + str(max_date))
-
     logging.info("Running Cleanup Process...")
-    query = session.query(airflow_db_model).options(
+    query = SESSION.query(airflow_db_model).options(
         load_only(age_check_column)
     )
-    logging.info("INITIAL QUERY : " + str(query))
     if keep_last:
-        subquery = session.query(func.max(DagRun.execution_date))
+        subquery = SESSION.query(func.max(DagRun.execution_date))
         if keep_last_filters is not None:
             for entry in keep_last_filters:
                 subquery = subquery.filter(entry)
 
-            logging.info("SUB QUERY [keep_last_filters]: " + str(subquery))
-
         if keep_last_group_by is not None:
             subquery = subquery.group_by(keep_last_group_by)
-            logging.info("SUB QUERY [keep_last_group_by]: " + str(subquery))
 
         subquery = subquery.from_self()
 
@@ -172,32 +165,12 @@ def cleanup_function(**context):
     else:
         query = query.filter(age_check_column <= max_date,)
 
-    entries_to_delete = query.all()
-
-    logging.info("Query: " + str(query))
-    logging.info(
-        "Process will be Deleting the following " +
-        str(airflow_db_model.__name__) + "(s):"
-    )
-    for entry in entries_to_delete:
-        logging.info(
-            "\tEntry: " + str(entry) + ", Date: " +
-            str(entry.__dict__[str(age_check_column).split(".")[1]])
-        )
-
-    logging.info(
-        "Process will be Deleting " + str(len(entries_to_delete)) + " " +
-        str(airflow_db_model.__name__) + "(s)"
-    )
-
     if ENABLE_DELETE:
         logging.info("Performing Delete...")
         # using bulk delete
         query.delete(synchronize_session=False)
-        session.commit()
+        SESSION.commit()
         logging.info("Finished Performing Delete")
-    else:
-        logging.warn("You're opted to skip deleting the db entries!!!")
 
     logging.info("Finished Running Cleanup Process")
 
@@ -209,7 +182,7 @@ for db_object in DATABASE_OBJECTS:
         python_callable=cleanup_function,
         params=db_object,
         provide_context=True,
-        dag=dag
+        dag=MAINTENANCE_DAG
     )
 
-    get_configuration.set_downstream(cleanup_op)
+    GET_CONFIGURATION.set_downstream(cleanup_op)
