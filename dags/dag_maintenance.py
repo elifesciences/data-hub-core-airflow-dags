@@ -81,8 +81,8 @@ DATABASE_OBJECTS = [
         "keep_last_group_by": None
     },
 ]
-
-SESSION = settings.Session()
+# pylint: disable=invalid-name
+session = settings.Session()
 
 DEFAULT_ARGS = {
     'depends_on_past': False,
@@ -93,7 +93,7 @@ DEFAULT_ARGS = {
     'retry_delay': timedelta(minutes=1)
 }
 
-MAINTENANCE_DAG = DAG(
+maintenance_dag = DAG(
     DAG_ID,
     default_args=DEFAULT_ARGS,
     schedule_interval=SCHEDULE_INTERVAL,
@@ -121,18 +121,18 @@ def get_max_data_cleanup_configuration_function(**context):
     context["ti"].xcom_push(key="max_date", value=max_date.isoformat())
 
 
-GET_CONFIGURATION = PythonOperator(
+get_configuration = PythonOperator(
     task_id='get_configuration',
     python_callable=get_max_data_cleanup_configuration_function,
     provide_context=True,
-    dag=MAINTENANCE_DAG)
+    dag=maintenance_dag)
 
 
 def cleanup_function(**context):
 
     logging.info("Retrieving max_execution_date from XCom")
     max_date = context["ti"].xcom_pull(
-        task_ids=GET_CONFIGURATION.task_id, key="max_date"
+        task_ids=get_configuration.task_id, key="max_date"
     )
     max_date = dateutil.parser.parse(max_date)  # stored as iso8601 str in xcom
 
@@ -143,11 +143,11 @@ def cleanup_function(**context):
     keep_last_group_by = context["params"].get("keep_last_group_by")
 
     logging.info("Running Cleanup Process...")
-    query = SESSION.query(airflow_db_model).options(
+    query = session.query(airflow_db_model).options(
         load_only(age_check_column)
     )
     if keep_last:
-        subquery = SESSION.query(func.max(DagRun.execution_date))
+        subquery = session.query(func.max(DagRun.execution_date))
         if keep_last_filters is not None:
             for entry in keep_last_filters:
                 subquery = subquery.filter(entry)
@@ -169,7 +169,7 @@ def cleanup_function(**context):
         logging.info("Performing Delete...")
         # using bulk delete
         query.delete(synchronize_session=False)
-        SESSION.commit()
+        session.commit()
         logging.info("Finished Performing Delete")
 
     logging.info("Finished Running Cleanup Process")
@@ -182,7 +182,7 @@ for db_object in DATABASE_OBJECTS:
         python_callable=cleanup_function,
         params=db_object,
         provide_context=True,
-        dag=MAINTENANCE_DAG
+        dag=maintenance_dag
     )
-
-    GET_CONFIGURATION.set_downstream(cleanup_op)
+    # pylint: disable=pointless-statement
+    get_configuration >> cleanup_op
