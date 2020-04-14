@@ -47,9 +47,9 @@ class WebApiConfig:
             api_config.get("gcpProjectName")
         )
         self.import_timestamp_field_name = (
-            imported_timestamp_field_name or
             api_config.get(
-                "importedTimestampFieldName"
+                "importedTimestampFieldName",
+                imported_timestamp_field_name
             )
         )
         self.dataset_name = api_config.get(
