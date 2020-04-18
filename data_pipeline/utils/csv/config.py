@@ -58,7 +58,7 @@ def update_deployment_env_placeholder(
             new_dict[key] = tmp
         elif isinstance(val, list):
             new_dict[key] = [
-                replace_env_placeholder(
+                update_deployment_env_placeholder(
                     x,
                     deployment_env,
                     environment_placeholder
