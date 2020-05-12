@@ -1,5 +1,5 @@
 PyYAML==5.3.1
-apache-airflow[crypto,celery,postgres,hive,jdbc,ssh]==1.10.9
+apache-airflow[crypto,celery,postgres,hive,jdbc,ssh]==1.10.10
 boto3==1.12.31
 google-cloud-bigquery==1.24.0
 google-oauth==1.0.0
