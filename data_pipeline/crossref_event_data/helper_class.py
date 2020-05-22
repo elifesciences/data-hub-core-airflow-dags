@@ -1,6 +1,4 @@
-from data_pipeline.utils.csv.config import (
-    update_deployment_env_placeholder
-)
+from data_pipeline.utils import update_deployment_env_placeholder
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes

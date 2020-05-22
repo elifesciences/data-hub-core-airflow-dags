@@ -1,0 +1,42 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: 'data_hub_imported_timestamp'
+googleAnalyticsPipelines:
+  - pipelineID: '{ENV}-some-pipeline-id'
+    defaultStartDate: "2020-05-01"
+    dataset: me_dev #'{ENV}'
+    table: atest_profile_api
+    viewId: "82618489" # "82626137"
+    #viewId: "82626137"
+    dimensions:
+      - 'ga:daysSinceLastSession'
+      - 'ga:sessionCount'
+      - 'ga:userType'
+      - 'ga:sourceMedium'
+      - 'ga:country'
+      - 'ga:socialNetwork'
+      - 'ga:dateHourMinute'
+      - 'ga:pagePath'
+      - 'ga:exitPagePath'
+    metrics:
+      - 'ga:sessions'
+      - 'ga:sessionDuration'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-0.json'
+    recordAnnotations :
+      - recordAnnotationFieldName : 'description'
+        recordAnnotationValue: "Does ABC"
+  #- pipelineID: '{ENV}'
+  #  dataset: '{ENV}'
+  #  table: atest_profile_api
+  #  viewId: "82618489" # "82626137"
+  #  dimensions:
+  #    - 'ga:sessions'
+  #  metrics:
+  #    - 'ga:exitPagePath'
+  #  stateFile:
+  #    bucketName: '{ENV}-elife-data-pipeline'
+  #    objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-1.json'
+  #  recordAnnotations :
+   #   - recordAnnotationFieldName : 'name'
+   #     recordAnnotationValue: "Senior Editor"

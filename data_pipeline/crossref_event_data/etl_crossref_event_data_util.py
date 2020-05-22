@@ -164,9 +164,10 @@ def get_latest_json_record_list_timestamp(
 # pylint: disable=broad-except,too-many-arguments
 def write_result_to_file(
         json_list,
-        full_temp_file_location: str
+        full_temp_file_location: str,
+        write_mode: str = 'a'
 ) -> Iterable[dict]:
-    with open(full_temp_file_location, "a") as write_file:
+    with open(full_temp_file_location, write_mode) as write_file:
         for record in json_list:
             write_file.write(json.dumps(record))
             write_file.write("\n")

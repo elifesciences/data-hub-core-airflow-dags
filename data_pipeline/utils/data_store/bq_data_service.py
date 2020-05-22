@@ -7,6 +7,7 @@ from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
+from bigquery_schema_generator.generate_schema import SchemaGenerator
 
 LOGGER = logging.getLogger(__name__)
 
@@ -228,3 +229,46 @@ def get_new_merged_schema(
         )
 
     return new_schema
+
+
+def generate_schema_from_file(full_file_location):
+    file_reader = open(full_file_location)
+    generator = SchemaGenerator(
+        input_format="json",
+        quoted_values_are_strings=True
+    )
+    schema_map, _ = generator.deduce_schema(
+        file_reader
+    )
+    schema = generator.flatten_schema(schema_map)
+    return schema
+
+
+def create_or_extend_table_schema(
+        gcp_project,
+        dataset_name,
+        table_name,
+        full_file_location,
+):
+    schema = generate_schema_from_file(
+        full_file_location
+    )
+
+    if does_bigquery_table_exist(
+            gcp_project,
+            dataset_name,
+            table_name,
+    ):
+        extend_table_schema_with_nested_schema(
+            gcp_project,
+            dataset_name,
+            table_name,
+            schema
+        )
+    else:
+        create_table(
+            gcp_project,
+            dataset_name,
+            table_name,
+            schema
+        )

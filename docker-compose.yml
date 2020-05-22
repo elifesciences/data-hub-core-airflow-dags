@@ -1,4 +1,38 @@
-version: '3'
+version: '3.4'
+
+x-airflow-env:
+  &airflow-env
+    - LOAD_EX=n
+    - AIRFLOW_HOST=webserver
+    - AIRFLOW_PORT=8080
+    - AIRFLOW__CORE__EXECUTOR=DaskExecutor
+    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+    - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+    - AIRFLOW__SMTP__SMTP_HOST=smtp-server
+    - AIRFLOW__SMTP__SMTP_STARTTLS=False
+    - AIRFLOW__SMTP__SMTP_SSL=False
+    - AIRFLOW__SMTP__SMTP_PORT=25
+    - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
+    - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/airflow/.config/gcloud/credentials.json
+    - DEPLOYMENT_ENV=ci
+    - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+    - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
+    - WEB_API_CONFIG_FILE_PATH=/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
+    - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
+
+
+x-airflow-volumes:
+  &airflow-volumes
+    - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+    - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
+    - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
+    - ./credentials.json:/tmp/credentials.json
+    - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+    -  ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
+
 
 services:
     data-hub-dags:
@@ -27,12 +61,7 @@ services:
             - postgres
             - dask-worker
             - dask-scheduler
-        environment:
-            - LOAD_EX=n
-            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-            - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+        environment: *airflow-env
         image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint.sh
         command: webserver
@@ -47,14 +76,7 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         depends_on:
             - webserver
-        environment:
-            - AIRFLOW_HOST=webserver
-            - AIRFLOW_PORT=8080
-            - LOAD_EX=n
-            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-            - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+        environment: *airflow-env
         entrypoint: /entrypoint.sh
         command: scheduler
 
@@ -62,28 +84,9 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         depends_on:
             - scheduler
-        environment:
-            - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/airflow/.config/gcloud/credentials.json
-            - LOAD_EX=n
-            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-            - AIRFLOW_HOST=webserver
-            - AIRFLOW_PORT=8080
-            - DEPLOYMENT_ENV=ci
-            - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-            - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-            - WEB_API_CONFIG_FILE_PATH=/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
+        environment: *airflow-env
 
-
-        volumes:
-            - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-            - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-            - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-            - ./credentials.json:/tmp/credentials.json
-            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        volumes: *airflow-volumes
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
             && ./run_test.sh with-end-to-end"
@@ -101,43 +104,18 @@ services:
             retries: 5
 
     dask-scheduler:
-        environment:
-            - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
+        environment: *airflow-env
         image: elifesciences/data-hub-core-dags-dev
         hostname: dask-scheduler
         entrypoint: [ ]
         command: ["dask-scheduler"]
 
     dask-worker:
-        environment:
-            - GOOGLE_APPLICATION_CREDENTIALS=/usr/local/airflow/.config/gcloud/credentials.json
-            - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-            - AIRFLOW__CORE__EXECUTOR=DaskExecutor
-            - AIRFLOW__DASK__CLUSTER_ADDRESS=dask-scheduler:8786
-            - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
-            - DEPLOYMENT_ENV=ci
-            - CROSSREF_CONFIG_FILE_PATH=/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - SPREADSHEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-            - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-            - WEB_API_CONFIG_FILE_PATH=/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-            - AIRFLOW__SMTP__SMTP_HOST=smtp-server
-            - AIRFLOW__SMTP__SMTP_STARTTLS=False
-            - AIRFLOW__SMTP__SMTP_SSL=False
-            - AIRFLOW__SMTP__SMTP_PORT=25
-            - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
+        environment: *airflow-env
         depends_on:
           - dask-scheduler
           - smtp-server
-        volumes:
-            - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/usr/local/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-            - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-            - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-            - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-            - ./credentials.json:/tmp/credentials.json
-            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+        volumes: *airflow-volumes
         image: elifesciences/data-hub-core-dags-dev
         hostname: dask-worker
         entrypoint: []
