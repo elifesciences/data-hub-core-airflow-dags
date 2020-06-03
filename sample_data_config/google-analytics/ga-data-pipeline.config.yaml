@@ -3,24 +3,24 @@ importedTimestampFieldName: 'data_hub_imported_timestamp'
 googleAnalyticsPipelines:
   - pipelineID: '{ENV}-some-pipeline-id'
     defaultStartDate: "2020-05-01"
-    dataset: me_dev #'{ENV}'
-    table: a_google_analytics4
+    dataset: '{ENV}'
+    table: 'google_analytics_truncated'
     viewId: "82618489"
     #viewId: "82626137"
     dimensions:
       #identifies user
       - 'ga:userType'
-      - 'ga:daysSinceLastSession'
-      - 'ga:sessionCount'
+      #- 'ga:daysSinceLastSession'
+      #- 'ga:sessionCount'
       #- 'ga:country'
-      - 'ga:city'
+      #- 'ga:city'
       # identifies session
-      - 'ga:browserVersion'
-      - 'ga:dateHourMinute'
-      - 'ga:sessionDurationBucket'
+      #- 'ga:browserVersion'
+      #- 'ga:dateHourMinute'
+      #- 'ga:sessionDurationBucket'
       #- 'ga:sourceMedium'
-      - 'ga:pagePath'
-      - 'ga:previousPagePath'
+      #- 'ga:pagePath'
+      #- 'ga:previousPagePath'
 
       #- 'ga:landingPagePath'
       #- 'ga:exitPagePath'
@@ -50,7 +50,7 @@ googleAnalyticsPipelines:
     metrics:
       - 'ga:sessions'
       - 'ga:users'
-      - 'ga:sessionDuration'
+      #- 'ga:sessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-0.json'

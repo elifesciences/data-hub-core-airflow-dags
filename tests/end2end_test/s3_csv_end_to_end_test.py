@@ -32,10 +32,10 @@ def test_dag_runs_data_imported():
         get_data_pipeline_cloud_resource()
     )
     trigger_run_test_pipeline(
-        airflow_api,
-        DAG_ID,
-        TARGET_DAG,
-        data_pipeline_cloud_resource
+        airflow_api=airflow_api,
+        dag_id=DAG_ID,
+        target_dag=TARGET_DAG,
+        pipeline_cloud_resource=data_pipeline_cloud_resource
     )
 
 

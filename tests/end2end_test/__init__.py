@@ -68,8 +68,10 @@ def get_table_row_count(
 
 # pylint: disable=too-many-arguments
 def trigger_run_test_pipeline(
-        airflow_api, dag_id, target_dag,
-        pipeline_cloud_resource: DataPipelineCloudResource
+        airflow_api,
+        pipeline_cloud_resource: DataPipelineCloudResource,
+        dag_id, target_dag=None,
+        dag_trigger_conf: dict = None
 ):
 
     truncate_table(
@@ -82,9 +84,11 @@ def trigger_run_test_pipeline(
         pipeline_cloud_resource.state_file_object_name
     )
     airflow_api.unpause_dag(target_dag)
-    execution_date = airflow_api.trigger_dag(dag_id=dag_id)
-    is_dag_running = wait_till_triggered_dag_run_ends(
-        dag_id, target_dag, execution_date, airflow_api
+    execution_date = airflow_api.trigger_dag(
+        dag_id=dag_id, conf=dag_trigger_conf
+    )
+    is_dag_running = wait_till_all_dag_run_ends(
+        airflow_api, execution_date, dag_id, target_dag,
     )
     assert not is_dag_running
     assert airflow_api.get_dag_status(dag_id, execution_date) == "success"
@@ -96,17 +100,17 @@ def trigger_run_test_pipeline(
     assert loaded_table_row_count > 0
 
 
-def wait_till_triggered_dag_run_ends(
-        dag_id, target_id,
-        execution_date, airflow_api
+def wait_till_all_dag_run_ends(
+        airflow_api, execution_date,
+        dag_id, triggered_dag_id=None
 ):
     is_dag_running = True
     while is_dag_running:
         is_dag_running = airflow_api.is_dag_running(dag_id, execution_date)
-        if not is_dag_running:
+        if not is_dag_running and triggered_dag_id:
             time.sleep(15)
             is_dag_running = airflow_api.is_triggered_dag_running(
-                target_id
+                triggered_dag_id
             )
         LOGGER.info("etl in progress")
         time.sleep(5)

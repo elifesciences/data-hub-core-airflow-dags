@@ -5,7 +5,6 @@ x-airflow-volumes:
   &airflow-volumes
     - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
 
-
 services:
     webserver:
         ports:

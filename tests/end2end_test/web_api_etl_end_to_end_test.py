@@ -29,8 +29,9 @@ def test_dag_runs_data_imported():
         get_etl_pipeline_cloud_resource()
     )
     trigger_run_test_pipeline(
-        airflow_api, DAG_ID, TARGET_DAG_ID,
-        data_pipeline_cloud_resource
+        airflow_api=airflow_api,
+        dag_id=DAG_ID, target_dag=TARGET_DAG_ID,
+        pipeline_cloud_resource=data_pipeline_cloud_resource
     )
 
 

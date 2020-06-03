@@ -27,7 +27,7 @@ GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
     "GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL"
 )
 
-DEPLOYMENT_ENV = "DEPLOYMENT_ENV"
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 
 
 GOOGLE_ANALYTICS_DAG = DAG(
@@ -70,7 +70,7 @@ def google_analytics_etl(**kwargs):
         externally_triggered_parameters.get(
             ExternalTriggerConfig.DEPLOYMENT_ENV,
             os.getenv(
-                DEPLOYMENT_ENV
+                DEPLOYMENT_ENV_ENV_NAME
             )
         )
     )
