@@ -37,7 +37,6 @@ def web_api_data_etl(**kwargs):
     )
 
     data_config = WebApiConfig(data_config_dict, deployment_env=dep_env)
-    print(data_config_dict)
     with NamedTemporaryFile() as named_temp_file:
         generic_web_api_data_etl(
             data_config=data_config,

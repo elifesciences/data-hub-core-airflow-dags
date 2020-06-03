@@ -3,7 +3,6 @@ import logging
 from datetime import timedelta
 from datetime import datetime
 from airflow import DAG
-import airflow
 from airflow.operators.python_operator import PythonOperator
 from data_pipeline import get_yaml_file_as_dict
 from data_pipeline.google_analytics.ga_config import (
@@ -15,6 +14,8 @@ from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
 from data_pipeline.google_analytics.etl_state import (
     get_stored_state, STORED_STATE_FORMAT
 )
+from data_pipeline.utils.dags.data_pipeline_dag_utils import  get_default_args
+
 
 LOGGER = logging.getLogger(__name__)
 DAG_ID = "Google_Analytics_Data_Transfer"
@@ -27,16 +28,6 @@ GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
 )
 
 DEPLOYMENT_ENV = "DEPLOYMENT_ENV"
-
-
-def get_default_args():
-    return {
-        "start_date": airflow.utils.dates.days_ago(1),
-        "retries": 10,
-        "retry_delay": timedelta(minutes=1),
-        "retry_exponential_backoff": True,
-        "provide_context": True,
-    }
 
 
 GOOGLE_ANALYTICS_DAG = DAG(

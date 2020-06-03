@@ -1,4 +1,4 @@
-from datetime import timezone, datetime
+from datetime import datetime
 import json
 from json.decoder import JSONDecodeError
 
@@ -28,6 +28,9 @@ from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
+)
 
 
 # pylint: disable=too-few-public-methods
@@ -45,12 +48,6 @@ def get_timestamp_as_string(
     return timestamp.strftime(
         timestamp_format
     )
-
-
-def get_current_timestamp_as_string():
-    return datetime.now(
-        timezone.utc
-    ).strftime(ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT)
 
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
@@ -149,7 +146,9 @@ def generic_web_api_data_etl(
 
     from_date = from_date if from_date else stored_state
     cursor = None
-    imported_timestamp = get_current_timestamp_as_string()
+    imported_timestamp = get_current_timestamp_as_string(
+        ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
+    )
     latest_record_timestamp = None
     page_number = 1 if data_config.url_manager.page_number_param else None
     while True:

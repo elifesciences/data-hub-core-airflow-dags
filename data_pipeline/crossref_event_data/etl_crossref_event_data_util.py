@@ -369,9 +369,3 @@ def add_data_hub_timestamp_field_to_bigquery_schema(
         }
     )
     return new_schema
-
-
-def current_timestamp_as_string():
-
-    dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")

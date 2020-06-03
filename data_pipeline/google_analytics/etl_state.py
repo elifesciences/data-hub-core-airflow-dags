@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from botocore.exceptions import ClientError
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
@@ -16,9 +15,9 @@ def update_state(
         statefile_s3_object: str
 ):
     upload_s3_object(
+        data_object=latest_state_date.strftime(STORED_STATE_FORMAT),
         bucket=statefile_s3_bucket,
-        object_key=statefile_s3_object,
-        data_object=latest_state_date.strftime(STORED_STATE_FORMAT)
+        object_key=statefile_s3_object
     )
 
 
@@ -34,8 +33,8 @@ def get_stored_state(
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = (
-                    default_latest_state_date or
-                    data_config.default_start_date_as_string
+                default_latest_state_date or
+                data_config.default_start_date_as_string
             )
         else:
             raise ex

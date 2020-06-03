@@ -3,9 +3,8 @@ import logging
 import csv
 from csv import DictReader
 import json
-from datetime import timezone, datetime
+from datetime import datetime
 
-from bigquery_schema_generator.generate_schema import SchemaGenerator
 from botocore.exceptions import ClientError
 from dateutil import tz
 
@@ -14,6 +13,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     load_file_into_bq,
     create_table,
+    generate_schema_from_file
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     standardize_field_name,
@@ -49,11 +49,6 @@ def convert_datetime_string_to_datetime(
 
 def convert_datetime_to_string(dtobj, dt_format="%Y-%m-%d %H:%M:%S"):
     return dtobj.strftime(dt_format)
-
-
-def current_timestamp_as_string():
-    dtobj = datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def update_object_latest_dates(
@@ -206,18 +201,6 @@ def update_metadata_with_provenance(
         NamedLiterals.PROVENANCE_FIELD_NAME:
             provenance
     }
-
-
-def generate_schema_from_file(full_temp_file_location):
-    file_reader = open(full_temp_file_location)
-    generator = SchemaGenerator(
-        input_format="json"
-    )
-    schema_map, _ = generator.deduce_schema(
-        file_reader
-    )
-    schema = generator.flatten_schema(schema_map)
-    return schema
 
 
 def should_write_to_bq(

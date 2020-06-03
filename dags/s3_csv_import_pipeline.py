@@ -10,7 +10,6 @@ from airflow.operators.python_operator import ShortCircuitOperator
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
-    current_timestamp_as_string,
     transform_load_data,
     get_stored_state,
     update_object_latest_dates,
@@ -24,6 +23,9 @@ from data_pipeline.utils.dags.airflow_s3_util_extension import (
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
     create_python_task
+)
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
 )
 
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
@@ -132,7 +134,7 @@ def etl_new_csv_files(**context):
         data_config.s3_bucket_name
     )
     for object_key_pattern, matching_files_list in new_s3_files.items():
-        record_import_timestamp_as_string = current_timestamp_as_string()
+        record_import_timestamp_as_string = get_current_timestamp_as_string()
         sorted_matching_files_list = (
             sorted(matching_files_list,
                    key=lambda file_meta:

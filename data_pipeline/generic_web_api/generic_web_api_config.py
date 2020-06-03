@@ -175,7 +175,6 @@ class DynamicURLManager:
             page_size: int = None
     ):
         start_date = datetime_to_string(from_date, self.date_format)
-        print(start_date, from_date, self.date_format)
         end_date = datetime_to_string(to_date, self.date_format)
         param_dict = dict((key, value) for key, value in [
             (self.from_date_param, start_date),

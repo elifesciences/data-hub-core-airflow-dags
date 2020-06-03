@@ -231,11 +231,14 @@ def get_new_merged_schema(
     return new_schema
 
 
-def generate_schema_from_file(full_file_location):
+def generate_schema_from_file(
+        full_file_location: str,
+        quoted_values_are_strings: str = True
+):
     file_reader = open(full_file_location)
     generator = SchemaGenerator(
         input_format="json",
-        quoted_values_are_strings=True
+        quoted_values_are_strings=quoted_values_are_strings
     )
     schema_map, _ = generator.deduce_schema(
         file_reader
@@ -249,9 +252,11 @@ def create_or_extend_table_schema(
         dataset_name,
         table_name,
         full_file_location,
+        quoted_values_are_strings: True
 ):
     schema = generate_schema_from_file(
-        full_file_location
+        full_file_location,
+        quoted_values_are_strings
     )
 
     if does_bigquery_table_exist(

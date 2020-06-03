@@ -1,11 +1,9 @@
 import os
 import logging
 import json
+from typing import Iterable
 from tempfile import NamedTemporaryFile
-from datetime import datetime, timedelta
-from apiclient import discovery
-from google.oauth2 import service_account
-from googleapiclient.discovery_cache.base import Cache
+from datetime import datetime
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -15,82 +13,30 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     standardize_field_name
 )
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
+)
 from data_pipeline.google_analytics.etl_state import (
     update_state
 )
-
-
-class MemoryCache(Cache):
-    _CACHE = {}
-
-    def get(self, url):
-        return MemoryCache._CACHE.get(url)
-
-    def set(self, url, content):
-        MemoryCache._CACHE[url] = content
-
+from data_pipeline.utils.data_store.google_analytics import (
+    GoogleAnalyticsClient
+)
 
 LOGGER = logging.getLogger(__name__)
 
-SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
-DATE_RANGE = "date_range"
+GA_DATE_RANGE_KEY = "date_range"
 
 
-def get_gcp_cred_file_location():
-    return os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-
-
-# pylint: disable=no-member
-def initialize_analytics_reporting():
-    g_cred_loc = get_gcp_cred_file_location()
-    try:
-        credentials = service_account.Credentials.from_service_account_file(
-            g_cred_loc, scopes=SCOPES
-        )
-    except OSError as err:
-        LOGGER.error(
-            "Google application credentials file not found at  %s : %s",
-            g_cred_loc, err,
-        )
-        raise
-
-    analytics_reporting = discovery.build(
-        "analyticsreporting", "v4", credentials=credentials, cache=MemoryCache()
-    )
-
-    return analytics_reporting
-
-
-def get_report(
-        analytics_reporting,
-        view_id: str,
-        date_ranges: list,
-        metrics: list,
-        dimensions: list,
-        page_token: str = None,
-        page_size: int = 5000
-):
-    return analytics_reporting.reports().batchGet(
-        body={
-            'reportRequests': [
-                {
-                    'viewId': view_id,
-                    'pageToken': page_token,
-                    'dateRanges': date_ranges,
-                    'metrics': metrics,
-                    'dimensions': dimensions,
-                    'pageSize': page_size
-                }
-            ]
-        }
-    ).execute()
-
-
-def transform_response_to_bq_compatible_record(response):
+def transform_response_to_bq_compatible_record(
+        response
+) -> Iterable[dict]:
     for report in response.get('reports', []):
         column_header = report.get('columnHeader', {})
         dimension_headers = column_header.get('dimensions', [])
-        metric_headers = column_header.get('metricHeader', {}).get('metricHeaderEntries', [])
+        metric_headers = column_header.get('metricHeader', {}).get(
+            'metricHeaderEntries', []
+        )
 
         for row in report.get('data', {}).get('rows', []):
             bq_json_formatted_record = {}
@@ -98,11 +44,17 @@ def transform_response_to_bq_compatible_record(response):
             date_range_values = row.get('metrics', [])
 
             for header, dimension in zip(dimension_headers, dimensions):
-                bq_json_formatted_record[standardize_field_name(header)] = dimension
+                bq_json_formatted_record[
+                    standardize_field_name(header)
+                ] = dimension
             for i, values in enumerate(date_range_values):
-                bq_json_formatted_record[DATE_RANGE] = str(i)
-                for metricHeader, value in zip(metric_headers, values.get('values')):
-                    bq_json_formatted_record[standardize_field_name(metricHeader.get('name'))] = value
+                bq_json_formatted_record[GA_DATE_RANGE_KEY] = str(i)
+                for metric_header, value in zip(
+                        metric_headers, values.get('values')
+                ):
+                    bq_json_formatted_record[
+                        standardize_field_name(metric_header.get('name'))
+                    ] = value
 
             yield bq_json_formatted_record
 
@@ -112,16 +64,14 @@ def etl_google_analytics(
         start_date: datetime,
         end_date: datetime = None,
 ):
-    analytics = initialize_analytics_reporting()
-    # response has a limit of 10000 result per query
-    # intelligiently downloading the data
-    # using filters with high cardinality
+    current_timestamp_as_string = get_current_timestamp_as_string()
+    analytics = GoogleAnalyticsClient()
     end_date = end_date or datetime.now()
     from_date = start_date.strftime("%Y-%m-%d")
     to_date = end_date.strftime("%Y-%m-%d")
     dimensions = [
         {
-            'name':dim_name
+            'name': dim_name
         } for dim_name in ga_config.dimensions
     ]
     metrics = [
@@ -132,8 +82,7 @@ def etl_google_analytics(
     page_token = None
     while True:
 
-        response = get_report(
-            analytics_reporting=analytics,
+        response = analytics.get_report(
             date_ranges=[{'startDate': from_date, 'endDate': to_date}],
             view_id=ga_config.ga_view_id,
             metrics=metrics,
@@ -141,17 +90,28 @@ def etl_google_analytics(
             page_token=page_token
         )
         reports = response.get('reports', [])
-        # api can return multiple reports, however, this implementation consides
-        # single report
-        page_token = reports[0].get('nextPageToken') if len(reports) == 1 else None
+        # api can return multiple reports, however,
+        # this implementation considers single report
+        page_token = (
+            reports[0].get('nextPageToken')
+            if len(reports) == 1 else None
+        )
 
-        transformed_response = transform_response_to_bq_compatible_record(
-            response
+        transformed_response_with_provenance = (
+            add_provenance(
+                transform_response_to_bq_compatible_record(
+                    response
+                ),
+                ga_config.import_timestamp_field_name,
+                current_timestamp_as_string,
+                ga_config.record_annotations
+            )
         )
         with NamedTemporaryFile() as temp_file:
             temp_file_name = temp_file.name
+
             write_result_to_file(
-                json_list=transformed_response,
+                json_list=transformed_response_with_provenance,
                 full_temp_file_location=temp_file_name,
                 write_mode="w"
             )
@@ -159,13 +119,33 @@ def etl_google_analytics(
                 ga_config=ga_config,
                 file_location=temp_file_name
             )
-        #update_state(
-        #    start_date,
-        #    ga_config.state_s3_bucket_name,
-        #    ga_config.state_s3_object_name
-        #)
+        update_state(
+            start_date,
+            ga_config.state_s3_bucket_name,
+            ga_config.state_s3_object_name
+        )
         if not page_token:
             break
+
+
+def add_provenance(
+        ga_records: Iterable[dict],
+        timestamp_field_name: str,
+        current_etl_time: str,
+        record_annotation: dict
+):
+    for record in ga_records:
+        provenance = {
+            'provenance': {
+                timestamp_field_name: current_etl_time,
+                'annotation': record_annotation
+            }
+        }
+
+        yield {
+            **record,
+            **provenance
+        }
 
 
 def write_result_to_file(
@@ -188,7 +168,8 @@ def load_written_data_to_bq(
             ga_config.gcp_project,
             ga_config.dataset,
             ga_config.table,
-            file_location
+            file_location,
+            quoted_values_are_strings=False
         )
 
         load_file_into_bq(

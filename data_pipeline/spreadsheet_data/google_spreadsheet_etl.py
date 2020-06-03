@@ -1,7 +1,5 @@
-import datetime
 import json
 import re
-from datetime import timezone
 from tempfile import NamedTemporaryFile
 from typing import Iterable
 
@@ -22,15 +20,13 @@ from data_pipeline.utils.data_store.google_spreadsheet_service import (
 from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
-
-
-def current_timestamp_as_string():
-    dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
+)
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
-    current_timestamp_as_str = current_timestamp_as_string()
+    current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with NamedTemporaryFile() as named_temp_file:
             process_csv_sheet(

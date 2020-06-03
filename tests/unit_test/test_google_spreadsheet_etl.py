@@ -39,7 +39,7 @@ def _get_table_schema_field_names():
 @pytest.fixture(name="mock_current_timestamp_as_string")
 def _current_timestamp_as_string():
     with patch.object(google_spreadsheet_etl,
-                      "current_timestamp_as_string") as mock:
+                      "get_current_timestamp_as_string") as mock:
         yield mock
 
 
