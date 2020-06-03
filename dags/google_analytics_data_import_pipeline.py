@@ -90,7 +90,10 @@ def google_analytics_etl(**kwargs):
     for ga_conf_dict in multi_ga_conf.google_analytics_config:
         ga_conf = GoogleAnalyticsConfig(
             config=ga_conf_dict,
-            gcp_project=multi_ga_conf.gcp_project
+            gcp_project=multi_ga_conf.gcp_project,
+            import_timestamp_field_name=(
+                multi_ga_conf.import_timestamp_field_name
+            )
         )
 
         start_date = start_date or get_stored_state(ga_conf)

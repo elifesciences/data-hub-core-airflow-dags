@@ -33,10 +33,12 @@ class GoogleAnalyticsConfig:
             self,
             config: dict,
             gcp_project: str = None,
+            import_timestamp_field_name: str = None,
+
     ):
         self.gcp_project = gcp_project
-        self.import_timestamp_field_name = config.get(
-            'importedTimestampFieldName'
+        self.import_timestamp_field_name = (
+            import_timestamp_field_name
         )
         self.pipeline_id = config.get("pipelineID")
         self.default_start_date_as_string = config.get("defaultStartDate")
