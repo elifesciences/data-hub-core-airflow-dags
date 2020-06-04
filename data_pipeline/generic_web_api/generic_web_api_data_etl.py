@@ -1,4 +1,6 @@
 from datetime import datetime
+from tempfile import TemporaryDirectory
+from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 
@@ -136,7 +138,6 @@ def get_data_single_page(
 
 def generic_web_api_data_etl(
         data_config: WebApiConfig,
-        full_temp_file_location,
         from_date: datetime = None,
         until_date: datetime = None,
 ):
@@ -151,45 +152,49 @@ def generic_web_api_data_etl(
     )
     latest_record_timestamp = None
     page_number = 1 if data_config.url_manager.page_number_param else None
-    while True:
-        page_data = get_data_single_page(
-            data_config=data_config,
-            from_date=from_date,
-            until_date=until_date,
-            cursor=cursor,
-            page_number=page_number,
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
         )
-        items_list = get_items_list(
-            page_data, data_config
-        )
-        latest_record_timestamp = process_downloaded_data(
-            data_config=data_config,
-            record_list=items_list,
-            data_etl_timestamp=imported_timestamp,
-            file_location=full_temp_file_location,
-            prev_page_latest_timestamp=latest_record_timestamp
-        )
-        items_count = len(items_list)
-        cursor = get_next_cursor_from_data(page_data, data_config)
-        page_number = get_next_page_number(
-            items_count, page_number, data_config
-        )
-        from_date = get_next_start_date(
-            items_count, from_date,
-            latest_record_timestamp, data_config
-        )
-        if cursor is None and page_number is None and from_date is None:
-            break
+        while True:
+            page_data = get_data_single_page(
+                data_config=data_config,
+                from_date=from_date,
+                until_date=until_date,
+                cursor=cursor,
+                page_number=page_number,
+            )
+            items_list = get_items_list(
+                page_data, data_config
+            )
+            latest_record_timestamp = process_downloaded_data(
+                data_config=data_config,
+                record_list=items_list,
+                data_etl_timestamp=imported_timestamp,
+                file_location=full_temp_file_location,
+                prev_page_latest_timestamp=latest_record_timestamp
+            )
+            items_count = len(items_list)
+            cursor = get_next_cursor_from_data(page_data, data_config)
+            page_number = get_next_page_number(
+                items_count, page_number, data_config
+            )
+            from_date = get_next_start_date(
+                items_count, from_date,
+                latest_record_timestamp, data_config
+            )
+            if cursor is None and page_number is None and from_date is None:
+                break
 
-    create_or_extend_table_schema(data_config, full_temp_file_location)
+        create_or_extend_table_schema(data_config, full_temp_file_location)
 
-    load_file_into_bq(
-        filename=full_temp_file_location,
-        table_name=data_config.table_name,
-        auto_detect_schema=False,
-        dataset_name=data_config.dataset_name,
-        project_name=data_config.gcp_project,
-    )
+        load_file_into_bq(
+            filename=full_temp_file_location,
+            table_name=data_config.table_name,
+            auto_detect_schema=False,
+            dataset_name=data_config.dataset_name,
+            project_name=data_config.gcp_project,
+        )
     upload_latest_timestamp_as_pipeline_state(
         data_config, latest_record_timestamp
     )
