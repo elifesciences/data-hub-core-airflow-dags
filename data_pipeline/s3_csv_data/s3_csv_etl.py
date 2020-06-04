@@ -1,5 +1,8 @@
+import os
 import io
 import logging
+from tempfile import TemporaryDirectory
+from pathlib import Path
 import csv
 from csv import DictReader
 import json
@@ -10,10 +13,8 @@ from dateutil import tz
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.utils.data_store.bq_data_service import (
-    does_bigquery_table_exist,
     load_file_into_bq,
-    create_table,
-    generate_schema_from_file
+    create_or_extend_table_schema
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     standardize_field_name,
@@ -25,9 +26,6 @@ from data_pipeline.utils.data_store.s3_data_service import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string
-)
-from data_pipeline.utils.csv.metadata_schema import (
-    extend_nested_table_schema_if_new_fields_exist,
 )
 from data_pipeline.utils.record_processing import (
     process_record_values, DEFAULT_PROCESSING_STEPS
@@ -203,22 +201,10 @@ def update_metadata_with_provenance(
     }
 
 
-def should_write_to_bq(
-        csv_config,
-        record_list
-):
-    to_write_to_bq = (
-        len(record_list) >
-        csv_config.data_values_start_line_index + 1
-    )
-    return to_write_to_bq
-
-
 def transform_load_data(
         s3_object_name: str,
         csv_config: S3BaseCsvConfig,
         record_import_timestamp_as_string: str,
-        full_temp_file_location: str,
 ):
     default_value_processing_function_steps = (
         [*DEFAULT_PROCESSING_STEPS]
@@ -250,44 +236,32 @@ def transform_load_data(
         default_value_processing_function_steps
     )
 
-    write_jsonl_to_file(processed_record, full_temp_file_location)
-    write_disposition = get_write_disposition(csv_config)
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
+        write_jsonl_to_file(
+            processed_record, full_temp_file_location
+        )
 
-    if does_bigquery_table_exist(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-    ):
-        provenance_schema = get_s3_csv_provenance_schema()
-        extend_nested_table_schema_if_new_fields_exist(
-            standardized_csv_header,
-            csv_config,
-            provenance_schema
-        )
-    else:
-        schema = generate_schema_from_file(
-            full_temp_file_location
-        )
-        create_table(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-            schema
-        )
-    to_write_to_bq = should_write_to_bq(
-        csv_config,
-        record_list,
-    )
+        if os.path.getsize(full_temp_file_location) > 0:
+            create_or_extend_table_schema(
+                csv_config.gcp_project,
+                csv_config.dataset_name,
+                csv_config.table_name,
+                full_temp_file_location,
+                quoted_values_are_strings=False
+            )
+            write_disposition = get_write_disposition(csv_config)
 
-    if to_write_to_bq:
-        load_file_into_bq(
-            filename=full_temp_file_location,
-            table_name=csv_config.table_name,
-            auto_detect_schema=False,
-            dataset_name=csv_config.dataset_name,
-            write_mode=write_disposition,
-            project_name=csv_config.gcp_project,
-        )
+            load_file_into_bq(
+                filename=full_temp_file_location,
+                table_name=csv_config.table_name,
+                auto_detect_schema=False,
+                dataset_name=csv_config.dataset_name,
+                write_mode=write_disposition,
+                project_name=csv_config.gcp_project,
+            )
 
 
 def skip_stream_till_line(text_stream, till_line_index):

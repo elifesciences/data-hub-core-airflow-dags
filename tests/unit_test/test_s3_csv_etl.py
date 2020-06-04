@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from unittest.mock import patch
 import pytest
@@ -33,17 +34,10 @@ TEST_DOWNLOADED_SHEET = """'First Name', 'Last_Name', 'Age', 'Univ', 'Country','
 """
 
 
-@pytest.fixture(name="mock_does_bigquery_table_exist", autouse=True)
-def _does_bigquery_table_exist():
-    with patch.object(s3_csv_etl,
-                      "does_bigquery_table_exist") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_should_write_to_bq", autouse=True)
-def _should_write_to_bq():
-    with patch.object(s3_csv_etl,
-                      "should_write_to_bq") as mock:
+@pytest.fixture(name="mock_os_stat", autouse=True)
+def _os_stat():
+    with patch.object(os, "stat") as mock:
+        mock.return_value.st_size = 1
         yield mock
 
 
@@ -53,6 +47,13 @@ def _get_csv_data_from_s3():
                       "get_csv_data_from_s3") as mock:
         mock.return_value = TEST_DOWNLOADED_SHEET
 
+        yield mock
+
+
+@pytest.fixture(name="mock_create_or_extend_table_schema", autouse=True)
+def _create_or_extend_table_schema():
+    with patch.object(s3_csv_etl,
+                      "create_or_extend_table_schema") as mock:
         yield mock
 
 
@@ -77,16 +78,6 @@ def _load_file_into_bq():
         yield mock
 
 
-@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist",
-                autouse=True)
-def _extend_nested_table_schema_if_new_fields_exist():
-    with patch.object(
-            s3_csv_etl,
-            "extend_nested_table_schema_if_new_fields_exist"
-    ) as mock:
-        yield mock
-
-
 @pytest.fixture(name="mock_merge_record_with_metadata")
 def _merge_record_with_metadata():
     with patch.object(s3_csv_etl,
@@ -106,20 +97,6 @@ def _download_s3_json_object():
     with patch.object(s3_csv_etl,
                       "download_s3_json_object") as mock:
 
-        yield mock
-
-
-@pytest.fixture(name="mock_create_table", autouse=True)
-def _create_table():
-    with patch.object(s3_csv_etl,
-                      "create_table") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_generate_schema_from_file", autouse=True)
-def _generate_schema_from_file():
-    with patch.object(s3_csv_etl,
-                      "generate_schema_from_file") as mock:
         yield mock
 
 
@@ -364,44 +341,19 @@ class TestTransformAndLoadData:
             deployment_env
         )
 
-    def test_should_not_extend_non_existing_table(
-            self,
-            mock_does_bigquery_table_exist,
-            mock_generate_schema_from_file,
-            mock_create_table
-    ):
-        mock_does_bigquery_table_exist.return_value = False
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
-        s3_object_name = "s3_object"
-        transform_load_data(
-            s3_object_name,
-            TestTransformAndLoadData.get_csv_config(),
-            record_import_timestamp_as_string,
-            full_temp_file_location
-        )
-        mock_generate_schema_from_file.assert_called()
-        mock_create_table.assert_called()
-
     def test_should_transform_write_and_load_to_bq(
             self,
-            mock_does_bigquery_table_exist,
             mock_get_csv_dict_reader,
             mock_process_record_list,
             mock_load_file_into_bq
-
     ):
-        mock_does_bigquery_table_exist.return_value = True
         record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
         s3_object_name = "s3_object"
         transform_load_data(
             s3_object_name,
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
-            full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
         mock_get_csv_dict_reader.assert_called()
         mock_process_record_list.assert_called()
         mock_load_file_into_bq.assert_called()

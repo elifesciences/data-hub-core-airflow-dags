@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from tempfile import TemporaryDirectory
 from pathlib import Path
@@ -14,10 +15,9 @@ from data_pipeline.utils.data_store.s3_data_service import (
     upload_s3_object
 )
 from data_pipeline.utils.data_store.bq_data_service import (
-    does_bigquery_table_exist,
-    create_table,
-    extend_table_schema_with_nested_schema,
-    load_file_into_bq
+    load_file_into_bq,
+    create_or_extend_table_schema
+
 )
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_bq_schema_field_list_to_dict,
@@ -26,7 +26,6 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
 )
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
-from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
@@ -186,18 +185,25 @@ def generic_web_api_data_etl(
             if cursor is None and page_number is None and from_date is None:
                 break
 
-        create_or_extend_table_schema(data_config, full_temp_file_location)
+        if os.path.getsize(full_temp_file_location) > 0:
+            create_or_extend_table_schema(
+                data_config.gcp_project,
+                data_config.dataset_name,
+                data_config.table_name,
+                full_temp_file_location,
+                quoted_values_are_strings=False
+            )
 
-        load_file_into_bq(
-            filename=full_temp_file_location,
-            table_name=data_config.table_name,
-            auto_detect_schema=False,
-            dataset_name=data_config.dataset_name,
-            project_name=data_config.gcp_project,
+            load_file_into_bq(
+                filename=full_temp_file_location,
+                table_name=data_config.table_name,
+                auto_detect_schema=False,
+                dataset_name=data_config.dataset_name,
+                project_name=data_config.gcp_project,
+            )
+        upload_latest_timestamp_as_pipeline_state(
+            data_config, latest_record_timestamp
         )
-    upload_latest_timestamp_as_pipeline_state(
-        data_config, latest_record_timestamp
-    )
 
 
 def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
@@ -268,34 +274,6 @@ def upload_latest_timestamp_as_pipeline_state(
             bucket=state_file_bucket,
             object_key=state_file_name_key,
             data_object=latest_record_date,
-        )
-
-
-def create_or_extend_table_schema(
-        data_config: WebApiConfig,
-        full_temp_file_location,
-):
-    schema = generate_schema_from_file(
-        full_temp_file_location
-    )
-
-    if does_bigquery_table_exist(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-    ):
-        extend_table_schema_with_nested_schema(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-            schema
-        )
-    else:
-        create_table(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-            schema
         )
 
 

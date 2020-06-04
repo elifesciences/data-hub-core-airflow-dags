@@ -1,7 +1,6 @@
 import json
 import os
 from datetime import timedelta
-from tempfile import NamedTemporaryFile
 
 from airflow import DAG
 from airflow.models import Variable
@@ -143,29 +142,27 @@ def etl_new_csv_files(**context):
         )
 
         for matching_file_metadata in sorted_matching_files_list:
-            with NamedTemporaryFile() as named_temp_file:
-                transform_load_data(
+            transform_load_data(
+                matching_file_metadata.get(
+                    NamedLiterals.S3_FILE_METADATA_NAME_KEY
+                ),
+                data_config,
+                record_import_timestamp_as_string,
+            )
+            updated_obj_pattern_with_latest_dates = (
+                update_object_latest_dates(
+                    obj_pattern_with_latest_dates,
+                    object_key_pattern,
                     matching_file_metadata.get(
-                        NamedLiterals.S3_FILE_METADATA_NAME_KEY
-                    ),
-                    data_config,
-                    record_import_timestamp_as_string,
-                    named_temp_file.name
-                )
-                updated_obj_pattern_with_latest_dates = (
-                    update_object_latest_dates(
-                        obj_pattern_with_latest_dates,
-                        object_key_pattern,
-                        matching_file_metadata.get(
-                            NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
-                        )
+                        NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
                     )
                 )
-                upload_s3_object_json(
-                    updated_obj_pattern_with_latest_dates,
-                    data_config.state_file_bucket_name,
-                    data_config.state_file_object_name
-                )
+            )
+            upload_s3_object_json(
+                updated_obj_pattern_with_latest_dates,
+                data_config.state_file_bucket_name,
+                data_config.state_file_object_name
+            )
 
 
 def get_default_initial_s3_last_modified_date():
