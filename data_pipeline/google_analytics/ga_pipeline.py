@@ -59,6 +59,34 @@ def transform_response_to_bq_compatible_record(
             yield bq_json_formatted_record
 
 
+# pylint: disable=too-many-arguments
+def iter_get_report_pages(
+        analytics, metrics: list, dimensions: list,
+        ga_config, from_date: str, to_date: str = None
+):
+    page_token = None
+    while True:
+        response = analytics.get_report(
+            date_ranges=[{'startDate': from_date, 'endDate': to_date}],
+            view_id=ga_config.ga_view_id,
+            metrics=metrics,
+            dimensions=dimensions,
+            page_token=page_token
+        )
+
+        reports = response.get('reports', [])
+        # api can return multiple reports, however,
+        # this implementation considers single report
+        page_token = (
+            reports[0].get('nextPageToken')
+            if len(reports) == 1 else None
+        )
+        if not page_token:
+            yield response
+            break
+        yield response
+
+
 def etl_google_analytics(
         ga_config: GoogleAnalyticsConfig,
         start_date: datetime,
@@ -79,53 +107,47 @@ def etl_google_analytics(
             'expression': metric_name
         } for metric_name in ga_config.metrics
     ]
-    page_token = None
-    while True:
 
-        response = analytics.get_report(
-            date_ranges=[{'startDate': from_date, 'endDate': to_date}],
-            view_id=ga_config.ga_view_id,
-            metrics=metrics,
-            dimensions=dimensions,
-            page_token=page_token
+    for paged_report_response in iter_get_report_pages(
+            analytics, metrics, dimensions, ga_config, from_date, to_date
+    ):
+        process_paged_report_response(
+            paged_report_response, ga_config,
+            current_timestamp_as_string
         )
-        reports = response.get('reports', [])
-        # api can return multiple reports, however,
-        # this implementation considers single report
-        page_token = (
-            reports[0].get('nextPageToken')
-            if len(reports) == 1 else None
-        )
+    update_state(
+        start_date,
+        ga_config.state_s3_bucket_name,
+        ga_config.state_s3_object_name
+    )
 
-        transformed_response_with_provenance = (
-            add_provenance(
-                transform_response_to_bq_compatible_record(
-                    response
-                ),
-                ga_config.import_timestamp_field_name,
-                current_timestamp_as_string,
-                ga_config.record_annotations
-            )
-        )
-        with NamedTemporaryFile() as temp_file:
-            temp_file_name = temp_file.name
 
-            write_jsonl_to_file(
-                json_list=transformed_response_with_provenance,
-                full_temp_file_location=temp_file_name,
-            )
-
-            load_written_data_to_bq(
-                ga_config=ga_config,
-                file_location=temp_file_name
-            )
-        update_state(
-            start_date,
-            ga_config.state_s3_bucket_name,
-            ga_config.state_s3_object_name
+def process_paged_report_response(
+        paged_report_response: dict,
+        ga_config: GoogleAnalyticsConfig,
+        current_timestamp_as_string: str
+):
+    transformed_response_with_provenance = (
+        add_provenance(
+            transform_response_to_bq_compatible_record(
+                paged_report_response
+            ),
+            ga_config.import_timestamp_field_name,
+            current_timestamp_as_string,
+            ga_config.record_annotations
         )
-        if not page_token:
-            break
+    )
+    with NamedTemporaryFile() as temp_file:
+        temp_file_name = temp_file.name
+
+        write_jsonl_to_file(
+            json_list=transformed_response_with_provenance,
+            full_temp_file_location=temp_file_name,
+        )
+        load_written_data_to_bq(
+            ga_config=ga_config,
+            file_location=temp_file_name
+        )
 
 
 def add_provenance(
