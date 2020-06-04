@@ -17,7 +17,6 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     standardize_field_name,
-    write_to_file,
     get_write_disposition
 )
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -33,6 +32,7 @@ from data_pipeline.utils.csv.metadata_schema import (
 from data_pipeline.utils.record_processing import (
     process_record_values, DEFAULT_PROCESSING_STEPS
 )
+from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -250,7 +250,7 @@ def transform_load_data(
         default_value_processing_function_steps
     )
 
-    write_to_file(processed_record, full_temp_file_location)
+    write_jsonl_to_file(processed_record, full_temp_file_location)
     write_disposition = get_write_disposition(csv_config)
 
     if does_bigquery_table_exist(

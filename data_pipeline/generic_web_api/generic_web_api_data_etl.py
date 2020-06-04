@@ -20,9 +20,9 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_bq_schema_field_list_to_dict,
     standardize_field_name,
-    write_result_to_file,
     requests_retry_session
 )
+from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -324,7 +324,7 @@ def process_downloaded_data(
         record_list=record_list, bq_schema=bq_schema,
         provenance=provenance
     )
-    processed_record_list = write_result_to_file(
+    processed_record_list = iter_write_jsonl_to_file(
         processed_record_list, file_location
     )
     current_page_latest_timestamp = get_latest_record_list_timestamp(

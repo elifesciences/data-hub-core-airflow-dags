@@ -95,7 +95,7 @@ def _does_bigquery_table_exist():
 @pytest.fixture(name="mock_write_to_file", autouse=True)
 def _write_to_file():
     with patch.object(google_spreadsheet_etl,
-                      "write_to_file") as mock:
+                      "write_jsonl_to_file") as mock:
         yield mock
 
 

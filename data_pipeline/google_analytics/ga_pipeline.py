@@ -22,6 +22,7 @@ from data_pipeline.google_analytics.etl_state import (
 from data_pipeline.utils.data_store.google_analytics import (
     GoogleAnalyticsClient
 )
+from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -110,11 +111,11 @@ def etl_google_analytics(
         with NamedTemporaryFile() as temp_file:
             temp_file_name = temp_file.name
 
-            write_result_to_file(
+            write_jsonl_to_file(
                 json_list=transformed_response_with_provenance,
                 full_temp_file_location=temp_file_name,
-                write_mode="w"
             )
+
             load_written_data_to_bq(
                 ga_config=ga_config,
                 file_location=temp_file_name
@@ -146,17 +147,6 @@ def add_provenance(
             **record,
             **provenance
         }
-
-
-def write_result_to_file(
-        json_list,
-        full_temp_file_location: str,
-        write_mode: str = 'a'
-):
-    with open(full_temp_file_location, write_mode) as write_file:
-        for record in json_list:
-            write_file.write(json.dumps(record))
-            write_file.write("\n")
 
 
 def load_written_data_to_bq(

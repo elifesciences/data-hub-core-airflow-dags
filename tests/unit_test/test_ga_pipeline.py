@@ -14,7 +14,7 @@ from data_pipeline.google_analytics.ga_config import (
 @pytest.fixture(name='mock_write_result_to_file')
 def _write_result_to_file():
     with patch.object(
-            ga_pipeline_module, 'write_result_to_file'
+            ga_pipeline_module, 'write_jsonl_to_file'
     ) as mock:
         yield mock
 

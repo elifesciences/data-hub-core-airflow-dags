@@ -59,7 +59,7 @@ def google_analytics_etl(**kwargs):
         ExternalTriggerConfig.GA_CONFIG
     )
     dag_context = kwargs["ti"]
-    multi_keyword_extract_conf_dict = (
+    multi_google_analytics_config_dict = (
         external_trigger_conf_dict or
         dag_context.xcom_pull(
             key="multi_google_analytics_config_dict",
@@ -83,7 +83,7 @@ def google_analytics_etl(**kwargs):
     )
 
     multi_ga_conf = MultiGoogleAnalyticsConfig(
-        multi_keyword_extract_conf_dict,
+        multi_google_analytics_config_dict,
         dep_env
     )
 

@@ -2,7 +2,9 @@ import os
 from datetime import datetime
 from urllib import parse
 
-from data_pipeline.utils import update_deployment_env_placeholder
+from data_pipeline.utils.pipeline_config import (
+    update_deployment_env_placeholder
+)
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,

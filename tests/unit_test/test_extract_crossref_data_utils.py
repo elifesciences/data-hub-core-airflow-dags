@@ -12,10 +12,13 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     semi_clean_crossref_record,
     preprocess_json_record,
     get_latest_json_record_list_timestamp,
-    write_result_to_file,
     etl_crossref_data_return_latest_timestamp,
     convert_datetime_to_date_string,
 )
+from data_pipeline.utils.pipeline_file_io import (
+    iter_write_jsonl_to_file
+)
+from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
 
 @pytest.fixture(name="mock_download_s3_object")
@@ -36,7 +39,7 @@ def _download_s3_object(publisher_latest_date,
 
 @pytest.fixture(name="mock_open_file")
 def _open():
-    with patch.object(etl_crossref_event_data_util_module, "open") as mock:
+    with patch.object(pipeline_file_io_module, "open") as mock:
         yield mock
 
 
@@ -82,7 +85,7 @@ def test_should_write_result_to_file(mock_open_file):
             test_data.data_imported_timestamp,
             test_data.source_data_schema)
     )
-    written_json = write_result_to_file(
+    written_json = iter_write_jsonl_to_file(
         results,
         "tempfileloc"
     )

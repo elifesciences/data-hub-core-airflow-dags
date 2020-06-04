@@ -1,7 +1,9 @@
 import hashlib
 
 from data_pipeline.utils.csv.config import BaseCsvConfig
-from data_pipeline.utils import update_deployment_env_placeholder
+from data_pipeline.utils.pipeline_config import (
+    update_deployment_env_placeholder
+)
 
 
 class MultiS3CsvConfig:

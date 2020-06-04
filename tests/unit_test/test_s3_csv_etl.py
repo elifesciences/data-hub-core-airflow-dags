@@ -126,7 +126,7 @@ def _generate_schema_from_file():
 @pytest.fixture(name="mock_write_to_file", autouse=True)
 def _write_to_file():
     with patch.object(s3_csv_etl,
-                      "write_to_file") as mock:
+                      "write_jsonl_to_file") as mock:
         yield mock
 
 
