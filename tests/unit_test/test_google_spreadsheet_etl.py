@@ -43,10 +43,10 @@ def _current_timestamp_as_string():
         yield mock
 
 
-@pytest.fixture(name="mock_temporary_file")
-def _temporary_file():
+@pytest.fixture(name="mock_path")
+def _path():
     with patch.object(google_spreadsheet_etl,
-                      "NamedTemporaryFile") as mock:
+                      "Path") as mock:
         yield mock
 
 
@@ -440,7 +440,7 @@ class TestProcessData:
             self,
             mock_process_csv_sheet,
             mock_current_timestamp_as_string,
-            mock_temporary_file
+            mock_path
     ):
         current_timestamp_as_string = "2010-11-11T 10:10:10Z"
         mock_current_timestamp_as_string.return_value = (
@@ -449,12 +449,13 @@ class TestProcessData:
         multi_csv_config = MultiCsvSheet(
             TestProcessData.multi_csv_config_dict, "dep_env"
         )
-        temp_file = mock_temporary_file.return_value.__enter__()
+        full_temp_file_location = "file_path"
+        mock_path.return_value = full_temp_file_location
         expected_calls = []
         for csv_sheet_config in multi_csv_config.sheets_config.values():
             process_call = call(
                 csv_sheet_config,
-                temp_file.name,
+                full_temp_file_location,
                 current_timestamp_as_string
             )
             expected_calls.append(process_call)

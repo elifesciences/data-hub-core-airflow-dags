@@ -3,7 +3,8 @@ version: '3.4'
 
 x-airflow-volumes:
   &airflow-volumes
-    - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+    #- ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+    - ./credentials.json:/tmp/credentials.json
 
 
 services:

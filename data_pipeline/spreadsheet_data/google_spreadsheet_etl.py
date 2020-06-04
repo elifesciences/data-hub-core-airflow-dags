@@ -1,5 +1,6 @@
 import re
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -27,10 +28,13 @@ from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
     current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
-        with NamedTemporaryFile() as named_temp_file:
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
+            )
             process_csv_sheet(
                 csv_sheet_config,
-                named_temp_file.name,
+                full_temp_file_location,
                 current_timestamp_as_str
             )
 

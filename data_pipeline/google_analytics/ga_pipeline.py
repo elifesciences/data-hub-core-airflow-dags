@@ -1,7 +1,8 @@
 import os
 import logging
 from typing import Iterable
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
+from pathlib import Path
 from datetime import datetime
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
@@ -137,16 +138,17 @@ def process_paged_report_response(
             ga_config.record_annotations
         )
     )
-    with NamedTemporaryFile() as temp_file:
-        temp_file_name = temp_file.name
-
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
         write_jsonl_to_file(
             json_list=transformed_response_with_provenance,
-            full_temp_file_location=temp_file_name,
+            full_temp_file_location=full_temp_file_location,
         )
         load_written_data_to_bq(
             ga_config=ga_config,
-            file_location=temp_file_name
+            file_location=full_temp_file_location
         )
 
 
