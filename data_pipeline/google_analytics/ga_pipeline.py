@@ -1,6 +1,5 @@
 import os
 import logging
-import json
 from typing import Iterable
 from tempfile import NamedTemporaryFile
 from datetime import datetime

@@ -31,7 +31,7 @@ def _download_s3_json_object_with_exception():
 
 
 @pytest.fixture(name="mock_download_s3_json_object")
-def _download_s3_json_object_():
+def _download_s3_json_object():
     with patch.object(
             etl_state_module, 'download_s3_object_as_string'
     ) as mock:
