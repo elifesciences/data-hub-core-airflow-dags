@@ -81,10 +81,10 @@ def iter_get_report_pages(
             reports[0].get('nextPageToken')
             if len(reports) == 1 else None
         )
-        if not page_token:
-            yield response
-            break
+
         yield response
+        if not page_token:
+            break
 
 
 def etl_google_analytics(
