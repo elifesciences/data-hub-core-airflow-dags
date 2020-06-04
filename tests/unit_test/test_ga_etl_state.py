@@ -15,21 +15,6 @@ GA_CONFIG = {
 }
 
 
-@pytest.fixture(name="mock_download_s3_json_object_exception")
-def _download_s3_json_object_with_exception():
-    client_error_response = {
-        'Error': {
-            'Code': 'NoSuchKey'
-        }
-    }
-    with patch.object(
-            etl_state_module, 'download_s3_object_as_string',
-            side_effect=ClientError(operation_name='GetObject',
-                                    error_response=client_error_response)
-    ) as mock:
-        yield mock
-
-
 @pytest.fixture(name="mock_download_s3_json_object")
 def _download_s3_json_object():
     with patch.object(
@@ -41,8 +26,17 @@ def _download_s3_json_object():
 class TestGetStoredGAProcessingState:
     # pylint: disable=unused-argument
     def test_get_state_no_state_file_in_bucket(
-            self, mock_download_s3_json_object_exception
+            self, mock_download_s3_json_object
     ):
+        s3_client_error_response = {
+            'Error': {
+                'Code': 'NoSuchKey'
+            }
+        }
+        mock_download_s3_json_object.side_effect = (
+            ClientError(operation_name='GetObject',
+                        error_response=s3_client_error_response)
+        )
         ga_config = GoogleAnalyticsConfig(GA_CONFIG, '')
         default_initial_state_timestamp_as_string = (
             "2020-01-01 00:00:00"
