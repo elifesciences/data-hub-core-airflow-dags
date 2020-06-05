@@ -8,8 +8,12 @@ import requests
 from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
 from requests.packages.urllib3.util.retry import Retry
-from data_pipeline.utils.data_store.s3_data_service import \
+from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object
+)
+from data_pipeline.utils.pipeline_file_io import (
+    iter_write_jsonl_to_file
+)
 
 
 # pylint: disable=too-few-public-methods
@@ -161,18 +165,6 @@ def get_latest_json_record_list_timestamp(
     return max(latest_collected_record_timestamp_list)
 
 
-# pylint: disable=broad-except,too-many-arguments
-def write_result_to_file(
-        json_list,
-        full_temp_file_location: str
-) -> Iterable[dict]:
-    with open(full_temp_file_location, "a") as write_file:
-        for record in json_list:
-            write_file.write(json.dumps(record))
-            write_file.write("\n")
-            yield record
-
-
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
@@ -260,7 +252,7 @@ def per_doi_download_page_etl(
     n_results = preprocess_json_record(
         results, imported_timestamp_key, imported_timestamp, schema
     )
-    written_json_record = write_result_to_file(
+    written_json_record = iter_write_jsonl_to_file(
         n_results, full_temp_file_location
     )
 
@@ -368,9 +360,3 @@ def add_data_hub_timestamp_field_to_bigquery_schema(
         }
     )
     return new_schema
-
-
-def current_timestamp_as_string():
-
-    dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")

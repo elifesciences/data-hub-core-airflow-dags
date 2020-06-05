@@ -1,7 +1,6 @@
 import json
 import os
 from datetime import timedelta
-from tempfile import NamedTemporaryFile
 
 from airflow import DAG
 from airflow.models import Variable
@@ -10,7 +9,6 @@ from airflow.operators.python_operator import ShortCircuitOperator
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
-    current_timestamp_as_string,
     transform_load_data,
     get_stored_state,
     update_object_latest_dates,
@@ -24,6 +22,9 @@ from data_pipeline.utils.dags.airflow_s3_util_extension import (
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
     create_python_task
+)
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
 )
 
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
@@ -132,7 +133,7 @@ def etl_new_csv_files(**context):
         data_config.s3_bucket_name
     )
     for object_key_pattern, matching_files_list in new_s3_files.items():
-        record_import_timestamp_as_string = current_timestamp_as_string()
+        record_import_timestamp_as_string = get_current_timestamp_as_string()
         sorted_matching_files_list = (
             sorted(matching_files_list,
                    key=lambda file_meta:
@@ -141,29 +142,27 @@ def etl_new_csv_files(**context):
         )
 
         for matching_file_metadata in sorted_matching_files_list:
-            with NamedTemporaryFile() as named_temp_file:
-                transform_load_data(
+            transform_load_data(
+                matching_file_metadata.get(
+                    NamedLiterals.S3_FILE_METADATA_NAME_KEY
+                ),
+                data_config,
+                record_import_timestamp_as_string,
+            )
+            updated_obj_pattern_with_latest_dates = (
+                update_object_latest_dates(
+                    obj_pattern_with_latest_dates,
+                    object_key_pattern,
                     matching_file_metadata.get(
-                        NamedLiterals.S3_FILE_METADATA_NAME_KEY
-                    ),
-                    data_config,
-                    record_import_timestamp_as_string,
-                    named_temp_file.name
-                )
-                updated_obj_pattern_with_latest_dates = (
-                    update_object_latest_dates(
-                        obj_pattern_with_latest_dates,
-                        object_key_pattern,
-                        matching_file_metadata.get(
-                            NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
-                        )
+                        NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
                     )
                 )
-                upload_s3_object_json(
-                    updated_obj_pattern_with_latest_dates,
-                    data_config.state_file_bucket_name,
-                    data_config.state_file_object_name
-                )
+            )
+            upload_s3_object_json(
+                updated_obj_pattern_with_latest_dates,
+                data_config.state_file_bucket_name,
+                data_config.state_file_object_name
+            )
 
 
 def get_default_initial_s3_last_modified_date():

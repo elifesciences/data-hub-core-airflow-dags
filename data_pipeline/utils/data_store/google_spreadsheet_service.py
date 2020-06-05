@@ -1,20 +1,10 @@
-import os
 import logging
 
 from apiclient import discovery
-from google.oauth2 import service_account
-from googleapiclient.discovery_cache.base import Cache
 from googleapiclient.errors import HttpError
-
-
-class MemoryCache(Cache):
-    _CACHE = {}
-
-    def get(self, url):
-        return MemoryCache._CACHE.get(url)
-
-    def set(self, url, content):
-        MemoryCache._CACHE[url] = content
+from data_pipeline.utils.data_store.google_service_client import (
+    get_credentials, MemoryCache
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -22,26 +12,14 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SHEET_DATA_KEY = "values"
 
 
-def get_gcp_cred_file_location():
-    return os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
-
-
 # pylint: disable=no-member
 def download_google_spreadsheet_single_sheet(
         spreadsheet_id: str,
         sheet_range: str
 ):
-    g_cred_loc = get_gcp_cred_file_location()
-    try:
-        credentials = service_account.Credentials.from_service_account_file(
-            g_cred_loc, scopes=SCOPES
-        )
-    except OSError as err:
-        LOGGER.error(
-            "Google application credentials file not found at  %s : %s",
-            g_cred_loc, err,
-        )
-        raise
+    credentials = get_credentials(
+        SCOPES
+    )
 
     service = discovery.build(
         "sheets", "v4", credentials=credentials, cache=MemoryCache()

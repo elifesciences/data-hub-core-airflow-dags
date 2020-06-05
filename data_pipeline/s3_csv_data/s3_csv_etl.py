@@ -1,23 +1,23 @@
+import os
 import io
 import logging
+from tempfile import TemporaryDirectory
+from pathlib import Path
 import csv
 from csv import DictReader
 import json
-from datetime import timezone, datetime
+from datetime import datetime
 
-from bigquery_schema_generator.generate_schema import SchemaGenerator
 from botocore.exceptions import ClientError
 from dateutil import tz
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.utils.data_store.bq_data_service import (
-    does_bigquery_table_exist,
     load_file_into_bq,
-    create_table,
+    create_or_extend_table_schema
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     standardize_field_name,
-    write_to_file,
     get_write_disposition
 )
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -27,12 +27,10 @@ from data_pipeline.utils.data_store.s3_data_service import (
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string
 )
-from data_pipeline.utils.csv.metadata_schema import (
-    extend_nested_table_schema_if_new_fields_exist,
-)
 from data_pipeline.utils.record_processing import (
     process_record_values, DEFAULT_PROCESSING_STEPS
 )
+from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,11 +47,6 @@ def convert_datetime_string_to_datetime(
 
 def convert_datetime_to_string(dtobj, dt_format="%Y-%m-%d %H:%M:%S"):
     return dtobj.strftime(dt_format)
-
-
-def current_timestamp_as_string():
-    dtobj = datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def update_object_latest_dates(
@@ -208,34 +201,10 @@ def update_metadata_with_provenance(
     }
 
 
-def generate_schema_from_file(full_temp_file_location):
-    file_reader = open(full_temp_file_location)
-    generator = SchemaGenerator(
-        input_format="json"
-    )
-    schema_map, _ = generator.deduce_schema(
-        file_reader
-    )
-    schema = generator.flatten_schema(schema_map)
-    return schema
-
-
-def should_write_to_bq(
-        csv_config,
-        record_list
-):
-    to_write_to_bq = (
-        len(record_list) >
-        csv_config.data_values_start_line_index + 1
-    )
-    return to_write_to_bq
-
-
 def transform_load_data(
         s3_object_name: str,
         csv_config: S3BaseCsvConfig,
         record_import_timestamp_as_string: str,
-        full_temp_file_location: str,
 ):
     default_value_processing_function_steps = (
         [*DEFAULT_PROCESSING_STEPS]
@@ -267,44 +236,32 @@ def transform_load_data(
         default_value_processing_function_steps
     )
 
-    write_to_file(processed_record, full_temp_file_location)
-    write_disposition = get_write_disposition(csv_config)
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
+        write_jsonl_to_file(
+            processed_record, full_temp_file_location
+        )
 
-    if does_bigquery_table_exist(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-    ):
-        provenance_schema = get_s3_csv_provenance_schema()
-        extend_nested_table_schema_if_new_fields_exist(
-            standardized_csv_header,
-            csv_config,
-            provenance_schema
-        )
-    else:
-        schema = generate_schema_from_file(
-            full_temp_file_location
-        )
-        create_table(
-            csv_config.gcp_project,
-            csv_config.dataset_name,
-            csv_config.table_name,
-            schema
-        )
-    to_write_to_bq = should_write_to_bq(
-        csv_config,
-        record_list,
-    )
+        if os.path.getsize(full_temp_file_location) > 0:
+            create_or_extend_table_schema(
+                csv_config.gcp_project,
+                csv_config.dataset_name,
+                csv_config.table_name,
+                full_temp_file_location,
+                quoted_values_are_strings=False
+            )
+            write_disposition = get_write_disposition(csv_config)
 
-    if to_write_to_bq:
-        load_file_into_bq(
-            filename=full_temp_file_location,
-            table_name=csv_config.table_name,
-            auto_detect_schema=False,
-            dataset_name=csv_config.dataset_name,
-            write_mode=write_disposition,
-            project_name=csv_config.gcp_project,
-        )
+            load_file_into_bq(
+                filename=full_temp_file_location,
+                table_name=csv_config.table_name,
+                auto_detect_schema=False,
+                dataset_name=csv_config.dataset_name,
+                write_mode=write_disposition,
+                project_name=csv_config.gcp_project,
+            )
 
 
 def skip_stream_till_line(text_stream, till_line_index):

@@ -1,22 +1,23 @@
-version: '3'
+version: '3.4'
+
+
+x-airflow-volumes:
+  &airflow-volumes
+    - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+
 
 services:
     webserver:
         ports:
             - "8080:8080"
-        volumes:
-            - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
-
+        volumes: *airflow-volumes
 
     scheduler:
-        volumes:
-            - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+        volumes: *airflow-volumes
 
 
     dask-worker:
-        volumes:
-            - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+        volumes: *airflow-volumes
 
     test-client:
-        volumes:
-            - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+        volumes: *airflow-volumes

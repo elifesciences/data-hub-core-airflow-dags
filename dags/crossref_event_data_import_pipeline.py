@@ -11,7 +11,6 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,
     add_data_hub_timestamp_field_to_bigquery_schema,
-    current_timestamp_as_string
 )
 from data_pipeline.crossref_event_data.helper_class import (
     CrossRefImportDataPipelineConfig,
@@ -29,6 +28,9 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
     upload_s3_object,
+)
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -112,7 +114,7 @@ def crossref_data_etl(**kwargs):
         key="data_schema", task_ids="create_table_if_not_exist"
     )
 
-    current_timestamp = current_timestamp_as_string()
+    current_timestamp = get_current_timestamp_as_string()
     latest_journal_download_date = (
         get_new_data_download_start_date_from_cloud_storage(
             bucket=data_config.state_file_bucket,

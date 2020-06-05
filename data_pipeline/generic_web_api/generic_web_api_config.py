@@ -2,7 +2,9 @@ import os
 from datetime import datetime
 from urllib import parse
 
-from data_pipeline.utils.csv.config import update_deployment_env_placeholder
+from data_pipeline.utils.pipeline_config import (
+    update_deployment_env_placeholder
+)
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
@@ -175,7 +177,6 @@ class DynamicURLManager:
             page_size: int = None
     ):
         start_date = datetime_to_string(from_date, self.date_format)
-        print(start_date, from_date, self.date_format)
         end_date = datetime_to_string(to_date, self.date_format)
         param_dict = dict((key, value) for key, value in [
             (self.from_date_param, start_date),

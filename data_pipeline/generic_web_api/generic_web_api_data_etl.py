@@ -1,4 +1,7 @@
-from datetime import timezone, datetime
+import os
+from datetime import datetime
+from tempfile import TemporaryDirectory
+from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 
@@ -12,21 +15,22 @@ from data_pipeline.utils.data_store.s3_data_service import (
     upload_s3_object
 )
 from data_pipeline.utils.data_store.bq_data_service import (
-    does_bigquery_table_exist,
-    create_table,
-    extend_table_schema_with_nested_schema,
-    load_file_into_bq
+    load_file_into_bq,
+    create_or_extend_table_schema
+
 )
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_bq_schema_field_list_to_dict,
     standardize_field_name,
-    write_result_to_file,
     requests_retry_session
 )
+from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
-from data_pipeline.s3_csv_data.s3_csv_etl import generate_schema_from_file
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
+)
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
 )
 
 
@@ -45,12 +49,6 @@ def get_timestamp_as_string(
     return timestamp.strftime(
         timestamp_format
     )
-
-
-def get_current_timestamp_as_string():
-    return datetime.now(
-        timezone.utc
-    ).strftime(ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT)
 
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
@@ -139,7 +137,6 @@ def get_data_single_page(
 
 def generic_web_api_data_etl(
         data_config: WebApiConfig,
-        full_temp_file_location,
         from_date: datetime = None,
         until_date: datetime = None,
 ):
@@ -149,51 +146,64 @@ def generic_web_api_data_etl(
 
     from_date = from_date if from_date else stored_state
     cursor = None
-    imported_timestamp = get_current_timestamp_as_string()
+    imported_timestamp = get_current_timestamp_as_string(
+        ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
+    )
     latest_record_timestamp = None
     page_number = 1 if data_config.url_manager.page_number_param else None
-    while True:
-        page_data = get_data_single_page(
-            data_config=data_config,
-            from_date=from_date,
-            until_date=until_date,
-            cursor=cursor,
-            page_number=page_number,
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
         )
-        items_list = get_items_list(
-            page_data, data_config
-        )
-        latest_record_timestamp = process_downloaded_data(
-            data_config=data_config,
-            record_list=items_list,
-            data_etl_timestamp=imported_timestamp,
-            file_location=full_temp_file_location,
-            prev_page_latest_timestamp=latest_record_timestamp
-        )
-        items_count = len(items_list)
-        cursor = get_next_cursor_from_data(page_data, data_config)
-        page_number = get_next_page_number(
-            items_count, page_number, data_config
-        )
-        from_date = get_next_start_date(
-            items_count, from_date,
-            latest_record_timestamp, data_config
-        )
-        if cursor is None and page_number is None and from_date is None:
-            break
+        while True:
+            page_data = get_data_single_page(
+                data_config=data_config,
+                from_date=from_date,
+                until_date=until_date,
+                cursor=cursor,
+                page_number=page_number,
+            )
+            items_list = get_items_list(
+                page_data, data_config
+            )
+            latest_record_timestamp = process_downloaded_data(
+                data_config=data_config,
+                record_list=items_list,
+                data_etl_timestamp=imported_timestamp,
+                file_location=full_temp_file_location,
+                prev_page_latest_timestamp=latest_record_timestamp
+            )
+            items_count = len(items_list)
+            cursor = get_next_cursor_from_data(page_data, data_config)
+            page_number = get_next_page_number(
+                items_count, page_number, data_config
+            )
+            from_date = get_next_start_date(
+                items_count, from_date,
+                latest_record_timestamp, data_config
+            )
+            if cursor is None and page_number is None and from_date is None:
+                break
 
-    create_or_extend_table_schema(data_config, full_temp_file_location)
+        if os.path.getsize(full_temp_file_location) > 0:
+            create_or_extend_table_schema(
+                data_config.gcp_project,
+                data_config.dataset_name,
+                data_config.table_name,
+                full_temp_file_location,
+                quoted_values_are_strings=False
+            )
 
-    load_file_into_bq(
-        filename=full_temp_file_location,
-        table_name=data_config.table_name,
-        auto_detect_schema=False,
-        dataset_name=data_config.dataset_name,
-        project_name=data_config.gcp_project,
-    )
-    upload_latest_timestamp_as_pipeline_state(
-        data_config, latest_record_timestamp
-    )
+            load_file_into_bq(
+                filename=full_temp_file_location,
+                table_name=data_config.table_name,
+                auto_detect_schema=False,
+                dataset_name=data_config.dataset_name,
+                project_name=data_config.gcp_project,
+            )
+        upload_latest_timestamp_as_pipeline_state(
+            data_config, latest_record_timestamp
+        )
 
 
 def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
@@ -267,34 +277,6 @@ def upload_latest_timestamp_as_pipeline_state(
         )
 
 
-def create_or_extend_table_schema(
-        data_config: WebApiConfig,
-        full_temp_file_location,
-):
-    schema = generate_schema_from_file(
-        full_temp_file_location
-    )
-
-    if does_bigquery_table_exist(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-    ):
-        extend_table_schema_with_nested_schema(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-            schema
-        )
-    else:
-        create_table(
-            data_config.gcp_project,
-            data_config.dataset_name,
-            data_config.table_name,
-            schema
-        )
-
-
 def get_bq_schema(data_config: WebApiConfig,):
     if (
             data_config.schema_file_object_name and
@@ -325,7 +307,7 @@ def process_downloaded_data(
         record_list=record_list, bq_schema=bq_schema,
         provenance=provenance
     )
-    processed_record_list = write_result_to_file(
+    processed_record_list = iter_write_jsonl_to_file(
         processed_record_list, file_location
     )
     current_page_latest_timestamp = get_latest_record_list_timestamp(

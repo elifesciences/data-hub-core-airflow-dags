@@ -9,7 +9,7 @@ from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
 
-from data_pipeline.utils.csv.config import (
+from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig

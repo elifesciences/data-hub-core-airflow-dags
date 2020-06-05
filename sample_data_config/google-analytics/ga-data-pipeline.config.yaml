@@ -1,0 +1,73 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: 'data_hub_imported_timestamp'
+googleAnalyticsPipelines:
+  - pipelineID: '{ENV}-some-pipeline-id'
+    defaultStartDate: "2020-05-01"
+    dataset: '{ENV}'
+    table: 'google_analytics_truncated'
+    viewId: "82618489"
+    #viewId: "82626137"
+    dimensions:
+      #identifies user
+      - 'ga:userType'
+      #- 'ga:daysSinceLastSession'
+      #- 'ga:sessionCount'
+      #- 'ga:country'
+      #- 'ga:city'
+      # identifies session
+      #- 'ga:browserVersion'
+      #- 'ga:dateHourMinute'
+      #- 'ga:sessionDurationBucket'
+      #- 'ga:sourceMedium'
+      #- 'ga:pagePath'
+      #- 'ga:previousPagePath'
+
+      #- 'ga:landingPagePath'
+      #- 'ga:exitPagePath'
+      #- 'ga:referralPath'
+      #- 'ga:city'
+      #- 'ga:pagePathLevel1'
+      #- 'ga:secondPagePath'
+      #- 'ga:sessionDurationBucket'
+      #- 'ga:keyword'
+      #- 'ga:campaign'
+      #- 'ga:fullReferrer'
+      #- 'ga:browser'
+      #- 'ga:operatingSystem'
+      #- 'ga:operatingSystemVersion'
+      #- 'ga:mobileDeviceInfo'
+      #- 'ga:region'
+      #- 'ga:socialNetwork'
+      #- 'ga:userBucket'
+      #- 'ga:pagePathLevel2'
+      #- 'ga:pagePathLevel3'
+      #- 'ga:pagePathLevel4'
+      #- 'ga:searchKeyword'
+      #- 'ga:socialInteractionNetwork'
+      #- 'ga:userAgeBracket'
+      #- 'ga:interestInMarketCategory'
+      #- 'ga:acquisitionCampaign'
+    metrics:
+      - 'ga:sessions'
+      - 'ga:users'
+      #- 'ga:sessionDuration'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-0.json'
+    recordAnnotations :
+      - recordAnnotationFieldName : 'description'
+        recordAnnotationValue: "Does ABC"
+  #- pipelineID: '{ENV}'
+  #  dataset: '{ENV}'
+  #  table: atest_profile_api
+  #  viewId: "82618489" # "82626137"
+  #  dimensions:
+  #    - 'ga:sessions'
+  #  metrics:
+  #    - 'ga:exitPagePath'
+  #  stateFile:
+  #    bucketName: '{ENV}-elife-data-pipeline'
+  #    objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-1.json'
+  #  recordAnnotations :
+   #   - recordAnnotationFieldName : 'name'
+   #     recordAnnotationValue: "Senior Editor"

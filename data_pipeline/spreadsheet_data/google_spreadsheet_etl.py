@@ -1,9 +1,6 @@
-import datetime
-import json
 import re
-from datetime import timezone
-from tempfile import NamedTemporaryFile
-from typing import Iterable
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -22,20 +19,22 @@ from data_pipeline.utils.data_store.google_spreadsheet_service import (
 from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
-
-
-def current_timestamp_as_string():
-    dtobj = datetime.datetime.now(timezone.utc)
-    return dtobj.strftime("%Y-%m-%dT%H:%M:%SZ")
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
+)
+from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
-    current_timestamp_as_str = current_timestamp_as_string()
+    current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
-        with NamedTemporaryFile() as named_temp_file:
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
+            )
             process_csv_sheet(
                 csv_sheet_config,
-                named_temp_file.name,
+                full_temp_file_location,
                 current_timestamp_as_str
             )
 
@@ -158,7 +157,7 @@ def transform_load_data(
         record_metadata,
         standardized_csv_header,
     )
-    write_to_file(processed_record, full_temp_file_location)
+    write_jsonl_to_file(processed_record, full_temp_file_location)
     write_disposition = get_write_disposition(csv_sheet_config)
     load_file_into_bq(
         filename=full_temp_file_location,
@@ -168,13 +167,6 @@ def transform_load_data(
         write_mode=write_disposition,
         project_name=csv_sheet_config.gcp_project,
     )
-
-
-def write_to_file(json_list: Iterable, full_temp_file_location: str):
-    with open(full_temp_file_location, "w") as write_file:
-        for record in json_list:
-            write_file.write(json.dumps(record, ensure_ascii=False))
-            write_file.write("\n")
 
 
 def standardize_field_name(field_name: str):
