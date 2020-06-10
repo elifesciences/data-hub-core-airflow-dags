@@ -4,7 +4,7 @@ boto3==1.13.26
 google-cloud-bigquery==1.25.0
 google-oauth==1.0.1
 dateparser==0.7.4
-dask[complete]==2.17.2
+dask[complete]==2.18.1
 distributed==2.17.0
 google-api-python-client==1.9.1
 bigquery-schema-generator==1.0
