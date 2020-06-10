@@ -122,7 +122,7 @@ class WebApiConfig:
             api_config.get(
                 "urlSourceType", {}
             ).get(
-                'name'
+                'name', ''
             )
         )
         self.url_manager = dynamic_url_manager(
