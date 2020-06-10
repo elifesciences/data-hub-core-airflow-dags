@@ -116,7 +116,7 @@ class WebApiConfig:
         type_specific_param = api_config.get(
             "urlSourceType", {}
         ).get(
-            'typeSpecificVal'
+            'typeSpecificVal', {}
         )
         dynamic_url_manager = get_url_manager(
             api_config.get(
