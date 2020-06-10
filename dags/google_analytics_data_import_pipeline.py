@@ -14,7 +14,7 @@ from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
 from data_pipeline.google_analytics.etl_state import (
     get_stored_state, STORED_STATE_FORMAT
 )
-from data_pipeline.utils.dags.data_pipeline_dag_utils import  get_default_args
+from data_pipeline.utils.dags.data_pipeline_dag_utils import get_default_args
 
 
 LOGGER = logging.getLogger(__name__)

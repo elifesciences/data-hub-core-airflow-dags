@@ -5,7 +5,7 @@ from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 
-from typing import Iterable
+from typing import Iterable, List
 import dateparser
 from botocore.exceptions import ClientError
 
@@ -28,6 +28,9 @@ from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
+)
+from data_pipeline.generic_web_api.helper import (
+    ResponseHierarchyKey, UrlComposeParam
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
@@ -78,7 +81,6 @@ def get_stored_state(
             if data_config.state_file_bucket_name and
             data_config.state_file_object_name else None
         )
-
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = parse_timestamp_from_str(
@@ -108,12 +110,17 @@ def get_data_single_page(
         from_date: datetime = None,
         until_date: datetime = None,
         page_number: int = None,
+        page_offset: int = None
 ) -> (str, dict):
-    url = data_config.url_manager.get_url(
+    url_compose_arg = UrlComposeParam(
         from_date=from_date,
         to_date=until_date,
+        page_offset=page_offset,
         cursor=cursor,
-        page_number=page_number,
+        page_number=page_number
+    )
+    url = data_config.url_manager.get_url(
+        url_compose_arg
     )
 
     with requests_retry_session() as session:
@@ -135,6 +142,7 @@ def get_data_single_page(
     return json_resp
 
 
+# pylint: disable=too-many-locals
 def generic_web_api_data_etl(
         data_config: WebApiConfig,
         from_date: datetime = None,
@@ -144,24 +152,28 @@ def generic_web_api_data_etl(
         data_config
     )
 
-    from_date = from_date if from_date else stored_state
+    initial_from_date = from_date or stored_state
+    from_date_to_advance = initial_from_date
     cursor = None
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
     latest_record_timestamp = None
+    offset = 0
     page_number = 1 if data_config.url_manager.page_number_param else None
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         while True:
+
             page_data = get_data_single_page(
                 data_config=data_config,
-                from_date=from_date,
+                from_date=from_date_to_advance or initial_from_date,
                 until_date=until_date,
                 cursor=cursor,
                 page_number=page_number,
+                page_offset=offset
             )
             items_list = get_items_list(
                 page_data, data_config
@@ -174,15 +186,23 @@ def generic_web_api_data_etl(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
+
             cursor = get_next_cursor_from_data(page_data, data_config)
             page_number = get_next_page_number(
                 items_count, page_number, data_config
             )
-            from_date = get_next_start_date(
-                items_count, from_date,
+            offset = get_next_offset(
+                items_count, offset, data_config
+            )
+
+            from_date_to_advance = get_next_start_date(
+                items_count, from_date_to_advance,
                 latest_record_timestamp, data_config
             )
-            if cursor is None and page_number is None and from_date is None:
+            if (
+                    cursor is None and page_number is None and
+                    from_date_to_advance is None and offset is None
+            ):
                 break
 
         if os.path.getsize(full_temp_file_location) > 0:
@@ -218,6 +238,21 @@ def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
     return next_page
 
 
+def get_next_offset(items_count, current_offset, web_config: WebApiConfig):
+    next_offset = None
+    if web_config.url_manager.offset_param:
+        has_more_items = (
+            items_count == web_config.page_size
+            if web_config.page_size
+            else items_count
+        )
+        next_offset = (
+            current_offset + web_config.page_size
+            if has_more_items else None
+        )
+    return next_offset
+
+
 def get_next_start_date(
         items_count,
         current_start_timestamp,
@@ -227,7 +262,8 @@ def get_next_start_date(
     from_timestamp = None
     if (
             web_config.url_manager.page_number_param or
-            web_config.url_manager.next_page_cursor
+            web_config.url_manager.next_page_cursor or
+            web_config.url_manager.offset_param
     ):
         from_timestamp = current_start_timestamp
     elif (
@@ -249,11 +285,11 @@ def get_next_cursor_from_data(data, web_config: WebApiConfig):
     return next_cursor
 
 
-def get_items_list(data, web_config):
-    item_list = data
-    if isinstance(data, dict):
+def get_items_list(page_data, web_config):
+    item_list = page_data
+    if isinstance(page_data, dict):
         item_list = get_dict_values_from_hierarchy_as_list(
-            data,
+            page_data,
             web_config.items_key_hierarchy_from_response_root
         )
     return item_list
@@ -401,7 +437,9 @@ def get_latest_record_list_timestamp(
         record_list, previous_latest_timestamp, data_config: WebApiConfig
 ):
     latest_collected_record_timestamp_list = [previous_latest_timestamp]
+
     for record in record_list:
+
         if data_config.item_timestamp_key_hierarchy_from_item_root:
             record_timestamp = parse_timestamp_from_str(
                 get_dict_values_from_hierarchy_as_list(
@@ -422,13 +460,27 @@ def get_latest_record_list_timestamp(
     return latest_timestamp
 
 
-def get_dict_values_from_hierarchy_as_list(data, hierachy: list):
-    data_value = data
-    for list_element in hierachy:
-        if data_value:
-            data_value = data_value.get(
-                list_element, None
-            )
-        else:
+def get_dict_values_from_hierarchy_as_list(
+        page_data, hierarchy: List[ResponseHierarchyKey]
+):
+    data_value = page_data
+
+    for list_element in hierarchy:
+        data_value = extract_content_from_response(data_value, list_element)
+
+        if not data_value:
             break
     return data_value
+
+
+def extract_content_from_response(
+        data_in_response, resp_hierarchy: ResponseHierarchyKey
+):
+    if isinstance(data_in_response, dict) and resp_hierarchy.key:
+        return data_in_response.get(resp_hierarchy.key)
+    elif isinstance(data_in_response, list) and resp_hierarchy.key:
+        return [
+            elem.get(resp_hierarchy.key) for elem in data_in_response
+        ]
+    elif isinstance(data_in_response, dict) and resp_hierarchy.is_variable:
+        return list(data_in_response.items())
