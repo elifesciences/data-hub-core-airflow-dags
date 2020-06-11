@@ -47,7 +47,7 @@ class TestUploadLatestTimestampState:
             deployment_env=DEP_ENV
         )
         upload_latest_timestamp_as_pipeline_state(
-            data_config,latest_timestamp
+            data_config, latest_timestamp
         )
         state_file_bucket = WEB_API_CONFIG.get(
             'stateFile'
