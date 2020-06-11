@@ -145,28 +145,26 @@ class WebApiConfig:
             result_sort_param_value,
             **type_specific_param
         )
-        self.items_key_path_from_response_root = [
-            ResponsePathKey(item)
-            for item in api_config.get("response", {}).get(
+        self.items_key_path_from_response_root = (
+            api_config.get("response", {}).get(
                 "itemsKeyFromResponseRoot", [])
-        ]
+        )
         self.total_item_count_key_path_from_response_root = (
             api_config.get("response", {}).get(
-                "totalItemsCountKeyFromResponseRoot", None
-            )
+                "totalItemsCountKeyFromResponseRoot", [])
         )
+
         self.next_page_cursor_key_path_from_response_root = (
             api_config.get("response", {}).get(
-                "nextPageCursorKeyFromResponseRoot", None
-            )
+                "nextPageCursorKeyFromResponseRoot", [])
         )
-        self.item_timestamp_key_path_from_item_root = [
-            ResponsePathKey(item)
-            for item in api_config.get("response", {}).get(
+
+        self.item_timestamp_key_path_from_item_root = (
+            api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
                     "itemTimestampKeyFromItemRoot", []
                 )
-        ]
+        )
         self.item_timestamp_format = (
             api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
@@ -181,13 +179,3 @@ class WebApiConfig:
         self.authentication = WebApiAuthentication(
             auth_type, auth_conf_list
         ) if auth_type and auth_conf_list else None
-
-
-class ResponsePathKey:
-    def __init__(self, path_level: str):
-        self.key = path_level if isinstance(path_level, str) else None
-        self.is_variable = (
-            True if isinstance(path_level, dict) and
-            path_level.get('isVariable')
-            else None
-        )

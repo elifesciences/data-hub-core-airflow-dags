@@ -7,7 +7,8 @@ from data_pipeline.generic_web_api import (
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     upload_latest_timestamp_as_pipeline_state,
-    get_items_list
+    get_items_list,
+    get_next_cursor_from_data
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.transform_data import ModuleConstant
@@ -117,30 +118,6 @@ class TestGetItemList:
         )
         assert expected_response == actual_response
 
-    def test_should_get_data_when_path_keys_are_fixed_and_variable_dict_keys(
-            self
-    ):
-        path_keys = ['data', {'isVariable': True}]
-        conf_dict = {
-            ** WEB_API_CONFIG,
-            'response': {
-                'itemsKeyFromResponseRoot': path_keys
-            }
-        }
-        data_config = get_data_config(conf_dict)
-        expected_response = ['first', 'second', 'third']
-        data = {path_keys[0]: {
-            'a': expected_response[0],
-            'b': expected_response[1],
-            'c': expected_response[2],
-        }}
-
-        actual_response = get_items_list(
-            data,
-            data_config,
-        )
-        assert expected_response == actual_response
-
     def test_should_get_data_when_path_keys_has_keys_of_dict_in_list_of_dict(
             self
     ):
@@ -167,3 +144,31 @@ class TestGetItemList:
             data_config,
         )
         assert expected_response == actual_response
+
+
+class TestNextCursor:
+    def test_should_be_none_when_cursor_is_not_in_config(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = {'key': 'val', 'values': []}
+        assert not get_next_cursor_from_data(data, data_config)
+
+    def test_should_be_none_when_not_in_data(self):
+        cursor_path = ['cursor_key1', 'cursor_key2']
+        cursor_val = 'cursor_value'
+
+        conf_dict = {
+            **WEB_API_CONFIG,
+            'response': {
+                'nextPageCursorKeyFromResponseRoot': cursor_path
+            }
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'nextPageCursorParameterName': 'cursor'
+        }
+
+        data_config = get_data_config(conf_dict)
+        data = {
+            cursor_path[0]: {cursor_path[1]: cursor_val},
+            'values': []
+        }
+        assert get_next_cursor_from_data(data, data_config) == cursor_val

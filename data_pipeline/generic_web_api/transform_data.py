@@ -13,7 +13,7 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
-    WebApiConfig, ResponsePathKey
+    WebApiConfig
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
@@ -21,7 +21,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
 
 
 def get_dict_values_from_path_as_list(
-        page_data, path_keys: List[ResponsePathKey]
+        page_data, path_keys: List[str]
 ):
     data_value = page_data
     for list_element in path_keys:
@@ -32,17 +32,15 @@ def get_dict_values_from_path_as_list(
 
 
 def extract_content_from_response(
-        data_in_response, resp_path_level: ResponsePathKey
+        data_in_response, resp_path_level: str
 ):
     extracted_data = None
-    if isinstance(data_in_response, dict) and resp_path_level.key:
-        extracted_data = data_in_response.get(resp_path_level.key)
-    elif isinstance(data_in_response, list) and resp_path_level.key:
+    if isinstance(data_in_response, dict) and resp_path_level:
+        extracted_data = data_in_response.get(resp_path_level)
+    elif isinstance(data_in_response, list) and resp_path_level:
         extracted_data = [
-            elem.get(resp_path_level.key) for elem in data_in_response
+            elem.get(resp_path_level) for elem in data_in_response
         ]
-    elif isinstance(data_in_response, dict) and resp_path_level.is_variable:
-        extracted_data = list(data_in_response.values())
     return extracted_data
 
 

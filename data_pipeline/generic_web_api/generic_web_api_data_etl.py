@@ -253,6 +253,7 @@ def get_next_start_date(
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
     next_cursor = None
+
     if web_config.url_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
