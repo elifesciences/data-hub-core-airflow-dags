@@ -138,22 +138,22 @@ class WebApiConfig:
             compose_able_static_parameters,
             **type_specific_param
         )
-        self.items_key_hierarchy_from_response_root = [
+        self.items_key_path_from_response_root = [
             ResponsePathKey(item)
             for item in api_config.get("response", {}).get(
                 "itemsKeyFromResponseRoot", [])
         ]
-        self.total_item_count_key_hierarchy_from_response_root = (
+        self.total_item_count_key_path_from_response_root = (
             api_config.get("response", {}).get(
                 "totalItemsCountKeyFromResponseRoot", None
             )
         )
-        self.next_page_cursor_key_hierarchy_from_response_root = (
+        self.next_page_cursor_key_path_from_response_root = (
             api_config.get("response", {}).get(
                 "nextPageCursorKeyFromResponseRoot", None
             )
         )
-        self.item_timestamp_key_hierarchy_from_item_root = [
+        self.item_timestamp_key_path_from_item_root = [
             ResponsePathKey(item)
             for item in api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(

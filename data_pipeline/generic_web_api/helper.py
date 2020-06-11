@@ -7,11 +7,11 @@ from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 
 
 class ResponsePathKey:
-    def __init__(self, hierarchy: str):
-        self.key = hierarchy if isinstance(hierarchy, str) else None
+    def __init__(self, path_level: str):
+        self.key = path_level if isinstance(path_level, str) else None
         self.is_variable = (
-            True if isinstance(hierarchy, dict) and
-            hierarchy.get('isVariable')
+            True if isinstance(path_level, dict) and
+                    path_level.get('isVariable')
             else None
         )
 

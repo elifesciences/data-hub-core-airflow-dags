@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 
 from data_pipeline.generic_web_api.transform_data import (
     ModuleConstant, process_downloaded_data,
-    get_dict_values_from_hierarchy_as_list
+    get_dict_values_from_path_as_list
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string,
@@ -243,7 +243,7 @@ def get_next_start_date(
     ):
         from_timestamp = current_start_timestamp
     elif (
-            web_config.item_timestamp_key_hierarchy_from_item_root and
+            web_config.item_timestamp_key_path_from_item_root and
             items_count
     ):
         from_timestamp = latest_record_timestamp
@@ -254,9 +254,9 @@ def get_next_start_date(
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
     next_cursor = None
     if web_config.url_manager.next_page_cursor:
-        next_cursor = get_dict_values_from_hierarchy_as_list(
+        next_cursor = get_dict_values_from_path_as_list(
             data,
-            web_config.next_page_cursor_key_hierarchy_from_response_root
+            web_config.next_page_cursor_key_path_from_response_root
         )
     return next_cursor
 
@@ -264,9 +264,9 @@ def get_next_cursor_from_data(data, web_config: WebApiConfig):
 def get_items_list(page_data, web_config):
     item_list = page_data
     if isinstance(page_data, dict):
-        item_list = get_dict_values_from_hierarchy_as_list(
+        item_list = get_dict_values_from_path_as_list(
             page_data,
-            web_config.items_key_hierarchy_from_response_root
+            web_config.items_key_path_from_response_root
         )
     return item_list
 

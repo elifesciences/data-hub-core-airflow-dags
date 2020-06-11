@@ -21,11 +21,11 @@ from data_pipeline.utils.data_pipeline_timestamp import (
 )
 
 
-def get_dict_values_from_hierarchy_as_list(
-        page_data, hierarchy: List[ResponsePathKey]
+def get_dict_values_from_path_as_list(
+        page_data, path_keys: List[ResponsePathKey]
 ):
     data_value = page_data
-    for list_element in hierarchy:
+    for list_element in path_keys:
         data_value = extract_content_from_response(data_value, list_element)
         if not data_value:
             break
@@ -33,16 +33,16 @@ def get_dict_values_from_hierarchy_as_list(
 
 
 def extract_content_from_response(
-        data_in_response, resp_hierarchy: ResponsePathKey
+        data_in_response, resp_path_level: ResponsePathKey
 ):
     extracted_data = None
-    if isinstance(data_in_response, dict) and resp_hierarchy.key:
-        extracted_data = data_in_response.get(resp_hierarchy.key)
-    elif isinstance(data_in_response, list) and resp_hierarchy.key:
+    if isinstance(data_in_response, dict) and resp_path_level.key:
+        extracted_data = data_in_response.get(resp_path_level.key)
+    elif isinstance(data_in_response, list) and resp_path_level.key:
         extracted_data = [
-            elem.get(resp_hierarchy.key) for elem in data_in_response
+            elem.get(resp_path_level.key) for elem in data_in_response
         ]
-    elif isinstance(data_in_response, dict) and resp_hierarchy.is_variable:
+    elif isinstance(data_in_response, dict) and resp_path_level.is_variable:
         extracted_data = list(data_in_response.values())
     return extracted_data
 
@@ -135,11 +135,11 @@ def get_latest_record_list_timestamp(
 
     for record in record_list:
 
-        if data_config.item_timestamp_key_hierarchy_from_item_root:
+        if data_config.item_timestamp_key_path_from_item_root:
             record_timestamp = parse_timestamp_from_str(
-                get_dict_values_from_hierarchy_as_list(
+                get_dict_values_from_path_as_list(
                     record,
-                    data_config.item_timestamp_key_hierarchy_from_item_root
+                    data_config.item_timestamp_key_path_from_item_root
                 ),
                 data_config.item_timestamp_format,
             )
