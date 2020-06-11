@@ -38,7 +38,7 @@ webApi:
       objectName: 'airflow-config/generic-web-api/{ENV}-civi-export-processing-state.json'
     urlSourceType:
       name: 'civi'
-      typeSpecificVal:
+      sourceTypeSpecificValues:
         fieldsToReturn:
           - external_identifier
           - tag
@@ -48,7 +48,8 @@ webApi:
           - last_name
           - first_name
           - middle_name
-          - email,source
+          - email
+          - source
           - user_unique_id
           - organization_name
           - phone
@@ -71,7 +72,7 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - values
-        #- isVariable: true # to handle like this {"values": {'a' : {...}, 'b': {...}, 'c':{...}}}
+        #- isVariable: true # to handle data like this {"values": {'a' : {...}, 'b': {...}, 'c':{...}}}
       recordTimestamp:
         timestampFormat: "%Y-%m-%d %H:%M:%S"
         itemTimestampKeyFromItemRoot:
@@ -81,7 +82,7 @@ webApi:
   - dataset: '{ENV}'
     table: hypothesis_data
     stateFile:
-      bucketName: 'ci-elife-data-pipeline'
+      bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
     dataUrl:
       urlExcludingConfigurableParameters: https://hypothes.is/api/search?group=imRGyeeV&sort=updated&order=asc
@@ -102,7 +103,7 @@ webApi:
   - dataset: '{ENV}'
     table: atoggle_data
     stateFile:
-      bucketName: 'ci-elife-data-pipeline'
+      bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
     dataUrl:
       urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
