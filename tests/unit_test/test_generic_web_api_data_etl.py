@@ -26,7 +26,8 @@ WEB_API_CONFIG = {
         'objectName': '{ENV}/object'
     },
     'dataUrl': {
-        'urlExcludingConfigurableParameters': 'urlExcludingConfigurableParameters'
+        'urlExcludingConfigurableParameters':
+            'urlExcludingConfigurableParameters'
     }
 }
 DEP_ENV = 'test'
