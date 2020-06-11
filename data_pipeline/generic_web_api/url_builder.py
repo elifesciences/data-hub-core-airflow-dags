@@ -49,6 +49,8 @@ class DynamicURLBuilder:
             page_size_param: str = None,
             page_size: int = None,
             compose_able_url_key_val: dict = None,
+            sort_key: str = None,
+            sort_key_val: str = None,
             **kwargs
     ):
         self.url_excluding_configurable_parameters = (
@@ -63,6 +65,8 @@ class DynamicURLBuilder:
         self.page_size_param = page_size_param
         self.page_size = page_size
         self.compose_able_url_key_val = compose_able_url_key_val
+        self.sort_key = sort_key
+        self.sort_key_value = sort_key_val
         self.type_specific_params = kwargs
 
     def _get_url_separator(self):
@@ -107,7 +111,8 @@ class DynamicURLBuilder:
             (
                 self.page_size_param,
                 url_compose_param.page_size or self.page_size
-            )
+            ),
+            (self.sort_key, self.sort_key_value)
             ] if key and value)
         param_dict = {
             **param_dict,
@@ -131,6 +136,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
             self,
             url_compose_param: UrlComposeParam,
     ):
+
         start_date = datetime_to_string(
             url_compose_param.from_date, self.date_format
         )
@@ -139,11 +145,13 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
             (
                 self.page_size_param,
                 url_compose_param.page_size or self.page_size
-            )
-            ] if key and value)
+            ),
+            ("sort", self.sort_key_value or "modified_date")
+        ] if key and value)
         start_date_param = {
             self.from_date_param: {">=": start_date}
         } if start_date else {}
+
         field_to_return_param = self.get_fields_to_return()
         url_query_json_arg = {
             "sequential": 1,

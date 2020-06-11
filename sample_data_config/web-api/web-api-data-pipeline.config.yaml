@@ -58,6 +58,8 @@ webApi:
     dataUrl:
       urlExcludingConfigurableParameters: https://crm.elifesciences.org/crm/sites/all/modules/civicrm/extern/rest.php?entity=Contact&action=get
       configurableParameters:
+        #resultSortParameterName:
+        resultSortParameterValue: modified_date
         fromDateParameterName: modified_date
         defaultStartDate: "2012-01-01 00:00:00"
         dateFormat: "%Y-%m-%d %H:%M:%S"
@@ -101,7 +103,7 @@ webApi:
         - rows
   #toggle api
   - dataset: '{ENV}'
-    table: atoggle_data
+    table: toggle_data
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
@@ -151,6 +153,8 @@ webApi:
   #  dataUrl:
   #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
   #    configurableParameters:
+  #      resultSortParameterName:
+  #      resultSortParameterValue:
   #      pageParameterName: page
   #      defaultPageSize: 100
   #      offsetParameterName: offset

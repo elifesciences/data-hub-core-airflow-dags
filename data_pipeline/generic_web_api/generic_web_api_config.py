@@ -91,6 +91,12 @@ class WebApiConfig:
         page_size_param = configurable_parameters.get(
             "pageSizeParameterName", None
         )
+        result_sort_param = configurable_parameters.get(
+            "resultSortParameterName", None
+        )
+        result_sort_param_value = configurable_parameters.get(
+            "resultSortParameterValue", None
+        )
         compose_able_static_parameters = (
             compose_url_param_from_parameter_values_in_env_var(
                 api_config.get(
@@ -135,6 +141,8 @@ class WebApiConfig:
             page_size_param,
             self.page_size,
             compose_able_static_parameters,
+            result_sort_param,
+            result_sort_param_value,
             **type_specific_param
         )
         self.items_key_path_from_response_root = [
