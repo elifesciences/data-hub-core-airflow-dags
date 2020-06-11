@@ -6,7 +6,8 @@ from data_pipeline.generic_web_api import (
     generic_web_api_data_etl as generic_web_api_data_etl_module
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
-    upload_latest_timestamp_as_pipeline_state
+    upload_latest_timestamp_as_pipeline_state,
+    get_items_list
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.transform_data import ModuleConstant
@@ -33,8 +34,21 @@ WEB_API_CONFIG = {
 DEP_ENV = 'test'
 
 
+def get_data_config(
+        conf_dict=None,
+        dep_env=DEP_ENV
+):
+    if conf_dict is None:
+        conf_dict = WEB_API_CONFIG
+    data_config = WebApiConfig(
+        conf_dict, '',
+        deployment_env=dep_env
+    )
+    return data_config
+
+
 class TestUploadLatestTimestampState:
-    def test_should_write_latest_date_to_state_file(
+    def test_should_write_latest_date_as_string_to_state_file(
             self,
             mock_upload_s3_object
     ):
@@ -43,10 +57,7 @@ class TestUploadLatestTimestampState:
             latest_timestamp_string,
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
-        data_config = WebApiConfig(
-            WEB_API_CONFIG, '',
-            deployment_env=DEP_ENV
-        )
+        data_config = get_data_config(WEB_API_CONFIG)
         upload_latest_timestamp_as_pipeline_state(
             data_config, latest_timestamp
         )
@@ -61,3 +72,98 @@ class TestUploadLatestTimestampState:
             object_key=state_file_name_key,
             data_object=latest_timestamp_string,
         )
+
+
+class TestGetItemList:
+    def test_should_return_all_data_when_data_is_a_list(
+            self
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = [['first'], ['second'], ['third']]
+        expected_time_list = get_items_list(
+            data,
+            data_config,
+        )
+        assert data == expected_time_list
+
+    def test_should_return_all_data_when_no_data_path_key(
+            self
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = {'key_1': ['first', 'second', 'third']}
+        expected_time_list = get_items_list(
+            data,
+            data_config,
+        )
+        assert data == expected_time_list
+
+    def test_should_get_data_when_path_keys_are_all_dict_keys_in_data(
+            self
+    ):
+        path_keys = ['data', 'values']
+        conf_dict = {
+            ** WEB_API_CONFIG,
+            'response': {
+                'itemsKeyFromResponseRoot': path_keys
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        expected_response = ['first', 'second', 'third']
+        data = {path_keys[0]: {path_keys[1]: expected_response}}
+
+        actual_response = get_items_list(
+            data,
+            data_config,
+        )
+        assert expected_response == actual_response
+
+    def test_should_get_data_when_path_keys_are_fixed_and_variable_dict_keys(
+            self
+    ):
+        path_keys = ['data', {'isVariable': True}]
+        conf_dict = {
+            ** WEB_API_CONFIG,
+            'response': {
+                'itemsKeyFromResponseRoot': path_keys
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        expected_response = ['first', 'second', 'third']
+        data = {path_keys[0]: {
+            'a': expected_response[0],
+            'b': expected_response[1],
+            'c': expected_response[2],
+        }}
+
+        actual_response = get_items_list(
+            data,
+            data_config,
+        )
+        assert expected_response == actual_response
+
+    def test_should_get_data_when_path_keys_has_keys_of_dict_in_list_of_dict(
+            self
+    ):
+        path_keys = ['data', 'values']
+        conf_dict = {
+            ** WEB_API_CONFIG,
+            'response': {
+                'itemsKeyFromResponseRoot': path_keys
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        expected_response = ['first', 'second', 'third']
+        data = {
+            path_keys[0]:
+                [
+                    {path_keys[1]: expected_response[0]},
+                    {path_keys[1]: expected_response[1]},
+                    {path_keys[1]: expected_response[2]}
+                ]
+        }
+
+        actual_response = get_items_list(
+            data,
+            data_config,
+        )
+        assert expected_response == actual_response

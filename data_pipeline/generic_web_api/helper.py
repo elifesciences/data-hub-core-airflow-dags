@@ -6,7 +6,7 @@ from urllib import parse
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 
 
-class ResponseHierarchyKey:
+class ResponsePathKey:
     def __init__(self, hierarchy: str):
         self.key = hierarchy if isinstance(hierarchy, str) else None
         self.is_variable = (

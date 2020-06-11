@@ -1,5 +1,5 @@
 from data_pipeline.generic_web_api.helper import (
-    ResponseHierarchyKey,
+    ResponsePathKey,
     compose_url_param_from_parameter_values_in_env_var,
     get_url_manager
 )
@@ -139,7 +139,7 @@ class WebApiConfig:
             **type_specific_param
         )
         self.items_key_hierarchy_from_response_root = [
-            ResponseHierarchyKey(item)
+            ResponsePathKey(item)
             for item in api_config.get("response", {}).get(
                 "itemsKeyFromResponseRoot", [])
         ]
@@ -154,7 +154,7 @@ class WebApiConfig:
             )
         )
         self.item_timestamp_key_hierarchy_from_item_root = [
-            ResponseHierarchyKey(item)
+            ResponsePathKey(item)
             for item in api_config.get("response", {}).get(
                 "recordTimestamp", {}).get(
                     "itemTimestampKeyFromItemRoot", []

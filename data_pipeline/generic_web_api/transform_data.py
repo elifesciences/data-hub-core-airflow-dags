@@ -15,27 +15,25 @@ from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
-from data_pipeline.generic_web_api.helper import ResponseHierarchyKey
+from data_pipeline.generic_web_api.helper import ResponsePathKey
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
 
 
 def get_dict_values_from_hierarchy_as_list(
-        page_data, hierarchy: List[ResponseHierarchyKey]
+        page_data, hierarchy: List[ResponsePathKey]
 ):
     data_value = page_data
-
     for list_element in hierarchy:
         data_value = extract_content_from_response(data_value, list_element)
-
         if not data_value:
             break
     return data_value
 
 
 def extract_content_from_response(
-        data_in_response, resp_hierarchy: ResponseHierarchyKey
+        data_in_response, resp_hierarchy: ResponsePathKey
 ):
     extracted_data = None
     if isinstance(data_in_response, dict) and resp_hierarchy.key:
@@ -45,7 +43,7 @@ def extract_content_from_response(
             elem.get(resp_hierarchy.key) for elem in data_in_response
         ]
     elif isinstance(data_in_response, dict) and resp_hierarchy.is_variable:
-        extracted_data = list(data_in_response.items())
+        extracted_data = list(data_in_response.values())
     return extracted_data
 
 
