@@ -6,5 +6,5 @@ google-oauth==1.0.1
 dateparser==0.7.5
 dask[complete]==2.18.1
 distributed==2.18.0
-google-api-python-client==1.9.2
+google-api-python-client==1.9.3
 bigquery-schema-generator==1.0
