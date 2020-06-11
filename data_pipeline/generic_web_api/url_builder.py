@@ -145,20 +145,20 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
             self.from_date_param: {">=": start_date}
         } if start_date else {}
         field_to_return_param = self.get_fields_to_return()
-        url_query_param = {
+        url_query_json_arg = {
             "sequential": 1,
             **start_date_param,
             **field_to_return_param,
             "options": options
         }
-        url_query_param_as_str = json.dumps(
-            url_query_param
+        url_query_json_arg_as_str = json.dumps(
+            url_query_json_arg
         )
         param_dict = {
             **self.compose_able_url_key_val
         }
         url_no_options = self.compose_url(param_dict)
-        return url_no_options + "&json=" + url_query_param_as_str
+        return url_no_options + "&json=" + url_query_json_arg_as_str
 
     def get_fields_to_return(self):
         field_to_return_param = {}
