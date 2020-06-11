@@ -97,7 +97,7 @@ class WebApiConfig:
         result_sort_param_value = configurable_parameters.get(
             "resultSortParameterValue", None
         )
-        compose_able_static_parameters = (
+        composeable_static_parameters = (
             compose_url_param_from_parameter_values_in_env_var(
                 api_config.get(
                     "dataUrl"
@@ -123,14 +123,14 @@ class WebApiConfig:
         ).get(
             'sourceTypeSpecificValues', {}
         )
-        dynamic_url_builder = get_url_builder_class(
+        url_builder_class = get_url_builder_class(
             api_config.get(
                 "urlSourceType", {}
             ).get(
                 'name', ''
             )
         )
-        self.url_builder = dynamic_url_builder(
+        self.url_builder = url_builder_class(
             url_excluding_configurable_parameters,
             from_date_param,
             to_date_param,
@@ -140,7 +140,7 @@ class WebApiConfig:
             offset_param,
             page_size_param,
             self.page_size,
-            compose_able_static_parameters,
+            composeable_static_parameters,
             result_sort_param,
             result_sort_param_value,
             **type_specific_param

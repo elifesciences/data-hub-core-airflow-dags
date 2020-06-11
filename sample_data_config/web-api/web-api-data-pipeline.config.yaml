@@ -74,7 +74,6 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - values
-        #- isVariable: true # to handle data like this {"values": {'a' : {...}, 'b': {...}, 'c':{...}}}
       recordTimestamp:
         timestampFormat: "%Y-%m-%d %H:%M:%S"
         itemTimestampKeyFromItemRoot:
@@ -137,7 +136,6 @@ webApi:
   #  response:
   #    itemsKeyFromResponseRoot:
   #      - a
-  #      - isVariable: true
   #      - b
   #    totalItemsCountKeyFromResponseRoot:
   #      - c
