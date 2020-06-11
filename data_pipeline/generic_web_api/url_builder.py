@@ -6,16 +6,6 @@ from urllib import parse
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 
 
-class ResponsePathKey:
-    def __init__(self, path_level: str):
-        self.key = path_level if isinstance(path_level, str) else None
-        self.is_variable = (
-            True if isinstance(path_level, dict) and
-            path_level.get('isVariable')
-            else None
-        )
-
-
 def compose_url_param_from_parameter_values_in_env_var(
         compose_able_static_parameters: list):
     params = {
@@ -46,7 +36,7 @@ class UrlComposeParam:
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
-class DynamicURLManager:
+class DynamicURLBuilder:
     def __init__(
             self,
             url_excluding_configurable_parameters: str,
@@ -127,15 +117,15 @@ class DynamicURLManager:
         return self.compose_url(param_dict)
 
 
-def get_url_manager(url_source_type: str = None):
-    manager = DynamicURLManager
+def get_url_builder_class(url_source_type: str = None):
+    url_builder = DynamicURLBuilder
 
     if url_source_type.strip().lower() == 'civi':
-        manager = DynamicCiviURLManager
-    return manager
+        url_builder = DynamicCiviURLBuilder
+    return url_builder
 
 
-class DynamicCiviURLManager(DynamicURLManager):
+class DynamicCiviURLBuilder(DynamicURLBuilder):
 
     def get_url(
             self,

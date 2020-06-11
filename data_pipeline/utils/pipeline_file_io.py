@@ -25,3 +25,9 @@ def write_jsonl_to_file(
             write_file.write(json.dumps(record))
             write_file.write("\n")
         write_file.flush()
+
+
+def read_file_content(file_location: str):
+    with open(file_location, 'r') as open_file:
+        data = open_file.readlines()
+    return data

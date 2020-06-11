@@ -1,7 +1,6 @@
-from data_pipeline.generic_web_api.helper import (
-    ResponsePathKey,
+from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
-    get_url_manager
+    get_url_builder_class
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
@@ -118,14 +117,14 @@ class WebApiConfig:
         ).get(
             'sourceTypeSpecificValues', {}
         )
-        dynamic_url_manager = get_url_manager(
+        dynamic_url_builder = get_url_builder_class(
             api_config.get(
                 "urlSourceType", {}
             ).get(
                 'name', ''
             )
         )
-        self.url_manager = dynamic_url_manager(
+        self.url_builder = dynamic_url_builder(
             url_excluding_configurable_parameters,
             from_date_param,
             to_date_param,
@@ -174,3 +173,13 @@ class WebApiConfig:
         self.authentication = WebApiAuthentication(
             auth_type, auth_conf_list
         ) if auth_type and auth_conf_list else None
+
+
+class ResponsePathKey:
+    def __init__(self, path_level: str):
+        self.key = path_level if isinstance(path_level, str) else None
+        self.is_variable = (
+            True if isinstance(path_level, dict) and
+            path_level.get('isVariable')
+            else None
+        )

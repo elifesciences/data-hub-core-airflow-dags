@@ -13,9 +13,8 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
-    WebApiConfig
+    WebApiConfig, ResponsePathKey
 )
-from data_pipeline.generic_web_api.helper import ResponsePathKey
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )

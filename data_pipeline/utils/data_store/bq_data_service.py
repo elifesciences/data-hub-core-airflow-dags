@@ -235,15 +235,15 @@ def generate_schema_from_file(
         full_file_location: str,
         quoted_values_are_strings: str = True
 ):
-    file_reader = open(full_file_location)
-    generator = SchemaGenerator(
-        input_format="json",
-        quoted_values_are_strings=quoted_values_are_strings
-    )
-    schema_map, _ = generator.deduce_schema(
-        file_reader
-    )
-    schema = generator.flatten_schema(schema_map)
+    with open(full_file_location) as file_reader:
+        generator = SchemaGenerator(
+            input_format="json",
+            quoted_values_are_strings=quoted_values_are_strings
+        )
+        schema_map, _ = generator.deduce_schema(
+            file_reader
+        )
+        schema = generator.flatten_schema(schema_map)
     return schema
 
 

@@ -25,7 +25,7 @@ from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
-from data_pipeline.generic_web_api.helper import (
+from data_pipeline.generic_web_api.url_builder import (
     UrlComposeParam
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
@@ -54,10 +54,10 @@ def get_stored_state(
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = parse_timestamp_from_str(
                 data_config.default_start_date,
-                data_config.url_manager.date_format
+                data_config.url_builder.date_format
             ) if (
                 data_config.default_start_date and
-                data_config.url_manager.date_format
+                data_config.url_builder.date_format
             ) else None
 
         else:
@@ -88,7 +88,7 @@ def get_data_single_page(
         cursor=cursor,
         page_number=page_number
     )
-    url = data_config.url_manager.get_url(
+    url = data_config.url_builder.get_url(
         url_compose_arg
     )
 
@@ -128,8 +128,8 @@ def generic_web_api_data_etl(
     from_date_to_advance = initial_from_date
     cursor = None
     latest_record_timestamp = None
-    offset = 0 if data_config.url_manager.offset_param else None
-    page_number = 1 if data_config.url_manager.page_number_param else None
+    offset = 0 if data_config.url_builder.offset_param else None
+    page_number = 1 if data_config.url_builder.page_number_param else None
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
@@ -204,7 +204,7 @@ def load_written_data_to_bq(
 
 def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
     next_page = None
-    if web_config.url_manager.page_number_param:
+    if web_config.url_builder.page_number_param:
         has_more_items = (
             items_count == web_config.page_size
             if web_config.page_size
@@ -216,7 +216,7 @@ def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
 
 def get_next_offset(items_count, current_offset, web_config: WebApiConfig):
     next_offset = None
-    if web_config.url_manager.offset_param:
+    if web_config.url_builder.offset_param:
         has_more_items = (
             items_count == web_config.page_size
             if web_config.page_size
@@ -237,9 +237,9 @@ def get_next_start_date(
 ):
     from_timestamp = None
     if (
-            web_config.url_manager.page_number_param or
-            web_config.url_manager.next_page_cursor or
-            web_config.url_manager.offset_param
+            web_config.url_builder.page_number_param or
+            web_config.url_builder.next_page_cursor or
+            web_config.url_builder.offset_param
     ):
         from_timestamp = current_start_timestamp
     elif (
@@ -253,7 +253,7 @@ def get_next_start_date(
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
     next_cursor = None
-    if web_config.url_manager.next_page_cursor:
+    if web_config.url_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
             web_config.next_page_cursor_key_path_from_response_root
