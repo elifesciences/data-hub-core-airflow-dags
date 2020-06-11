@@ -11,7 +11,7 @@ class ResponsePathKey:
         self.key = path_level if isinstance(path_level, str) else None
         self.is_variable = (
             True if isinstance(path_level, dict) and
-                    path_level.get('isVariable')
+            path_level.get('isVariable')
             else None
         )
 
