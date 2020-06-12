@@ -8,7 +8,9 @@ from data_pipeline.generic_web_api import (
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
-    get_next_cursor_from_data
+    get_next_cursor_from_data,
+    get_next_page_number,
+    get_next_offset,
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.transform_data import ModuleConstant
@@ -147,12 +149,14 @@ class TestGetItemList:
 
 
 class TestNextCursor:
-    def test_should_be_none_when_cursor_is_not_in_config(self):
+    def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key': 'val', 'values': []}
         assert not get_next_cursor_from_data(data, data_config)
 
-    def test_should_be_none_when_not_in_data(self):
+    def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
+            self
+    ):
         cursor_path = ['cursor_key1', 'cursor_key2']
         cursor_val = 'cursor_value'
 
@@ -172,3 +176,118 @@ class TestNextCursor:
             'values': []
         }
         assert get_next_cursor_from_data(data, data_config) == cursor_val
+
+    def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
+        conf_dict = {
+            'response': {
+                'nextPageCursorKeyFromResponseRoot': ['cursor_key1']
+            },
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'nextPageCursorParameterName': 'cursor'
+        }
+
+        data_config = get_data_config(conf_dict)
+        data = {
+            'values': []
+        }
+        assert not get_next_cursor_from_data(data, data_config)
+
+
+class TestNextPage:
+    def test_should_be_none_when_page_parameter_is_not_in_config(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        current_item_count = 10
+        current_page = 0
+        assert not get_next_page_number(
+            current_item_count, current_page, data_config
+        )
+
+    def test_should_be_none_when_item_count_is_less_than_page_size(self):
+
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+            'pageParameterName': 'page'
+        }
+
+        data_config = get_data_config(conf_dict)
+        current_item_count = 10
+        current_page = 0
+        assert not get_next_page_number(
+            current_item_count, current_page, data_config
+        )
+
+    def test_should_increase_page_by_1_if_item_count_is_equal_to_page_size(
+            self
+    ):
+
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+            'pageParameterName': 'page'
+        }
+
+        data_config = get_data_config(conf_dict)
+        current_item_count = 100
+        current_page = 0
+        assert (
+            get_next_page_number(
+                current_item_count, current_page, data_config
+            ) ==
+            (current_page + 1)
+        )
+
+
+class TestNextOffset:
+    def test_should_be_none_when_offset_parameter_is_not_in_config(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        current_item_count = 10
+        current_offset = 0
+        assert not get_next_offset(
+            current_item_count, current_offset, data_config
+        )
+
+    def test_should_be_none_if_item_count_is_less_than_page_size(self):
+
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+        data_config = get_data_config(conf_dict)
+        current_offset = 0
+        current_item_count = 10
+        assert not get_next_offset(
+            current_item_count, current_offset, data_config
+        )
+
+    def test_should_increase_offset_by_pg_size_if_item_count_equals_page_size(
+            self
+    ):
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+
+        data_config = get_data_config(conf_dict)
+        current_item_count = 100
+        current_offset = 0
+        assert (
+            get_next_offset(current_item_count, current_offset, data_config) ==
+            (current_offset + current_item_count)
+        )
