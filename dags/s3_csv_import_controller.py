@@ -2,7 +2,7 @@ import os
 
 from airflow.models import DAG
 
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (

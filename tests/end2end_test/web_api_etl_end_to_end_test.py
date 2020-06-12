@@ -8,7 +8,7 @@ from dags.web_api_import_controller import (
 from dags.web_api_import_controller import (
     DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
 )
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig,
     MultiWebApiConfig

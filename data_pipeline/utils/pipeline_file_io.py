@@ -1,6 +1,8 @@
 from typing import Iterable
 import json
 
+import yaml
+
 
 def iter_write_jsonl_to_file(
         json_list,
@@ -31,3 +33,8 @@ def read_file_content(file_location: str):
     with open(file_location, 'r') as open_file:
         data = open_file.readlines()
     return data
+
+
+def get_yaml_file_as_dict(file_location: str) -> dict:
+    with open(file_location, 'r') as yaml_file:
+        return yaml.safe_load(yaml_file)

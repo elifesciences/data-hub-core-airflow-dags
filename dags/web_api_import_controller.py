@@ -2,7 +2,7 @@ import os
 
 from airflow.models import DAG
 
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig
 )
