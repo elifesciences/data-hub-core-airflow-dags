@@ -8,9 +8,10 @@ from json.decoder import JSONDecodeError
 from botocore.exceptions import ClientError
 
 from data_pipeline.generic_web_api.transform_data import (
-    ModuleConstant, process_downloaded_data,
+    process_downloaded_data,
     get_dict_values_from_path_as_list
 )
+from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string,
     upload_s3_object

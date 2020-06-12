@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Iterable, List
 import dateparser
 
+from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
 )
@@ -175,15 +176,6 @@ def process_downloaded_data(
         processed_record_list, prev_page_latest_timestamp, data_config
     )
     return current_page_latest_timestamp
-
-
-# pylint: disable=too-few-public-methods
-class ModuleConstant:
-    DEFAULT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
-    DATA_IMPORT_TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-    BQ_SCHEMA_FIELD_NAME_KEY = "name"
-    BQ_SCHEMA_SUBFIELD_KEY = "fields"
-    BQ_SCHEMA_FIELD_TYPE_KEY = "type"
 
 
 def get_bq_schema(data_config: WebApiConfig,):

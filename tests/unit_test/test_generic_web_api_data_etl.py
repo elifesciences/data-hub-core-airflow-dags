@@ -13,7 +13,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_next_offset,
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
-from data_pipeline.generic_web_api.transform_data import ModuleConstant
+from data_pipeline.generic_web_api.module_constants import ModuleConstant
 
 
 @pytest.fixture(name='mock_upload_s3_object')
