@@ -51,6 +51,7 @@ def get_data_config(
 
 
 class TestUploadLatestTimestampState:
+
     def test_should_write_latest_date_as_string_to_state_file(
             self,
             mock_upload_s3_object
@@ -78,27 +79,28 @@ class TestUploadLatestTimestampState:
 
 
 class TestGetItemList:
+
     def test_should_return_all_data_when_data_is_a_list(
             self
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = [['first'], ['second'], ['third']]
-        expected_time_list = get_items_list(
+        actual_response = get_items_list(
             data,
             data_config,
         )
-        assert data == expected_time_list
+        assert actual_response == data
 
     def test_should_return_all_data_when_no_data_path_key(
             self
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key_1': ['first', 'second', 'third']}
-        expected_time_list = get_items_list(
+        actual_response = get_items_list(
             data,
             data_config,
         )
-        assert data == expected_time_list
+        assert actual_response == data
 
     def test_should_get_data_when_path_keys_are_all_dict_keys_in_data(
             self
@@ -118,7 +120,7 @@ class TestGetItemList:
             data,
             data_config,
         )
-        assert expected_response == actual_response
+        assert actual_response == expected_response
 
     def test_should_get_data_when_path_keys_has_keys_of_dict_in_list_of_dict(
             self
@@ -145,14 +147,15 @@ class TestGetItemList:
             data,
             data_config,
         )
-        assert expected_response == actual_response
+        assert actual_response == expected_response
 
 
 class TestNextCursor:
+
     def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key': 'val', 'values': []}
-        assert not get_next_cursor_from_data(data, data_config)
+        assert get_next_cursor_from_data(data, data_config) is None
 
     def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
             self
@@ -175,7 +178,7 @@ class TestNextCursor:
             cursor_path[0]: {cursor_path[1]: cursor_val},
             'values': []
         }
-        assert get_next_cursor_from_data(data, data_config) == cursor_val
+        assert cursor_val == get_next_cursor_from_data(data, data_config)
 
     def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
         conf_dict = {
@@ -196,6 +199,7 @@ class TestNextCursor:
 
 
 class TestNextPage:
+
     def test_should_be_none_when_page_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         current_item_count = 10
@@ -247,6 +251,7 @@ class TestNextPage:
 
 
 class TestNextOffset:
+
     def test_should_be_none_when_offset_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         current_item_count = 10
