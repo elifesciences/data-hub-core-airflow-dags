@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 
 from airflow import DAG
 
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     get_new_data_download_start_date_from_cloud_storage,
     etl_crossref_data_return_latest_timestamp,

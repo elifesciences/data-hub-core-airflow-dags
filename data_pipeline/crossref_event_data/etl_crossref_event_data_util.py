@@ -4,10 +4,7 @@ import datetime
 from datetime import timezone
 from datetime import timedelta
 from typing import Iterable
-import requests
-from requests.adapters import HTTPAdapter
 # pylint: disable=import-error
-from requests.packages.urllib3.util.retry import Retry
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object
 )
@@ -17,6 +14,9 @@ from data_pipeline.utils.pipeline_file_io import (
 
 
 # pylint: disable=too-few-public-methods
+from data_pipeline.utils.web_api import requests_retry_session
+
+
 class EtlModuleConstant:
 
     DEFAULT_DATA_COLLECTION_START_DATE = "2000-01-01"
@@ -30,26 +30,6 @@ class EtlModuleConstant:
     BQ_SCHEMA_FIELD_TYPE_KEY = "type"
     # date format used for y application for maintaining download state
     STATE_FILE_DATE_FORMAT = "%Y-%m-%d"
-
-
-def requests_retry_session(
-        retries=10,
-        backoff_factor=0.3,
-        status_forcelist=(500, 502, 504),
-        session=None,
-):
-    session = session or requests.Session()
-    retry = Retry(
-        total=retries,
-        read=retries,
-        connect=retries,
-        backoff_factor=backoff_factor,
-        status_forcelist=status_forcelist,
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
 
 
 def get_date_of_days_before_as_string(number_of_days_before: int) -> str:

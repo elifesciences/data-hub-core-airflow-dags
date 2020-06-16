@@ -5,7 +5,7 @@ from dags.google_analytics_data_import_pipeline import (
     GOOGLE_ANALYTICS_CONFIG_FILE_PATH_ENV_NAME,
     DEPLOYMENT_ENV_ENV_NAME,
 )
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.google_analytics.ga_config import (
     MultiGoogleAnalyticsConfig,
     GoogleAnalyticsConfig

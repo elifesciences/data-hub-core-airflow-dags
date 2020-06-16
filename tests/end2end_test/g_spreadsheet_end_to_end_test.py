@@ -6,12 +6,11 @@ from dags.google_spreadsheet_pipeline_controller import (
     DAG_ID,
     TARGET_DAG_ID,
     SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME,
-    get_yaml_file_as_dict,
 )
-
 from dags.google_spreadsheet_import_pipeline import (
     DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
 )
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig, MultiCsvSheet
 )

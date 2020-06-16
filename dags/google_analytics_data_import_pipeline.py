@@ -4,7 +4,7 @@ from datetime import timedelta
 from datetime import datetime
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.google_analytics.ga_config import (
     ExternalTriggerConfig,
     MultiGoogleAnalyticsConfig,

@@ -20,9 +20,9 @@ webApi:
         - items
   #elifescience profile api
   - dataset: '{ENV}'
-    table: atest_profile_api
+    table: test_people_api
     dataUrl:
-      urlExcludingConfigurableParameters: https://api.elifesciences.org/profiles?
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
       configurableParameters:
         pageSizeParameterName: per-page
         defaultPageSize: 100
@@ -30,11 +30,60 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - items
+  # civi export
+  - dataset: '{ENV}'
+    table: civi_data_export
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-civi-export-processing-state.json'
+    urlSourceType:
+      name: 'civi'
+      sourceTypeSpecificValues:
+        fieldsToReturn:
+          - external_identifier
+          - tag
+          - group
+          - contact_type
+          - contact_sub_type
+          - last_name
+          - first_name
+          - middle_name
+          - email
+          - source
+          - user_unique_id
+          - organization_name
+          - phone
+          - city
+          - modified_date
+    dataUrl:
+      urlExcludingConfigurableParameters: https://crm.elifesciences.org/crm/sites/all/modules/civicrm/extern/rest.php?entity=Contact&action=get
+      configurableParameters:
+        #resultSortParameterName:
+        resultSortParameterValue: modified_date
+        fromDateParameterName: modified_date
+        defaultStartDate: "2012-01-01 00:00:00"
+        dateFormat: "%Y-%m-%d %H:%M:%S"
+        pageSizeParameterName: limit
+        defaultPageSize: 10000
+        offsetParameterName: offset
+      parametersFromEnv:
+        - parameterName: api_key
+          envName: CIVICRM_API_KEY
+        - parameterName: key
+          envName: CIVICRM_SITE_KEY
+    response:
+      itemsKeyFromResponseRoot:
+        - values
+      recordTimestamp:
+        timestampFormat: "%Y-%m-%d %H:%M:%S"
+        itemTimestampKeyFromItemRoot:
+          - modified_date
+
   #hypoothesis api
   - dataset: '{ENV}'
     table: hypothesis_data
     stateFile:
-      bucketName: 'ci-elife-data-pipeline'
+      bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state.json'
     dataUrl:
       urlExcludingConfigurableParameters: https://hypothes.is/api/search?group=imRGyeeV&sort=updated&order=asc
@@ -53,9 +102,9 @@ webApi:
         - rows
   #toggle api
   - dataset: '{ENV}'
-    table: atoggle_data
+    table: toggle_data
     stateFile:
-      bucketName: 'ci-elife-data-pipeline'
+      bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
     dataUrl:
       urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
@@ -76,6 +125,7 @@ webApi:
 
   #- dataset: '{ENV}'
   #  table: 'testtest_people'
+  #  type: 'civi'
   #  stateFile:
   #    bucketName: 'ci-elife-data-pipeline'
   #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
@@ -101,13 +151,21 @@ webApi:
   #  dataUrl:
   #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
   #    configurableParameters:
+  #      resultSortParameterName:
+  #      resultSortParameterValue:
   #      pageParameterName: page
   #      defaultPageSize: 100
+  #      offsetParameterName: offset
   #      nextPageCursorParameterName: next_page_cursor
   #      fromDateParameterName: from_date
   #      defaultStartDate:
   #      toDateParameterName: to_date
   #      dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+  #    parametersFromEnv:
+  #      - parameterName: api_key
+  #        envName: CIVICRM_API_KEY
+  #      - parameterName: key
+  #        envName: CIVICRM_SITE_KEY
   #  authentication:
   #    auth_type: basic
   #    orderedAuthenticationParamValues:

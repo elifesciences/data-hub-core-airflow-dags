@@ -1,7 +1,7 @@
 import os
 import logging
 
-from data_pipeline import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig, MultiS3CsvConfig
 )
