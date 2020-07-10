@@ -43,13 +43,11 @@ class IntermediateBatchFileProcessing:
 class WriteIterRecordsInBQConfig:
     def __init__(
             self,
-            iter_json: Iterable,
             bq_table: str = None,
             file_location: str = None,
             batch_processing: IntermediateBatchFileProcessing = None,
             write_mode: str = 'a'
     ):
-        self.iter_json = iter_json
         self.bq_table = bq_table
         self.batch_processing = batch_processing
         self.file_location = file_location
@@ -77,9 +75,9 @@ def iter_write_jsonl_to_file_process_batch(
         batch_processing: IntermediateBatchFileProcessing = None,
 ) -> Iterable[dict]:
     yield from iter_multi_write_jsonl_to_file_process_batch(
+        iter_jsonl,
         [
             WriteIterRecordsInBQConfig(
-                iter_json=iter_jsonl,
                 write_mode=write_mode,
                 batch_processing=batch_processing,
                 file_location=full_temp_file_location
@@ -89,18 +87,19 @@ def iter_write_jsonl_to_file_process_batch(
 
 
 def iter_multi_write_jsonl_to_file_process_batch(
+        iter_multi_record: Iterable,
         iter_write_to_bq: List[WriteIterRecordsInBQConfig]
 ) -> Iterable[dict]:
 
     with get_opened_temp_file_for_tweet_response_types(iter_write_to_bq) as file_writer:
-        for zipped_record in zip_longest(*[iter_w.iter_json for iter_w in iter_write_to_bq]):
+        for record in iter_multi_record:
             for ind in range(len(iter_write_to_bq)):
                 write_file_batch_process(
-                    zipped_record[ind],
+                    record[ind],
                     file_writer[ind],
                     iter_write_to_bq[ind].batch_processing
                 )
-            yield zipped_record
+            yield record
         write_file_batch_process(
             batch_processing=iter_write_to_bq[ind].batch_processing
         )

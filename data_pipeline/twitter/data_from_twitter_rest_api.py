@@ -1,3 +1,4 @@
+import collections
 import time
 import logging
 import tweepy
@@ -8,12 +9,15 @@ from data_pipeline.twitter.process_tweet_response import (
     extract_tweet_from_twitter_response,
     modify_by_search_term_occurrence_location_in_response
 )
-from data_pipeline.twitter.twitter_bq_util import batch_load_iter_record_to_bq
+from data_pipeline.twitter.twitter_bq_util import batch_load_iter_record_to_bq, batch_load_multi_iter_record_to_bq
 from data_pipeline.twitter.twitter_config import TwitterDataPipelineConfig, TweetType
+from data_pipeline.utils.pipeline_file_io import WriteIterRecordsInBQConfig
 
 from data_pipeline.utils.record_processing import add_provenance_to_record, standardize_record_keys
 
 LOGGER = logging.getLogger(__name__)
+
+ExtractedRetweetEntities = collections.namedtuple('ExtractedRetweetEntities', ['retweet', 'original_tweet', 'user'])
 
 
 def _limit_handled(cursor: BaseIterator):
@@ -130,7 +134,7 @@ def iter_process_retweets(
             }
             retweeter['referenced_twitter_user'] = ref_user
 
-        yield retweet, original_tweet, retweeter
+        yield ExtractedRetweetEntities(retweet, original_tweet, retweeter)
 
 
 def etl_user_followerss(
@@ -160,7 +164,7 @@ def extract_user_properties_to_dict(user: dict):
         resp_key: user.get(resp_key)
         for resp_key in [
             'id', 'name', 'screen_name', 'location', 'description', 'followers_count',
-            'friends_count','listed_count', 'favourites_count','statuses_count', 'created_at'
+            'friends_count', 'listed_count', 'favourites_count','statuses_count', 'created_at'
         ]
     }
 
@@ -189,16 +193,17 @@ def etl_user_followers(
         latest_data_pipeline_timestamp
     )
 
-    iter_written_records = batch_load_iter_record_to_bq(
-        iter_processed_user_followers,
+    kl1 = [
+        WriteIterRecordsInBQConfig(twitter_config.tweet_table),
+        WriteIterRecordsInBQConfig(twitter_config.tweet_table),
+        WriteIterRecordsInBQConfig(twitter_config.user_table)
+    ]
+    iter_written_records = batch_load_multi_iter_record_to_bq(
+        kl,
+        kl1,
         twitter_config.gcp_project,
         twitter_config.dataset,
-        twitter_config.user_table,
-        batch_size=200
+        batch_size=5
     )
     for _ in iter_written_records:
         continue
-
-
-    for c in kl:
-        break

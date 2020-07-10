@@ -43,7 +43,7 @@ def load_file_into_bq(
         return
     client = Client(project=project_name) if project_name else Client()
     dataset_ref = client.dataset(dataset_name)
-    table_ref = dataset_ref.tweet_table(table_name)
+    table_ref = dataset_ref.table(table_name)
     job_config = LoadJobConfig()
     job_config.write_disposition = write_mode
     job_config.autodetect = auto_detect_schema
@@ -70,7 +70,7 @@ def load_tuple_list_into_bq(
         tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
 ) -> List[dict]:
     client = Client()
-    table_ref = client.dataset(dataset_name).tweet_table(table_name)
+    table_ref = client.dataset(dataset_name).able(table_name)
     table = client.get_table(table_ref)  # API request
 
     errors = list()
@@ -180,7 +180,7 @@ def get_table_schema(
     client = bigquery.Client()
 
     dataset_ref = client.dataset(dataset_name, project=project_name)
-    table_ref = dataset_ref.tweet_table(table_name)
+    table_ref = dataset_ref.table(table_name)
     try:
         table = client.get_table(table_ref)  # API Request
         return table.schema
@@ -194,7 +194,7 @@ def extend_table_schema_with_nested_schema(
 ):
     client = bigquery.Client()
     dataset_ref = client.dataset(dataset_name, project=project_name)
-    table_ref = dataset_ref.tweet_table(table_name)
+    table_ref = dataset_ref.table(table_name)
     table = client.get_table(table_ref)  # Make an API request.
     original_schema = table.schema
     original_schema_dict = [
@@ -348,6 +348,7 @@ def create_or_xtend_table_and_load_file(
         table: str,
         quoted_values_are_strings: bool = False
 ):
+    print(file_location, gcp_project, dataset, table)
     if os.path.getsize(file_location) > 0:
         create_or_extend_table_schema(
             gcp_project,
