@@ -105,7 +105,7 @@ def iter_process_retweets(
 ):
     r_ind = 0
     for retweet in retweets:
-        if (r_ind % 50) == 0:
+        if (r_ind % 2) == 0:
             LOGGER.info("processed %d followers of %s", r_ind, referenced_twitter_user)
         r_ind += 1
         retweet, original_tweet, retweeter = extract_retweeter_and_tweets(retweet._json)
@@ -120,11 +120,11 @@ def iter_process_retweets(
         )
         retweet, original_tweet, retweeter = tuple(
             [
-                add_provenance_to_record(
+                standardize_record_keys(add_provenance_to_record(
                     entity, latest_data_pipeline_timestamp,
                     twitter_config.timestamp_field_name,
                     twitter_config.provenance_field_name,
-                ) for entity in [retweet, original_tweet, retweeter]
+                )) for entity in [retweet, original_tweet, retweeter]
             ]
         )
         if referenced_twitter_user:

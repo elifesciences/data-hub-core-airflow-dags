@@ -2,8 +2,8 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_import_timestamp'
 twitterPipeline:
   - dataset: '{ENV}'
-    tweet_table: "twitter_tweet"
-    user_table: "twitter_user"
+    tweet_table: "twitter_tweetss"
+    user_table: "twitter_userss"
     etlType: 'keyword' #keyowrd(default), username, followers,
     etlTerms:
       - '#virology'
@@ -19,8 +19,8 @@ twitterPipeline:
       bucketName: '{ENV}-elife-data-pipeline'
       objectNamePrefix: 'airflow-config/crossref-event/{ENV}-keyword-search-state'
   - dataset: '{ENV}'
-    tweet_table: "twitter_tweet"
-    user_table: "twitter_user"
+    tweet_table: "twitter_tweetss"
+    user_table: "twitter_userss"
     etlType: 'username' #keyowrd(default), username, followers,
     etlTerms:
       - '@eLife'
@@ -32,8 +32,8 @@ twitterPipeline:
       bucketName: '{ENV}-elife-data-pipeline'
       objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'
   - dataset: '{ENV}'
-    tweet_table: "twitter_tweet"
-    user_table: "twitter_user"
+    tweet_table: "twitter_tweetss"
+    user_table: "twitter_userss"
     etlType: 'followers' #keyowrd(default), username, followers,
     etlTerms:
       - '@eLife'

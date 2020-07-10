@@ -11,7 +11,8 @@ from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
 from bigquery_schema_generator.generate_schema import SchemaGenerator
 
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
+
 LOGGER = logging.getLogger(__name__)
 
 MAX_ROWS_INSERTABLE = 1000
@@ -50,6 +51,10 @@ def load_file_into_bq(
     job_config.source_format = source_format
     if source_format is bigquery.SourceFormat.CSV:
         job_config.skip_leading_rows = rows_to_skip
+
+    print('\n\n')
+    print(read_file_content(filename))
+    print('\n\n')
 
     with open(filename, "rb") as source_file:
         job = client.load_table_from_file(

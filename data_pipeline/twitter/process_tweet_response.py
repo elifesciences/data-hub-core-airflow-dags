@@ -8,7 +8,7 @@ from data_pipeline.utils.record_processing import standardize_record_keys
 
 
 def extract_tweet_from_twitter_response(record):
-    extracted_tweet ={
+    extracted_tweet = {
         TwitterPipelineModuleConstants.TWEET_AUTHOR_ID:
             record.get('user', {}).get('id'),
         TwitterPipelineModuleConstants.TWEET_AUTHOR_USERNAME:
