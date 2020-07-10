@@ -1,0 +1,43 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: 'data_hub_import_timestamp'
+twitterPipeline:
+  - dataset: '{ENV}'
+    tweet_table: "twitter_tweet"
+    user_table: "twitter_user"
+    etlType: 'keyword' #keyowrd(default), username, followers,
+    etlTerms:
+      - '#virology'
+      - '#bacteriology'
+      - '#pathology'
+      - '#parasitology'
+      - '#mycology'
+      - '#microbes'
+      - '#microbiome'
+      - '#phytopathology'
+    defaultStartTime: '2018-01-01'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-keyword-search-state'
+  - dataset: '{ENV}'
+    tweet_table: "twitter_tweet"
+    user_table: "twitter_user"
+    etlType: 'username' #keyowrd(default), username, followers,
+    etlTerms:
+      - '@eLife'
+      - '@eLifecommunity'
+      - '@eLifeinnovation'
+      - '@PreprintReview'
+    defaultStartTime: '2018-01-01'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'
+  - dataset: '{ENV}'
+    tweet_table: "twitter_tweet"
+    user_table: "twitter_user"
+    etlType: 'followers' #keyowrd(default), username, followers,
+    etlTerms:
+      - '@eLife'
+      - '@eLifecommunity'
+      - '@eLifeinnovation'
+      - '@PreprintReview'
+    defaultStartTime: '2018-01-01'

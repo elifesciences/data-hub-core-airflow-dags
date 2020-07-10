@@ -1,0 +1,96 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "author_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "author_username",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "favorites_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "formatted_date",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "quoted_status_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "replied_to_tweet_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "replied_to_user_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "replies_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweeted_tweet_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "retweets_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "tweet_id",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "tweet_text",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "tweets_author_followers_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "REPEATED",
+    "name": "urls",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "fields": [
+          {
+            "mode": "REPEATED",
+            "name": "keywords",
+            "type": "STRING"
+          }
+        ],
+        "mode": "NULLABLE",
+        "name": "annotation",
+        "type": "RECORD"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "data_hub_timestamp",
+        "type": "TIMESTAMP"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "provenance",
+    "type": "RECORD"
+  }
+]

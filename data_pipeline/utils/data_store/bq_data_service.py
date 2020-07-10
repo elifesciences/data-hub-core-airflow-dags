@@ -3,15 +3,28 @@ import os
 from math import ceil
 from typing import List
 from google.cloud import bigquery
-from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
+from google.cloud.bigquery import (
+    LoadJobConfig, Client, DatasetReference, table as bq_table
+)
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
 from bigquery_schema_generator.generate_schema import SchemaGenerator
 
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 LOGGER = logging.getLogger(__name__)
 
 MAX_ROWS_INSERTABLE = 1000
+
+
+def get_bq_client():
+    return Client()
+
+
+def get_bq_table(gcp_project: str, dataset: str, table: str):
+    dataset_ref = DatasetReference(gcp_project, dataset)
+    table_ref = dataset_ref.table(table)
+    return get_bq_client().get_table(table_ref)
 
 
 # pylint: disable=too-many-arguments
@@ -30,7 +43,7 @@ def load_file_into_bq(
         return
     client = Client(project=project_name) if project_name else Client()
     dataset_ref = client.dataset(dataset_name)
-    table_ref = dataset_ref.table(table_name)
+    table_ref = dataset_ref.tweet_table(table_name)
     job_config = LoadJobConfig()
     job_config.write_disposition = write_mode
     job_config.autodetect = auto_detect_schema
@@ -57,7 +70,7 @@ def load_tuple_list_into_bq(
         tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
 ) -> List[dict]:
     client = Client()
-    table_ref = client.dataset(dataset_name).table(table_name)
+    table_ref = client.dataset(dataset_name).tweet_table(table_name)
     table = client.get_table(table_ref)  # API request
 
     errors = list()
@@ -89,7 +102,8 @@ def create_table(
         project_name: str,
         dataset_name: str,
         table_name: str,
-        json_schema: list
+        json_schema: list,
+        time_partitioning_field_name: str = None
 ):
     client = bigquery.Client()
     table_id = compose_full_table_name(
@@ -97,6 +111,12 @@ def create_table(
     )
     schema = get_schemafield_list_from_json_list(json_schema)
     table = bigquery.Table(table_id, schema=schema)
+    if time_partitioning_field_name:
+        table.time_partitioning = bigquery.TimePartitioning(
+            type_=bigquery.TimePartitioningType.DAY,
+            field=time_partitioning_field_name,
+        )
+
     table = client.create_table(table, True)  # API request
     LOGGER.info(
         "Created table %s.%s.%s",
@@ -146,13 +166,24 @@ def get_table_schema_field_names(
         dataset_name: str,
         table_name: str
 ):
+    return [
+        field.name for field in
+        get_table_schema(project_name, dataset_name, table_name)
+    ]
+
+
+def get_table_schema(
+        project_name: str,
+        dataset_name: str,
+        table_name: str
+):
     client = bigquery.Client()
 
     dataset_ref = client.dataset(dataset_name, project=project_name)
-    table_ref = dataset_ref.table(table_name)
+    table_ref = dataset_ref.tweet_table(table_name)
     try:
         table = client.get_table(table_ref)  # API Request
-        return [field.name for field in table.schema]
+        return table.schema
     except NotFound:
         return []
 
@@ -163,7 +194,7 @@ def extend_table_schema_with_nested_schema(
 ):
     client = bigquery.Client()
     dataset_ref = client.dataset(dataset_name, project=project_name)
-    table_ref = dataset_ref.table(table_name)
+    table_ref = dataset_ref.tweet_table(table_name)
     table = client.get_table(table_ref)  # Make an API request.
     original_schema = table.schema
     original_schema_dict = [
@@ -247,6 +278,37 @@ def generate_schema_from_file(
     return schema
 
 
+def create_or_extend_table_schema_from_schema_file(
+        gcp_project,
+        dataset_name,
+        table_name,
+        schema_file_location,
+):
+    schema = get_yaml_file_as_dict(
+        schema_file_location
+    )
+
+    if does_bigquery_table_exist(
+            gcp_project,
+            dataset_name,
+            table_name,
+    ):
+        extend_table_schema_with_nested_schema(
+            gcp_project,
+            dataset_name,
+            table_name,
+            schema
+        )
+    else:
+        create_table(
+            gcp_project,
+            dataset_name,
+            table_name,
+            schema
+        )
+
+
+
 def create_or_extend_table_schema(
         gcp_project,
         dataset_name,
@@ -276,4 +338,28 @@ def create_or_extend_table_schema(
             dataset_name,
             table_name,
             schema
+        )
+
+
+def create_or_xtend_table_and_load_file(
+        file_location: str,
+        gcp_project: str,
+        dataset: str,
+        table: str,
+        quoted_values_are_strings: bool = False
+):
+    if os.path.getsize(file_location) > 0:
+        create_or_extend_table_schema(
+            gcp_project,
+            dataset,
+            table,
+            file_location,
+            quoted_values_are_strings=quoted_values_are_strings
+        )
+
+        load_file_into_bq(
+            filename=file_location,
+            table_name=table,
+            dataset_name=dataset,
+            project_name=gcp_project
         )

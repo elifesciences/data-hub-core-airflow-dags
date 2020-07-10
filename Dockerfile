@@ -24,6 +24,10 @@ COPY --chown=airflow:airflow dags ./dags
 COPY --chown=airflow:airflow setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
+RUN mkdir /usr/local/airflow/auxiliary_data_pipeline_files
+ENV AIRFLOW_APPLICATIONS_DIRECTORY_PATH /usr/local/airflow/auxiliary_data_pipeline_files
+COPY app_aux_files ./auxiliary_data_pipeline_files/app_aux_files
+
 COPY .pylintrc ./.pylintrc
 COPY --chown=airflow:airflow tests ./tests
 COPY --chown=airflow:airflow run_test.sh ./

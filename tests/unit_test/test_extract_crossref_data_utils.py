@@ -16,7 +16,7 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_datetime_to_date_string,
 )
 from data_pipeline.utils.pipeline_file_io import (
-    iter_write_jsonl_to_file
+    iter_write_jsonl_to_file_process_batch
 )
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
@@ -85,7 +85,7 @@ def test_should_write_result_to_file(mock_open_file):
             test_data.data_imported_timestamp,
             test_data.source_data_schema)
     )
-    written_json = iter_write_jsonl_to_file(
+    written_json = iter_write_jsonl_to_file_process_batch(
         results,
         "tempfileloc"
     )

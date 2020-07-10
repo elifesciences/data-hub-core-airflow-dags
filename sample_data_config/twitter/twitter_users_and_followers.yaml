@@ -1,0 +1,15 @@
+gcpProjectName: 'elife-data-pipeline'
+  - dataset: '{ENV}'
+    followersTable: 'elife_twitter'
+    historicalFollowersTable: 'historical_elife_twitter'
+    tweetsTable: ''
+    historicalTweetsTable: ''
+    userNames:
+      - @eLifecommunity
+      - @eLife
+      - @eLifeinnovation
+      - @PreprintReview
+    defaultStartTime:  '2012-01-01 10:00:00'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/twitter/state/{ENV}-twitter-user-names-profile-state.json'

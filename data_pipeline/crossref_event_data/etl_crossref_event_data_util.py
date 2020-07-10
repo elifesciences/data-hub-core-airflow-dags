@@ -9,7 +9,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object
 )
 from data_pipeline.utils.pipeline_file_io import (
-    iter_write_jsonl_to_file
+    iter_write_jsonl_to_file_process_batch
 )
 
 
@@ -232,7 +232,7 @@ def per_doi_download_page_etl(
     n_results = preprocess_json_record(
         results, imported_timestamp_key, imported_timestamp, schema
     )
-    written_json_record = iter_write_jsonl_to_file(
+    written_json_record = iter_write_jsonl_to_file_process_batch(
         n_results, full_temp_file_location
     )
 

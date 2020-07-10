@@ -7,3 +7,4 @@ pip install  --user -r $DIR/requirements.txt
 
 pip install -e $DIR/ --user --no-dependencies
 cp $DIR/dags $1 -r
+cp $DIR/app_aux_files $2/ -r
