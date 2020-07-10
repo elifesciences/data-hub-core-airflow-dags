@@ -17,7 +17,6 @@ from data_pipeline.utils.record_processing import add_provenance_to_record, stan
 
 LOGGER = logging.getLogger(__name__)
 
-ExtractedRetweetEntities = collections.namedtuple('ExtractedRetweetEntities', ['retweet', 'original_tweet', 'user'])
 
 
 def _limit_handled(cursor: BaseIterator):
@@ -134,10 +133,10 @@ def iter_process_retweets(
             }
             retweeter['referenced_twitter_user'] = ref_user
 
-        yield ExtractedRetweetEntities(retweet, original_tweet, retweeter)
+        yield  retweet, original_tweet, retweeter
 
 
-def etl_user_followerss(
+def etl_user_followers(
         user_name: str,
         tweepy_api: TwitterRestApi,
         twitter_config: TwitterDataPipelineConfig,
@@ -180,27 +179,27 @@ def extract_retweeter_and_tweets(full_retweet: dict):
     return retweet, original_tweet, retweeter
 
 
-def etl_user_followers(
+def etl_user_retweets(
         user_name: str,
         tweepy_api: TwitterRestApi,
         twitter_config: TwitterDataPipelineConfig,
         latest_data_pipeline_timestamp: str
 ):
     iter_user_followers = tweepy_api.get_all_retweets_of_all_api_restricted_tweets_of_user(user_name)
-    kl = iter_process_retweets(
+    iter_processed_records = iter_process_retweets(
         twitter_config,
         iter_user_followers, user_name,
         latest_data_pipeline_timestamp
     )
 
-    kl1 = [
+    retweet_write_config = [
         WriteIterRecordsInBQConfig(twitter_config.tweet_table),
         WriteIterRecordsInBQConfig(twitter_config.tweet_table),
         WriteIterRecordsInBQConfig(twitter_config.user_table)
     ]
     iter_written_records = batch_load_multi_iter_record_to_bq(
-        kl,
-        kl1,
+        iter_processed_records,
+        retweet_write_config,
         twitter_config.gcp_project,
         twitter_config.dataset,
         batch_size=5

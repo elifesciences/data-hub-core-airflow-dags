@@ -52,10 +52,6 @@ def load_file_into_bq(
     if source_format is bigquery.SourceFormat.CSV:
         job_config.skip_leading_rows = rows_to_skip
 
-    print('\n\n')
-    print(read_file_content(filename))
-    print('\n\n')
-
     with open(filename, "rb") as source_file:
         job = client.load_table_from_file(
             source_file, destination=table_ref, job_config=job_config
@@ -353,7 +349,6 @@ def create_or_xtend_table_and_load_file(
         table: str,
         quoted_values_are_strings: bool = False
 ):
-    print(file_location, gcp_project, dataset, table)
     if os.path.getsize(file_location) > 0:
         create_or_extend_table_schema(
             gcp_project,
