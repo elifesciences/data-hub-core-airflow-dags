@@ -1,5 +1,5 @@
-import enum
 import os
+import enum
 
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
@@ -23,6 +23,8 @@ class EtlType(enum.Enum):
     Keyword = 'keyword'
     Username = 'username'
     Followers = 'followers'
+    Retweets = 'retweets'
+    MentionsReplies = 'mentions-and-replies'
 
 
 class MultiTwitterPipelineConfig:
@@ -68,7 +70,9 @@ class TwitterDataPipelineConfig:
         self.etl_type = {
             'keyword': EtlType.Keyword,
             'username': EtlType.Username,
-            'followers': EtlType.Followers
+            'followers': EtlType.Followers,
+            'retweets': EtlType.Retweets,
+            'mentions-and-replies': EtlType.MentionsReplies
         }.get(t_config.get('etlType', 'keyword').lower())
         self.etl_terms = [
             (

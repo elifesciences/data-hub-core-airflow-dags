@@ -21,7 +21,7 @@ x-airflow-env:
     - S3_CSV_CONFIG_FILE_PATH=/usr/local/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
     - WEB_API_CONFIG_FILE_PATH=/usr/local/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
     - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
-    - TWITTER_USER_AND_KEYWORD_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
+    - TWITTER_KEYWORD_MENTIONS_REPLIES_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - TWITTER_USER_FOLLOWERS_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - TWITTER_USER_RETWEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - TWITTER_AUTH_YAML_FILE=/usr/local/airflow/app-config/twitter/twitter_auth.yaml

@@ -4,7 +4,7 @@ twitterPipeline:
   - dataset: '{ENV}'
     tweet_table: "twitter_tweetss"
     user_table: "twitter_userss"
-    etlType: 'keyword' #keyowrd(default), username, followers,
+    etlType: 'keyword' #keyowrd(default), username, followers, retweets, mentions-and-replies
     etlTerms:
       - '#virology'
       - '#bacteriology'
@@ -21,7 +21,7 @@ twitterPipeline:
   - dataset: '{ENV}'
     tweet_table: "twitter_tweetss"
     user_table: "twitter_userss"
-    etlType: 'username' #keyowrd(default), username, followers,
+    etlType: 'username' #keyowrd(default), username, followers, retweets
     etlTerms:
       - '@eLife'
       - '@eLifecommunity'
@@ -34,10 +34,23 @@ twitterPipeline:
   - dataset: '{ENV}'
     tweet_table: "twitter_tweetss"
     user_table: "twitter_userss"
-    etlType: 'followers' #keyowrd(default), username, followers,
+    etlType: 'followers' #keyowrd(default), username, followers, retweets, mentions-and-replies
     etlTerms:
       - '@eLife'
       - '@eLifecommunity'
       - '@eLifeinnovation'
       - '@PreprintReview'
     defaultStartTime: '2018-01-01'
+  - dataset: '{ENV}'
+    tweet_table: "twitter_tweetss"
+    user_table: "twitter_userss"
+    etlType: 'retweets' #keyowrd(default), username, followers, retweets, mentions-and-replies
+    etlTerms:
+      - '@eLife'
+      - '@eLifecommunity'
+      - '@eLifeinnovation'
+      - '@PreprintReview'
+    defaultStartTime: '2018-01-01'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'

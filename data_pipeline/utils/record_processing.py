@@ -60,6 +60,7 @@ def strip_quotes(val):
     return n_val
 
 
+# pylint: disable=too-many-arguments
 def add_provenance_to_record(
         record: dict,
         current_etl_time: str,
@@ -68,16 +69,16 @@ def add_provenance_to_record(
         annotation_field_name: str = 'annotation',
         record_annotation: dict = None
 ):
-        provenance = {
-            provenance_field_name: {
-                timestamp_field_name: current_etl_time,
-                annotation_field_name: record_annotation
-            }
+    provenance = {
+        provenance_field_name: {
+            timestamp_field_name: current_etl_time,
+            annotation_field_name: record_annotation
         }
-        return {
-            **record,
-            **provenance
-        }
+    }
+    return {
+        **record,
+        **provenance
+    }
 
 
 def iter_add_provenance(

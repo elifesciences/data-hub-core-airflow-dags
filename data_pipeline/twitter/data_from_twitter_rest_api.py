@@ -1,7 +1,9 @@
-import collections
 import time
 import logging
+from typing import Iterable
+
 import tweepy
+from google.cloud.bigquery.client import Client
 from tweepy import API
 from tweepy.cursor import BaseIterator
 
@@ -9,14 +11,20 @@ from data_pipeline.twitter.process_tweet_response import (
     extract_tweet_from_twitter_response,
     modify_by_search_term_occurrence_location_in_response
 )
-from data_pipeline.twitter.twitter_bq_util import batch_load_iter_record_to_bq, batch_load_multi_iter_record_to_bq
-from data_pipeline.twitter.twitter_config import TwitterDataPipelineConfig, TweetType
+from data_pipeline.twitter.twitter_bq_util import (
+    batch_load_iter_record_to_bq, batch_load_multi_iter_record_to_bq
+)
+from data_pipeline.twitter.twitter_config import (
+    TwitterDataPipelineConfig, TweetType
+)
+from data_pipeline.utils.data_store.bq_data_service import get_bq_table
 from data_pipeline.utils.pipeline_file_io import WriteIterRecordsInBQConfig
 
-from data_pipeline.utils.record_processing import add_provenance_to_record, standardize_record_keys
+from data_pipeline.utils.record_processing import (
+    add_provenance_to_record, standardize_record_keys
+)
 
 LOGGER = logging.getLogger(__name__)
-
 
 
 def _limit_handled(cursor: BaseIterator):
@@ -38,30 +46,40 @@ class TwitterRestApi:
     def get_api_restricted_followers_of_user(self, twitter_username: str):
         twitter_username = twitter_username.rstrip('@')
         for followers in _limit_handled(
-                tweepy.Cursor(self.tweepy_api.followers, id=twitter_username, count=1000).pages()
+                tweepy.Cursor(
+                    self.tweepy_api.followers, id=twitter_username, count=1000
+                ).pages()
         ):
             for follower in followers:
                 yield extract_user_properties_to_dict(follower._json)
 
     def get_latest_api_restricted_tweets_from_user(self, twitter_username):
         twitter_username = twitter_username.rstrip('@')
-        for tweets in _limit_handled(tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()):
+        for tweets in _limit_handled(
+                tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()
+        ):
             for tweet in tweets:
                 yield tweet
 
     def get_all_retweets_of_a_tweet(self, tweet_id: int):
         try:
-            retweets_list = self.tweepy_api.retweets(tweet_id, tweet_mode='extended', count=10000)
+            retweets_list = self.tweepy_api.retweets(
+                tweet_id, tweet_mode='extended', count=10000
+            )
         except tweepy.RateLimitError:
             time.sleep(15 * 60)
-            retweets_list = self.tweepy_api.retweets(tweet_id, tweet_mode='extended', count=10000)
+            retweets_list = self.tweepy_api.retweets(
+                tweet_id, tweet_mode='extended', count=10000
+            )
 
         for retweet in retweets_list:
             yield retweet
 
     def get_all_retweets_of_all_api_restricted_tweets_of_user(self, twitter_username: str):
         twitter_username = twitter_username.rstrip('@')
-        for tweets in _limit_handled(tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()):
+        for tweets in _limit_handled(
+                tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()
+        ):
             for tweet in tweets:
 
                 tweet_id = tweet.id
@@ -163,7 +181,8 @@ def extract_user_properties_to_dict(user: dict):
         resp_key: user.get(resp_key)
         for resp_key in [
             'id', 'name', 'screen_name', 'location', 'description', 'followers_count',
-            'friends_count', 'listed_count', 'favourites_count','statuses_count', 'created_at'
+            'friends_count', 'listed_count', 'favourites_count',
+            'statuses_count', 'created_at'
         ]
     }
 
@@ -185,24 +204,79 @@ def etl_user_retweets(
         twitter_config: TwitterDataPipelineConfig,
         latest_data_pipeline_timestamp: str
 ):
-    iter_user_followers = tweepy_api.get_all_retweets_of_all_api_restricted_tweets_of_user(user_name)
+    iter_user_followers = (
+        tweepy_api.get_all_retweets_of_all_api_restricted_tweets_of_user(
+            user_name
+        )
+    )
     iter_processed_records = iter_process_retweets(
         twitter_config,
         iter_user_followers, user_name,
         latest_data_pipeline_timestamp
     )
+    iter_written_records = iter_stream_write_entities_from_retweets(
+        iter_processed_records,
+        twitter_config
+    )
+    '''
+    iter_written_records = iter_batch_load_entities_from_retweets(
+        iter_processed_records,
+        twitter_config
+    )
+    '''
+    for _ in iter_written_records:
+        continue
 
+
+def iter_stream_write_entities_from_retweets(
+        iter_processed_records,
+        twitter_config: TwitterDataPipelineConfig,
+
+):
+    bq_client = Client()
+    tweet_table = get_bq_table(
+        twitter_config.gcp_project,
+        twitter_config.dataset,
+        twitter_config.tweet_table
+    )
+    user_table = get_bq_table(
+        twitter_config.gcp_project,
+        twitter_config.dataset,
+        twitter_config.user_table
+    )
+    for record in iter_processed_records:
+        bq_client.insert_rows_json(
+            table=tweet_table, json_rows=[record[0], record[1]]
+        )
+        bq_client.insert_rows_json(
+            table=user_table, json_rows=[record[2]]
+        )
+        yield record
+
+
+def iter_batch_load_entities_from_retweets(
+        iter_processed_records: Iterable,
+        twitter_config: TwitterDataPipelineConfig,
+):
     retweet_write_config = [
         WriteIterRecordsInBQConfig(twitter_config.tweet_table),
         WriteIterRecordsInBQConfig(twitter_config.tweet_table),
         WriteIterRecordsInBQConfig(twitter_config.user_table)
     ]
+
     iter_written_records = batch_load_multi_iter_record_to_bq(
         iter_processed_records,
         retweet_write_config,
         twitter_config.gcp_project,
         twitter_config.dataset,
-        batch_size=5
+        batch_size=5000
     )
-    for _ in iter_written_records:
-        continue
+    yield from iter_written_records
+
+
+def get_query_for_selecting_tweets_for_x():
+    query = '''
+    
+    
+    '''
+    pass

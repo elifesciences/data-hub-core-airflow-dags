@@ -1,6 +1,5 @@
 import os
 from contextlib import ExitStack, contextmanager
-from itertools import zip_longest
 from typing import IO, Union, List
 from typing import Iterable, Callable
 import json
@@ -93,16 +92,17 @@ def iter_multi_write_jsonl_to_file_process_batch(
 
     with get_opened_temp_file_for_tweet_response_types(iter_write_to_bq) as file_writer:
         for record in iter_multi_record:
-            for ind in range(len(iter_write_to_bq)):
+            for ind, iter_write in enumerate(iter_write_to_bq):
                 write_file_batch_process(
                     record[ind],
                     file_writer[ind],
-                    iter_write_to_bq[ind].batch_processing
+                    iter_write.batch_processing
                 )
             yield record
-        write_file_batch_process(
-            batch_processing=iter_write_to_bq[ind].batch_processing
-        )
+        for iter_write in iter_write_to_bq:
+            write_file_batch_process(
+                batch_processing=iter_write.batch_processing
+            )
 
 
 def write_file_batch_process(

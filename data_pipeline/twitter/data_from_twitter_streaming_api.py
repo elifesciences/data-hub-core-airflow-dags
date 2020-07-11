@@ -52,7 +52,7 @@ class TransformAndLoadListener(StreamListener):
         num_workers = num_workers or 1
         self._spin_worker(num_workers, worker_func)
         self.filter_regex_pattern = re.compile(
-            '|'.join(streaming_config.search_terms).lower())
+            '|'.join(streaming_config.etl_terms).lower())
         self.tweet_counter = 0
 
     def _spin_worker(self, num_workers, worker_func):
@@ -90,7 +90,7 @@ class TransformAndLoadListener(StreamListener):
                         self.streaming_config.timestamp_field_name,
                         self.streaming_config.provenance_field_name,
                         annotation_field_name='annotation',
-                        record_annotation={'keywords': self.streaming_config.search_terms}
+                        record_annotation={'keywords': self.streaming_config.etl_terms}
                     )
                 )
             record = record.get('retweeted_status') or record.get('quoted_status')
@@ -111,6 +111,6 @@ def etl_track_keywords(
     tl_listener = TransformAndLoadListener(streaming_config, num_workers=10)
     tweepy_streaming_api = Stream(authorized_oauth, tl_listener, )
     tweepy_streaming_api.filter(
-        track=streaming_config.search_terms,
+        track=streaming_config.etl_terms,
         is_async=False
     )

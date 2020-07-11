@@ -11,7 +11,7 @@ from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
 from bigquery_schema_generator.generate_schema import SchemaGenerator
 
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 LOGGER = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ def load_tuple_list_into_bq(
         tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
 ) -> List[dict]:
     client = Client()
-    table_ref = client.dataset(dataset_name).able(table_name)
+    table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
 
     errors = list()

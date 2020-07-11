@@ -24,10 +24,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 def iter_search_get_old_tweets(
-        search_term, tweet_from: List = None,
+        search_term: str = None, tweet_from: List = None,
         tweet_to: List = None, tweet_from_date: str = None,
 ):
-    tweet_criteria = TCriteria().setQuerySearch(search_term)
+    tweet_criteria = TCriteria()
+    if search_term:
+        tweet_criteria.setQuerySearch(search_term)
     if tweet_from:
         tweet_criteria = tweet_criteria.setUsername(tweet_from)
     if tweet_to:
@@ -85,14 +87,18 @@ def get_stored_state_for_term(search_term: str, twitter_config: TwitterDataPipel
 
 
 def etl_search_term_by_scraping(
-        search_term: str,
         twitter_config: TwitterDataPipelineConfig,
         tweet_type_filter_list: List[TweetType],
+        search_term: str = None,
+        user_name: str = None,
         latest_data_pipeline_timestamp: str = None,
 ):
     stored_state = get_stored_state_for_term(search_term, twitter_config)
+    if user_name and search_term is None:
+        search_term = user_name.lstrip().lstrip('@')
     iter_tweets = iter_search_get_old_tweets(
         search_term=search_term,
+        tweet_from=[user_name],
         tweet_from_date=stored_state
     )
     iter_processed_tweets = iter_process_filter_tweet(
