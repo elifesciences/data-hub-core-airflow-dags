@@ -134,7 +134,7 @@ def iter_process_retweets(
     for retweet in retweets:
         if (r_ind % 200) == 0:
             LOGGER.info(
-                "processed %d followers of %s",
+                "processed %d retweets  of tweets of user %s",
                 r_ind, referenced_twitter_user
             )
         r_ind += 1

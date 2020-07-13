@@ -80,8 +80,8 @@ def extract_tweet_properties_to_dict(tweet: Tweet):
                 {
                     TwitterPipelineModuleConstants.USER_SCREEN_NAME:
                         mention
-                } for mention in tweet.mentions.split('@')
-            ] if tweet.mentions else [],
+                } for mention in tweet.mentions.split('@') if mention.strip()
+            ] if tweet.mentions else None,
         TwitterPipelineModuleConstants.TWEET_TEXT: tweet.text,
         TwitterPipelineModuleConstants.TWEET_AUTHOR_USERNAME:
             tweet.username,
