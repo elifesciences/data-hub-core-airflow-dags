@@ -8,4 +8,4 @@ cloudpickle==1.4.1
 dask[complete]==2.18.1
 distributed==2.19.0
 google-api-python-client==1.9.3
-bigquery-schema-generator==1.0
+bigquery-schema-generator==1.1
