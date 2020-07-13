@@ -1,14 +1,15 @@
 import os
 from pathlib import Path
-from typing import List
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
 from data_pipeline.twitter.data_from_twitter_rest_api import TwitterRestApi
-from data_pipeline.twitter.etl_twitter import etl_get_users_followers, create_twitter_data_pipeline_tables
+from data_pipeline.twitter.etl_twitter import (
+    etl_get_users_followers, create_twitter_data_pipeline_tables
+)
 from data_pipeline.twitter.twiter_auth import get_authorized_from_file
 from data_pipeline.twitter.twitter_config import (
-    EtlType, get_filtered_pipeline_conf, TwitterDataPipelineConfig
+    EtlType, get_filtered_pipeline_conf
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
@@ -30,8 +31,9 @@ AUX_FILES_DIRECTORY_ENV_NAME = (
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 
 
+# pylint: disable=unused-argument,expression-not-assigned
 def create_twitter_table_if_not_exist(**kwargs):
-    pipeline_conf_list: List[TwitterDataPipelineConfig] = get_filtered_pipeline_conf(
+    pipeline_conf_list = get_filtered_pipeline_conf(
         EtlType.Followers, DEPLOYMENT_ENV_ENV_NAME,
         TWITTER_USER_FOLLOWERS_CONFIG_FILE_PATH_ENV_NAME
     )

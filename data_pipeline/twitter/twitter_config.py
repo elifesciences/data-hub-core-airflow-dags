@@ -128,10 +128,14 @@ class TwitterPipelineModuleConstants:
     RETWEETED_TWEET_ID = 'retweeted_tweet_id'
     QUOTED_STATUS_ID = 'quoted_status_id'
     USER_ID = 'user_id'
+    USER_SCREEN_NAME = 'screen_name'
     USER_NAME = 'user_name'
     USER_MENTIONS = 'user_mentions'
     REPLIED_TO_TWEET_ID = 'replied_to_tweet_id'
     REPLIED_TO_USER_ID = 'replied_to_user_id'
+    DESCRIPTION = 'description'
+    LISTED_COUNT = 'listed_count'
+    STATUSES_COUNT = 'statuses_count'
 
 
 def get_filtered_pipeline_conf(

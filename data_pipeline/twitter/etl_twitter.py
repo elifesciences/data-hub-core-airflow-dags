@@ -10,7 +10,9 @@ from data_pipeline.twitter.twitter_config import ETL_TIMESTAMP_FORMAT
 from data_pipeline.twitter.data_from_twitter_rest_api import (
     etl_user_followers, TwitterRestApi, etl_user_retweets
 )
-from data_pipeline.utils.data_store.bq_data_service import create_table_if_not_exist
+from data_pipeline.utils.data_store.bq_data_service import (
+    create_table_if_not_exist
+)
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 

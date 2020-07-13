@@ -64,10 +64,10 @@ def test_should_load_file_into_bq(
     mock_bq_client.assert_called_once()
     mock_bq_client.return_value.dataset.assert_called_with(dataset_name)
     mock_bq_client.return_value.dataset(
-        dataset_name).tweet_table.assert_called_with(table_name)
+        dataset_name).table.assert_called_with(table_name)
 
     table_ref = mock_bq_client.return_value.dataset(
-        dataset_name).tweet_table(table_name)
+        dataset_name).table(table_name)
     mock_bq_client.return_value.load_table_from_file.assert_called_with(
         source_file, destination=table_ref,
         job_config=mock_load_job_config.return_value)
@@ -91,7 +91,7 @@ def test_should_load_rows_of_tuples_into_bq(mock_bq_client):
     mock_bq_client.assert_called_once()
     mock_bq_client.return_value.dataset.assert_called_with(dataset_name)
     mock_bq_client.return_value.dataset(
-        dataset_name).tweet_table.assert_called_with(table_name)
+        dataset_name).table.assert_called_with(table_name)
 
 
 def test_count_of_iteration_when_loading_list_of_rows_into_bq(mock_bq_client):

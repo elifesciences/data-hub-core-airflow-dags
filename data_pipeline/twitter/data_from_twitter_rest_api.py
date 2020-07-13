@@ -4,7 +4,7 @@ from typing import Iterable
 
 import tweepy
 from google.cloud.bigquery.client import Client
-from tweepy import API
+from tweepy import API, User
 from tweepy.cursor import BaseIterator
 
 from data_pipeline.twitter.process_tweet_response import (
@@ -15,7 +15,8 @@ from data_pipeline.twitter.twitter_bq_util import (
     batch_load_iter_record_to_bq, batch_load_multi_iter_record_to_bq
 )
 from data_pipeline.twitter.twitter_config import (
-    TwitterDataPipelineConfig, TweetType
+    TwitterDataPipelineConfig, TweetType,
+    TwitterPipelineModuleConstants, ETL_TIMESTAMP_FORMAT
 )
 from data_pipeline.utils.data_store.bq_data_service import get_bq_table
 from data_pipeline.utils.pipeline_file_io import WriteIterRecordsInBQConfig
@@ -51,7 +52,7 @@ class TwitterRestApi:
                 ).pages()
         ):
             for follower in followers:
-                yield extract_user_properties_to_dict(follower._json)
+                yield extract_user_properties_to_dict(follower)
 
     def get_latest_api_restricted_tweets_from_user(self, twitter_username):
         twitter_username = twitter_username.rstrip('@')
@@ -131,14 +132,14 @@ def iter_process_retweets(
 ):
     r_ind = 0
     for retweet in retweets:
-        if (r_ind % 2) == 0:
+        if (r_ind % 200) == 0:
             LOGGER.info(
                 "processed %d followers of %s",
                 r_ind, referenced_twitter_user
             )
         r_ind += 1
         retweet, original_tweet, retweeter = (
-            extract_retweeter_and_tweets(retweet._json)
+            extract_retweeter_and_tweets(retweet)
         )
         # TweetType.Mention
         original_tweet = modify_by_search_term_occurrence_location_in_response(
@@ -194,25 +195,32 @@ def etl_user_followers(
         continue
 
 
-def extract_user_properties_to_dict(user: dict):
+def extract_user_properties_to_dict(user: User):
     return {
-        resp_key: user.get(resp_key)
-        for resp_key in [
-            'id', 'name', 'screen_name', 'location',
-            'description', 'followers_count',
-            'friends_count', 'listed_count', 'favourites_count',
-            'statuses_count', 'created_at'
-        ]
+        TwitterPipelineModuleConstants.USER_ID: user.id,
+        TwitterPipelineModuleConstants.USER_NAME: user.name,
+        TwitterPipelineModuleConstants.USER_SCREEN_NAME:
+            user.screen_name,
+        TwitterPipelineModuleConstants.USER_LOCATION: user.location,
+        TwitterPipelineModuleConstants.DESCRIPTION: user.description,
+        TwitterPipelineModuleConstants.FOLLOWERS_COUNT:
+            user.followers_count,
+        TwitterPipelineModuleConstants.FRIENDS_COUNT: user.friends_count,
+        TwitterPipelineModuleConstants.LISTED_COUNT: user.listed_count,
+        TwitterPipelineModuleConstants.FAVORITES_COUNT: user.favourites_count,
+        TwitterPipelineModuleConstants.STATUSES_COUNT: user.statuses_count,
+        TwitterPipelineModuleConstants.FORMATTED_DATE:
+            user.created_at.strftime(ETL_TIMESTAMP_FORMAT)
     }
 
 
 # pylint:  disable=too-many-arguments
-def extract_retweeter_and_tweets(full_retweet: dict):
+def extract_retweeter_and_tweets(full_retweet):
     retweet = extract_tweet_from_twitter_response(full_retweet)
     original_tweet = extract_tweet_from_twitter_response(
-        full_retweet.get('retweeted_status', {})
+        full_retweet.retweeted_status
     )
-    retweeter = extract_user_properties_to_dict(full_retweet.get('user'))
+    retweeter = extract_user_properties_to_dict(full_retweet.user)
 
     return retweet, original_tweet, retweeter
 
@@ -292,9 +300,3 @@ def iter_batch_load_entities_from_retweets(
         batch_size=5000
     )
     yield from iter_written_records
-
-
-def get_query_for_selecting_tweets_for_x():
-    query = '''
-    '''
-    pass

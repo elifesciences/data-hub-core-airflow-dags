@@ -1,5 +1,4 @@
 from typing import List
-from dateutil.parser import parse
 
 from GetOldTweets3.models import Tweet
 
@@ -12,63 +11,58 @@ from data_pipeline.utils.record_processing import standardize_record_keys
 def extract_tweet_from_twitter_response(record):
     extracted_tweet = {
         TwitterPipelineModuleConstants.TWEET_AUTHOR_ID:
-            record.get('user', {}).get('id'),
+            record.user.id,
         TwitterPipelineModuleConstants.TWEET_AUTHOR_USERNAME:
-            record.get('user', {}).get('screen_name'),
+            record.user.screen_name,
         TwitterPipelineModuleConstants.TWEETS_AUTHOR_FOLLOWERS_COUNT:
-            record.get('user', {}).get('followers_count'),
+            record.user.followers_count,
         TwitterPipelineModuleConstants.TWEET_ID:
-            record.get('id'),
+            record.id,
         TwitterPipelineModuleConstants.FORMATTED_DATE:
-            parse(
-                record.get('created_at')
-            ).strftime(ETL_TIMESTAMP_FORMAT),
+            record.created_at.strftime(ETL_TIMESTAMP_FORMAT),
         TwitterPipelineModuleConstants.TWEET_TEXT:
-            record.get('extended_tweet', {}).get(
-                'full_text', record.get('text', record.get('full_text'))
-            ),
+            record.text
+            if hasattr(record, 'text')
+            else record.full_text,
         TwitterPipelineModuleConstants.REPLIED_TO_TWEET_ID:
-            record.get('in_reply_to_status_id'),
+            record.in_reply_to_status_id,
         TwitterPipelineModuleConstants.REPLIED_TO_USER_ID:
-            record.get('in_reply_to_user_id'),
+            record.in_reply_to_user_id,
         TwitterPipelineModuleConstants.TWEET_URLS:
             (
                 [
-                    url.get('expanded_url')
-                    for url in record.get(
-                        'extended_tweet', {}
-                    ).get('entities', {}).get('urls', [])
+                    url_in_tweet['expanded_url'] for url_in_tweet in (
+                        record.entities.get('urls', [])
+                    )
                 ]
-                or record.get('urls', [])
             ),
         TwitterPipelineModuleConstants.USER_MENTIONS:
             [
                 {
                     TwitterPipelineModuleConstants.USER_ID:
                         mention.get('id'),
-                    TwitterPipelineModuleConstants.USER_NAME:
+                    TwitterPipelineModuleConstants.USER_SCREEN_NAME:
                         mention.get('screen_name')
-                } for mention in record.get(
-                    'user_mentions',
-                    record.get('entities', {}).get('user_mentions', [])
+                } for mention in (
+                    record.user_mentions
+                    if hasattr(record, 'user_mentions')
+                    else record.entities.get('user_mentions', [])
                 )
             ],
-        TwitterPipelineModuleConstants.REPLIES_COUNT:
-            record.get('reply_count'),
         TwitterPipelineModuleConstants.RETWEETS_COUNT:
-            record.get('retweet_count'),
+            record.retweet_count,
         TwitterPipelineModuleConstants.FAVORITES_COUNT:
-            record.get('favorite_count'),
+            record.favorite_count,
         TwitterPipelineModuleConstants.RETWEETED_TWEET_ID:
-            record.get('retweeted_status', {}).get('id'),
-        TwitterPipelineModuleConstants.QUOTED_STATUS_ID:
-            record.get('quoted_status_id')
+            record.retweeted_status.id
+            if hasattr(record, 'retweeted_status')
+            else None,
     }
     return standardize_record_keys(extracted_tweet)
 
 
 def extract_tweet_properties_to_dict(tweet: Tweet):
-    return {
+    extracted_tweet = {
         TwitterPipelineModuleConstants.TWEET_ID: tweet.id,
         TwitterPipelineModuleConstants.FORMATTED_DATE:
             tweet.date.strftime(ETL_TIMESTAMP_FORMAT),
@@ -81,8 +75,13 @@ def extract_tweet_properties_to_dict(tweet: Tweet):
             tweet.retweets,
         TwitterPipelineModuleConstants.FAVORITES_COUNT:
             tweet.favorites,
-        TwitterPipelineModuleConstants.TWEET_MENTIONS:
-            tweet.mentions,
+        TwitterPipelineModuleConstants.USER_MENTIONS:
+            [
+                {
+                    TwitterPipelineModuleConstants.USER_SCREEN_NAME:
+                        mention
+                } for mention in tweet.mentions.split('@')
+            ] if tweet.mentions else [],
         TwitterPipelineModuleConstants.TWEET_TEXT: tweet.text,
         TwitterPipelineModuleConstants.TWEET_AUTHOR_USERNAME:
             tweet.username,
@@ -91,6 +90,7 @@ def extract_tweet_properties_to_dict(tweet: Tweet):
             tweet.urls,
         TwitterPipelineModuleConstants.USER_LOCATION: tweet.geo,
     }
+    return standardize_record_keys(extracted_tweet)
 
 
 def modify_by_search_term_occurrence_location_in_response(

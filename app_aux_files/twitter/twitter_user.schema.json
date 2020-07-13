@@ -1,12 +1,17 @@
 [
   {
     "mode": "NULLABLE",
-    "name": "author_id",
+    "name": "user_id",
     "type": "INTEGER"
   },
   {
     "mode": "NULLABLE",
-    "name": "author_username",
+    "name": "user_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "screen_name",
     "type": "STRING"
   },
   {
@@ -17,80 +22,36 @@
   {
     "mode": "NULLABLE",
     "name": "formatted_date",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "followers_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "friends_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "statuses_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "listed_count",
+    "type": "INTEGER"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "description",
     "type": "STRING"
   },
   {
     "mode": "NULLABLE",
-    "name": "quoted_status_id",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "replied_to_tweet_id",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "replied_to_user_id",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "replies_count",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "retweeted_tweet_id",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "retweets_count",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "tweet_id",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "tweet_text",
+    "name": "user_location",
     "type": "STRING"
-  },
-  {
-    "mode": "NULLABLE",
-    "name": "tweets_author_followers_count",
-    "type": "INTEGER"
-  },
-  {
-    "mode": "REPEATED",
-    "name": "urls",
-    "type": "STRING"
-  },
-  {
-    "fields": [
-      {
-        "fields": [
-          {
-            "mode": "REPEATED",
-            "name": "keywords",
-            "type": "STRING"
-          }
-        ],
-        "mode": "NULLABLE",
-        "name": "annotation",
-        "type": "RECORD"
-      },
-      {
-        "mode": "NULLABLE",
-        "name": "data_hub_timestamp",
-        "type": "TIMESTAMP"
-      }
-    ],
-    "mode": "NULLABLE",
-    "name": "provenance",
-    "type": "RECORD"
   }
 ]

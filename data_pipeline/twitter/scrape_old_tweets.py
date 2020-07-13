@@ -108,7 +108,7 @@ def etl_search_term_by_scraping(
     stored_state = get_stored_state_for_term(search_term, twitter_config)
 
     iter_tweets = iter_search_get_old_tweets(
-        #search_term=search_term,
+        search_term=search_term,
         tweet_from=[user_name],
         tweet_from_date=stored_state
     )

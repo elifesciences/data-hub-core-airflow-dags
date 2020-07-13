@@ -107,18 +107,6 @@
    },
    {
       "mode":"NULLABLE",
-      "name":"quoted_status_id",
-      "type":"INTEGER",
-      "description":"None"
-   },
-   {
-      "mode":"NULLABLE",
-      "name":"mentions",
-      "type":"STRING",
-      "description":"None"
-   },
-   {
-      "mode":"NULLABLE",
       "name":"permalink",
       "type":"STRING",
       "description":"None"
