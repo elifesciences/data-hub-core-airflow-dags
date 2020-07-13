@@ -60,7 +60,10 @@ def get_opened_temp_file_for_tweet_response_types(
     with ExitStack() as stack:
         opened_files = [
             stack.enter_context(
-                open(file_opening_conf.file_location, file_opening_conf.write_mode)
+                open(
+                    file_opening_conf.file_location,
+                    file_opening_conf.write_mode
+                )
             )
             for file_opening_conf in file_opening_conf_list
         ]
@@ -90,17 +93,26 @@ def iter_multi_write_jsonl_to_file_process_batch(
         iter_write_to_bq: List[WriteIterRecordsInBQConfig]
 ) -> Iterable[dict]:
 
-    with get_opened_temp_file_for_tweet_response_types(iter_write_to_bq) as file_writer:
+    with get_opened_temp_file_for_tweet_response_types(
+            iter_write_to_bq
+    ) as file_writer:
         for record in iter_multi_record:
             for ind, iter_write in enumerate(iter_write_to_bq):
+                record_element = (
+                    record
+                    if len(iter_write_to_bq) == 1
+                    else record[ind]
+                )
                 write_file_batch_process(
-                    record[ind],
+                    record_element,
                     file_writer[ind],
                     iter_write.batch_processing
                 )
             yield record
-        for iter_write in iter_write_to_bq:
+
+        for ind, iter_write in enumerate(iter_write_to_bq):
             write_file_batch_process(
+                opened_file_writer=file_writer[ind],
                 batch_processing=iter_write.batch_processing
             )
 
@@ -114,6 +126,7 @@ def write_file_batch_process(
         opened_file_writer.write(json.dumps(record))
         opened_file_writer.write("\n")
     if batch_processing:
+
         opened_file_writer.flush()
         batch_processing.process_batch(opened_file_writer)
 
@@ -132,7 +145,9 @@ def write_jsonl_to_file(
                 batch_processor.process_batch(write_file)
         write_file.flush()
         if batch_processor:
-            batch_processor.process_batch(write_file, process_file_instantly=True)
+            batch_processor.process_batch(
+                write_file, process_file_instantly=True
+            )
 
 
 def read_file_content(file_location: str):
@@ -146,7 +161,9 @@ def get_yaml_file_as_dict(file_location: str) -> Union[dict, list]:
         return yaml.safe_load(yaml_file)
 
 
-def get_data_config_from_file_path_in_env_var(env_var_name: str, default_value: str = None):
+def get_data_config_from_file_path_in_env_var(
+        env_var_name: str, default_value: str = None
+):
     conf_file_path = os.getenv(
         env_var_name, default_value
     )

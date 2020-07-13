@@ -2,8 +2,10 @@ from tweepy import OAuthHandler
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 
-def get_authorized_oauth(consumer_key: str, consumer_secret: str,
-            access_token: str, access_token_secret: str):
+def get_authorized_oauth(
+        consumer_key: str, consumer_secret: str,
+        access_token: str, access_token_secret: str
+):
     authorized_oauth = OAuthHandler(consumer_key, consumer_secret)
     authorized_oauth.set_access_token(access_token, access_token_secret)
     return authorized_oauth

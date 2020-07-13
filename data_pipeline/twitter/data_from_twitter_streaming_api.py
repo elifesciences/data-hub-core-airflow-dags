@@ -4,17 +4,22 @@ from threading import Thread
 from queue import Queue
 import multiprocessing as mp
 import re
-
 import json
+
 from google.cloud.bigquery import Client
 from tweepy import Stream, StreamListener
 
-from data_pipeline.twitter.process_tweet_response import extract_tweet_from_twitter_response
+from data_pipeline.twitter.process_tweet_response import (
+    extract_tweet_from_twitter_response
+)
 from data_pipeline.twitter.twitter_config import (
-    TwitterPipelineModuleConstants, TwitterDataPipelineConfig, ETL_TIMESTAMP_FORMAT
+    TwitterPipelineModuleConstants,
+    TwitterDataPipelineConfig, ETL_TIMESTAMP_FORMAT
 )
 from data_pipeline.utils.data_store.bq_data_service import get_bq_table
-from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
+from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp_as_string
+)
 from data_pipeline.utils.record_processing import (
     add_provenance_to_record
 )
@@ -38,7 +43,8 @@ class TransformAndLoadListener(StreamListener):
 
     def __init__(
             self, streaming_config: TwitterDataPipelineConfig,
-            multi_processing: bool = None, num_workers: int = None):
+            multi_processing: bool = None, num_workers: int = None
+    ):
         super().__init__()
         self.client = Client()
         self.streaming_config = streaming_config
@@ -61,6 +67,7 @@ class TransformAndLoadListener(StreamListener):
             worker.daemon = True
             worker.start()
 
+    # pylint: disable=(arguments-differ
     def on_data(self, data):
         self.tweet_counter += 1
         if self.tweet_counter % 50 == 0:
@@ -90,10 +97,16 @@ class TransformAndLoadListener(StreamListener):
                         self.streaming_config.timestamp_field_name,
                         self.streaming_config.provenance_field_name,
                         annotation_field_name='annotation',
-                        record_annotation={'keywords': self.streaming_config.etl_terms}
+                        record_annotation={
+                            'keywords':
+                                self.streaming_config.etl_terms
+                        }
                     )
                 )
-            record = record.get('retweeted_status') or record.get('quoted_status')
+            record = (
+                record.get('retweeted_status')
+                or record.get('quoted_status')
+            )
             if not record:
                 break
         if len(tweets_in_reponse) > 0:

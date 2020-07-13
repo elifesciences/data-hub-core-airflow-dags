@@ -27,7 +27,7 @@ twitterPipeline:
       - '@eLifecommunity'
       - '@eLifeinnovation'
       - '@PreprintReview'
-    defaultStartTime: '2018-01-01'
+    defaultStartTime: '2012-01-01'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'

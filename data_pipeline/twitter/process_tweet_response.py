@@ -1,9 +1,11 @@
-from dateutil.parser import parse
 from typing import List
+from dateutil.parser import parse
 
 from GetOldTweets3.models import Tweet
 
-from data_pipeline.twitter.twitter_config import TwitterPipelineModuleConstants, ETL_TIMESTAMP_FORMAT, TweetType
+from data_pipeline.twitter.twitter_config import (
+    TwitterPipelineModuleConstants, ETL_TIMESTAMP_FORMAT, TweetType
+)
 from data_pipeline.utils.record_processing import standardize_record_keys
 
 
@@ -29,23 +31,28 @@ def extract_tweet_from_twitter_response(record):
             record.get('in_reply_to_status_id'),
         TwitterPipelineModuleConstants.REPLIED_TO_USER_ID:
             record.get('in_reply_to_user_id'),
-        TwitterPipelineModuleConstants.TWEET_URLS: (
+        TwitterPipelineModuleConstants.TWEET_URLS:
+            (
+                [
+                    url.get('expanded_url')
+                    for url in record.get(
+                        'extended_tweet', {}
+                    ).get('entities', {}).get('urls', [])
+                ]
+                or record.get('urls', [])
+            ),
+        TwitterPipelineModuleConstants.USER_MENTIONS:
             [
-                url.get('expanded_url')
-                for url in record.get(
-                    'extended_tweet', {}
-                ).get('entities', {}).get('urls', [])
-            ]
-            or record.get('urls', [])
-        ),
-        TwitterPipelineModuleConstants.USER_MENTIONS: [
-            {
-                TwitterPipelineModuleConstants.USER_ID:
-                    mention.get('id'),
-                TwitterPipelineModuleConstants.USER_NAME:
-                    mention.get('screen_name')
-             } for mention in record.get('user_mentions', record.get('entities', {}).get('user_mentions', []))
-        ],
+                {
+                    TwitterPipelineModuleConstants.USER_ID:
+                        mention.get('id'),
+                    TwitterPipelineModuleConstants.USER_NAME:
+                        mention.get('screen_name')
+                } for mention in record.get(
+                    'user_mentions',
+                    record.get('entities', {}).get('user_mentions', [])
+                )
+            ],
         TwitterPipelineModuleConstants.REPLIES_COUNT:
             record.get('reply_count'),
         TwitterPipelineModuleConstants.RETWEETS_COUNT:
@@ -105,22 +112,37 @@ def modify_by_search_term_occurrence_location_in_response(
         else '@' + tweet_author.lower()
     )
     reply_to = jsonl.get(TwitterPipelineModuleConstants.TWEET_TO)
-    reply_to = '@' + reply_to if reply_to and not reply_to.startswith('@') else reply_to
+    reply_to = (
+        '@' + reply_to
+        if reply_to and not reply_to.startswith('@')
+        else reply_to
+    )
     reply_to = reply_to.lower() if reply_to else reply_to
     tweet_text = jsonl.get(TwitterPipelineModuleConstants.TWEET_TEXT)
     tweet_type_key = TwitterPipelineModuleConstants.TWEET_TYPE
     tweet_type = []
 
-    if TweetType.From in tweet_type_enum_list and tweet_author == search_term_with_at:
+    if (
+            TweetType.From in tweet_type_enum_list
+            and tweet_author == search_term_with_at
+    ):
         tweet_type.append(TweetType.From.value)
-    if TweetType.To in tweet_type_enum_list and reply_to == search_term_with_at:
+    if (
+            TweetType.To in tweet_type_enum_list
+            and reply_to == search_term_with_at
+    ):
         tweet_type.append(TweetType.To.value)
     if (
             TweetType.Retweet in tweet_type_enum_list
-            and tweet_text.lower().startswith('rt ' + search_term_with_at.lower() + ':')
+            and tweet_text.lower().startswith(
+                'rt ' + search_term_with_at.lower() + ':'
+            )
     ):
         tweet_type.append(TweetType.Retweet.value)
-    elif TweetType.Mention in tweet_type_enum_list and search_term.lower() in tweet_text.lower():
+    elif (
+            TweetType.Mention in tweet_type_enum_list
+            and search_term.lower() in tweet_text.lower()
+    ):
         tweet_type.append(TweetType.Mention.value)
     if TweetType.Other in tweet_type_enum_list and len(tweet_type) == 0:
         tweet_type.append(TweetType.Other.value)

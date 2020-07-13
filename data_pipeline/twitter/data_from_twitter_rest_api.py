@@ -56,7 +56,9 @@ class TwitterRestApi:
     def get_latest_api_restricted_tweets_from_user(self, twitter_username):
         twitter_username = twitter_username.rstrip('@')
         for tweets in _limit_handled(
-                tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()
+                tweepy.Cursor(
+                    self.tweepy_api.user_timeline, id=twitter_username
+                ).pages()
         ):
             for tweet in tweets:
                 yield tweet
@@ -75,10 +77,14 @@ class TwitterRestApi:
         for retweet in retweets_list:
             yield retweet
 
-    def get_all_retweets_of_all_api_restricted_tweets_of_user(self, twitter_username: str):
+    def get_all_retweets_of_all_api_restricted_tweets_of_user(
+            self, twitter_username: str
+    ):
         twitter_username = twitter_username.rstrip('@')
         for tweets in _limit_handled(
-                tweepy.Cursor(self.tweepy_api.user_timeline, id=twitter_username).pages()
+                tweepy.Cursor(
+                    self.tweepy_api.user_timeline, id=twitter_username
+                ).pages()
         ):
             for tweet in tweets:
 
@@ -97,7 +103,10 @@ def iter_process_twitter_user(
     u_ind = 0
     for user in users:
         if (u_ind % 50) == 0:
-            LOGGER.info("processed %d followers of %s", u_ind, referenced_twitter_user)
+            LOGGER.info(
+                "processed %d followers of %s",
+                u_ind, referenced_twitter_user
+            )
         u_ind += 1
         processed_data = add_provenance_to_record(
             user, latest_data_pipeline_timestamp,
@@ -123,9 +132,14 @@ def iter_process_retweets(
     r_ind = 0
     for retweet in retweets:
         if (r_ind % 2) == 0:
-            LOGGER.info("processed %d followers of %s", r_ind, referenced_twitter_user)
+            LOGGER.info(
+                "processed %d followers of %s",
+                r_ind, referenced_twitter_user
+            )
         r_ind += 1
-        retweet, original_tweet, retweeter = extract_retweeter_and_tweets(retweet._json)
+        retweet, original_tweet, retweeter = (
+            extract_retweeter_and_tweets(retweet._json)
+        )
         # TweetType.Mention
         original_tweet = modify_by_search_term_occurrence_location_in_response(
             original_tweet, referenced_twitter_user,
@@ -151,7 +165,7 @@ def iter_process_retweets(
             }
             retweeter['referenced_twitter_user'] = ref_user
 
-        yield  retweet, original_tweet, retweeter
+        yield retweet, original_tweet, retweeter
 
 
 def etl_user_followers(
@@ -160,7 +174,11 @@ def etl_user_followers(
         twitter_config: TwitterDataPipelineConfig,
         latest_data_pipeline_timestamp: str
 ):
-    iter_user_followers = tweepy_api.get_api_restricted_followers_of_user(user_name)
+    iter_user_followers = (
+        tweepy_api.get_api_restricted_followers_of_user(
+            user_name
+        )
+    )
     iter_processed_user_followers = iter_process_twitter_user(
         twitter_config, iter_user_followers, user_name,
         'following', latest_data_pipeline_timestamp
@@ -180,7 +198,8 @@ def extract_user_properties_to_dict(user: dict):
     return {
         resp_key: user.get(resp_key)
         for resp_key in [
-            'id', 'name', 'screen_name', 'location', 'description', 'followers_count',
+            'id', 'name', 'screen_name', 'location',
+            'description', 'followers_count',
             'friends_count', 'listed_count', 'favourites_count',
             'statuses_count', 'created_at'
         ]
@@ -218,6 +237,7 @@ def etl_user_retweets(
         iter_processed_records,
         twitter_config
     )
+    # pylint: disable=pointless-string-statement
     '''
     iter_written_records = iter_batch_load_entities_from_retweets(
         iter_processed_records,
@@ -276,7 +296,5 @@ def iter_batch_load_entities_from_retweets(
 
 def get_query_for_selecting_tweets_for_x():
     query = '''
-    
-    
     '''
     pass

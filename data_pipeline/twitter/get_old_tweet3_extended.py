@@ -7,10 +7,10 @@ import logging
 import http.cookiejar
 import json
 from typing import List
+from urllib import request, parse
 from pyquery import PyQuery
 from GetOldTweets3.manager import TweetManager as tm
 from GetOldTweets3.manager import TweetCriteria
-import urllib.request, urllib.parse, urllib.error
 from GetOldTweets3 import models
 
 
@@ -19,12 +19,13 @@ LOGGER = logging.getLogger(__name__)
 
 class TCriteria(TweetCriteria):
     def set_to_username(self, to_username: List):
+        # pylint: disable=attribute-defined-outside-init
         self.to_username = to_username
         return self
 
 
 class TManager(tm):
-
+    # pylint: disable=too-many-statements,too-many-branches,too-many-locals
     @staticmethod
     def get_iter_twitter_response(tweet_criteria: TCriteria, proxy=None):
         """
@@ -34,11 +35,11 @@ class TManager(tm):
         A static method.
         Parameters
         ----------
-        tweet_criteria : tweetCriteria, an object that specifies a match criteria
+        tweet_criteria : tweetCriteria, specifies a match criteria
         proxy: str, a proxy server to use
         debug: bool, output debug information
         """
-        cookieJar = http.cookiejar.CookieJar()
+        cookie_jar = http.cookiejar.CookieJar()
         user_agent = random.choice(TManager.user_agents)
 
         all_usernames = []
@@ -46,7 +47,7 @@ class TManager(tm):
 
         if hasattr(tweet_criteria, 'username'):
             if (
-                    type(tweet_criteria.username) == str
+                    isinstance(tweet_criteria.username, str)
                     or not hasattr(tweet_criteria.username, '__iter__')
             ):
                 tweet_criteria.username = [tweet_criteria.username]
@@ -72,67 +73,93 @@ class TManager(tm):
                     ]
                 )
             while True:
-                json = (
+                json_response_data = (
                     TManager.get_json_response(
-                        tweet_criteria, refresh_cursor, cookieJar, proxy, user_agent
+                        tweet_criteria, refresh_cursor,
+                        cookie_jar, proxy, user_agent
                     )
                 )
-                if len(json['items_html'].strip()) == 0:
+                if len(json_response_data['items_html'].strip()) == 0:
                     break
-                refresh_cursor = json['min_position']
-                scrapedTweets = PyQuery(json['items_html'])
+                refresh_cursor = json_response_data['min_position']
+                scraped_tweets = PyQuery(json_response_data['items_html'])
                 # Remove incomplete tweets withheld by Twitter Guidelines
-                scrapedTweets.remove('div.withheld-tweet')
-                tweets = scrapedTweets('div.js-stream-tweet')
+                scraped_tweets.remove('div.withheld-tweet')
+                tweets = scraped_tweets('div.js-stream-tweet')
 
                 if len(tweets) == 0:
                     break
 
-                for tweetHTML in tweets:
-                    tweetPQ = PyQuery(tweetHTML)
+                for tweet_html in tweets:
+                    tweet_pq = PyQuery(tweet_html)
                     tweet = models.Tweet()
-                    usernames = tweetPQ("span.username.u-dir b").text().split()
-                    if not len(usernames):  # fix for issue #13
+                    usernames = tweet_pq(
+                        "span.username.u-dir b"
+                    ).text().split()
+                    if len(usernames) == 0:  # fix for issue #13
                         continue
 
                     tweet.username = usernames[0]
                     # take the first recipient if many
                     tweet.to = usernames[1] if len(usernames) >= 2 else None
                     rawtext = TManager.textify(
-                        tweetPQ("p.js-tweet-text").html(), tweet_criteria.emoji
+                        tweet_pq("p.js-tweet-text").html(),
+                        tweet_criteria.emoji
                     )
-                    tweet.text = re.sub(r"\s+", " ", rawtext) \
-                        .replace('# ', '#').replace('@ ', '@').replace('$ ', '$')
+                    tweet.text = (
+                        re.sub(
+                            r"\s+", " ", rawtext
+                        ).replace(
+                            '# ', '#'
+                        ).replace('@ ', '@').replace('$ ', '$')
+                    )
                     tweet.retweets = int(
-                        tweetPQ(
-                            "span.ProfileTweet-action--retweet span.ProfileTweet-actionCount"
+                        tweet_pq(
+                            "span.ProfileTweet-action--retweet "
+                            + "span.ProfileTweet-actionCount"
                         ).attr("data-tweet-stat-count").replace(",", ""))
                     tweet.favorites = int(
-                        tweetPQ("span.ProfileTweet-action--favorite span.ProfileTweet-actionCount").attr(
-                            "data-tweet-stat-count").replace(",", ""))
-                    tweet.replies = int(
-                        tweetPQ(
-                            "span.ProfileTweet-action--reply span.ProfileTweet-actionCount"
+                        tweet_pq(
+                            "span.ProfileTweet-action--favorite "
+                            + "span.ProfileTweet-actionCount"
                         ).attr("data-tweet-stat-count").replace(",", ""))
-                    tweet.id = tweetPQ.attr("data-tweet-id")
-                    tweet.permalink = 'https://twitter.com' + tweetPQ.attr("data-permalink-path")
-                    tweet.author_id = int(tweetPQ("a.js-user-profile-link").attr("data-user-id"))
+                    tweet.replies = int(
+                        tweet_pq(
+                            "span.ProfileTweet-action--reply "
+                            + "span.ProfileTweet-actionCount"
+                        ).attr("data-tweet-stat-count").replace(",", ""))
+                    tweet.id = tweet_pq.attr("data-tweet-id")
+                    tweet.permalink = (
+                        'https://twitter.com'
+                        + tweet_pq.attr("data-permalink-path")
+                    )
+                    tweet.author_id = int(
+                        tweet_pq("a.js-user-profile-link").attr("data-user-id")
+                    )
 
-                    dateSec = int(tweetPQ("small.time span.js-short-timestamp").attr("data-time"))
-                    tweet.date = datetime.datetime.fromtimestamp(dateSec, tz=datetime.timezone.utc)
+                    date_sec = int(
+                        tweet_pq(
+                            "small.time span.js-short-timestamp"
+                        ).attr("data-time")
+                    )
+                    tweet.date = datetime.datetime.fromtimestamp(
+                        date_sec, tz=datetime.timezone.utc
+                    )
                     tweet.formatted_date = datetime.datetime.fromtimestamp(
-                        dateSec, tz=datetime.timezone.utc
+                        date_sec, tz=datetime.timezone.utc
                     ).strftime("%a %b %d %X +0000 %Y")
-                    tweet.hashtags, tweet.mentions = TManager.getHashtagsAndMentions(tweetPQ)
+                    tweet.hashtags, tweet.mentions = (
+                        TManager.getHashtagsAndMentions(tweet_pq)
+                    )
 
-                    geoSpan = tweetPQ('span.Tweet-geo')
-                    if len(geoSpan) > 0:
-                        tweet.geo = geoSpan.attr('title')
+                    geo_span = tweet_pq('span.Tweet-geo')
+                    if len(geo_span) > 0:
+                        tweet.geo = geo_span.attr('title')
                     else:
                         tweet.geo = ''
 
                     urls = []
-                    for link in tweetPQ("a"):
+                    for link in tweet_pq("a"):
                         try:
                             urls.append((link.attrib["data-expanded-url"]))
                         except KeyError:
@@ -146,9 +173,12 @@ class TManager(tm):
                     if 0 < tweet_criteria.maxTweets <= batch_cnt_results:
                         break
 
+    # pylint: disable=too-many-statements,too-many-branches,
+    # pylint: disable=too-many-locals,too-many-arguments
     @staticmethod
     def get_json_response(
-            tweet_criteria: TCriteria, refresh_cursor: str, cookie_jar, proxy, useragent=None, debug=False
+            tweet_criteria: TCriteria, refresh_cursor: str, cookie_jar,
+            proxy, useragent=None, debug=False
     ):
         """
         Code adapted from
@@ -161,9 +191,11 @@ class TManager(tm):
         if not tweet_criteria.topTweets:
             url += "f=tweets&"
 
-        url += ("vertical=news&q=%s&src=typd&%s"
-                "&include_available_features=1&include_entities=1&max_position=%s"
-                "&reset_error_state=false")
+        url += (
+            "vertical=news&q=%s&src=typd&%s"
+            "&include_available_features=1&include_entities=1&max_position=%s"
+            "&reset_error_state=false"
+        )
 
         url_get_data = ''
 
@@ -188,18 +220,35 @@ class TManager(tm):
             if not hasattr(tweet_criteria.to_username, '__iter__'):
                 tweet_criteria.to_username = [tweet_criteria.to_user_name]
 
-            to_usernames_ = [u.lstrip('@') for u in tweet_criteria.to_username if u]
-            tweet_criteria.to_username = {u.lower() for u in to_usernames_ if u}
+            to_usernames_ = [
+                u.lstrip('@')
+                for u in tweet_criteria.to_username
+                if u
+            ]
+            tweet_criteria.to_username = {
+                u.lower() for u in to_usernames_ if u
+            }
 
-            to_usernames = [' to:' + u for u in sorted(tweet_criteria.to_username)]
+            to_usernames = [
+                ' to:' + u
+                for u in sorted(tweet_criteria.to_username)
+            ]
             if to_usernames:
                 url_get_data += ' OR'.join(to_usernames)
 
         if hasattr(tweet_criteria, 'within'):
             if hasattr(tweet_criteria, 'near'):
-                url_get_data += ' near:"%s" within:%s' % (tweet_criteria.near, tweet_criteria.within)
-            elif hasattr(tweet_criteria, 'lat') and hasattr(tweet_criteria, 'lon'):
-                url_get_data += ' geocode:%f,%f,%s' % (tweet_criteria.lat, tweet_criteria.lon, tweet_criteria.within)
+                url_get_data += ' near:"%s" within:%s' % (
+                    tweet_criteria.near, tweet_criteria.within
+                )
+            elif (
+                    hasattr(tweet_criteria, 'lat')
+                    and hasattr(tweet_criteria, 'lon')
+            ):
+                url_get_data += ' geocode:%f,%f,%s' % (
+                    tweet_criteria.lat, tweet_criteria.lon,
+                    tweet_criteria.within
+                )
 
         if hasattr(tweet_criteria, 'since'):
             url_get_data += ' since:' + tweet_criteria.since
@@ -217,12 +266,12 @@ class TManager(tm):
             url_get_data += ' min_retweets:' + tweet_criteria.minRetweets
 
         if hasattr(tweet_criteria, 'lang'):
-            urlLang = 'l=' + tweet_criteria.lang + '&'
+            url_lang = 'l=' + tweet_criteria.lang + '&'
         else:
-            urlLang = ''
+            url_lang = ''
         url = url % (
-            urllib.parse.quote(url_get_data.strip()),
-            urlLang, urllib.parse.quote(refresh_cursor)
+            parse.quote(url_get_data.strip()),
+            url_lang, parse.quote(refresh_cursor)
         )
         useragent = useragent or TManager.user_agents[0]
 
@@ -237,43 +286,50 @@ class TManager(tm):
         ]
 
         if proxy:
-            opener = urllib.request.build_opener(
-                urllib.request.ProxyHandler({'http': proxy, 'https': proxy}),
-                urllib.request.HTTPCookieProcessor(cookie_jar)
+            opener = request.build_opener(
+                request.ProxyHandler({'http': proxy, 'https': proxy}),
+                request.HTTPCookieProcessor(cookie_jar)
             )
         else:
-            opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+            opener = request.build_opener(
+                request.HTTPCookieProcessor(cookie_jar)
+            )
         opener.addheaders = headers
         if debug:
-            print(url)
-            print('\n'.join(h[0]+': '+h[1] for h in headers))
-
+            LOGGER.debug(url)
+            message = '\n'.join(h[0]+': '+h[1] for h in headers)
+            LOGGER.debug(message)
+        # pylint: disable=broad-except
         try:
             time.sleep(2)
             response = opener.open(url)
-            jsonResponse = response.read()
+            json_response = response.read()
         except Exception:
             try:
                 time.sleep(20)
                 response = opener.open(url)
-                jsonResponse = response.read()
-            except Exception as e:
-                LOGGER.info("An error occured during an HTTP request: {}".format(str(e)))
+                json_response = response.read()
+            except Exception as exception:
                 LOGGER.info(
-                    "Try to open in browser: https://twitter.com/search?q=%s&src=typd",
-                    urllib.parse.quote(url_get_data))
+                    "An error occured during an HTTP request: %s",
+                    str(exception)
+                )
+                LOGGER.info(
+                    "Try to open in browser: "
+                    "https://twitter.com/search?q=%s&src=typd",
+                    parse.quote(url_get_data))
                 sys.exit()
 
         try:
-            s_json = jsonResponse.decode()
-        except:
+            s_json = json_response.decode()
+        except Exception:
             LOGGER.info("Invalid response from Twitter")
             sys.exit()
 
         try:
-            dataJson = json.loads(s_json)
-        except:
-            LOGGER.info("Error parsing JSON: %s" % s_json)
+            data_json = json.loads(s_json)
+        except Exception:
+            LOGGER.info("Error parsing JSON: %s", s_json)
             sys.exit()
 
-        return dataJson
+        return data_json

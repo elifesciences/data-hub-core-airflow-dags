@@ -5,15 +5,18 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
 )
 
-from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file_process_batch
-
+from data_pipeline.utils.pipeline_file_io import (
+    iter_write_jsonl_to_file_process_batch
+)
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
-from data_pipeline.utils.record_processing import standardize_record_keys, filter_record_by_schema
+from data_pipeline.utils.record_processing import (
+    standardize_record_keys, filter_record_by_schema
+)
 
 
 def get_dict_values_from_path_as_list(

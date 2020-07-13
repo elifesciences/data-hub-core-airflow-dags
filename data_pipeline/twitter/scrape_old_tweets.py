@@ -1,9 +1,15 @@
 import logging
 from typing import List
-from data_pipeline.twitter.get_old_tweet3_extended import TCriteria, TManager
-from data_pipeline.twitter.process_tweet_response import extract_tweet_properties_to_dict, \
+from data_pipeline.twitter.get_old_tweet3_extended import (
+    TCriteria, TManager
+)
+from data_pipeline.twitter.process_tweet_response import (
+    extract_tweet_properties_to_dict,
     modify_by_search_term_occurrence_location_in_response
-from data_pipeline.twitter.twitter_bq_util import batch_load_iter_record_to_bq
+)
+from data_pipeline.twitter.twitter_bq_util import (
+    batch_load_iter_record_to_bq
+)
 from data_pipeline.twitter.etl_state import (
     update_state, get_s3_object_name_for_search_term,
     get_stored_state_for_object_id
@@ -15,7 +21,9 @@ from data_pipeline.twitter.twitter_config import (
 from data_pipeline.utils.record_processing import (
     add_provenance_to_record, standardize_record_keys
 )
-from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp_from_str
+from data_pipeline.utils.data_pipeline_timestamp import (
+    parse_timestamp_from_str
+)
 
 STATE_TIMESTAMP_FORMAT = '%Y-%m-%d'
 DEFAULT_START_DATE = '2012-01-01'
@@ -71,7 +79,9 @@ def iter_process_filter_tweet(
         yield processed_data
 
 
-def get_stored_state_for_term(search_term: str, twitter_config: TwitterDataPipelineConfig):
+def get_stored_state_for_term(
+        search_term: str, twitter_config: TwitterDataPipelineConfig
+):
     s3_object = get_s3_object_name_for_search_term(
         twitter_config.state_s3_object_name_prefix,
         search_term
@@ -93,11 +103,12 @@ def etl_search_term_by_scraping(
         user_name: str = None,
         latest_data_pipeline_timestamp: str = None,
 ):
-    stored_state = get_stored_state_for_term(search_term, twitter_config)
     if user_name and search_term is None:
         search_term = user_name.lstrip().lstrip('@')
+    stored_state = get_stored_state_for_term(search_term, twitter_config)
+
     iter_tweets = iter_search_get_old_tweets(
-        search_term=search_term,
+        #search_term=search_term,
         tweet_from=[user_name],
         tweet_from_date=stored_state
     )
@@ -113,6 +124,8 @@ def etl_search_term_by_scraping(
         twitter_config.dataset,
         twitter_config.tweet_table
     )
+    for _ in iter_written_records:
+        continue
     _, latest_tweet_date_str = get_latest_twitter_id_and_date(
         iter_written_records
     )

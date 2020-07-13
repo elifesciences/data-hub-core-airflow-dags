@@ -4,7 +4,9 @@ import enum
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
-from data_pipeline.utils.pipeline_file_io import get_data_config_from_file_path_in_env_var
+from data_pipeline.utils.pipeline_file_io import (
+    get_data_config_from_file_path_in_env_var
+)
 
 ETL_TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
 DEFAULT_TIMESTAMP_FIELD_NAME = 'data_hub_timestamp'
@@ -43,12 +45,14 @@ class MultiTwitterPipelineConfig:
             TwitterDataPipelineConfig(
                 t_pipeline, gcp_project, deployment_env,
                 provenance_field_name=provenance_field_name,
-                timestamp_field_name= import_timestamp_field_name
+                timestamp_field_name=import_timestamp_field_name
             )
-            for t_pipeline in multi_twitter_pipeline_config.get("twitterPipeline")
+            for t_pipeline
+            in multi_twitter_pipeline_config.get("twitterPipeline")
         ]
 
 
+# pylint: disable=too-many-instance-attributes,too-many-arguments
 class TwitterDataPipelineConfig:
     def __init__(
             self,
@@ -76,15 +80,30 @@ class TwitterDataPipelineConfig:
         }.get(t_config.get('etlType', 'keyword').lower())
         self.etl_terms = [
             (
-                lambda x: '@' + x if self.etl_type == EtlType.Username and not x.startswith('@') else x
+                lambda x: '@' + x
+                if self.etl_type == EtlType.Username
+                and not x.startswith('@')
+                else x
             )(etlTerms) for etlTerms in t_config.get('etlTerms', [])
         ]
 
         self.default_start_date = t_config.get('defaultStartTime')
-        self.state_s3_bucket_name = t_config.get('stateFile', {}).get('bucketName')
-        self.state_s3_object_name_prefix = t_config.get('stateFile', {}).get('objectNamePrefix')
-        self.timestamp_field_name = timestamp_field_name if timestamp_field_name else DEFAULT_TIMESTAMP_FIELD_NAME
-        self.provenance_field_name = provenance_field_name if provenance_field_name else DEFAULT_PROVENANCE_FIELD_NAME
+        self.state_s3_bucket_name = t_config.get(
+            'stateFile', {}
+        ).get('bucketName')
+        self.state_s3_object_name_prefix = t_config.get(
+            'stateFile', {}).get('objectNamePrefix'
+                                 )
+        self.timestamp_field_name = (
+            timestamp_field_name
+            if timestamp_field_name
+            else DEFAULT_TIMESTAMP_FIELD_NAME
+        )
+        self.provenance_field_name = (
+            provenance_field_name
+            if provenance_field_name
+            else DEFAULT_PROVENANCE_FIELD_NAME
+        )
 
 
 class TwitterPipelineModuleConstants:
@@ -124,9 +143,13 @@ def get_filtered_pipeline_conf(
     )
     deployment_env = os.getenv(deployment_env)
 
-    multi_pipeline_conf = MultiTwitterPipelineConfig(multi_etl_dict, deployment_env)
+    multi_pipeline_conf = MultiTwitterPipelineConfig(
+        multi_etl_dict, deployment_env
+    )
     pipeline_conf_list = [
-        u_name_conf for u_name_conf in multi_pipeline_conf.twitter_pipeline_config
+        u_name_conf
+        for u_name_conf
+        in multi_pipeline_conf.twitter_pipeline_config
         if u_name_conf.etl_type == etl_type_filter
     ]
     return pipeline_conf_list

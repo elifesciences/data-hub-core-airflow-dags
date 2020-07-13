@@ -26,6 +26,7 @@ def get_users_tweets(**kwargs):
         EtlType.Username, DEPLOYMENT_ENV_ENV_NAME,
         TWITTER_USER_TWEET_CONFIG_FILE_PATH_ENV_NAME
     )
+
     for pipeline_conf in pipeline_conf_list:
         etl_get_user_tweets(pipeline_conf,)
 

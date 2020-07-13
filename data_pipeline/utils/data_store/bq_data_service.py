@@ -202,6 +202,7 @@ def extend_table_schema_with_nested_schema(
         schema_field.to_api_repr()
         for schema_field in original_schema
     ]
+    print("ORIGINAL DICT SCHEMA", original_schema_dict)
     new_schema_dict = get_new_merged_schema(
         original_schema_dict, new_fields
     )
@@ -307,7 +308,6 @@ def create_or_extend_table_schema_from_schema_file(
             table_name,
             schema
         )
-
 
 
 def create_or_extend_table_schema(
