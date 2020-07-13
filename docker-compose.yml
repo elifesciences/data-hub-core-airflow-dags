@@ -39,7 +39,7 @@ x-airflow-volumes:
     - ./sample_data_config/twitter/twitter-data-pipeline.config.yaml:/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - ./sample_data_config/twitter/twitter_auth.yaml:/usr/local/airflow/app-config/twitter/twitter_auth.yaml
     - ./credentials.json:/tmp/credentials.json
-    - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
+    - ~/.aws/credentials:/tmp/.aws-credentials
     -  ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
 
 
@@ -98,6 +98,7 @@ services:
         volumes: *airflow-volumes
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
+            && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /usr/local/airflow/.aws/credentials
             && ./run_test.sh with-end-to-end"
 
     postgres:
@@ -130,4 +131,5 @@ services:
         entrypoint: []
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /usr/local/airflow/.config/gcloud
+            && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /usr/local/airflow/.aws/credentials
             && ./worker.sh tcp://dask-scheduler:8786"
