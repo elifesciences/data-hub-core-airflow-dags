@@ -54,7 +54,7 @@ class WriteIterRecordsInBQConfig:
 
 
 @contextmanager
-def get_multiple_opened_files(
+def open_multiple_files(
         file_opening_conf_list: List[WriteIterRecordsInBQConfig]
 ):
     with ExitStack() as stack:
@@ -93,7 +93,7 @@ def iter_multi_write_jsonl_to_file_process_batch(
         iter_write_to_bq: List[WriteIterRecordsInBQConfig]
 ) -> Iterable[dict]:
 
-    with get_multiple_opened_files(
+    with open_multiple_files(
             iter_write_to_bq
     ) as file_writer:
         for record in iter_multi_record:
