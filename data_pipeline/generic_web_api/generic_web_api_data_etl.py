@@ -169,10 +169,12 @@ def generic_web_api_data_etl(
             )
             cursor = get_next_cursor_from_data(page_data, data_config)
             page_number = get_next_page_number(
-                items_count, page_number, data_config, to_reset_other_request_param
+                items_count, page_number,
+                data_config, to_reset_other_request_param
             )
             offset = get_next_offset(
-                items_count, offset, data_config, to_reset_other_request_param
+                items_count, offset, data_config,
+                to_reset_other_request_param
             )
 
             variable_until_date = get_next_until_date(
