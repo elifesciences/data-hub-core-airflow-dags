@@ -222,8 +222,8 @@ def get_next_until_date(from_date: datetime, data_config, fixed_until_date):
             and data_config.default_start_end_date_diff_in_days
     ):
         until_date = (
-                from_date +
-                timedelta(days=data_config.default_start_end_date_diff_in_days)
+            from_date +
+            timedelta(days=data_config.default_start_end_date_diff_in_days)
         )
 
     return until_date
@@ -280,6 +280,7 @@ def get_next_start_date(
         offset: int = None
 
 ):
+    # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
     reset_other_request_param = False
     if (
