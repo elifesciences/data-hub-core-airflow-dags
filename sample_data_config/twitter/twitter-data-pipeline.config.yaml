@@ -17,7 +17,7 @@ twitterPipeline:
     defaultStartTime: '2018-01-01'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-keyword-search-state'
+      objectNamePrefix: 'airflow-config/twitter/state/{ENV}-keyword-search-state'
   - dataset: '{ENV}'
     tweet_table: "twitter_tweetss"
     user_table: "twitter_userss"
@@ -27,10 +27,10 @@ twitterPipeline:
       - '@eLifecommunity'
       - '@eLifeinnovation'
       - '@PreprintReview'
-    defaultStartTime: '2012-01-01'
+    defaultStartTime: '2020-06-01'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'
+      objectNamePrefix: 'airflow-config/twitter/state/{ENV}-username-search-state'
   - dataset: '{ENV}'
     tweet_table: "twitter_tweetss"
     user_table: "twitter_userss"
@@ -53,4 +53,4 @@ twitterPipeline:
     defaultStartTime: '2018-01-01'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectNamePrefix: 'airflow-config/crossref-event/{ENV}-username-search-state'
+      objectNamePrefix: 'airflow-config/twitter/state/{ENV}-username-search-state'

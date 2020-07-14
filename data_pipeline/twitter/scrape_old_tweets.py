@@ -106,12 +106,12 @@ def etl_search_term_by_scraping(
     if user_name and search_term is None:
         search_term = user_name.lstrip().lstrip('@')
     stored_state = get_stored_state_for_term(search_term, twitter_config)
-
     iter_tweets = iter_search_get_old_tweets(
         search_term=search_term,
-        tweet_from=[user_name],
+        tweet_from=[user_name] if user_name else None,
         tweet_from_date=stored_state
     )
+
     iter_processed_tweets = iter_process_filter_tweet(
         twitter_config=twitter_config,
         tweets=iter_tweets, search_term=search_term,
