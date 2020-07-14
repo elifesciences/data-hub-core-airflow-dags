@@ -107,16 +107,24 @@ webApi:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
     dataUrl:
-      urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
+      urlExcludingConfigurableParameters: "https://toggl.com/reports/api/v2/details?workspace_id=3533142&user_agent=api_test&order_field=date&order_desc=off"
       configurableParameters:
-        fromDateParameterName: start_date
-        defaultStartDate: "2020-01-01T01:00:00+00:00"
-        dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+        fromDateParameterName: since
+        toDateParameterName: until
+        defaultStartDate: "2019-07-01"
+        dateFormat: "%Y-%m-%d"
+        defaultDaysDiffFromStartTillEnd: 365
+        pageParameterName: page
+        defaultPageSize: 50
     response:
+      itemsKeyFromResponseRoot:
+        - data
+      totalItemsCountKeyFromResponseRoot:
+        - total_count
       recordTimestamp:
         timestampFormat: "%Y-%m-%dT%H:%M:%S%z"
         itemTimestampKeyFromItemRoot:
-          - stop
+          - updated
     authentication:
       auth_type: basic
       orderedAuthenticationParamValues:
@@ -155,6 +163,7 @@ webApi:
   #      resultSortParameterValue:
   #      pageParameterName: page
   #      defaultPageSize: 100
+  #      defaultDaysDiffFromStartTillEnd: 365
   #      offsetParameterName: offset
   #      nextPageCursorParameterName: next_page_cursor
   #      fromDateParameterName: from_date
