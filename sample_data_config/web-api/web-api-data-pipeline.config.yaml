@@ -128,7 +128,7 @@ webApi:
     authentication:
       auth_type: basic
       orderedAuthenticationParamValues:
-        - envVariableHoldingAuthValue: TOGGLE_API_TOKEN
+        - envVariableContainingPathToAuthFile: PATH_TO_TOGGL_API_TOKEN_FILE
         - value: api_token
 
   #- dataset: '{ENV}'
@@ -181,6 +181,8 @@ webApi:
   #      - value: #
   #        valueFileLocation: #
   #        envVariableHoldingAuthValue: #
+  #       envVariableContainingPathToAuthFile: #
   #      - paramvValue: #
   #        valueFileLocation:
   #        envVariableHoldingAuthValue: #
+  #        envVariableContainingPathToAuthFile: #
