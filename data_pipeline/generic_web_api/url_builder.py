@@ -51,7 +51,6 @@ class DynamicURLBuilder:
             compose_able_url_key_val: dict = None,
             sort_key: str = None,
             sort_key_val: str = None,
-            default_start_end_date_diff_in_days: int = None,
             **kwargs
     ):
         self.url_excluding_configurable_parameters = (
@@ -69,9 +68,6 @@ class DynamicURLBuilder:
         self.sort_key = sort_key
         self.sort_key_value = sort_key_val
         self.type_specific_params = kwargs
-        self.default_start_end_date_diff_in_days = (
-            default_start_end_date_diff_in_days
-        )
 
     def _get_url_separator(self):
         url = self.url_excluding_configurable_parameters

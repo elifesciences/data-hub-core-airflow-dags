@@ -148,7 +148,6 @@ class WebApiConfig:
             composeable_static_parameters,
             result_sort_param,
             result_sort_param_value,
-            default_start_end_date_diff_in_days,
             **type_specific_param
         )
         self.default_start_end_date_diff_in_days = (
