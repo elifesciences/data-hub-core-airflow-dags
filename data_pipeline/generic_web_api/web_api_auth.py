@@ -23,8 +23,9 @@ def get_auth_param_value(auth_val_conf: dict):
         or
         os.getenv(
             auth_val_conf.get(
-                "envVariableHoldingAuthValue"
-            )
+                "envVariableHoldingAuthValue", ""
+            ),
+            None
         )
         or
         (
