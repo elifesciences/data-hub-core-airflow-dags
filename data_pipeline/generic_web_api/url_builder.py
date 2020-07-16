@@ -89,7 +89,6 @@ class DynamicURLBuilder:
                 for key, value in parameters_key_value.items() if key and value
             }
         )
-
         return url + url_separator + params
 
     def get_url(
@@ -99,6 +98,7 @@ class DynamicURLBuilder:
         start_date = datetime_to_string(
             url_compose_param.from_date, self.date_format
         )
+
         end_date = datetime_to_string(
             url_compose_param.to_date, self.date_format
         )

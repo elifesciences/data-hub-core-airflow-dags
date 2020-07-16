@@ -19,17 +19,22 @@ class WebApiAuthentication:
 
 def get_auth_param_value(auth_val_conf: dict):
     val = (
-                auth_val_conf.get("value", None)
-                or
+        auth_val_conf.get("value", None)
+        or
+        os.getenv(
+            auth_val_conf.get(
+                "envVariableHoldingAuthValue"
+            )
+        )
+        or
+        (
+            read_file_content(
                 os.getenv(
                     auth_val_conf.get(
-                        "envVariableHoldingAuthValue", None),
-                    None
+                        "envVariableContainingPathToAuthFile"
+                    )
                 )
-                or
-                read_file_content(
-                    auth_val_conf.get("valueFileLocation")
-                )
+            )
         )
-
+    )
     return val

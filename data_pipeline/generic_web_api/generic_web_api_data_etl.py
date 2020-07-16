@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
@@ -129,6 +129,9 @@ def generic_web_api_data_etl(
     from_date_to_advance = initial_from_date
     cursor = None
     latest_record_timestamp = None
+    variable_until_date = get_next_until_date(
+        from_date_to_advance, data_config, until_date
+    )
     offset = 0 if data_config.url_builder.offset_param else None
     page_number = 1 if data_config.url_builder.page_number_param else None
     with TemporaryDirectory() as tmp_dir:
@@ -140,7 +143,7 @@ def generic_web_api_data_etl(
             page_data = get_data_single_page(
                 data_config=data_config,
                 from_date=from_date_to_advance or initial_from_date,
-                until_date=until_date,
+                until_date=variable_until_date,
                 cursor=cursor,
                 page_number=page_number,
                 page_offset=offset
@@ -157,18 +160,27 @@ def generic_web_api_data_etl(
             )
             items_count = len(items_list)
 
+            from_date_to_advance, to_reset_other_request_param = (
+                get_next_start_date(
+                    items_count, from_date_to_advance,
+                    latest_record_timestamp, data_config,
+                    cursor, page_number, offset
+                )
+            )
             cursor = get_next_cursor_from_data(page_data, data_config)
             page_number = get_next_page_number(
-                items_count, page_number, data_config
+                items_count, page_number,
+                data_config, to_reset_other_request_param
             )
             offset = get_next_offset(
-                items_count, offset, data_config
+                items_count, offset, data_config,
+                to_reset_other_request_param
             )
 
-            from_date_to_advance = get_next_start_date(
-                items_count, from_date_to_advance,
-                latest_record_timestamp, data_config
+            variable_until_date = get_next_until_date(
+                from_date_to_advance, data_config, until_date
             )
+
             if (
                     cursor is None and page_number is None and
                     from_date_to_advance is None and offset is None
@@ -203,30 +215,60 @@ def load_written_data_to_bq(
         )
 
 
-def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
+def get_next_until_date(from_date: datetime, data_config, fixed_until_date):
+    until_date = None
+    if fixed_until_date:
+        until_date = fixed_until_date
+    elif (
+            from_date
+            and data_config.start_till_end_date_diff_in_days
+    ):
+        until_date = (
+            from_date +
+            timedelta(days=data_config.start_till_end_date_diff_in_days)
+        )
+
+    return until_date
+
+
+def get_next_page_number(
+        items_count, current_page,
+        web_config: WebApiConfig,
+        reset_param: bool = False
+):
     next_page = None
     if web_config.url_builder.page_number_param:
-        has_more_items = (
-            items_count == web_config.page_size
-            if web_config.page_size
-            else items_count
-        )
-        next_page = current_page + 1 if has_more_items else None
+        if reset_param:
+            next_page = 1
+        else:
+            has_more_items = (
+                items_count == web_config.page_size
+                if web_config.page_size
+                else items_count
+            )
+            next_page = current_page + 1 if has_more_items else None
     return next_page
 
 
-def get_next_offset(items_count, current_offset, web_config: WebApiConfig):
+def get_next_offset(
+        items_count, current_offset,
+        web_config: WebApiConfig,
+        reset_param: bool = False
+):
     next_offset = None
     if web_config.url_builder.offset_param:
-        has_more_items = (
-            items_count == web_config.page_size
-            if web_config.page_size
-            else items_count
-        )
-        next_offset = (
-            current_offset + web_config.page_size
-            if has_more_items else None
-        )
+        if reset_param:
+            next_offset = 0
+        else:
+            has_more_items = (
+                items_count == web_config.page_size
+                if web_config.page_size
+                else items_count
+            )
+            next_offset = (
+                current_offset + web_config.page_size
+                if has_more_items else None
+            )
     return next_offset
 
 
@@ -234,22 +276,38 @@ def get_next_start_date(
         items_count,
         current_start_timestamp,
         latest_record_timestamp,
-        web_config: WebApiConfig
+        web_config: WebApiConfig,
+        cursor: str = None,
+        page_number: int = None,
+        offset: int = None
+
 ):
+    # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
+    reset_other_request_param = False
     if (
-            web_config.url_builder.page_number_param or
-            web_config.url_builder.next_page_cursor or
-            web_config.url_builder.offset_param
+            (
+                web_config.url_builder.page_number_param
+                and page_number
+                and items_count == web_config.page_size
+            ) or
+            (web_config.url_builder.next_page_cursor and cursor) or
+            (web_config.url_builder.offset_param and offset)
     ):
         from_timestamp = current_start_timestamp
+    elif(
+            current_start_timestamp == latest_record_timestamp
+            and web_config.url_builder.page_number_param
+            and items_count < web_config.page_size
+    ):
+        from_timestamp = None
     elif (
             web_config.item_timestamp_key_path_from_item_root and
             items_count
     ):
         from_timestamp = latest_record_timestamp
-
-    return from_timestamp
+        reset_other_request_param = True
+    return from_timestamp, reset_other_request_param
 
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
