@@ -82,9 +82,9 @@ class WebApiConfig:
         ).get("configurableParameters", {})
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)
-        default_start_end_date_diff_in_days = (
+        start_to_end_date_diff_in_days = (
             configurable_parameters.get(
-                "defaultDaysDiffFromStartTillEnd", None
+                "daysDiffFromStartTillEnd", None
             )
         )
         page_number_param = configurable_parameters.get(
@@ -150,8 +150,8 @@ class WebApiConfig:
             result_sort_param_value,
             **type_specific_param
         )
-        self.default_start_end_date_diff_in_days = (
-            default_start_end_date_diff_in_days
+        self.start_till_end_date_diff_in_days = (
+            start_to_end_date_diff_in_days
         )
         self.items_key_path_from_response_root = (
             api_config.get("response", {}).get(

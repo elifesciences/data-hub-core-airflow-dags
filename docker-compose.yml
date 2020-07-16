@@ -23,7 +23,7 @@ x-airflow-env:
     - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
     - CIVICRM_API_KEY=SOME_API_KEY
     - CIVICRM_SITE_KEY=SOME_SITEKEY
-    - PATH_TO_TOGGL_API_TOKEN_FILE=SOME_TOGGLE_API_TOKEN_FILE_PATH
+    - PATH_TO_TOGGL_API_TOKEN_FILE=TOGGLE_API_TOKEN_FILE_PATH
 
 
 

@@ -113,7 +113,7 @@ webApi:
         toDateParameterName: until
         defaultStartDate: "2019-07-01"
         dateFormat: "%Y-%m-%d"
-        defaultDaysDiffFromStartTillEnd: 365
+        daysDiffFromStartTillEnd: 365
         pageParameterName: page
         defaultPageSize: 50
     response:
@@ -163,7 +163,7 @@ webApi:
   #      resultSortParameterValue:
   #      pageParameterName: page
   #      defaultPageSize: 100
-  #      defaultDaysDiffFromStartTillEnd: 365
+  #      daysDiffFromStartTillEnd: 365
   #      offsetParameterName: offset
   #      nextPageCursorParameterName: next_page_cursor
   #      fromDateParameterName: from_date

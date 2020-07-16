@@ -221,11 +221,11 @@ def get_next_until_date(from_date: datetime, data_config, fixed_until_date):
         until_date = fixed_until_date
     elif (
             from_date
-            and data_config.default_start_end_date_diff_in_days
+            and data_config.start_till_end_date_diff_in_days
     ):
         until_date = (
             from_date +
-            timedelta(days=data_config.default_start_end_date_diff_in_days)
+            timedelta(days=data_config.start_till_end_date_diff_in_days)
         )
 
     return until_date
