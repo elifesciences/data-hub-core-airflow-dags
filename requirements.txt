@@ -1,11 +1,11 @@
 PyYAML==5.3.1
-apache-airflow[crypto,celery,postgres,hive,jdbc,ssh]==1.10.10
+apache-airflow[crypto,celery,postgres,jdbc,ssh]==1.10.11
 boto3==1.14.3
-google-cloud-bigquery==1.25.0
+google-cloud-bigquery==1.26.0
 google-oauth==1.0.1
 dateparser==0.7.6
 cloudpickle==1.4.1
-dask[complete]==2.18.1
-distributed==2.19.0
-google-api-python-client==1.9.3
+dask[complete]==2.21.0
+distributed==2.21.0
+google-api-python-client==1.10.0
 bigquery-schema-generator==1.1
