@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
 from pathlib import Path
@@ -32,8 +33,11 @@ from data_pipeline.generic_web_api.url_builder import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string,
     datetime_to_string,
-    parse_timestamp_from_str
+    parse_timestamp_from_str,
+    get_tz_aware_datetime
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_stored_state(
@@ -92,6 +96,7 @@ def get_data_single_page(
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
+    LOGGER.info("Request URL: %s", url)
 
     with requests_retry_session() as session:
         if (
@@ -127,6 +132,17 @@ def generic_web_api_data_etl(
     )
     initial_from_date = from_date or stored_state
     from_date_to_advance = initial_from_date
+    LOGGER.info(
+        "Running ETL from date %s, to date %s",
+        datetime_to_string(
+            initial_from_date,
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        ),
+        datetime_to_string(
+            until_date,
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        )
+    )
     cursor = None
     latest_record_timestamp = None
     variable_until_date = get_next_until_date(
@@ -151,6 +167,7 @@ def generic_web_api_data_etl(
             items_list = get_items_list(
                 page_data, data_config
             )
+
             latest_record_timestamp = process_downloaded_data(
                 data_config=data_config,
                 record_list=items_list,
@@ -159,22 +176,22 @@ def generic_web_api_data_etl(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
+            cursor = get_next_cursor_from_data(page_data, data_config)
 
-            from_date_to_advance, to_reset_other_request_param = (
+            from_date_to_advance, to_reset_page_or_offset_param = (
                 get_next_start_date(
                     items_count, from_date_to_advance,
                     latest_record_timestamp, data_config,
                     cursor, page_number, offset
                 )
             )
-            cursor = get_next_cursor_from_data(page_data, data_config)
             page_number = get_next_page_number(
                 items_count, page_number,
-                data_config, to_reset_other_request_param
+                data_config, to_reset_page_or_offset_param
             )
             offset = get_next_offset(
                 items_count, offset, data_config,
-                to_reset_other_request_param
+                to_reset_page_or_offset_param
             )
 
             variable_until_date = get_next_until_date(
@@ -255,6 +272,7 @@ def get_next_offset(
         web_config: WebApiConfig,
         reset_param: bool = False
 ):
+
     next_offset = None
     if web_config.url_builder.offset_param:
         if reset_param:
@@ -284,30 +302,36 @@ def get_next_start_date(
 ):
     # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
-    reset_other_request_param = False
-    if (
-            (
-                web_config.url_builder.page_number_param
-                and page_number
-                and items_count == web_config.page_size
-            ) or
-            (web_config.url_builder.next_page_cursor and cursor) or
-            (web_config.url_builder.offset_param and offset)
-    ):
+    reset_page_or_offset_param = False
+    next_page_number = get_next_page_number(
+        items_count, page_number, web_config, False
+    )
+    next_offset = get_next_offset(
+        items_count, offset, web_config, False
+    )
+    if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp
     elif(
             current_start_timestamp == latest_record_timestamp
-            and web_config.url_builder.page_number_param
-            and items_count < web_config.page_size
+            and not next_page_number and not next_offset
     ):
         from_timestamp = None
     elif (
+            current_start_timestamp != latest_record_timestamp and
+            (
+                next_page_number or next_offset
+                or not (
+                    web_config.url_builder.offset_param
+                    or web_config.url_builder.page_number_param
+                )
+            ) and
             web_config.item_timestamp_key_path_from_item_root and
             items_count
     ):
+
         from_timestamp = latest_record_timestamp
-        reset_other_request_param = True
-    return from_timestamp, reset_other_request_param
+        reset_page_or_offset_param = True
+    return from_timestamp, reset_page_or_offset_param
 
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
@@ -340,7 +364,7 @@ def upload_latest_timestamp_as_pipeline_state(
             data_config.state_file_bucket_name
     ):
         latest_record_date = datetime_to_string(
-            latest_record_timestamp,
+            get_tz_aware_datetime(latest_record_timestamp),
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
         state_file_name_key = data_config.state_file_object_name

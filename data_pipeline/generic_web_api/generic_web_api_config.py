@@ -1,5 +1,6 @@
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
+    compose_url_param_from_param_vals_filepath_in_env_var,
     get_url_builder_class
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
@@ -103,11 +104,18 @@ class WebApiConfig:
             "resultSortParameterValue", None
         )
         composeable_static_parameters = (
-            compose_url_param_from_parameter_values_in_env_var(
-                api_config.get(
-                    "dataUrl"
-                ).get("parametersFromEnv", [])
-            )
+            {
+                **(compose_url_param_from_parameter_values_in_env_var(
+                    api_config.get(
+                        "dataUrl"
+                    ).get("parametersFromEnv", [])
+                )),
+                **(compose_url_param_from_param_vals_filepath_in_env_var(
+                    api_config.get(
+                        "dataUrl"
+                    ).get("parametersFromFile", [])
+                )),
+            }
         )
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)

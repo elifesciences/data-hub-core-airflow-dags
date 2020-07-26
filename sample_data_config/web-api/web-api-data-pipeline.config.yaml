@@ -66,11 +66,11 @@ webApi:
         pageSizeParameterName: limit
         defaultPageSize: 10000
         offsetParameterName: offset
-      parametersFromEnv:
+      parametersFromFile:
         - parameterName: api_key
-          envName: CIVICRM_API_KEY
+          filePathEnvName: CIVICRM_API_KEY_FILE_PATH
         - parameterName: key
-          envName: CIVICRM_SITE_KEY
+          filePathEnvName: CIVICRM_SITE_KEY_FILE_PATH
     response:
       itemsKeyFromResponseRoot:
         - values
@@ -175,6 +175,11 @@ webApi:
   #        envName: CIVICRM_API_KEY
   #      - parameterName: key
   #        envName: CIVICRM_SITE_KEY
+  #    parametersFromFile:
+  #      - parameterName: api_key
+  #        filePathEnvName: CIVICRM_API_KEY_FILE_PATH
+  #      - parameterName: key
+  #        filePathEnvName: CIVICRM_SITE_KEY_FILE_PATH
   #  authentication:
   #    auth_type: basic
   #    orderedAuthenticationParamValues:
