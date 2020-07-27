@@ -6,7 +6,6 @@ from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 
-from google.cloud.bigquery import WriteDisposition
 from botocore.exceptions import ClientError
 
 from data_pipeline.generic_web_api.transform_data import (
@@ -223,11 +222,6 @@ def load_written_data_to_bq(
             full_temp_file_location,
             quoted_values_are_strings=False
         )
-        write_disposition = (
-            WriteDisposition.WRITE_APPEND
-            if data_config.table_write_append_enabled
-            else WriteDisposition.WRITE_TRUNCATE
-        )
 
         load_file_into_bq(
             filename=full_temp_file_location,
@@ -235,7 +229,7 @@ def load_written_data_to_bq(
             auto_detect_schema=False,
             dataset_name=data_config.dataset_name,
             project_name=data_config.gcp_project,
-            write_mode=write_disposition
+            write_mode=data_config.table_write_disposition
         )
 
 

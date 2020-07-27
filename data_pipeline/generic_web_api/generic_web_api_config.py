@@ -1,3 +1,5 @@
+from google.cloud.bigquery import WriteDisposition
+
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
     compose_url_param_from_param_vals_filepath_in_env_var,
@@ -62,9 +64,12 @@ class WebApiConfig:
         self.table_name = api_config.get(
             "table", ""
         )
-        self.table_write_append_enabled = api_config.get(
-            "tableWriteAppend", True
+        self.table_write_disposition = (
+            WriteDisposition.WRITE_APPEND
+            if api_config.get("tableWriteAppend", True)
+            else WriteDisposition.WRITE_TRUNCATE
         )
+
         self.schema_file_s3_bucket = (
             api_config.get("schemaFile", {}).get("bucketName")
         )
