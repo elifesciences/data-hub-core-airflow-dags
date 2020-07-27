@@ -134,6 +134,7 @@ webApi:
   #- dataset: '{ENV}'
   #  table: 'testtest_people'
   #  type: 'civi'
+  #  tableWriteAppend: False
   #  stateFile:
   #    bucketName: 'ci-elife-data-pipeline'
   #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
