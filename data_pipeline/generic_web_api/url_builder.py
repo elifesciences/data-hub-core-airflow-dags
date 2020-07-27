@@ -162,7 +162,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
                 self.page_size_param,
                 url_compose_param.page_size or self.page_size
             ),
-            ("sort", self.sort_key_value or "modified_date")
+            ("sort", self.sort_key_value)
         ] if key and value)
         start_date_param = {
             self.from_date_param: {">=": start_date}
