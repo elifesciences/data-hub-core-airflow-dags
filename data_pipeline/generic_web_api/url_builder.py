@@ -4,6 +4,7 @@ from datetime import datetime
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
+from data_pipeline.utils.pipeline_file_io import read_file_content
 
 
 def compose_url_param_from_parameter_values_in_env_var(
@@ -12,6 +13,21 @@ def compose_url_param_from_parameter_values_in_env_var(
         param.get("parameterName"): os.getenv(param.get("envName"))
         for param in compose_able_static_parameters
         if os.getenv(param.get("envName"))
+    }
+    return params
+
+
+def compose_url_param_from_param_vals_filepath_in_env_var(
+        compose_able_static_parameters: list):
+    params = {
+        param.get("parameterName"):
+            read_file_content(
+                os.getenv(
+                    param.get("filePathEnvName")
+                )
+            )
+        for param in compose_able_static_parameters
+        if os.getenv(param.get("filePathEnvName"))
     }
     return params
 
@@ -146,7 +162,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
                 self.page_size_param,
                 url_compose_param.page_size or self.page_size
             ),
-            ("sort", self.sort_key_value or "modified_date")
+            ("sort", self.sort_key_value)
         ] if key and value)
         start_date_param = {
             self.from_date_param: {">=": start_date}
