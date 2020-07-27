@@ -63,7 +63,7 @@ class WebApiConfig:
             "table", ""
         )
         self.table_write_append_enabled = api_config.get(
-            "tableWriteAppend", False
+            "tableWriteAppend", True
         )
         self.schema_file_s3_bucket = (
             api_config.get("schemaFile", {}).get("bucketName")

@@ -229,6 +229,7 @@ def load_written_data_to_bq(
             auto_detect_schema=False,
             dataset_name=data_config.dataset_name,
             project_name=data_config.gcp_project,
+            write_mode=data_config.table_write_append_enabled
         )
 
 
