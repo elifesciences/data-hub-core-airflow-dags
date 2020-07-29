@@ -15,7 +15,7 @@ The sample configuration for the different data pipelines can be found in `sampl
 ## Running The Pipeline Locally
 This repo is designed to run in as a containerized application in the development environment.
 To run this locally, review the `docker-compose.dev.override.yml` and `docker-compose.yaml` files, and ensure that the different credentials files, tokens or strings required by different data pipelines are correctly provided if you will have to run the data pipeline.
-Following are the credentials that youmay need to provide
+Following are the credentials that you may need to provide
 - GCP's service account json key (mandatory for all data pipelines)
 - AWS credentials
 - Twitter's developer credentials
