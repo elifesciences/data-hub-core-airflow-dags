@@ -6,9 +6,12 @@ stateFile:
 s3Csv:
   #- bucketName: elife-ejp-ftp
   #  objectKeyPattern:
-  #    - ejp_query_tool_query_id_15a*
+  #    - ejp_query_tool_query_id_15a* # the pattern of the s3 object to be monitored
+  # unique data pipeline id to identify the airflow dag run for any data pipeline that runs this config
   #  dataPipelineId: ejp_query_tool_query_id_15a_unique_id
+  #  which line the csv header is
   #  headerLineIndex: 3
+  #  which line the data values of csv start
   #  dataValuesStartLineIndex: 4
   #  datasetName: "{ENV}"
   #  tableName: 'ejp_query_tool_query_id_15a_test'
@@ -16,27 +19,22 @@ s3Csv:
   #  stateFile:
   #    bucketName: ci-elife-data-pipeline
   #    objectName: "airflow-config/s3-csv/{ENV}-state/query_id_15a.json"
+  #  This adds to every record created by this pipeline config a field whose name is given by metadataSchemaFieldName
+  #  and whose value in in the line metadataLineIndex of the file
   #  inSheetRecordMetadata:
   #    - metadataSchemaFieldName: 'date_generated'
   #      metadataLineIndex: 1
-  #- bucketName: elife-ejp-ftp
-  #  objectKeyPattern:
-  #    - ejp_query_tool_query_id_04e*
-  #  dataPipelineId: ejp_query_tool_query_id_04e_unique_id
-  #  headerLineIndex: 3
-  #  dataValuesStartLineIndex: 4
-  #  datasetName: "{ENV}"
-  #  tableName: 'ejp_query_tool_query_id_04e_test'
-  #  tableWriteAppend: True
-  #  stateFile:
-  #    bucketName: ci-elife-data-pipeline
-  #    objectName: "airflow-config/s3-csv/{ENV}-state/query_id_04e.json"
-  #  #fixedSheetRecordMetadata :
-  #  #  - metadataSchemaFieldName : 'some schema'
-  #  #    fixedSheetValue: "Some value"
-  #  inSheetRecordMetadata:
-  #    - metadataSchemaFieldName: 'date_generated'
-  #      metadataLineIndex: 1
+  #  This adds to every record created by this pipeline config a field whose name is given by metadataSchemaFieldName
+  #  and whose value is given in fixedSheetValue
+  #  fixedSheetRecordMetadata :
+  #    - metadataSchemaFieldName : 'some schema'
+  #      fixedSheetValue: "Some value"
+  #  This is used to list the names of the different data transformation to run on each record
+  #  There is only one optional record processing function implemented at the moment i.e. html_unescape
+  #  Information about new optional record processing steps will be provided here as they are implemented
+  #  recordProcessingSteps: # html
+  #    - html_unescape # as the name suggests, it uescapes html characters from all field values in the record
+
   - bucketName: ci-elife-data-pipeline
     objectKeyPattern:
       - airflow_test/test-data/s3_csv_data_pipeline_test_data*

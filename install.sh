@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# <description>
+#
+# This file is used to install the data pipeline files in this repository into the
+# data hub image (https://github.com/elifesciences/data-hub-airflow-image) created
+# which is meant to be deployed for use in the k8s deployment of airflow
+
 set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 

@@ -65,6 +65,9 @@ ci-end2end-test: build-dev
 dev-env: build-dev
 	$(DOCKER_COMPOSE_DEV) up  --scale dask-worker=1 scheduler
 
+dev-test-exclude-e2e: build-dev
+	$(DOCKER_COMPOSE_DEV) run --rm data-hub-dags-dev ./run_test.sh
+
 dev-end2end-test: build-dev
 	$(DOCKER_COMPOSE_DEV) run --rm  test-client
 	make ci-clean

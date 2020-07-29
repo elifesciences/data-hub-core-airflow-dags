@@ -2,13 +2,21 @@ projectName: 'elife-data-pipeline'
 dataset: '{ENV}'
 table: 'crossref_event'
 stateFile:
-  bucket: 'ci-elife-data-pipeline'
+  bucket: '{ENV}-elife-data-pipeline'
   objectName: 'airflow-config/crossref-event/{ENV}-date-state.json'
+# schema for the resulting transformed crossref event data which is loaded to bigquery
+# note that this is not just used to create the bigquery table alone, but it is also used to filter the some
+# fields out of the input crossref event data
+# also, note that it is ASSUMED that this schema has a one to one matching with the name of the fields of
+# the crossevent after they have been standardized/transformed to fit with the bigquery field naming convention
+# the standardization assumed is that any non-conforming character is replaced with underscore
 schemaFile:
   url:
-  bucket: 'ci-elife-data-pipeline'
+  bucket: '{ENV}-elife-data-pipeline'
   objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+# the list doi prefixes of the diferent journal that needs to be extracted and loaded int
+# the bigquery data warehouse
 publisherIdPrefixes:
   - '10.7554'
-CrossrefEventBaseUrl: "https://api.eventdata.crossref.org/v1/events?rows=10000"
+crossrefEventBaseUrl: "https://api.eventdata.crossref.org/v1/events?rows=10000"
 importedTimestampField: 'data_hub_imported_timestamp'
