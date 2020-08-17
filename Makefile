@@ -10,6 +10,9 @@ PIP = $(VENV)/bin/pip
 PYTHON = PYTHONPATH=dags $(VENV)/bin/python
 
 
+PYTEST_WATCH_MODULES = tests/unit_test
+
+
 venv-clean:
 	@if [ -d "$(VENV)" ]; then \
 		rm -rf "$(VENV)"; \
@@ -59,7 +62,7 @@ dev-integration-test: dev-install
 
 
 dev-watch:
-	$(PYTHON) -m pytest_watch -- -p no:cacheprovider $(ARGS) tests/unit_test
+	$(PYTHON) -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
 
 dev-test: dev-lint dev-unittest dev-dagtest
