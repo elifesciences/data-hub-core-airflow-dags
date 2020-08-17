@@ -5,7 +5,7 @@ google-cloud-bigquery==1.26.1
 google-oauth==1.0.1
 dateparser==0.7.6
 cloudpickle==1.4.1
-dask[complete]==2.21.0
+dask[complete]==2.23.0
 distributed==2.21.0
 google-api-python-client==1.10.0
 bigquery-schema-generator==1.1
