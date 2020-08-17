@@ -36,6 +36,7 @@ class BigQueryViewsConfig:
 def load_remote_view_mapping(urlpath: str, **kwargs):
     LOGGER.info('loading view mapping: %s', urlpath)
     with get_temp_local_file_if_remote(urlpath) as local_path:
+        LOGGER.info('loading local view mapping: %s', local_path)
         return load_view_mapping(local_path, **kwargs)
 
 
@@ -61,7 +62,7 @@ def materialize_bigquery_views(config: BigQueryViewsConfig):
         default_dataset_name=config.dataset,
         is_materialized_view=True,
     )
-    views_dict_all = load_view_mapping(
+    views_dict_all = load_remote_view_mapping(
         views_list_file_path,
         should_map_table=view_name_mapping_enabled,
         default_dataset_name=config.dataset,
