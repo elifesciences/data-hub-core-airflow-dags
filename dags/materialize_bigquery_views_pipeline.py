@@ -1,0 +1,73 @@
+from airflow.models import DAG
+
+from data_pipeline.utils.dags.data_pipeline_dag_utils import (
+    get_default_args,
+    create_python_task
+)
+
+from data_pipeline.utils.pipeline_config import (
+    get_environment_variable_value,
+    str_to_bool
+)
+
+from data_pipeline.bigquery_views.pipeline import (
+    BigQueryViewsConfig,
+    materialize_bigquery_views
+)
+
+
+class EnvironmentVariables:
+    MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL = 'MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL'
+    MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH = 'MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH'
+    MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT = 'MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT'
+    MATERIALIZE_BIGQUERY_VIEWS_DATASET = 'MATERIALIZE_BIGQUERY_VIEWS_DATASET'
+    MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED = (
+        'MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED'
+    )
+
+
+DAG_ID = 'Materialize_BigQuery_Views_Pipeline'
+
+
+def get_config() -> BigQueryViewsConfig:
+    return BigQueryViewsConfig(
+        bigquery_views_config_path=get_environment_variable_value(
+            EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH,
+            required=True
+        ),
+        gcp_project=get_environment_variable_value(
+            EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT,
+            required=True
+        ),
+        dataset=get_environment_variable_value(
+            EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_DATASET,
+            required=True
+        ),
+        view_name_mapping_enabled=get_environment_variable_value(
+            EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED,
+            str_to_bool,
+            required=True
+        )
+    )
+
+
+def materialize_views_task(**_):
+    config = get_config()
+    materialize_bigquery_views(config)
+
+
+MATERIALIZE_BIGQUERY_VIEWS_DAG = DAG(
+    dag_id=DAG_ID,
+    schedule_interval=get_environment_variable_value(
+        EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL,
+        default_value=None
+    ),
+    default_args=get_default_args(),
+)
+
+
+MATERIALIZE_BIGQUERY_VIEWS_TASK = create_python_task(
+    MATERIALIZE_BIGQUERY_VIEWS_DAG,
+    'materialize_views',
+    materialize_views_task,
+)

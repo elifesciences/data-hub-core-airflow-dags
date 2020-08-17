@@ -1,3 +1,5 @@
+import os
+from typing import Callable, T
 
 
 def update_deployment_env_placeholder(
@@ -55,3 +57,31 @@ def replace_env_placeholder(
             deployment_env
         )
     return new_value
+
+
+TRUE_VALUES = {'true', '1', 't', 'y', 'yes'}
+FALSE_VALUES = {'false', '0', 'f', 'n', 'no'}
+
+
+def str_to_bool(value: str) -> bool:
+    lower_value = value.lower()
+    if lower_value in TRUE_VALUES:
+        return True
+    if lower_value in FALSE_VALUES:
+        return False
+    raise ValueError('unrecognised boolean value: %r' % value)
+
+
+def get_environment_variable_value(
+        key: str,
+        value_converter: Callable[[str], T] = None,
+        required: bool = False,
+        default_value: T = None) -> T:
+    value = os.getenv(key)
+    if not value:
+        if required:
+            raise KeyError('environment variable %s (%s) required' % (key, type))
+        return default_value
+    if value_converter:
+        value = value_converter(value)
+    return value
