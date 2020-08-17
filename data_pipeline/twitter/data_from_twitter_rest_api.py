@@ -261,7 +261,7 @@ def iter_stream_write_entities_from_retweets(
         twitter_config: TwitterDataPipelineConfig,
 
 ):
-    bq_client = Client()
+    bq_client = Client(project=twitter_config.gcp_project)
     tweet_table = get_bq_table(
         twitter_config.gcp_project,
         twitter_config.dataset,
