@@ -58,6 +58,10 @@ dev-integration-test: dev-install
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/integration_test
 
 
+dev-watch:
+	$(PYTHON) -m pytest_watch -- -p no:cacheprovider $(ARGS) tests/unit_test
+
+
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
