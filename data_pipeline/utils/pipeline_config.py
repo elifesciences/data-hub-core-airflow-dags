@@ -80,7 +80,9 @@ def get_environment_variable_value(
     value = os.getenv(key)
     if not value:
         if required:
-            raise KeyError('environment variable %s (%s) required' % (key, type))
+            raise KeyError('environment variable %s (%s) required' % (
+                key, value_converter
+            ))
         return default_value
     if value_converter:
         value = value_converter(value)
