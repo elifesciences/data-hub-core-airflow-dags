@@ -152,7 +152,7 @@ def write_jsonl_to_file(
 
 def read_file_content(file_location: str):
     with open(file_location, 'r') as open_file:
-        data = open_file.readlines()
+        data = open_file.read()
     return data
 
 

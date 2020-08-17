@@ -1,6 +1,93 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
+  #- dataset: '{ENV}'
+  #  table: 'testtest_people'
+  #  the type should only be given when the web api has some very specific implementation requirements
+  #  that is not covered by the  generic web api e.g url composition
+  #  they web api type name and the type handling functions must be implemented
+  #  as of now, the only specific type implemented is 'civi' for handling quirky civicrm rest api
+  #  request parameter composition,  information on every other type implemented will be provided here
+  #  type: 'civi'
+  #  tableWriteAppend: False
+  #  stateFile:
+  #    bucketName: '{ENV}-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
+  #  schemaFile:
+  #    url:
+  #    bucketName: '{ENV}-elife-data-pipeline'
+  #    objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+  #  Information about how to process the response is provided here
+  #  response:
+  #    list showing hierarchy (from the response root) of where data values in the json response be found,
+  #    for example, consider
+  #    response = {'a': {'b': [{}, {}, {}]}}
+  #    itemsKeyFromResponseRoot:
+  #      - a
+  #      - b
+  #    list showing hierarchy (from the response root) of where total count of the request response is,
+  #    if there is, for example, consider
+  #    response = {'a': {'d': 10000000, 'b': [{}, {}, {}]}}
+  #    totalItemsCountKeyFromResponseRoot:
+  #      - a
+  #      - d
+  #    list showing hierarchy (from the response root) of where the next page cursor is,
+  #    which will be used in composing the next page web api request, for example, consider
+  #    response = {'a': {'d': 'XESdErkrsiowE$SREReri', 'b': [{}, {}, {}]}}
+  #    nextPageCursorKeyFromResponseRoot:
+  #      - a
+  #      - d
+  #    list showing hierarchy (NOTE from the item/record root) of where the record timestamp is,
+  #    response = {'a': {'d': 'XESdErkrsiowE$SREReri', 'b': [{'e':{'f': '2020-01-01'}}, {'e':{'f': '1999-09-13'}}, {}]}}
+  #    recordTimestamp:
+  #      timestampFormat: '%Y-%m-%d'
+  #      itemTimestampKeyFromItemRoot:
+  #        - e
+  #        - f
+  #  dataUrl:
+  #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
+  #    configurableParameters:
+  #      resultSortParameterName: # request parameter used to hold field used to sort the response
+  #      resultSortParameterValue: # field name used to sort the response
+  #      pageParameterName: page # request parameter used to specify page number being requested
+  #      defaultPageSize: 100
+  #      daysDiffFromStartTillEnd: 365 # used in specifying the until date dynamically in the request
+  #      offsetParameterName: offset # request parameter used to specify offset number being requested
+  #      nextPageCursorParameterName: next_page_cursor # request parameter used to specify cursor of the page being requested
+  #      fromDateParameterName: from_date  # request parameter used to specify from date
+  #      defaultStartDate:
+  #      toDateParameterName: to_date # request parameter used to specify the "until" date
+  #      dateFormat: "%Y-%m-%dT%H:%M:%S%z" # how the date format in the request should be formatted as string
+  #    parametersFromEnv is used to specify request parameters and values when they values can be
+  #    retrieved from the systems environment variable
+  #    parametersFromEnv:
+  #      - parameterName: api_key # request parameter name
+  #        envName: CIVICRM_API_KEY # environment variable holding the value
+  #      - parameterName: key
+  #        envName: CIVICRM_SITE_KEY
+  #    parametersFromFile is used to specify request parameters and values when they values can be
+  #    retrieved as files from the system running the data pipeline
+  #    parametersFromFile:
+  #      - parameterName: api_key  # request parameter name
+  #        filePathEnvName: CIVICRM_API_KEY_FILE_PATH  # environment variable holding the location of the file containing the value
+  #      - parameterName: key
+  #        filePathEnvName: CIVICRM_SITE_KEY_FILE_PATH
+  #  authentication configures how the authentication is specified
+  #  authentication:
+  #    auth_type: basic # simple key-value based authentication, the only implemented so far
+  #    orderedAuthenticationParamValues:
+  #      TODO: this authentication specs needs to be reworked
+  #      how the different values can be retrieved
+  #      - value: #
+  #        valueFileLocation: #
+  #        envVariableHoldingAuthValue: #
+  #        envVariableContainingPathToAuthFile: #
+  #      specifies how the keys can be retrieved
+  #      - paramValue: #
+  #        valueFileLocation:
+  #        envVariableHoldingAuthValue: #
+  #        envVariableContainingPathToAuthFile: #
+
   #observer api
   - dataset: '{ENV}'
     table: test_published_research_article
@@ -66,11 +153,11 @@ webApi:
         pageSizeParameterName: limit
         defaultPageSize: 10000
         offsetParameterName: offset
-      parametersFromEnv:
+      parametersFromFile:
         - parameterName: api_key
-          envName: CIVICRM_API_KEY
+          filePathEnvName: CIVICRM_API_KEY_FILE_PATH
         - parameterName: key
-          envName: CIVICRM_SITE_KEY
+          filePathEnvName: CIVICRM_SITE_KEY_FILE_PATH
     response:
       itemsKeyFromResponseRoot:
         - values
@@ -107,71 +194,26 @@ webApi:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
     dataUrl:
-      urlExcludingConfigurableParameters: https://www.toggl.com/api/v8/time_entries?
+      urlExcludingConfigurableParameters: "https://toggl.com/reports/api/v2/details?workspace_id=3533142&user_agent=api_test&order_field=date&order_desc=off"
       configurableParameters:
-        fromDateParameterName: start_date
-        defaultStartDate: "2020-01-01T01:00:00+00:00"
-        dateFormat: "%Y-%m-%dT%H:%M:%S%z"
+        fromDateParameterName: since
+        toDateParameterName: until
+        defaultStartDate: "2019-07-01"
+        dateFormat: "%Y-%m-%d"
+        daysDiffFromStartTillEnd: 365
+        pageParameterName: page
+        defaultPageSize: 50
     response:
+      itemsKeyFromResponseRoot:
+        - data
+      totalItemsCountKeyFromResponseRoot:
+        - total_count
       recordTimestamp:
         timestampFormat: "%Y-%m-%dT%H:%M:%S%z"
         itemTimestampKeyFromItemRoot:
-          - stop
+          - updated
     authentication:
       auth_type: basic
       orderedAuthenticationParamValues:
-        - envVariableHoldingAuthValue: TOGGLE_API_TOKEN
+        - envVariableContainingPathToAuthFile: PATH_TO_TOGGL_API_TOKEN_FILE
         - value: api_token
-
-  #- dataset: '{ENV}'
-  #  table: 'testtest_people'
-  #  type: 'civi'
-  #  stateFile:
-  #    bucketName: 'ci-elife-data-pipeline'
-  #    objectName: 'airflow-config/crossref-event/{ENV}-processing-state.json'
-  #  schemaFile:
-  #    url:
-  #    bucketName: 'ci-elife-data-pipeline'
-  #    objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
-  #  response:
-  #    itemsKeyFromResponseRoot:
-  #      - a
-  #      - b
-  #    totalItemsCountKeyFromResponseRoot:
-  #      - c
-  #      - d
-  #    nextPageCursorKeyFromResponseRoot:
-  #      - c
-  #      - d
-  #    recordTimestamp:
-  #      timestampFormat: format
-  #      itemTimestampKeyFromItemRoot:
-  #        - e
-  #        - f
-  #  dataUrl:
-  #    urlExcludingConfigurableParameters: https://api.elifesciences.org/people?per-page=50
-  #    configurableParameters:
-  #      resultSortParameterName:
-  #      resultSortParameterValue:
-  #      pageParameterName: page
-  #      defaultPageSize: 100
-  #      offsetParameterName: offset
-  #      nextPageCursorParameterName: next_page_cursor
-  #      fromDateParameterName: from_date
-  #      defaultStartDate:
-  #      toDateParameterName: to_date
-  #      dateFormat: "%Y-%m-%dT%H:%M:%S%z"
-  #    parametersFromEnv:
-  #      - parameterName: api_key
-  #        envName: CIVICRM_API_KEY
-  #      - parameterName: key
-  #        envName: CIVICRM_SITE_KEY
-  #  authentication:
-  #    auth_type: basic
-  #    orderedAuthenticationParamValues:
-  #      - value: #
-  #        valueFileLocation: #
-  #        envVariableHoldingAuthValue: #
-  #      - paramvValue: #
-  #        valueFileLocation:
-  #        envVariableHoldingAuthValue: #

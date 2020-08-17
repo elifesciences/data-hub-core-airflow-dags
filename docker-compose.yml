@@ -26,8 +26,9 @@ x-airflow-env:
     - TWITTER_USER_FOLLOWERS_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - TWITTER_USER_TWEET_CONFIG_FILE_PATH=/usr/local/airflow/app-config/twitter/twitter-data-pipeline.config.yaml
     - TWITTER_AUTH_YAML_FILE=/usr/local/airflow/app-config/twitter/twitter_auth.yaml
-    - CIVICRM_API_KEY=SOME_API_KEY
-    - CIVICRM_SITE_KEY=SOME_SITEKEY
+    - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
+    - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
+    - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
 
 
 x-airflow-volumes:
@@ -40,7 +41,7 @@ x-airflow-volumes:
     - ./sample_data_config/twitter/twitter_auth.yaml:/usr/local/airflow/app-config/twitter/twitter_auth.yaml
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
-    -  ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
+    - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/usr/local/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
 
 
 services:

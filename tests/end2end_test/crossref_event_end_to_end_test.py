@@ -11,8 +11,10 @@ TABLE = "crossref_event"
 PROJECT = "elife-data-pipeline"  # change  all to env variable
 
 
+# Note that this test is disabled because its isn't guaranteed to work
+# due to the erratic naature of the crossref event api
 # pylint: disable=broad-except
-def not_now_test_dag_runs_data_imported():
+def disabled_test_dag_runs_data_imported():
     try:
         simple_query(
             query=TestQueryTemplate.CLEAN_TABLE_QUERY,

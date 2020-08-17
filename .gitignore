@@ -2,6 +2,7 @@ credentials.json
 *.egg-info
 .pytest_cache
 venv
+.secrets
 main.py
 
 *.pyc

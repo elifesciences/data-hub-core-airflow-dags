@@ -1,9 +1,16 @@
 version: '3.4'
 
+x-airflow-env:
+  &airflow-env
+    - CIVICRM_API_KEY_FILE_PATH=/usr/local/airflow/secrets/civi_api_key
+    - CIVICRM_SITE_KEY_FILE_PATH=/usr/local/airflow/secrets/civi_site_key
+    - PATH_TO_TOGGL_API_TOKEN_FILE=/usr/local/airflow/secrets/toggl.txt
+
 
 x-airflow-volumes:
   &airflow-volumes
     - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
+    - ./.secrets:/usr/local/airflow/secrets
 
 
 services:
@@ -11,13 +18,17 @@ services:
         ports:
             - "8080:8080"
         volumes: *airflow-volumes
+        environment: *airflow-env
 
     scheduler:
         volumes: *airflow-volumes
+        environment: *airflow-env
 
 
     dask-worker:
         volumes: *airflow-volumes
+        environment: *airflow-env
 
     test-client:
         volumes: *airflow-volumes
+        environment: *airflow-env

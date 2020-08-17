@@ -3,6 +3,7 @@ from datetime import (
     timezone
 )
 import dateparser
+import pytz
 
 
 def get_current_timestamp_as_string(
@@ -29,3 +30,18 @@ def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
             timestamp_as_str.strip()
         )
     return timestamp_obj
+
+
+def is_datetime_tz_aware(datetime_obj: datetime):
+    return (
+        datetime_obj.tzinfo is not None
+        and datetime_obj.tzinfo.utcoffset(
+            datetime_obj
+        ) is not None
+    )
+
+
+def get_tz_aware_datetime(datetime_obj: datetime):
+    if not is_datetime_tz_aware(datetime_obj):
+        datetime_obj = datetime_obj.replace(tzinfo=pytz.UTC)
+    return datetime_obj

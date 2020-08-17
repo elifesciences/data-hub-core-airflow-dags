@@ -1,5 +1,6 @@
 import os
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
@@ -32,8 +33,11 @@ from data_pipeline.generic_web_api.url_builder import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string,
     datetime_to_string,
-    parse_timestamp_from_str
+    parse_timestamp_from_str,
+    get_tz_aware_datetime
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_stored_state(
@@ -92,6 +96,7 @@ def get_data_single_page(
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
+    LOGGER.info("Request URL: %s", url)
 
     with requests_retry_session() as session:
         if (
@@ -127,8 +132,22 @@ def generic_web_api_data_etl(
     )
     initial_from_date = from_date or stored_state
     from_date_to_advance = initial_from_date
+    LOGGER.info(
+        "Running ETL from date %s, to date %s",
+        datetime_to_string(
+            initial_from_date,
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        ),
+        datetime_to_string(
+            until_date,
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        )
+    )
     cursor = None
     latest_record_timestamp = None
+    variable_until_date = get_next_until_date(
+        from_date_to_advance, data_config, until_date
+    )
     offset = 0 if data_config.url_builder.offset_param else None
     page_number = 1 if data_config.url_builder.page_number_param else None
     with TemporaryDirectory() as tmp_dir:
@@ -140,7 +159,7 @@ def generic_web_api_data_etl(
             page_data = get_data_single_page(
                 data_config=data_config,
                 from_date=from_date_to_advance or initial_from_date,
-                until_date=until_date,
+                until_date=variable_until_date,
                 cursor=cursor,
                 page_number=page_number,
                 page_offset=offset
@@ -148,6 +167,7 @@ def generic_web_api_data_etl(
             items_list = get_items_list(
                 page_data, data_config
             )
+
             latest_record_timestamp = process_downloaded_data(
                 data_config=data_config,
                 record_list=items_list,
@@ -156,19 +176,28 @@ def generic_web_api_data_etl(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
-
             cursor = get_next_cursor_from_data(page_data, data_config)
+
+            from_date_to_advance, to_reset_page_or_offset_param = (
+                get_next_start_date(
+                    items_count, from_date_to_advance,
+                    latest_record_timestamp, data_config,
+                    cursor, page_number, offset
+                )
+            )
             page_number = get_next_page_number(
-                items_count, page_number, data_config
+                items_count, page_number,
+                data_config, to_reset_page_or_offset_param
             )
             offset = get_next_offset(
-                items_count, offset, data_config
+                items_count, offset, data_config,
+                to_reset_page_or_offset_param
             )
 
-            from_date_to_advance = get_next_start_date(
-                items_count, from_date_to_advance,
-                latest_record_timestamp, data_config
+            variable_until_date = get_next_until_date(
+                from_date_to_advance, data_config, until_date
             )
+
             if (
                     cursor is None and page_number is None and
                     from_date_to_advance is None and offset is None
@@ -200,33 +229,65 @@ def load_written_data_to_bq(
             auto_detect_schema=False,
             dataset_name=data_config.dataset_name,
             project_name=data_config.gcp_project,
+            write_mode=data_config.table_write_disposition
         )
 
 
-def get_next_page_number(items_count, current_page, web_config: WebApiConfig):
+def get_next_until_date(from_date: datetime, data_config, fixed_until_date):
+    until_date = None
+    if fixed_until_date:
+        until_date = fixed_until_date
+    elif (
+            from_date
+            and data_config.start_till_end_date_diff_in_days
+    ):
+        until_date = (
+            from_date +
+            timedelta(days=data_config.start_till_end_date_diff_in_days)
+        )
+
+    return until_date
+
+
+def get_next_page_number(
+        items_count, current_page,
+        web_config: WebApiConfig,
+        reset_param: bool = False
+):
     next_page = None
     if web_config.url_builder.page_number_param:
-        has_more_items = (
-            items_count == web_config.page_size
-            if web_config.page_size
-            else items_count
-        )
-        next_page = current_page + 1 if has_more_items else None
+        if reset_param:
+            next_page = 1
+        else:
+            has_more_items = (
+                items_count == web_config.page_size
+                if web_config.page_size
+                else items_count
+            )
+            next_page = current_page + 1 if has_more_items else None
     return next_page
 
 
-def get_next_offset(items_count, current_offset, web_config: WebApiConfig):
+def get_next_offset(
+        items_count, current_offset,
+        web_config: WebApiConfig,
+        reset_param: bool = False
+):
+
     next_offset = None
     if web_config.url_builder.offset_param:
-        has_more_items = (
-            items_count == web_config.page_size
-            if web_config.page_size
-            else items_count
-        )
-        next_offset = (
-            current_offset + web_config.page_size
-            if has_more_items else None
-        )
+        if reset_param:
+            next_offset = 0
+        else:
+            has_more_items = (
+                items_count == web_config.page_size
+                if web_config.page_size
+                else items_count
+            )
+            next_offset = (
+                current_offset + web_config.page_size
+                if has_more_items else None
+            )
     return next_offset
 
 
@@ -234,22 +295,44 @@ def get_next_start_date(
         items_count,
         current_start_timestamp,
         latest_record_timestamp,
-        web_config: WebApiConfig
+        web_config: WebApiConfig,
+        cursor: str = None,
+        page_number: int = None,
+        offset: int = None
+
 ):
+    # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
-    if (
-            web_config.url_builder.page_number_param or
-            web_config.url_builder.next_page_cursor or
-            web_config.url_builder.offset_param
-    ):
+    reset_page_or_offset_param = False
+    next_page_number = get_next_page_number(
+        items_count, page_number, web_config, False
+    )
+    next_offset = get_next_offset(
+        items_count, offset, web_config, False
+    )
+    if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp
+    elif(
+            current_start_timestamp == latest_record_timestamp
+            and not next_page_number and not next_offset
+    ):
+        from_timestamp = None
     elif (
+            current_start_timestamp != latest_record_timestamp and
+            (
+                next_page_number or next_offset
+                or not (
+                    web_config.url_builder.offset_param
+                    or web_config.url_builder.page_number_param
+                )
+            ) and
             web_config.item_timestamp_key_path_from_item_root and
             items_count
     ):
-        from_timestamp = latest_record_timestamp
 
-    return from_timestamp
+        from_timestamp = latest_record_timestamp
+        reset_page_or_offset_param = True
+    return from_timestamp, reset_page_or_offset_param
 
 
 def get_next_cursor_from_data(data, web_config: WebApiConfig):
@@ -282,7 +365,7 @@ def upload_latest_timestamp_as_pipeline_state(
             data_config.state_file_bucket_name
     ):
         latest_record_date = datetime_to_string(
-            latest_record_timestamp,
+            get_tz_aware_datetime(latest_record_timestamp),
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
         state_file_name_key = data_config.state_file_object_name

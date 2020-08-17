@@ -36,7 +36,7 @@ class CrossRefImportDataPipelineConfig:
             "schemaFile", {}).get("objectName")
         self.publisher_ids = self.data_config.get("publisherIdPrefixes")
         self.crossref_event_base_url = (
-            self.data_config.get("CrossrefEventBaseUrl")
+            self.data_config.get("crossrefEventBaseUrl")
         )
 
 

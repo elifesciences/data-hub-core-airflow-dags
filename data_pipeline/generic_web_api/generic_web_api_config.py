@@ -1,5 +1,8 @@
+from google.cloud.bigquery import WriteDisposition
+
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
+    compose_url_param_from_param_vals_filepath_in_env_var,
     get_url_builder_class
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
@@ -61,9 +64,12 @@ class WebApiConfig:
         self.table_name = api_config.get(
             "table", ""
         )
-        self.table_write_append_enabled = api_config.get(
-            "tableWriteAppend", False
+        self.table_write_disposition = (
+            WriteDisposition.WRITE_APPEND
+            if api_config.get("tableWriteAppend", True)
+            else WriteDisposition.WRITE_TRUNCATE
         )
+
         self.schema_file_s3_bucket = (
             api_config.get("schemaFile", {}).get("bucketName")
         )
@@ -82,6 +88,11 @@ class WebApiConfig:
         ).get("configurableParameters", {})
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)
+        start_to_end_date_diff_in_days = (
+            configurable_parameters.get(
+                "daysDiffFromStartTillEnd", None
+            )
+        )
         page_number_param = configurable_parameters.get(
             "pageParameterName", None
         )
@@ -98,11 +109,18 @@ class WebApiConfig:
             "resultSortParameterValue", None
         )
         composeable_static_parameters = (
-            compose_url_param_from_parameter_values_in_env_var(
-                api_config.get(
-                    "dataUrl"
-                ).get("parametersFromEnv", [])
-            )
+            {
+                **(compose_url_param_from_parameter_values_in_env_var(
+                    api_config.get(
+                        "dataUrl"
+                    ).get("parametersFromEnv", [])
+                )),
+                **(compose_url_param_from_param_vals_filepath_in_env_var(
+                    api_config.get(
+                        "dataUrl"
+                    ).get("parametersFromFile", [])
+                )),
+            }
         )
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)
@@ -144,6 +162,9 @@ class WebApiConfig:
             result_sort_param,
             result_sort_param_value,
             **type_specific_param
+        )
+        self.start_till_end_date_diff_in_days = (
+            start_to_end_date_diff_in_days
         )
         self.items_key_path_from_response_root = (
             api_config.get("response", {}).get(
