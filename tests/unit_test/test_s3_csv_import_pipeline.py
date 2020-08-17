@@ -1,9 +1,9 @@
 import json
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import pytest
 from airflow import models as airflow_models
-from airflow.models import DAG, TaskInstance as TI
+from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils import timezone
 
@@ -73,7 +73,7 @@ class TaskContext:
     dag = DAG(dag_id='mock_xcom', start_date=timezone.utcnow())
     exec_date = timezone.utcnow()
     task1 = DummyOperator(task_id='Should_Remaining_Tasks_Execute', dag=dag)
-    task_instance = TI(task=task1, execution_date=exec_date)
+    task_instance = MagicMock(name='mock_task_instance')
 
     @staticmethod
     def get_context(task_instance=None):
@@ -91,12 +91,20 @@ class TaskContext:
         return context
 
 
+@pytest.fixture(name="mock_task_context")
+def _mock_task_context():
+    return TaskContext().get_context()
+
+
 class TestEtlDagRunning:
 
     def test_should_return_false_if_etl_with_same_id_is_running(
-            self, mock_variable_get, mock_dag_run_find, mock_dag_run
+            self,
+            mock_variable_get,
+            mock_dag_run_find,
+            mock_dag_run,
+            mock_task_context: dict
     ):
-        context = TaskContext.get_context()
         run_id = "run_id"
         mock_dag_run.get_state.return_value = NamedLiterals.DAG_RUNNING_STATUS
         mock_dag_run_find.return_value = [mock_dag_run]
@@ -104,13 +112,16 @@ class TestEtlDagRunning:
         mock_variable_get.return_value = json.dumps(
             {NamedLiterals.RUN_ID: run_id}
         )
-        is_etl_dag_running = is_dag_etl_running(**context)
+        is_etl_dag_running = is_dag_etl_running(**mock_task_context)
         assert not is_etl_dag_running
 
     def test_should_return_false_if_etl_with_same_id_is_successful(
-            self, mock_variable_get, mock_dag_run_find, mock_dag_run
+            self,
+            mock_variable_get,
+            mock_dag_run_find,
+            mock_dag_run,
+            mock_task_context: dict
     ):
-        context = TaskContext.get_context()
         run_id = "run_id"
         mock_dag_run.get_state.return_value = "success"
         mock_dag_run_find.return_value = [mock_dag_run]
@@ -118,15 +129,17 @@ class TestEtlDagRunning:
         mock_variable_get.return_value = json.dumps(
             {NamedLiterals.RUN_ID: run_id}
         )
-        is_etl_dag_running = is_dag_etl_running(**context)
+        is_etl_dag_running = is_dag_etl_running(**mock_task_context)
         mock_dag_run_find.assert_called()
         assert is_etl_dag_running
 
     def test_should_return_true_if_no_etl_with_similar_id_is_running(
-            self, mock_variable_get, mock_dag_run_find):
-        context = TaskContext.get_context()
+            self,
+            mock_variable_get,
+            mock_dag_run_find,
+            mock_task_context: dict):
         mock_variable_get.return_value = None
-        is_etl_dag_running = is_dag_etl_running(**context)
+        is_etl_dag_running = is_dag_etl_running(**mock_task_context)
         mock_dag_run_find.assert_not_called()
         assert is_etl_dag_running
 
