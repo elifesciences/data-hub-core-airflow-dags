@@ -69,7 +69,7 @@ def materialize_bigquery_views(config: BigQueryViewsConfig):
     )
     client = get_client(config)
     materialize_views(
-        client,
+        client=client,
         materialized_view_dict=materialized_view_ordered_dict,
         source_view_dict=views_dict_all,
         project=client.project
