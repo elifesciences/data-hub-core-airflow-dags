@@ -4,5 +4,6 @@ credentials.json
 venv
 .secrets
 main.py
+*.local
 
 *.pyc
