@@ -62,12 +62,12 @@ MATERIALIZE_BIGQUERY_VIEWS_DAG = DAG(
         EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL,
         default_value=None
     ),
-    default_args=get_default_args(),
+    default_args=get_default_args()
 )
 
 
 MATERIALIZE_BIGQUERY_VIEWS_TASK = create_python_task(
     MATERIALIZE_BIGQUERY_VIEWS_DAG,
     'materialize_views',
-    materialize_views_task,
+    materialize_views_task
 )
