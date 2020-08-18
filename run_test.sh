@@ -17,10 +17,10 @@ pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/datahub-dags-pylint \
- pylint tests/ data_pipeline/ dags/
+    pylint tests/ data_pipeline/ dags/
 
 echo "running flake8"
-flake8  tests/ data_pipeline/ dags/
+flake8 tests/ data_pipeline/ dags/
 
 
 if [[ $1  &&  $1 == "with-end-to-end" ]]; then
