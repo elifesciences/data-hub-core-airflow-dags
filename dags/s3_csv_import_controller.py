@@ -1,13 +1,13 @@
-import os
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
-from airflow.models import DAG
+import os
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     simple_trigger_dag,
-    get_default_args,
+    create_dag,
     create_python_task
 )
 
@@ -36,13 +36,11 @@ def trigger_s3_csv_import_pipeline_dag(**context):
         simple_trigger_dag(dag_id=TARGET_DAG, conf=s3_csv_config)
 
 
-S3_CSV_CONTROLLER_DAG = DAG(
+S3_CSV_CONTROLLER_DAG = create_dag(
     dag_id="S3_CSV_Import_Pipeline_Controller",
     schedule_interval=os.getenv(
         S3_CSV_SCHEDULE_INTERVAL_ENV_NAME
-    ),
-    default_args=get_default_args(),
-    catchup=False
+    )
 )
 
 TRIGGER_S3_CSV_ETL_DAG_TASK = create_python_task(

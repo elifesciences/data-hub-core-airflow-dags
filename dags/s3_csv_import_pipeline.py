@@ -1,8 +1,9 @@
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+
 import json
 import os
 from datetime import timedelta
 
-from airflow import DAG
 from airflow.models import Variable
 from airflow.models.dagrun import DagRun
 from airflow.operators.python_operator import ShortCircuitOperator
@@ -21,6 +22,7 @@ from data_pipeline.utils.dags.airflow_s3_util_extension import (
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     get_default_args,
+    create_dag,
     create_python_task
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
@@ -56,14 +58,13 @@ def add_notification_emails_to_default_args():
     return default_args
 
 
-S3_CSV_ETL_DAG = DAG(
+S3_CSV_ETL_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
     default_args=add_notification_emails_to_default_args(),
     dagrun_timeout=timedelta(minutes=60),
     max_active_runs=20,
-    concurrency=30,
-    catchup=False
+    concurrency=30
 )
 
 

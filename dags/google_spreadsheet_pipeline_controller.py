@@ -1,13 +1,13 @@
-import os
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
-from airflow import DAG
+import os
 
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig,
 )
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    get_default_args,
+    create_dag,
     simple_trigger_dag,
     create_python_task
 )
@@ -35,13 +35,11 @@ def trigger_spreadsheet_data_pipeline_dag(**kwargs):
         simple_trigger_dag(dag_id=TARGET_DAG_ID, conf=spreadsheet_config)
 
 
-SPREADSHEET_CONTROLLER_DAG = DAG(
+SPREADSHEET_CONTROLLER_DAG = create_dag(
     dag_id=DAG_ID,
-    default_args=get_default_args(),
     schedule_interval=os.getenv(
         GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME
-    ),
-    catchup=False
+    )
 )
 
 TRIGGER_SPREADSHEET_ETL_DAG_TASK = create_python_task(

@@ -20,6 +20,19 @@ def get_default_args():
     }
 
 
+def create_dag(
+        default_args: dict = None,
+        catchup: bool = False,
+        **kwargs):
+    if default_args is None:
+        default_args = get_default_args()
+    return airflow.DAG(
+        default_args=default_args,
+        catchup=catchup,
+        **kwargs
+    )
+
+
 # pylint: disable=too-many-arguments
 def create_python_task(
         dag, task_id, python_callable,
