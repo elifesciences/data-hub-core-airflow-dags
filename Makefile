@@ -92,8 +92,13 @@ clean:
 	$(DOCKER_COMPOSE) down -v
 
 
+airflow-initdb:
+	$(DOCKER_COMPOSE) run --rm  webserver airflow initdb
+
+
 end2end-test:
 	$(MAKE) clean
+	$(MAKE) airflow-initdb
 	$(DOCKER_COMPOSE) run --rm  test-client
 	$(MAKE) clean
 
