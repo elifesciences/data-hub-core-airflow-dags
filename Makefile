@@ -76,32 +76,37 @@ build-dev:
 	$(DOCKER_COMPOSE) build data-hub-dags-dev
 
 
-ci-build-dev:
-	$(DOCKER_COMPOSE_CI) build data-hub-dags-dev
+airflow-start:
+	$(DOCKER_COMPOSE) up --scale dask-worker=1 scheduler
+
+
+airflow-stop:
+	$(DOCKER_COMPOSE) down
+
+
+test-exclude-e2e: build-dev
+	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
+
+
+clean:
+	$(DOCKER_COMPOSE) down -v
+
+
+end2end-test:
+	$(MAKE) clean
+	$(DOCKER_COMPOSE) run --rm  test-client
+	$(MAKE) clean
 
 
 ci-test-exclude-e2e: build-dev
-	$(DOCKER_COMPOSE_CI) run --rm data-hub-dags-dev ./run_test.sh
+	$(MAKE) DOCKER_COMPOSE="$(DOCKER_COMPOSE_CI)" \
+		test-exclude-e2e
 
 
-ci-end2end-test: ci-build-dev
-	$(MAKE) ci-clean
-	$(DOCKER_COMPOSE_CI) run --rm  test-client
-	$(MAKE) ci-clean
-
-
-dev-env: build-dev
-	$(DOCKER_COMPOSE_DEV) up  --scale dask-worker=1 scheduler
-
-
-dev-test-exclude-e2e: build-dev
-	$(DOCKER_COMPOSE_DEV) run --rm data-hub-dags-dev ./run_test.sh
-
-
-dev-end2end-test: build-dev
-	$(MAKE) ci-clean
-	$(DOCKER_COMPOSE_DEV) run --rm  test-client
-	$(MAKE) ci-clean
+ci-build-and-end2end-test:
+	$(MAKE) DOCKER_COMPOSE="$(DOCKER_COMPOSE_CI)" \
+		build-dev \
+		end2end-test
 
 
 ci-clean:

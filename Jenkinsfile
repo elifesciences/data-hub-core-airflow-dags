@@ -14,7 +14,7 @@ elifePipeline {
             lock('data-hub-core-airflow-dags--ci') {
                 withDataPipelineGcpCredentials {
                     try {
-                        sh "make ci-end2end-test"
+                        sh "make ci-build-and-end2end-test"
                     } finally {
                         sh "make ci-clean"
                     }
