@@ -11,11 +11,13 @@ elifePipeline {
         }
 
         stage 'Build and run tests', {
-            withDataPipelineGcpCredentials {
-                try {
-                    sh "make ci-end2end-test"
-                } finally {
-                    sh "make ci-clean"
+            lock('data-hub-core-airflow-dags--ci') {
+                withDataPipelineGcpCredentials {
+                    try {
+                        sh "make ci-end2end-test"
+                    } finally {
+                        sh "make ci-clean"
+                    }
                 }
             }
         }
