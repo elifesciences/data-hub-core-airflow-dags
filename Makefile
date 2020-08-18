@@ -57,7 +57,7 @@ dev-dagtest:
 
 
 dev-integration-test: dev-install
-	(VENV)/bin/airflow upgradedb
+	$(VENV)/bin/airflow upgradedb
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/integration_test
 
 
@@ -81,8 +81,9 @@ ci-test-exclude-e2e: build-dev
 
 
 ci-end2end-test: build-dev
+	$(MAKE) ci-clean
 	$(DOCKER_COMPOSE) run --rm  test-client
-	make ci-clean
+	$(MAKE) ci-clean
 
 
 dev-env: build-dev
