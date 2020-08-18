@@ -1,7 +1,7 @@
-from airflow.models import DAG
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    get_default_args,
+    create_dag,
     create_python_task
 )
 
@@ -56,13 +56,12 @@ def materialize_views_task(**_):
     materialize_bigquery_views(config)
 
 
-MATERIALIZE_BIGQUERY_VIEWS_DAG = DAG(
+MATERIALIZE_BIGQUERY_VIEWS_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=get_environment_variable_value(
         EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL,
         default_value=None
-    ),
-    default_args=get_default_args()
+    )
 )
 
 
