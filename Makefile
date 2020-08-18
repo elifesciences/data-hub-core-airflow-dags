@@ -94,8 +94,9 @@ dev-test-exclude-e2e: build-dev
 
 
 dev-end2end-test: build-dev
+	$(MAKE) ci-clean
 	$(DOCKER_COMPOSE_DEV) run --rm  test-client
-	make ci-clean
+	$(MAKE) ci-clean
 
 
 ci-clean:
