@@ -1,8 +1,8 @@
 #!/usr/bin/make -f
 
-DOCKER_COMPOSE_CI = docker-compose
-DOCKER_COMPOSE_DEV = docker-compose -f docker-compose.yml -f docker-compose.dev.override.yml
-DOCKER_COMPOSE = $(DOCKER_COMPOSE_CI)
+DOCKER_COMPOSE_DEV = docker-compose
+DOCKER_COMPOSE_CI = docker-compose -f docker-compose.yml
+DOCKER_COMPOSE = $(DOCKER_COMPOSE_DEV)
 
 
 VENV = venv
@@ -57,7 +57,7 @@ dev-dagtest:
 
 
 dev-integration-test: dev-install
-	(VENV)/bin/airflow upgradedb
+	$(VENV)/bin/airflow upgradedb
 	$(PYTHON) -m pytest -p no:cacheprovider $(ARGS) tests/integration_test
 
 
@@ -76,27 +76,43 @@ build-dev:
 	$(DOCKER_COMPOSE) build data-hub-dags-dev
 
 
-ci-test-exclude-e2e: build-dev
+airflow-start:
+	$(DOCKER_COMPOSE) up --scale dask-worker=1 scheduler
+
+
+airflow-stop:
+	$(DOCKER_COMPOSE) down
+
+
+test-exclude-e2e: build-dev
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
 
 
-ci-end2end-test: build-dev
+clean:
+	$(DOCKER_COMPOSE) down -v
+
+
+airflow-initdb:
+	$(DOCKER_COMPOSE) run --rm  webserver airflow initdb
+
+
+end2end-test:
+	$(MAKE) clean
+	$(MAKE) airflow-initdb
 	$(DOCKER_COMPOSE) run --rm  test-client
-	make ci-clean
+	$(MAKE) clean
 
 
-dev-env: build-dev
-	$(DOCKER_COMPOSE_DEV) up  --scale dask-worker=1 scheduler
+ci-test-exclude-e2e: build-dev
+	$(MAKE) DOCKER_COMPOSE="$(DOCKER_COMPOSE_CI)" \
+		test-exclude-e2e
 
 
-dev-test-exclude-e2e: build-dev
-	$(DOCKER_COMPOSE_DEV) run --rm data-hub-dags-dev ./run_test.sh
-
-
-dev-end2end-test: build-dev
-	$(DOCKER_COMPOSE_DEV) run --rm  test-client
-	make ci-clean
+ci-build-and-end2end-test:
+	$(MAKE) DOCKER_COMPOSE="$(DOCKER_COMPOSE_CI)" \
+		build-dev \
+		end2end-test
 
 
 ci-clean:
-	$(DOCKER_COMPOSE) down -v
+	$(DOCKER_COMPOSE_CI) down -v
