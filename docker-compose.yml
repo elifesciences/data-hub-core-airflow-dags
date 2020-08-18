@@ -76,8 +76,6 @@ services:
     smtp-server:
         restart: always
         image:  namshi/smtp
-        ports:
-            - "25:25"
 
     scheduler:
         image:  elifesciences/data-hub-core-dags-dev
