@@ -41,6 +41,7 @@ SPREADSHEET_CONTROLLER_DAG = DAG(
     schedule_interval=os.getenv(
         GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME
     ),
+    catchup=False
 )
 
 TRIGGER_SPREADSHEET_ETL_DAG_TASK = create_python_task(

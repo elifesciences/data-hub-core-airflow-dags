@@ -26,6 +26,7 @@ GENERIC_WEB_API_DATA = DAG(
     default_args=get_default_args(),
     schedule_interval=None,
     dagrun_timeout=timedelta(minutes=60),
+    catchup=False
 )
 
 

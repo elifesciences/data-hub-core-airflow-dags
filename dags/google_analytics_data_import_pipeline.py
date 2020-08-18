@@ -37,6 +37,7 @@ GOOGLE_ANALYTICS_DAG = DAG(
         GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(minutes=60),
+    catchup=False
 )
 
 

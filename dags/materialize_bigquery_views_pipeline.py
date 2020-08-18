@@ -62,6 +62,7 @@ MATERIALIZE_BIGQUERY_VIEWS_DAG = DAG(
         EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL,
         default_value=None
     ),
+    catchup=False,
     default_args=get_default_args()
 )
 

@@ -55,6 +55,7 @@ CROSSREF_DAG = DAG(
         CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(minutes=60),
+    catchup=False
 )
 
 

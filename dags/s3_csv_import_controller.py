@@ -42,7 +42,7 @@ S3_CSV_CONTROLLER_DAG = DAG(
         S3_CSV_SCHEDULE_INTERVAL_ENV_NAME
     ),
     default_args=get_default_args(),
-
+    catchup=False
 )
 
 TRIGGER_S3_CSV_ETL_DAG_TASK = create_python_task(
