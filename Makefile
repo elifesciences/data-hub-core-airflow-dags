@@ -2,7 +2,7 @@
 
 DOCKER_COMPOSE_DEV = docker-compose
 DOCKER_COMPOSE_CI = docker-compose -f docker-compose.yml
-DOCKER_COMPOSE = $(DOCKER_COMPOSE_CI)
+DOCKER_COMPOSE = $(DOCKER_COMPOSE_DEV)
 
 
 VENV = venv
@@ -76,13 +76,17 @@ build-dev:
 	$(DOCKER_COMPOSE) build data-hub-dags-dev
 
 
+ci-build-dev:
+	$(DOCKER_COMPOSE_CI) build data-hub-dags-dev
+
+
 ci-test-exclude-e2e: build-dev
-	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
+	$(DOCKER_COMPOSE_CI) run --rm data-hub-dags-dev ./run_test.sh
 
 
-ci-end2end-test: build-dev
+ci-end2end-test: ci-build-dev
 	$(MAKE) ci-clean
-	$(DOCKER_COMPOSE) run --rm  test-client
+	$(DOCKER_COMPOSE_CI) run --rm  test-client
 	$(MAKE) ci-clean
 
 
@@ -101,4 +105,4 @@ dev-end2end-test: build-dev
 
 
 ci-clean:
-	$(DOCKER_COMPOSE) down -v
+	$(DOCKER_COMPOSE_CI) down -v
