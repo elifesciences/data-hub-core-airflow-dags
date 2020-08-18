@@ -18,6 +18,7 @@ def get_default_args():
         "retry_delay": timedelta(minutes=1),
         "retry_exponential_backoff": True,
         "provide_context": True,
+        "catchup": False
     }
 
 

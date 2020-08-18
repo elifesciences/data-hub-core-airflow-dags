@@ -29,7 +29,12 @@ x-airflow-env:
     - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
     - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
     - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
-
+    - MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL=${MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL}
+    - MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=${MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH}
+    - MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=${MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT}
+    - MATERIALIZE_BIGQUERY_VIEWS_DATASET=${MATERIALIZE_BIGQUERY_VIEWS_DATASET}
+    - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
+    
 
 x-airflow-volumes:
   &airflow-volumes
@@ -50,7 +55,6 @@ services:
             GOOGLE_APPLICATION_CREDENTIALS: /tmp/credentials.json
         volumes:
             - ./credentials.json:/tmp/credentials.json
-            - ~/.aws/credentials:/usr/local/airflow/.aws/credentials
         build:
             context: .
         image: elifesciences/data-hub-core-dags
@@ -75,12 +79,15 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint.sh
         command: webserver
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080"]
+            interval: 30s
+            timeout: 10s
+            retries: 10
 
     smtp-server:
         restart: always
         image:  namshi/smtp
-        ports:
-            - "25:25"
 
     scheduler:
         image:  elifesciences/data-hub-core-dags-dev

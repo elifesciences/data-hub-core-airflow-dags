@@ -4,7 +4,6 @@ set -e
 
 : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
 export AIRFLOW__CORE__FERNET_KEY
-airflow initdb
 
 # avoid issues with .pyc/pyo files when mounting source directory
 export PYTHONOPTIMIZE=
@@ -18,10 +17,10 @@ pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/datahub-dags-pylint \
- pylint tests/ data_pipeline/ dags/
+    pylint tests/ data_pipeline/ dags/
 
 echo "running flake8"
-flake8  tests/ data_pipeline/ dags/
+flake8 tests/ data_pipeline/ dags/
 
 
 if [[ $1  &&  $1 == "with-end-to-end" ]]; then

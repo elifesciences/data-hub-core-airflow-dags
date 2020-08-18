@@ -1,8 +1,11 @@
+import json
 import os
 from contextlib import ExitStack, contextmanager
-from typing import IO, Union, List
-from typing import Iterable, Callable
-import json
+from shutil import copyfileobj
+from tempfile import TemporaryDirectory
+from typing import IO, Union, List, Iterable, Callable
+
+import fsspec
 
 import yaml
 
@@ -171,3 +174,25 @@ def get_data_config_from_file_path_in_env_var(
         conf_file_path
     )
     return data_config_dict
+
+
+def is_remote_path(urlpath: str) -> bool:
+    return '://' in str(urlpath)
+
+
+def download_file(urlpath: str, local_path: str):
+    # Note: it might be more efficient to ask fsspec to download the file
+    with open(local_path, 'wb') as local_fp:
+        with fsspec.open(urlpath, mode='rb') as remote_fp:
+            copyfileobj(remote_fp, local_fp)
+
+
+@contextmanager
+def get_temp_local_file_if_remote(urlpath: str) -> str:
+    if not is_remote_path(urlpath):
+        yield urlpath
+        return
+    with TemporaryDirectory() as temp_dir:
+        local_path = os.path.join(temp_dir, os.path.basename(urlpath))
+        download_file(urlpath, local_path)
+        yield local_path

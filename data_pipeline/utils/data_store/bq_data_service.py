@@ -18,14 +18,14 @@ LOGGER = logging.getLogger(__name__)
 MAX_ROWS_INSERTABLE = 1000
 
 
-def get_bq_client():
-    return Client()
+def get_bq_client(project: str):
+    return Client(project=project)
 
 
 def get_bq_table(gcp_project: str, dataset: str, table: str):
     dataset_ref = DatasetReference(gcp_project, dataset)
     table_ref = dataset_ref.table(table)
-    return get_bq_client().get_table(table_ref)
+    return get_bq_client(gcp_project).get_table(table_ref)
 
 
 # pylint: disable=too-many-arguments
@@ -42,7 +42,7 @@ def load_file_into_bq(
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
         return
-    client = Client(project=project_name) if project_name else Client()
+    client = get_bq_client(project=project_name)
     dataset_ref = client.dataset(dataset_name)
     table_ref = dataset_ref.table(table_name)
     job_config = LoadJobConfig()
@@ -106,7 +106,7 @@ def create_table(
         json_schema: list,
         time_partitioning_field_name: str = None
 ):
-    client = bigquery.Client()
+    client = get_bq_client(project=project_name)
     table_id = compose_full_table_name(
         project_name, dataset_name, table_name
     )
@@ -141,7 +141,7 @@ def does_bigquery_table_exist(
         project_name: str, dataset_name: str, table_name: str
 ) -> bool:
     table_id = compose_full_table_name(project_name, dataset_name, table_name)
-    client = bigquery.Client()
+    client = get_bq_client(project=project_name)
     try:
         client.get_table(table_id)
         return True
@@ -178,8 +178,7 @@ def get_table_schema(
         dataset_name: str,
         table_name: str
 ):
-    client = bigquery.Client()
-
+    client = get_bq_client(project=project_name)
     dataset_ref = client.dataset(dataset_name, project=project_name)
     table_ref = dataset_ref.table(table_name)
     try:
@@ -193,7 +192,7 @@ def extend_table_schema_with_nested_schema(
         project_name: str, dataset_name: str,
         table_name: str, new_fields: list
 ):
-    client = bigquery.Client()
+    client = get_bq_client(project=project_name)
     dataset_ref = client.dataset(dataset_name, project=project_name)
     table_ref = dataset_ref.table(table_name)
     table = client.get_table(table_ref)  # Make an API request.
