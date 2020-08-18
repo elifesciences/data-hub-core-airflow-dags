@@ -46,8 +46,7 @@ def get_client(config: BigQueryViewsConfig) -> bigquery.Client:
 
 def materialize_bigquery_views(config: BigQueryViewsConfig):
     LOGGER.info('config: %s', config)
-    disable_view_name_mapping = True
-    view_name_mapping_enabled = not disable_view_name_mapping
+    view_name_mapping_enabled = config.view_name_mapping_enabled
     materialized_views_list_file_path = os.path.join(
         config.bigquery_views_config_path,
         'materialized-views.lst'

@@ -31,15 +31,33 @@ def _mock_materialize_views() -> MagicMock:
         yield mock
 
 
+@pytest.fixture(name='mock_load_view_mapping', autouse=False)
+def _mock_load_view_mapping() -> MagicMock:
+    with patch.object(target_module, 'load_view_mapping') as mock:
+        yield mock
+
+
 @pytest.fixture(name='mock_get_client', autouse=False)
 def _mock_get_client() -> MagicMock:
     with patch.object(target_module, 'get_client') as mock:
         yield mock
 
 
+@pytest.fixture(name='sample_config_path')
+def _views_sample_config_path(temp_dir: Path) -> Path:
+    sample_config_path = temp_dir / 'sample_config'
+    sample_config_path.mkdir()
+    view_mapping_path = sample_config_path / 'views.lst'
+    view_mapping_path.write_text('\n'.join(['view1', 'view2']))
+    materialized_view_mapping_path = sample_config_path / 'materialized-views.lst'
+    materialized_view_mapping_path.write_text('\n'.join(['view1']))
+    return sample_config_path
+
+
 @pytest.fixture(name='bigquery_views_config')
-def _bigquery_views_config() -> MagicMock:
+def _bigquery_views_config(sample_config_path: Path) -> MagicMock:
     config = MagicMock(name='config')
+    config.bigquery_views_config_path = str(sample_config_path)
     config.gcp_project = GCP_PROJECT_1
     return config
 
@@ -74,15 +92,9 @@ class TestMaterializeBigQueryViews:
     def test_should_call_materialize_views(
             self,
             bigquery_views_config: BigQueryViewsConfig,
-            temp_dir: Path,
             mock_materialize_views: MagicMock,
             mock_get_client: MagicMock):
         client = mock_get_client.return_value
-        bigquery_views_config.bigquery_views_config_path = str(temp_dir)
-        view_mapping_path = temp_dir / 'views.lst'
-        view_mapping_path.write_text('\n'.join(['view1', 'view2']))
-        materialized_view_mapping_path = temp_dir / 'materialized-views.lst'
-        materialized_view_mapping_path.write_text('\n'.join(['view1']))
         materialize_bigquery_views(bigquery_views_config)
         mock_materialize_views.assert_called()
         kwargs = mock_materialize_views.call_args[1]
@@ -90,3 +102,23 @@ class TestMaterializeBigQueryViews:
         assert kwargs['project'] == client.project
         assert kwargs['materialized_view_dict'].keys() == {'view1'}
         assert kwargs['source_view_dict'].keys() == {'view1', 'view2'}
+
+    def test_should_call_load_view_mapping_with_should_map_table_true(
+            self,
+            bigquery_views_config: BigQueryViewsConfig,
+            mock_load_view_mapping: MagicMock):
+        bigquery_views_config.view_name_mapping_enabled = True
+        materialize_bigquery_views(bigquery_views_config)
+        mock_load_view_mapping.assert_called()
+        kwargs = mock_load_view_mapping.call_args[1]
+        assert kwargs['should_map_table'] is True
+
+    def test_should_call_load_view_mapping_with_should_map_table_false(
+            self,
+            bigquery_views_config: BigQueryViewsConfig,
+            mock_load_view_mapping: MagicMock):
+        bigquery_views_config.view_name_mapping_enabled = False
+        materialize_bigquery_views(bigquery_views_config)
+        mock_load_view_mapping.assert_called()
+        kwargs = mock_load_view_mapping.call_args[1]
+        assert kwargs['should_map_table'] is False
