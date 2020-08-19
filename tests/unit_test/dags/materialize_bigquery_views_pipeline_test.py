@@ -19,11 +19,7 @@ class TestGetConfig:
         mock_env[EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_DATASET] = (
             DATASET_1
         )
-        mock_env[EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED] = (
-            'false'
-        )
         config = get_config()
         assert config.bigquery_views_config_path == '/path/to/config'
         assert config.gcp_project == GCP_PROJECT_1
         assert config.dataset == DATASET_1
-        assert not config.view_name_mapping_enabled

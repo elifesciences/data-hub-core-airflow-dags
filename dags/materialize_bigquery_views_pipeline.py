@@ -6,8 +6,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 )
 
 from data_pipeline.utils.pipeline_config import (
-    get_environment_variable_value,
-    str_to_bool
+    get_environment_variable_value
 )
 
 from data_pipeline.bigquery_views.pipeline import (
@@ -21,9 +20,6 @@ class EnvironmentVariables:
     MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH = 'MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH'
     MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT = 'MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT'
     MATERIALIZE_BIGQUERY_VIEWS_DATASET = 'MATERIALIZE_BIGQUERY_VIEWS_DATASET'
-    MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED = (
-        'MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED'
-    )
 
 
 DAG_ID = 'Materialize_BigQuery_Views_Pipeline'
@@ -41,11 +37,6 @@ def get_config() -> BigQueryViewsConfig:
         ),
         dataset=get_environment_variable_value(
             EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_DATASET,
-            required=True
-        ),
-        view_name_mapping_enabled=get_environment_variable_value(
-            EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED,
-            str_to_bool,
             required=True
         )
     )
