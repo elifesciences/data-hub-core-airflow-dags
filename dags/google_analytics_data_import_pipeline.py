@@ -1,8 +1,10 @@
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+
 import os
 import logging
 from datetime import timedelta
 from datetime import datetime
-from airflow import DAG
+
 from airflow.operators.python_operator import PythonOperator
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.google_analytics.ga_config import (
@@ -14,7 +16,7 @@ from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
 from data_pipeline.google_analytics.etl_state import (
     get_stored_state, STORED_STATE_FORMAT
 )
-from data_pipeline.utils.dags.data_pipeline_dag_utils import get_default_args
+from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
 
 
 LOGGER = logging.getLogger(__name__)
@@ -30,13 +32,12 @@ GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 
 
-GOOGLE_ANALYTICS_DAG = DAG(
+GOOGLE_ANALYTICS_DAG = create_dag(
     dag_id=DAG_ID,
-    default_args=get_default_args(),
     schedule_interval=os.getenv(
         GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     ),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60)
 )
 
 

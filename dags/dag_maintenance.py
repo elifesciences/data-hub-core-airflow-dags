@@ -97,7 +97,8 @@ maintenance_dag = DAG(
     DAG_ID,
     default_args=DEFAULT_ARGS,
     schedule_interval=SCHEDULE_INTERVAL,
-    start_date=START_DATE
+    start_date=START_DATE,
+    catchup=False
 )
 
 

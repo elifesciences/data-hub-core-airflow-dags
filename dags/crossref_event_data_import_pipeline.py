@@ -1,10 +1,10 @@
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+
 import logging
 import os
 from datetime import timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
-
-from airflow import DAG
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
@@ -17,7 +17,7 @@ from data_pipeline.crossref_event_data.helper_class import (
     ExternalTriggerConfig,
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    get_default_args,
+    create_dag,
     create_python_task,
     get_task_run_instance_fullname,
 )
@@ -48,13 +48,12 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
-CROSSREF_DAG = DAG(
+CROSSREF_DAG = create_dag(
     dag_id=DAG_ID,
-    default_args=get_default_args(),
     schedule_interval=get_env_var_or_use_default(
         CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME
     ),
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60)
 )
 
 

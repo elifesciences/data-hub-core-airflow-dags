@@ -1,10 +1,11 @@
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+
 import os
 import logging
 from datetime import timedelta
-from airflow import DAG
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    get_default_args,
+    create_dag,
     create_python_task,
 )
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
@@ -20,11 +21,11 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 DAG_ID = "Google_Spreadsheet_Data_Pipeline"
-G_SPREADSHEET_DAG = DAG(
+
+G_SPREADSHEET_DAG = create_dag(
     dag_id=DAG_ID,
-    default_args=get_default_args(),
     schedule_interval=None,
-    dagrun_timeout=timedelta(minutes=60),
+    dagrun_timeout=timedelta(minutes=60)
 )
 
 
