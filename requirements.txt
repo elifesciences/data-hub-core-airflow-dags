@@ -5,7 +5,7 @@ boto3==1.14.45
 cloudpickle==1.4.1
 dateparser==0.7.6
 dask[complete]==2.23.0
-distributed==2.23.0
+distributed==2.24.0
 fsspec==0.8.0
 google-api-python-client==1.10.0
 google-cloud-bigquery==1.27.2
