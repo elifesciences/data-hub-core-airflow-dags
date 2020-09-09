@@ -4,7 +4,7 @@ bigquery-views-manager==1.0.3
 boto3==1.14.57
 cloudpickle==1.4.1
 dateparser==0.7.6
-dask[complete]==2.23.0
+dask[complete]==2.25.0
 distributed==2.25.0
 fsspec==0.8.0
 google-api-python-client==1.11.0
