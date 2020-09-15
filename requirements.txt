@@ -7,7 +7,7 @@ dateparser==0.7.6
 dask[complete]==2.26.0
 distributed==2.26.0
 fsspec==0.8.2
-google-api-python-client==1.11.0
+google-api-python-client==1.12.1
 google-cloud-bigquery==1.27.2
 google-oauth==1.0.1
 PyYAML==5.3.1
