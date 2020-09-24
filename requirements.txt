@@ -1,7 +1,7 @@
 apache-airflow[crypto,celery,postgres,jdbc,ssh]==1.10.12
 bigquery-schema-generator==1.1
 bigquery-views-manager==1.0.3
-boto3==1.15.3
+boto3==1.15.4
 cloudpickle==1.4.1
 dateparser==0.7.6
 dask[complete]==2.27.0
