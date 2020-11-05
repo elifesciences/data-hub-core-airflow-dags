@@ -7,6 +7,9 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.utils import timezone
 
+from data_pipeline.utils.pipeline_config import DATA_PIPELINE_CONFIG_ID
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -85,5 +88,5 @@ def truncate_run_id(run_id: str) -> str:
 
 
 def get_suffix_for_config(config: dict) -> str:
-    config_id = config.get('dataPipelineId')
+    config_id = config.get(DATA_PIPELINE_CONFIG_ID)
     return '_' + config_id if config_id else ''
