@@ -7,12 +7,13 @@ from data_pipeline.generic_web_api.url_builder import (
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
+    ConfigKeys,
     update_deployment_env_placeholder
 )
 
 
 def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
-    web_api_config_id = web_api_config_props.get('id')
+    web_api_config_id = web_api_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
     if not web_api_config_id:
         table_name = web_api_config_props.get('table')
         if table_name:
@@ -36,7 +37,7 @@ class MultiWebApiConfig:
         self.web_api_config = {
             ind: {
                 **web_api,
-                "id": get_web_api_config_id(web_api, index=ind),
+                ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_web_api_config_id(web_api, index=ind),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }

@@ -8,6 +8,33 @@ from dags.s3_csv_import_controller import (
 
 
 class TestData:
+    DATA_PIPELINE_ID_1 = "data-pipeline-id-1"
+    DATA_PIPELINE_ID_2 = "data-pipeline-id-2"
+
+    S3_CSV_CONFIG_1 = {
+        "dataPipelineId": DATA_PIPELINE_ID_1,
+        "objectKeyPattern": [
+            "obj_key_pattern_1*",
+            "obj_key_pattern_2*"
+        ],
+        "stateFile": {
+            "bucketName": "{ENV}_bucket_name",
+            "objectName": "{ENV}_object_prefix_1"
+        }
+    }
+
+    S3_CSV_CONFIG_2 = {
+        "dataPipelineId": DATA_PIPELINE_ID_2,
+        "objectKeyPattern": [
+            "obj_key_pattern_3*",
+            "obj_key_pattern_4*"
+        ],
+        "stateFile": {
+            "bucketName": "{ENV}_bucket_name",
+            "objectName": "{ENV}_object_prefix_2"
+        }
+    }
+
     TEST_DATA_MULTIPLE_S3_CSV_PATTERN_SET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
@@ -15,47 +42,12 @@ class TestData:
             "defaultBucketName": "{ENV}_bucket_name",
             "defaultSystemGeneratedObjectPrefix": "{ENV}_object_prefix"
         },
-        "s3Csv": [
-            {
-                "dataPipelineId": "data-pipeline-id-1",
-                "objectKeyPattern": [
-                    "obj_key_pattern_1*",
-                    "obj_key_pattern_2*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_1"
-                }
-            },
-            {
-                "dataPipelineId": "data-pipeline-id-2",
-                "objectKeyPattern": [
-                    "obj_key_pattern_3*",
-                    "obj_key_pattern_4*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_2"
-                }
-            }
-        ]
+        "s3Csv": [S3_CSV_CONFIG_1, S3_CSV_CONFIG_2]
     }
     TEST_DATA_SINGLE_S3_CSV_PATTERN_SET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "s3Csv": [
-            {
-                "dataPipelineId": "data-pipeline-id-1",
-                "objectKeyPattern": [
-                    "obj_key_pattern_1*",
-                    "obj_key_pattern_2*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_1"
-                }
-            }
-        ]
+        "s3Csv": [S3_CSV_CONFIG_1]
     }
 
     def __init__(self):
@@ -73,26 +65,26 @@ def _get_yaml_file_as_dict():
         yield mock
 
 
-@pytest.fixture(name="mock_simple_trigger_dag")
-def _simple_dag_trigger():
+@pytest.fixture(name="mock_trigger_data_pipeline_dag")
+def _trigger_data_pipeline_dag():
     with patch.object(s3_csv_import_controller,
-                      "simple_trigger_dag") as mock:
+                      "trigger_data_pipeline_dag") as mock:
         yield mock
 
 
 def test_should_call_trigger_dag_function_n_times(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_MULTIPLE_S3_CSV_PATTERN_SET
     )
     test_data = TestData()
     trigger_s3_csv_import_pipeline_dag()
-    assert mock_simple_trigger_dag.call_count == test_data.pattern_set_count
+    assert mock_trigger_data_pipeline_dag.call_count == test_data.pattern_set_count
 
 
 def test_should_call_trigger_dag_function_with_parameter(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_SINGLE_S3_CSV_PATTERN_SET
@@ -114,6 +106,6 @@ def test_should_call_trigger_dag_function_with_parameter(
     }
 
     trigger_s3_csv_import_pipeline_dag()
-    mock_simple_trigger_dag.assert_called_with(
+    mock_trigger_data_pipeline_dag.assert_called_with(
         dag_id=TARGET_DAG, conf=single_s3_csv_pattern_set_config
     )

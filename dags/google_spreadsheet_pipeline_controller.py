@@ -8,7 +8,7 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
-    simple_trigger_dag,
+    trigger_data_pipeline_dag,
     create_python_task
 )
 
@@ -32,7 +32,10 @@ def trigger_spreadsheet_data_pipeline_dag(**kwargs):
 
     data_config = MultiSpreadsheetConfig(data_config_dict,)
     for spreadsheet_config in data_config.spreadsheets_config.values():
-        simple_trigger_dag(dag_id=TARGET_DAG_ID, conf=spreadsheet_config)
+        trigger_data_pipeline_dag(
+            dag_id=TARGET_DAG_ID,
+            conf=spreadsheet_config
+        )
 
 
 SPREADSHEET_CONTROLLER_DAG = create_dag(

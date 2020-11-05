@@ -1,6 +1,8 @@
 from unittest.mock import patch
 import pytest
 
+from data_pipeline.utils.pipeline_config import ConfigKeys
+
 from dags import google_spreadsheet_pipeline_controller
 from dags.google_spreadsheet_pipeline_controller import (
     trigger_spreadsheet_data_pipeline_dag, TARGET_DAG_ID
@@ -8,41 +10,38 @@ from dags.google_spreadsheet_pipeline_controller import (
 
 
 class TestData:
+    DATA_PIPELINE_ID_1 = "data-pipeline-id-1"
+    DATA_PIPELINE_ID_2 = "data-pipeline-id-2"
+
+    SHEET_CONFIG_1 = {
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: DATA_PIPELINE_ID_1,
+        "spreadsheetId": "spreadsheet_id-1",
+        "sheets": [
+            {
+                "sheetName": "sheet name 1",
+            }
+        ]
+    }
+
+    SHEET_CONFIG_2 = {
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: DATA_PIPELINE_ID_2,
+        "spreadsheetId": "spreadsheet_id-2",
+        "sheets": [
+            {
+                "sheetName": "sheet name 2",
+            }
+        ]
+    }
+
     TEST_DATA_MULTIPLE_SPREADSHEET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "spreadsheets": [
-            {
-                "spreadsheetId": "spreadsheet_id-0",
-                "sheets": [
-                    {
-                        "sheetName": "sheet name 1",
-                    }
-                ]
-            },
-            {
-                "spreadsheetId": "spreadsheet_id-1",
-                "sheets": [
-                    {
-                        "sheetName": "sheet name 1",
-                    }
-                ]
-            }
-        ]
+        "spreadsheets": [SHEET_CONFIG_1, SHEET_CONFIG_2]
     }
     TEST_DATA_SINGLE_SPREADSHEET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "spreadsheets": [
-            {
-                "spreadsheetId": "spreadsheet_id-0",
-                "sheets": [
-                    {
-                        "sheetName": "sheet name 1",
-                    }
-                ]
-            }
-        ]
+        "spreadsheets": [SHEET_CONFIG_1]
     }
 
     def __init__(self):
@@ -53,10 +52,10 @@ class TestData:
         )
 
 
-@pytest.fixture(name="mock_simple_trigger_dag")
-def _simple_trigger_dag():
+@pytest.fixture(name="mock_trigger_data_pipeline_dag")
+def _trigger_data_pipeline_dag():
     with patch.object(google_spreadsheet_pipeline_controller,
-                      "simple_trigger_dag") as mock:
+                      "trigger_data_pipeline_dag") as mock:
         yield mock
 
 
@@ -68,18 +67,18 @@ def _get_yaml_file_as_dict():
 
 
 def test_should_call_trigger_dag_function_n_times(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_MULTIPLE_SPREADSHEET
     )
     test_data = TestData()
     trigger_spreadsheet_data_pipeline_dag()
-    assert mock_simple_trigger_dag.call_count == test_data.spreadsheet_count
+    assert mock_trigger_data_pipeline_dag.call_count == test_data.spreadsheet_count
 
 
 def test_should_call_trigger_dag_function_with_parameter(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_SINGLE_SPREADSHEET
@@ -101,6 +100,6 @@ def test_should_call_trigger_dag_function_with_parameter(
     }
 
     trigger_spreadsheet_data_pipeline_dag()
-    mock_simple_trigger_dag.assert_called_with(
+    mock_trigger_data_pipeline_dag.assert_called_with(
         dag_id=TARGET_DAG_ID, conf=single_spreadsheet_config
     )

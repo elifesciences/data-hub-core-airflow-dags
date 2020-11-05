@@ -1,9 +1,10 @@
 from unittest.mock import patch
 import pytest
 
+from data_pipeline.utils.pipeline_config import ConfigKeys
+
 from dags import web_api_import_controller
 from dags.web_api_import_controller import (
-    get_web_api_config_suffix,
     trigger_web_api_data_import_pipeline_dag,
     TARGET_DAG_ID
 )
@@ -16,10 +17,10 @@ def _get_yaml_file_as_dict():
         yield mock
 
 
-@pytest.fixture(name="mock_simple_trigger_dag")
-def _simple_trigger_dag():
+@pytest.fixture(name="mock_trigger_data_pipeline_dag")
+def _trigger_data_pipeline_dag():
     with patch.object(web_api_import_controller,
-                      "simple_trigger_dag") as mock:
+                      "trigger_data_pipeline_dag") as mock:
         yield mock
 
 
@@ -28,7 +29,7 @@ class TestData:
     TEST_WEB_API_CONFIG_ID_2 = "test2"
 
     TEST_DATA_WEB_API_CONFIG_1 = {
-        "id": TEST_WEB_API_CONFIG_ID_1,
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: TEST_WEB_API_CONFIG_ID_1,
         "datataUrl": {
             "urlExcludingConfigurableParameters": "url-1",
             "configurableParameters":
@@ -39,7 +40,7 @@ class TestData:
     }
 
     TEST_DATA_WEB_API_CONFIG_2 = {
-        "id": TEST_WEB_API_CONFIG_ID_2,
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: TEST_WEB_API_CONFIG_ID_2,
         "datataUrl": {
             "urlExcludingConfigurableParameters": "url-2",
             "configurableParameters":
@@ -68,27 +69,19 @@ class TestData:
         )
 
 
-class TestGetWebApiConfigSuffix:
-    def test_should_return_underscore_with_id(self):
-        assert get_web_api_config_suffix({'id': '123'}) == '_123'
-
-    def test_should_fallback_to_empty_string(self):
-        assert get_web_api_config_suffix({}) == ''
-
-
 def test_should_call_trigger_dag_function_n_times(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_MULTI_WEB_API
     )
     test_data = TestData()
     trigger_web_api_data_import_pipeline_dag()
-    assert mock_simple_trigger_dag.call_count == test_data.web_api_count
+    assert mock_trigger_data_pipeline_dag.call_count == test_data.web_api_count
 
 
 def test_should_call_trigger_dag_function_with_parameter(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_SINGLE_WEB_API
@@ -110,7 +103,6 @@ def test_should_call_trigger_dag_function_with_parameter(
     }
 
     trigger_web_api_data_import_pipeline_dag()
-    mock_simple_trigger_dag.assert_called_with(
-        dag_id=TARGET_DAG_ID, conf=single_web_api_config,
-        suffix=get_web_api_config_suffix(TestData.TEST_DATA_WEB_API_CONFIG_1)
+    mock_trigger_data_pipeline_dag.assert_called_with(
+        dag_id=TARGET_DAG_ID, conf=single_web_api_config
     )

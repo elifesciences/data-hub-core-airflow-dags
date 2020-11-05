@@ -7,6 +7,9 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.utils import timezone
 
+from data_pipeline.utils.pipeline_config import ConfigKeys
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -70,6 +73,17 @@ def simple_trigger_dag(dag_id, conf: dict, suffix=''):
         execution_date=None,
         replace_microseconds=False
     )
+
+
+def get_suffix_for_config(config: dict) -> str:
+    config_id = config.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
+    return '_' + config_id if config_id else ''
+
+
+def trigger_data_pipeline_dag(dag_id, conf: dict, suffix=None):
+    if suffix is None:
+        suffix = get_suffix_for_config(conf)
+    simple_trigger_dag(dag_id, conf, suffix=suffix)
 
 
 def _get_full_run_id(conf: dict, default_run_id: str) -> str:

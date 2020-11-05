@@ -1,7 +1,29 @@
+from typing import List
+
+from data_pipeline.utils.pipeline_config import ConfigKeys
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
+
+
+def get_sheet_config_table_names(config_props: dict) -> List[str]:
+    return [
+        sheet.get('tableName')
+        for sheet in config_props.get('sheets', [])
+        if sheet.get('tableName')
+    ]
+
+
+def get_sheet_config_id(config_props: dict, index: int) -> str:
+    config_id = config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
+    if not config_id:
+        table_names = get_sheet_config_table_names(config_props)
+        if table_names:
+            config_id = '_'.join(table_names) + '_' + str(index)
+        else:
+            config_id = str(index)
+    return config_id
 
 
 class MultiSpreadsheetConfig:
@@ -15,10 +37,11 @@ class MultiSpreadsheetConfig:
         self.spreadsheets_config = {
             spreadsheet.get("spreadsheetId"): {
                 **spreadsheet,
+                ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_sheet_config_id(spreadsheet, index=index),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
-            for spreadsheet in multi_spreadsheet_config.get("spreadsheets")
+            for index, spreadsheet in enumerate(multi_spreadsheet_config.get("spreadsheets"))
         }
 
 

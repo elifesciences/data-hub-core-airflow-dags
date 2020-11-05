@@ -6,7 +6,7 @@ from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    simple_trigger_dag,
+    trigger_data_pipeline_dag,
     create_dag,
     create_python_task
 )
@@ -33,7 +33,9 @@ def trigger_s3_csv_import_pipeline_dag(**context):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiS3CsvConfig(data_config_dict,)
     for s3_csv_config in data_config.s3_csv_config:
-        simple_trigger_dag(dag_id=TARGET_DAG, conf=s3_csv_config)
+        trigger_data_pipeline_dag(
+            dag_id=TARGET_DAG, conf=s3_csv_config
+        )
 
 
 S3_CSV_CONTROLLER_DAG = create_dag(

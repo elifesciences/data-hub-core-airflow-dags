@@ -7,7 +7,7 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    simple_trigger_dag,
+    trigger_data_pipeline_dag,
     create_dag,
     create_python_task
 )
@@ -26,11 +26,6 @@ TARGET_DAG_ID = "Generic_Web_Api_Data_Pipeline"
 DAG_ID = "Web_Api_Data_Import_Pipeline_Controller"
 
 
-def get_web_api_config_suffix(web_api_config: dict) -> str:
-    web_api_config_id = web_api_config.get('id')
-    return '_' + web_api_config_id if web_api_config_id else ''
-
-
 # pylint: disable=unused-argument
 def trigger_web_api_data_import_pipeline_dag(**context):
     conf_file_path = os.getenv(
@@ -39,10 +34,9 @@ def trigger_web_api_data_import_pipeline_dag(**context):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiWebApiConfig(data_config_dict,)
     for web_api_config in data_config.web_api_config.values():
-        simple_trigger_dag(
+        trigger_data_pipeline_dag(
             dag_id=TARGET_DAG_ID,
-            conf=web_api_config,
-            suffix=get_web_api_config_suffix(web_api_config)
+            conf=web_api_config
         )
 
 
