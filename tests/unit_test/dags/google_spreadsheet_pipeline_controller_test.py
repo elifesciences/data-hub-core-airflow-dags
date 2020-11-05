@@ -1,7 +1,6 @@
 from unittest.mock import patch
 import pytest
 
-from data_pipeline.utils.dags.data_pipeline_dag_utils import get_suffix_for_config
 from data_pipeline.utils.pipeline_config import ConfigKeys
 
 from dags import google_spreadsheet_pipeline_controller
@@ -53,10 +52,10 @@ class TestData:
         )
 
 
-@pytest.fixture(name="mock_simple_trigger_dag")
-def _simple_trigger_dag():
+@pytest.fixture(name="mock_trigger_data_pipeline_dag")
+def _trigger_data_pipeline_dag():
     with patch.object(google_spreadsheet_pipeline_controller,
-                      "simple_trigger_dag") as mock:
+                      "trigger_data_pipeline_dag") as mock:
         yield mock
 
 
@@ -68,18 +67,18 @@ def _get_yaml_file_as_dict():
 
 
 def test_should_call_trigger_dag_function_n_times(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_MULTIPLE_SPREADSHEET
     )
     test_data = TestData()
     trigger_spreadsheet_data_pipeline_dag()
-    assert mock_simple_trigger_dag.call_count == test_data.spreadsheet_count
+    assert mock_trigger_data_pipeline_dag.call_count == test_data.spreadsheet_count
 
 
 def test_should_call_trigger_dag_function_with_parameter(
-        mock_simple_trigger_dag, mock_get_yaml_file_as_dict
+        mock_trigger_data_pipeline_dag, mock_get_yaml_file_as_dict
 ):
     mock_get_yaml_file_as_dict.return_value = (
         TestData.TEST_DATA_SINGLE_SPREADSHEET
@@ -101,7 +100,6 @@ def test_should_call_trigger_dag_function_with_parameter(
     }
 
     trigger_spreadsheet_data_pipeline_dag()
-    mock_simple_trigger_dag.assert_called_with(
-        dag_id=TARGET_DAG_ID, conf=single_spreadsheet_config,
-        suffix=get_suffix_for_config(TestData.SHEET_CONFIG_1)
+    mock_trigger_data_pipeline_dag.assert_called_with(
+        dag_id=TARGET_DAG_ID, conf=single_spreadsheet_config
     )

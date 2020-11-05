@@ -7,10 +7,9 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
-    simple_trigger_dag,
+    trigger_data_pipeline_dag,
     create_dag,
-    create_python_task,
-    get_suffix_for_config
+    create_python_task
 )
 
 WEB_API_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -35,10 +34,9 @@ def trigger_web_api_data_import_pipeline_dag(**context):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiWebApiConfig(data_config_dict,)
     for web_api_config in data_config.web_api_config.values():
-        simple_trigger_dag(
+        trigger_data_pipeline_dag(
             dag_id=TARGET_DAG_ID,
-            conf=web_api_config,
-            suffix=get_suffix_for_config(web_api_config)
+            conf=web_api_config
         )
 
 

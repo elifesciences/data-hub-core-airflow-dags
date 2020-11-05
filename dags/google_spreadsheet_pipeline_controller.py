@@ -8,9 +8,8 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
-    simple_trigger_dag,
-    create_python_task,
-    get_suffix_for_config
+    trigger_data_pipeline_dag,
+    create_python_task
 )
 
 GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -33,10 +32,9 @@ def trigger_spreadsheet_data_pipeline_dag(**kwargs):
 
     data_config = MultiSpreadsheetConfig(data_config_dict,)
     for spreadsheet_config in data_config.spreadsheets_config.values():
-        simple_trigger_dag(
+        trigger_data_pipeline_dag(
             dag_id=TARGET_DAG_ID,
-            conf=spreadsheet_config,
-            suffix=get_suffix_for_config(spreadsheet_config)
+            conf=spreadsheet_config
         )
 
 
