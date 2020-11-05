@@ -3,7 +3,9 @@ import pytest
 
 from dags import web_api_import_controller
 from dags.web_api_import_controller import (
-    trigger_web_api_data_import_pipeline_dag, TARGET_DAG_ID
+    get_web_api_config_suffix,
+    trigger_web_api_data_import_pipeline_dag,
+    TARGET_DAG_ID
 )
 
 
@@ -22,48 +24,40 @@ def _simple_trigger_dag():
 
 
 class TestData:
+    TEST_WEB_API_CONFIG_ID_1 = "test1"
+    TEST_WEB_API_CONFIG_ID_2 = "test2"
+
+    TEST_DATA_WEB_API_CONFIG_1 = {
+        "id": TEST_WEB_API_CONFIG_ID_1,
+        "datataUrl": {
+            "urlExcludingConfigurableParameters": "url-1",
+            "configurableParameters":
+                {
+                    "pageSizeParameterName": "page-size",
+                }
+        }
+    }
+
+    TEST_DATA_WEB_API_CONFIG_2 = {
+        "id": TEST_WEB_API_CONFIG_ID_2,
+        "datataUrl": {
+            "urlExcludingConfigurableParameters": "url-2",
+            "configurableParameters":
+                {
+                    "pageSizeParameterName": "page-size",
+                }
+        }
+    }
+
     TEST_DATA_MULTI_WEB_API = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "webApi": [
-            {
-                "datataUrl":
-                    {
-                        "urlExcludingConfigurableParameters": "url-1",
-                        "configurableParameters":
-                            {
-                                "pageSizeParameterName": "page-size",
-                            }
-                    }
-            },
-            {
-                "datataUrl":
-                    {
-                        "urlExcludingConfigurableParameters": "url-2",
-                        "configurableParameters":
-                            {
-                                "pageSizeParameterName": "page-size",
-                            }
-                    }
-            }
-
-        ]
+        "webApi": [TEST_DATA_WEB_API_CONFIG_1, TEST_DATA_WEB_API_CONFIG_2]
     }
     TEST_DATA_SINGLE_WEB_API = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "webApi": [
-            {
-                "datataUrl":
-                    {
-                        "urlExcludingConfigurableParameters": "url-1",
-                        "configurableParameters":
-                            {
-                                "pageSizeParameterName": "page-size",
-                            }
-                    }
-            }
-        ]
+        "webApi": [TEST_DATA_WEB_API_CONFIG_1]
     }
 
     def __init__(self):
@@ -72,6 +66,14 @@ class TestData:
                 "webApi"
             )
         )
+
+
+class TestGetWebApiConfigSuffix:
+    def test_should_return_underscore_with_id(self):
+        assert get_web_api_config_suffix({'id': '123'}) == '_123'
+
+    def test_should_fallback_to_empty_string(self):
+        assert get_web_api_config_suffix({}) == ''
 
 
 def test_should_call_trigger_dag_function_n_times(
@@ -109,5 +111,6 @@ def test_should_call_trigger_dag_function_with_parameter(
 
     trigger_web_api_data_import_pipeline_dag()
     mock_simple_trigger_dag.assert_called_with(
-        dag_id=TARGET_DAG_ID, conf=single_web_api_config
+        dag_id=TARGET_DAG_ID, conf=single_web_api_config,
+        suffix=get_web_api_config_suffix(TestData.TEST_DATA_WEB_API_CONFIG_1)
     )

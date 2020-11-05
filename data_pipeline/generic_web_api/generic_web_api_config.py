@@ -11,6 +11,17 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 
+def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
+    web_api_config_id = web_api_config_props.get('id')
+    if not web_api_config_id:
+        table_name = web_api_config_props.get('table')
+        if table_name:
+            web_api_config_id = table_name + '_' + str(index)
+        else:
+            web_api_config_id = str(index)
+    return web_api_config_id
+
+
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=too-many-locals
 class MultiWebApiConfig:
@@ -25,6 +36,7 @@ class MultiWebApiConfig:
         self.web_api_config = {
             ind: {
                 **web_api,
+                "id": get_web_api_config_id(web_api, index=ind),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
