@@ -15,7 +15,6 @@ RUN pip install --disable-pip-version-check -r requirements.build.txt
 
 COPY requirements.txt ./
 RUN pip install --disable-pip-version-check --upgrade -r requirements.txt
-RUN if [ "${install_dev}" = "y" ]; then  pip install bokeh; fi
 
 USER airflow
 COPY --chown=airflow:airflow requirements.dev.txt ./
