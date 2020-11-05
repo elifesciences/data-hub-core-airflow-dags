@@ -8,7 +8,8 @@ from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     simple_trigger_dag,
     create_dag,
-    create_python_task
+    create_python_task,
+    get_suffix_for_config
 )
 
 S3_CSV_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -23,11 +24,6 @@ DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 TARGET_DAG = "S3_CSV_Data_Pipeline"
 DAG_ID = "S3_CSV_Import_Pipeline_Controller"
-
-
-def get_suffix_for_config(config: dict) -> str:
-    config_id = config.get('dataPipelineId')
-    return '_' + config_id if config_id else ''
 
 
 # pylint: disable=unused-argument

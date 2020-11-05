@@ -82,3 +82,8 @@ def _get_full_run_id(conf: dict, default_run_id: str) -> str:
 def truncate_run_id(run_id: str) -> str:
     # maximum is 250
     return run_id[:250]
+
+
+def get_suffix_for_config(config: dict) -> str:
+    config_id = config.get('dataPipelineId')
+    return '_' + config_id if config_id else ''
