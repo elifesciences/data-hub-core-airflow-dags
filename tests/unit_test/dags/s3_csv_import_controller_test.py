@@ -8,6 +8,33 @@ from dags.s3_csv_import_controller import (
 
 
 class TestData:
+    DATA_PIPELINE_ID_1 = "data-pipeline-id-1"
+    DATA_PIPELINE_ID_2 = "data-pipeline-id-2"
+
+    S3_CSV_CONFIG_1 = {
+        "dataPipelineId": DATA_PIPELINE_ID_1,
+        "objectKeyPattern": [
+            "obj_key_pattern_1*",
+            "obj_key_pattern_2*"
+        ],
+        "stateFile": {
+            "bucketName": "{ENV}_bucket_name",
+            "objectName": "{ENV}_object_prefix_1"
+        }
+    }
+
+    S3_CSV_CONFIG_2 = {
+        "dataPipelineId": DATA_PIPELINE_ID_2,
+        "objectKeyPattern": [
+            "obj_key_pattern_3*",
+            "obj_key_pattern_4*"
+        ],
+        "stateFile": {
+            "bucketName": "{ENV}_bucket_name",
+            "objectName": "{ENV}_object_prefix_2"
+        }
+    }
+
     TEST_DATA_MULTIPLE_S3_CSV_PATTERN_SET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
@@ -15,47 +42,12 @@ class TestData:
             "defaultBucketName": "{ENV}_bucket_name",
             "defaultSystemGeneratedObjectPrefix": "{ENV}_object_prefix"
         },
-        "s3Csv": [
-            {
-                "dataPipelineId": "data-pipeline-id-1",
-                "objectKeyPattern": [
-                    "obj_key_pattern_1*",
-                    "obj_key_pattern_2*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_1"
-                }
-            },
-            {
-                "dataPipelineId": "data-pipeline-id-2",
-                "objectKeyPattern": [
-                    "obj_key_pattern_3*",
-                    "obj_key_pattern_4*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_2"
-                }
-            }
-        ]
+        "s3Csv": [S3_CSV_CONFIG_1, S3_CSV_CONFIG_2]
     }
     TEST_DATA_SINGLE_S3_CSV_PATTERN_SET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
-        "s3Csv": [
-            {
-                "dataPipelineId": "data-pipeline-id-1",
-                "objectKeyPattern": [
-                    "obj_key_pattern_1*",
-                    "obj_key_pattern_2*"
-                ],
-                "stateFile": {
-                    "bucketName": "{ENV}_bucket_name",
-                    "objectName": "{ENV}_object_prefix_1"
-                }
-            }
-        ]
+        "s3Csv": [S3_CSV_CONFIG_1]
     }
 
     def __init__(self):
