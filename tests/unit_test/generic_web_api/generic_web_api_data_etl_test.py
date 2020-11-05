@@ -149,6 +149,22 @@ class TestGetItemList:
         )
         assert actual_response == expected_response
 
+    def test_should_raise_exception_if_key_not_found(
+        self
+    ):
+        path_keys = ['data', 'values']
+        conf_dict = {
+            ** WEB_API_CONFIG,
+            'response': {
+                'itemsKeyFromResponseRoot': path_keys
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        data = {'error': 'error message'}
+
+        with pytest.raises(ValueError):
+            get_items_list(data, data_config)
+
 
 class TestNextCursor:
 
