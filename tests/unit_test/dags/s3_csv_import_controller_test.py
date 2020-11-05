@@ -107,5 +107,6 @@ def test_should_call_trigger_dag_function_with_parameter(
 
     trigger_s3_csv_import_pipeline_dag()
     mock_simple_trigger_dag.assert_called_with(
-        dag_id=TARGET_DAG, conf=single_s3_csv_pattern_set_config
+        dag_id=TARGET_DAG, conf=single_s3_csv_pattern_set_config,
+        suffix='_' + TestData.DATA_PIPELINE_ID_1
     )

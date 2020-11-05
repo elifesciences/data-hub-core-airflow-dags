@@ -25,6 +25,11 @@ TARGET_DAG = "S3_CSV_Data_Pipeline"
 DAG_ID = "S3_CSV_Import_Pipeline_Controller"
 
 
+def get_suffix_for_config(config: dict) -> str:
+    config_id = config.get('dataPipelineId')
+    return '_' + config_id if config_id else ''
+
+
 # pylint: disable=unused-argument
 def trigger_s3_csv_import_pipeline_dag(**context):
     conf_file_path = os.getenv(
@@ -33,7 +38,10 @@ def trigger_s3_csv_import_pipeline_dag(**context):
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     data_config = MultiS3CsvConfig(data_config_dict,)
     for s3_csv_config in data_config.s3_csv_config:
-        simple_trigger_dag(dag_id=TARGET_DAG, conf=s3_csv_config)
+        simple_trigger_dag(
+            dag_id=TARGET_DAG, conf=s3_csv_config,
+            suffix=get_suffix_for_config(s3_csv_config)
+        )
 
 
 S3_CSV_CONTROLLER_DAG = create_dag(
