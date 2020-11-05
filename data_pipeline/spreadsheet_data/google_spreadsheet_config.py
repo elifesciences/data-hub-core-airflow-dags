@@ -73,9 +73,7 @@ class BaseCsvSheetConfig(BaseCsvConfig):
             deployment_env,
             environment_placeholder
         )
-        super(
-            BaseCsvSheetConfig, self
-        ).__init__(
+        super().__init__(
             csv_sheet_config=updated_csv_sheet_config,
             gcp_project=gcp_project,
             imported_timestamp_field_name=imported_timestamp_field_name
