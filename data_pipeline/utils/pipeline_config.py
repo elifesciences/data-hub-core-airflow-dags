@@ -2,7 +2,8 @@ import os
 from typing import Callable, T
 
 
-DATA_PIPELINE_CONFIG_ID = 'dataPipelineId'
+class ConfigKeys:
+    DATA_PIPELINE_CONFIG_ID = 'dataPipelineId'
 
 
 def update_deployment_env_placeholder(

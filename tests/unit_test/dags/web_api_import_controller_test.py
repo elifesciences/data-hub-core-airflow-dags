@@ -1,9 +1,11 @@
 from unittest.mock import patch
 import pytest
 
+from data_pipeline.utils.pipeline_config import ConfigKeys
+from data_pipeline.utils.dags.data_pipeline_dag_utils import get_suffix_for_config
+
 from dags import web_api_import_controller
 from dags.web_api_import_controller import (
-    get_web_api_config_suffix,
     trigger_web_api_data_import_pipeline_dag,
     TARGET_DAG_ID
 )
@@ -28,7 +30,7 @@ class TestData:
     TEST_WEB_API_CONFIG_ID_2 = "test2"
 
     TEST_DATA_WEB_API_CONFIG_1 = {
-        "id": TEST_WEB_API_CONFIG_ID_1,
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: TEST_WEB_API_CONFIG_ID_1,
         "datataUrl": {
             "urlExcludingConfigurableParameters": "url-1",
             "configurableParameters":
@@ -39,7 +41,7 @@ class TestData:
     }
 
     TEST_DATA_WEB_API_CONFIG_2 = {
-        "id": TEST_WEB_API_CONFIG_ID_2,
+        ConfigKeys.DATA_PIPELINE_CONFIG_ID: TEST_WEB_API_CONFIG_ID_2,
         "datataUrl": {
             "urlExcludingConfigurableParameters": "url-2",
             "configurableParameters":
@@ -66,14 +68,6 @@ class TestData:
                 "webApi"
             )
         )
-
-
-class TestGetWebApiConfigSuffix:
-    def test_should_return_underscore_with_id(self):
-        assert get_web_api_config_suffix({'id': '123'}) == '_123'
-
-    def test_should_fallback_to_empty_string(self):
-        assert get_web_api_config_suffix({}) == ''
 
 
 def test_should_call_trigger_dag_function_n_times(
@@ -112,5 +106,5 @@ def test_should_call_trigger_dag_function_with_parameter(
     trigger_web_api_data_import_pipeline_dag()
     mock_simple_trigger_dag.assert_called_with(
         dag_id=TARGET_DAG_ID, conf=single_web_api_config,
-        suffix=get_web_api_config_suffix(TestData.TEST_DATA_WEB_API_CONFIG_1)
+        suffix=get_suffix_for_config(TestData.TEST_DATA_WEB_API_CONFIG_1)
     )

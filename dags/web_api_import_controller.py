@@ -9,7 +9,8 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     simple_trigger_dag,
     create_dag,
-    create_python_task
+    create_python_task,
+    get_suffix_for_config
 )
 
 WEB_API_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -26,11 +27,6 @@ TARGET_DAG_ID = "Generic_Web_Api_Data_Pipeline"
 DAG_ID = "Web_Api_Data_Import_Pipeline_Controller"
 
 
-def get_web_api_config_suffix(web_api_config: dict) -> str:
-    web_api_config_id = web_api_config.get('id')
-    return '_' + web_api_config_id if web_api_config_id else ''
-
-
 # pylint: disable=unused-argument
 def trigger_web_api_data_import_pipeline_dag(**context):
     conf_file_path = os.getenv(
@@ -42,7 +38,7 @@ def trigger_web_api_data_import_pipeline_dag(**context):
         simple_trigger_dag(
             dag_id=TARGET_DAG_ID,
             conf=web_api_config,
-            suffix=get_web_api_config_suffix(web_api_config)
+            suffix=get_suffix_for_config(web_api_config)
         )
 
 
