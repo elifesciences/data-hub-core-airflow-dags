@@ -25,9 +25,7 @@ class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
             verify=None,
             **kwargs
     ):
-        super(
-            S3NewKeyFromLastDataDownloadDateSensor, self
-        ).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.object_state_info_extract_from_config_callable = (
             state_info_extract_from_config_callable

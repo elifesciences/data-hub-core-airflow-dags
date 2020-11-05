@@ -91,9 +91,7 @@ class S3BaseCsvConfig(BaseCsvConfig):
                 environment_placeholder=environment_placeholder
             )
         )
-        super(
-            S3BaseCsvConfig, self
-        ).__init__(
+        super().__init__(
             csv_sheet_config=updated_config,
         )
         self.s3_bucket_name = csv_sheet_config.get(
