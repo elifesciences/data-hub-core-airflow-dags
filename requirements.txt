@@ -9,7 +9,7 @@ dask[complete]==2.30.0
 distributed==2.30.1
 fsspec==0.8.4
 google-api-python-client==1.12.5
-google-cloud-bigquery==2.2.0
+google-cloud-bigquery==2.3.1
 google-oauth==1.0.1
 PyYAML==5.3.1
 s3fs==0.5.1
