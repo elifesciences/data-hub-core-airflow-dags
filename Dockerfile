@@ -7,9 +7,6 @@ RUN apt update && apt install sudo gcc -yqq
 RUN usermod -aG sudo airflow
 RUN echo "airflow ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-
-#RUN sed -i 's/LocalExecutor/SequentialExecutor/' /entrypoint.sh
-
 USER airflow
 COPY requirements.build.txt ./
 RUN pip install --disable-pip-version-check -r requirements.build.txt
