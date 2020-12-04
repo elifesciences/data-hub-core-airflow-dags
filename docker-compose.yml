@@ -14,6 +14,7 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_SSL=False
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
+    - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - DEPLOYMENT_ENV=ci
     - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
