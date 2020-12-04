@@ -34,7 +34,11 @@ class AirflowAPI:
             try:
                 data = resp.json()
             except Exception:  # pylint: disable=broad-except
-                data = {}
+                data = {
+                    "error": 'failed to request url=%r, method=%s, status=%s, response: %r' % (
+                        url, method, resp.status_code, resp.text
+                    )
+                }
             raise OSError(data.get("error", "Server error"))
 
         return resp.json()
