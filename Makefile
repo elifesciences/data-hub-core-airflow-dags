@@ -95,7 +95,7 @@ clean:
 
 
 airflow-initdb:
-	$(DOCKER_COMPOSE) run --rm  webserver airflow initdb
+	$(DOCKER_COMPOSE) run --rm  webserver initdb
 
 
 end2end-test:
