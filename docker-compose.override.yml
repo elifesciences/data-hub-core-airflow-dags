@@ -11,8 +11,8 @@ x-airflow-volumes:
   &airflow-volumes
     - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
     - ./.secrets:/home/airflow/secrets
-    - ./dags:/home/airflow/dags
-    - ./data_pipeline:/home/airflow/data_pipeline
+    - ./dags:/opt/airflow/dags
+    - ./data_pipeline:/opt/airflow/data_pipeline
 
 services:
     webserver:
