@@ -3,7 +3,10 @@ ARG install_dev
 
 USER root
 
-RUN apt update && apt install sudo gcc -yqq
+RUN apt-get update \
+  && apt-get install sudo gcc -yqq \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN usermod -aG sudo airflow
 RUN echo "airflow ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
