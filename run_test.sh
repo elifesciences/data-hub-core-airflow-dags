@@ -4,6 +4,7 @@ set -e
 
 : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
 export AIRFLOW__CORE__FERNET_KEY
+airflow initdb
 
 # avoid issues with .pyc/pyo files when mounting source directory
 export PYTHONOPTIMIZE=
