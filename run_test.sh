@@ -4,6 +4,8 @@ set -e
 
 : "${AIRFLOW__CORE__FERNET_KEY:=${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
 export AIRFLOW__CORE__FERNET_KEY
+
+# to initialize SQLite DB for running non-e2e test and Postgres DB for running e2e test
 airflow initdb
 
 # avoid issues with .pyc/pyo files when mounting source directory
