@@ -15,7 +15,7 @@ COPY requirements.build.txt ./
 RUN pip install --disable-pip-version-check -r requirements.build.txt
 
 COPY requirements.txt ./
-RUN pip install --disable-pip-version-check -r requirements.txt 
+RUN pip install --disable-pip-version-check -r requirements.txt
 
 COPY --chown=airflow:airflow requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then pip install --user --disable-pip-version-check -r requirements.dev.txt; fi
