@@ -2,17 +2,17 @@ version: '3.4'
 
 x-airflow-env:
   &airflow-env
-    - CIVICRM_API_KEY_FILE_PATH=/usr/local/airflow/secrets/civi_api_key
-    - CIVICRM_SITE_KEY_FILE_PATH=/usr/local/airflow/secrets/civi_site_key
-    - PATH_TO_TOGGL_API_TOKEN_FILE=/usr/local/airflow/secrets/toggl.txt
+    - CIVICRM_API_KEY_FILE_PATH=/home/airflow/secrets/civi_api_key
+    - CIVICRM_SITE_KEY_FILE_PATH=/home/airflow/secrets/civi_site_key
+    - PATH_TO_TOGGL_API_TOKEN_FILE=/home/airflow/secrets/toggl.txt
 
 
 x-airflow-volumes:
   &airflow-volumes
     - ~/.config/gcloud/application_default_credentials.json:/tmp/credentials.json
-    - ./.secrets:/usr/local/airflow/secrets
-    - ./dags:/usr/local/airflow/dags
-    - ./data_pipeline:/usr/local/airflow/data_pipeline
+    - ./.secrets:/home/airflow/secrets
+    - ./dags:/opt/airflow/dags
+    - ./data_pipeline:/opt/airflow/data_pipeline
 
 services:
     webserver:

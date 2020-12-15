@@ -27,7 +27,7 @@ Following are the credentials that you may need to provide
 
 To run the application locally:
 
-    make build-dev airflow-start
+    make build-dev airflow-initdb airflow-start
 
 To run the whole test on the application:
 
