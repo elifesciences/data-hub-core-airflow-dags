@@ -96,7 +96,6 @@ services:
         depends_on:
             - scheduler
         environment: *airflow-env
-
         volumes: *airflow-volumes
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
