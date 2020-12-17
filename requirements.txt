@@ -1,13 +1,13 @@
 apache-airflow[crypto,celery,postgres,jdbc,ssh]==1.10.13
 bigquery-schema-generator==1.4
 bigquery-views-manager==1.0.3
-boto3==1.16.35
+boto3==1.16.38
 cattrs==1.0.0
 cloudpickle==1.4.1
 dateparser==1.0.0
 dask[complete]==2020.12.0
 distributed==2020.12.0
-fsspec==0.8.4
+fsspec==0.8.5
 google-api-python-client==1.12.8
 google-cloud-bigquery==2.6.1
 google-oauth==1.0.1
