@@ -1,5 +1,5 @@
 FROM apache/airflow:1.10.13-python3.6
-ARG install_dev
+ARG install_dev=n
 
 USER root
 
