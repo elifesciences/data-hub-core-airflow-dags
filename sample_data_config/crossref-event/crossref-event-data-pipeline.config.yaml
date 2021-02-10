@@ -18,5 +18,5 @@ schemaFile:
 # the bigquery data warehouse
 publisherIdPrefixes:
   - '10.7554'
-crossrefEventBaseUrl: "https://api.eventdata.crossref.org/v1/events?rows=1000"
+crossrefEventBaseUrl: 'https://api.eventdata.crossref.org/v1/events?rows=100&mailto=h.ciplak@elifesciences.org'
 importedTimestampField: 'data_hub_imported_timestamp'
