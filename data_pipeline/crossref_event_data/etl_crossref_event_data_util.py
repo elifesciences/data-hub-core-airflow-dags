@@ -4,6 +4,8 @@ import datetime
 from datetime import timezone
 from datetime import timedelta
 from typing import Iterable
+import logging
+import http.client
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object
@@ -100,6 +102,8 @@ def get_crossref_data_single_page(
         + "&obj-id.prefix="
         + journal_doi_prefix
     )
+    print ('Requested URL : ',url)
+    
     if until_collected_date_as_string:
         url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
@@ -220,6 +224,13 @@ def per_doi_download_page_etl(
         schema: list,
         journal_previous_timestamp: datetime,
 ):
+    http.client.HTTPConnection.debuglevel = 1
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log = logging.getLogger('urllib3')
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
     cursor, downloaded_data = get_crossref_data_single_page(
         base_crossref_url=base_crossref_url,
         cursor=cursor,
