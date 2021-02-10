@@ -102,7 +102,7 @@ def get_crossref_data_single_page(
         + "&obj-id.prefix="
         + journal_doi_prefix
     )
-    print ('Requested URL : ',url)
+    print('Requested URL : ',url)
     
     if until_collected_date_as_string:
         url += "&until-collected-date=" + until_collected_date_as_string
