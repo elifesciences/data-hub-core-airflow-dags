@@ -5,7 +5,6 @@ from datetime import timezone
 from datetime import timedelta
 from typing import Iterable
 import logging
-import http.client
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object
@@ -18,9 +17,10 @@ from data_pipeline.utils.pipeline_file_io import (
 # pylint: disable=too-few-public-methods
 from data_pipeline.utils.web_api import requests_retry_session
 
+LOGGER = logging.getLogger(__name__)
+
 
 class EtlModuleConstant:
-
     DEFAULT_DATA_COLLECTION_START_DATE = "2000-01-01"
     # config for the crossref data
     CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY = "timestamp"
@@ -102,21 +102,22 @@ def get_crossref_data_single_page(
         + "&obj-id.prefix="
         + journal_doi_prefix
     )
-    print('Requested URL : ', url)
-    http.client.HTTPConnection.debuglevel = 0
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    requests_log = logging.getLogger('urllib3')
-    requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = True
+    LOGGER.info('url: %s', url)
     if until_collected_date_as_string:
         url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
         url += "&cursor=" + cursor
     with requests_retry_session() as session:
-        session_request = session.get(url)
-        session_request.raise_for_status()
-        resp = session_request.json()
+        response = session.get(url)
+        try:
+            response.raise_for_status()
+            resp = response.json()
+        except Exception:
+            LOGGER.error(
+                'Failed to process url: %s | response_status_code: %s | response: %r ',
+                url, response.status_code, response.text
+            )
+            raise
     return resp[message_key][EtlModuleConstant.MESSAGE_NEXT_CURSOR_KEY], resp
 
 
