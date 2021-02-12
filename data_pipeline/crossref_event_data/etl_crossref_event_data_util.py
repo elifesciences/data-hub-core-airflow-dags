@@ -103,12 +103,12 @@ def get_crossref_data_single_page(
         + journal_doi_prefix
     )
     print('Requested URL : ', url)
-    http.client.HTTPConnection.debuglevel=0
+    http.client.HTTPConnection.debuglevel = 0
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
-    requests_log=logging.getLogger('urllib3')
+    requests_log = logging.getLogger('urllib3')
     requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate=True
+    requests_log.propagate = True
     if until_collected_date_as_string:
         url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
