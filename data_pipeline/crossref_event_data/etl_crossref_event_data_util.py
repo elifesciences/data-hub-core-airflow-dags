@@ -103,7 +103,12 @@ def get_crossref_data_single_page(
         + journal_doi_prefix
     )
     print('Requested URL : ',url)
-    
+    http.client.HTTPConnection.debuglevel=0
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.DEBUG)
+    requests_log=logging.getLogger('urllib3')
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate=True
     if until_collected_date_as_string:
         url += "&until-collected-date=" + until_collected_date_as_string
     if cursor:
@@ -224,13 +229,6 @@ def per_doi_download_page_etl(
         schema: list,
         journal_previous_timestamp: datetime,
 ):
-    http.client.HTTPConnection.debuglevel = 1
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
-    requests_log = logging.getLogger('urllib3')
-    requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = True
-
     cursor, downloaded_data = get_crossref_data_single_page(
         base_crossref_url=base_crossref_url,
         cursor=cursor,
