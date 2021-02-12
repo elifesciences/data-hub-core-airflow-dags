@@ -102,7 +102,7 @@ def get_crossref_data_single_page(
         + "&obj-id.prefix="
         + journal_doi_prefix
     )
-    print('Requested URL : ',url)
+    print('Requested URL : ', url)
     http.client.HTTPConnection.debuglevel=0
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
