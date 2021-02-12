@@ -13,8 +13,13 @@ x-airflow-volumes:
     - ./.secrets:/home/airflow/secrets
     - ./dags:/opt/airflow/dags
     - ./data_pipeline:/opt/airflow/data_pipeline
+    - ./tests:/opt/airflow/tests
 
 services:
+    data-hub-dags-dev:
+        volumes: *airflow-volumes
+        environment: *airflow-env
+
     webserver:
         ports:
             - "8080:8080"
