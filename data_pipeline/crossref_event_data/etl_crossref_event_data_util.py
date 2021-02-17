@@ -95,6 +95,7 @@ def get_crossref_data_single_page(
         message_key: str = "message",
 ) -> (str, dict):
     # TODO : specify all static url parameter via config
+    LOGGER.info('base_crossref_url: %s', base_crossref_url)
     url = (
         base_crossref_url
         + "&from-collected-date="
