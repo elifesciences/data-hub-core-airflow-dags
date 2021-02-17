@@ -75,6 +75,7 @@ def get_data_config(**kwargs):
     )
     LOGGER.info('conf_file_path: %s', conf_file_path)
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
+    LOGGER.info('data_config_dict: %s', data_config_dict)
     kwargs["ti"].xcom_push(key="data_config_dict",
                            value=data_config_dict)
 
