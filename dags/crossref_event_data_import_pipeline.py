@@ -73,6 +73,7 @@ def get_data_config(**kwargs):
     conf_file_path = get_env_var_or_use_default(
         CROSSREF_CONFIG_FILE_PATH_ENV_NAME, ""
     )
+    LOGGER.info('conf_file_path: %s', conf_file_path)
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     LOGGER.info('data_config_dict: %s', data_config_dict)
     kwargs["ti"].xcom_push(key="data_config_dict",
