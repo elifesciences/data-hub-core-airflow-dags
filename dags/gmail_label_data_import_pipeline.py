@@ -9,7 +9,8 @@ from data_pipeline.gmail_production_data.get_gmail_data import (
     connect_to_email,
     get_label_list,
     write_dataframe_to_file,
-    get_link_message_thread
+    get_link_message_thread,
+    get_thread_details_for_given_ids
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +20,9 @@ USER_ID = 'production@elifesciences.org'
 SERVICE = connect_to_email(USER_ID)
 
 TARGET_FILE_LABEL = 'DELETE/label_list.csv'
-TARGET_FILE_THREAD_MSG_LINK = 'DELETE/thread_message_link.csv'
+TARGET_FILE_THREAD_MESSAGE_LINK = 'DELETE/thread_message_link.csv'
+TARGET_FILE_THREAD_DETAILS = 'DELETE/thread_details.csv'
+
 
 GMAIL_GET_DATA_DAG = create_dag(
     dag_id=DAG_ID,
@@ -40,7 +43,18 @@ def gmail_thread_message_link_etl(**kwargs):
             SERVICE,
             USER_ID
             ),
-        TARGET_FILE_THREAD_MSG_LINK
+        TARGET_FILE_THREAD_MESSAGE_LINK
+    )
+
+
+def get_thread_details_for_given_ids_etl(**kwargs):
+    write_dataframe_to_file(
+        get_thread_details_for_given_ids(
+            SERVICE,
+            USER_ID,
+            TARGET_FILE_THREAD_MESSAGE_LINK
+            ),
+        TARGET_FILE_THREAD_DETAILS
     )
 
 
@@ -51,7 +65,6 @@ gmail_label_data_etl_task = create_python_task(
     retries=5
 )
 
-
 gmail_thread_message_link_etl_task = create_python_task(
     GMAIL_GET_DATA_DAG,
     "gmail_thread_message_link_etl",
@@ -59,8 +72,16 @@ gmail_thread_message_link_etl_task = create_python_task(
     retries=5
 )
 
+get_thread_details_for_given_ids_etl_task = create_python_task(
+    GMAIL_GET_DATA_DAG,
+    "get_thread_details_for_given_ids_etl",
+    get_thread_details_for_given_ids_etl,
+    retries=5
+)
+
 # pylint: disable=pointless-statement
 (
     gmail_label_data_etl_task
     << gmail_thread_message_link_etl_task
+    << get_thread_details_for_given_ids_etl_task
 )
