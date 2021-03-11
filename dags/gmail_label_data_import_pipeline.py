@@ -9,6 +9,8 @@ from data_pipeline.gmail_production_data.get_gmail_data import (
     connect_to_email,
     get_label_list,
     write_dataframe_to_file,
+    get_necessary_label_list,
+    get_link_message_thread
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -31,6 +33,22 @@ def gmail_label_data_etl(**kwargs):
     write_dataframe_to_file(get_label_list(SERVICE, USER_ID), TARGET_FILE_LABEL)
 
 
+def gmail_thread_message_link_etl(**kwargs):
+    write_dataframe_to_file(
+        get_link_message_thread(
+            SERVICE,
+            USER_ID,
+            get_necessary_label_list(
+                get_label_list(
+                    SERVICE,
+                    USER_ID
+                    )
+                )
+            ),
+        TARGET_FILE_THREAD_MSG_LINK
+    )
+
+
 gmail_label_data_etl_task = create_python_task(
     GMAIL_GET_DATA_DAG,
     "gmail_label_data_etl",
@@ -39,6 +57,15 @@ gmail_label_data_etl_task = create_python_task(
 )
 
 
+gmail_thread_message_link_etl_task = create_python_task(
+    GMAIL_GET_DATA_DAG,
+    "gmail_thread_message_link_etl",
+    gmail_thread_message_link_etl,
+    retries=5
+)
+
+
 (
     gmail_label_data_etl_task
+    << gmail_thread_message_link_etl_task
 )
