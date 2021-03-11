@@ -9,7 +9,6 @@ from data_pipeline.gmail_production_data.get_gmail_data import (
     connect_to_email,
     get_label_list,
     write_dataframe_to_file,
-    get_necessary_label_list,
     get_link_message_thread
 )
 
@@ -37,13 +36,7 @@ def gmail_thread_message_link_etl(**kwargs):
     write_dataframe_to_file(
         get_link_message_thread(
             SERVICE,
-            USER_ID,
-            get_necessary_label_list(
-                get_label_list(
-                    SERVICE,
-                    USER_ID
-                    )
-                )
+            USER_ID
             ),
         TARGET_FILE_THREAD_MSG_LINK
     )
