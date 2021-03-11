@@ -27,6 +27,8 @@ GMAIL_GET_DATA_DAG = create_dag(
     dagrun_timeout=timedelta(days=1)
 )
 
+# pylint: disable=unused-argument
+
 
 def gmail_label_data_etl(**kwargs):
     write_dataframe_to_file(get_label_list(SERVICE, USER_ID), TARGET_FILE_LABEL)
@@ -57,7 +59,7 @@ gmail_thread_message_link_etl_task = create_python_task(
     retries=5
 )
 
-
+# pylint: disable=pointless-statement
 (
     gmail_label_data_etl_task
     << gmail_thread_message_link_etl_task
