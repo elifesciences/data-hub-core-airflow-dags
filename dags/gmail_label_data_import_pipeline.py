@@ -16,7 +16,6 @@ LOGGER = logging.getLogger(__name__)
 DAG_ID = "Get_Gmail_Data"
 
 USER_ID = 'production@elifesciences.org'
-SERVICE = connect_to_email(USER_ID)
 
 TARGET_FILE_LABEL = 'DELETE/label_list.csv'
 TARGET_FILE_THREAD_MESSAGE_LINK = 'DELETE/thread_message_link.csv'
@@ -28,17 +27,19 @@ GMAIL_GET_DATA_DAG = create_dag(
     dagrun_timeout=timedelta(days=1)
 )
 
-# pylint: disable=unused-argument
+
+def get_gmail_service():
+    return connect_to_email(USER_ID)
 
 
-def gmail_label_data_etl(**kwargs):
-    write_dataframe_to_file(get_label_list(SERVICE, USER_ID), TARGET_FILE_LABEL)
+def gmail_label_data_etl(**__):
+    write_dataframe_to_file(get_label_list(get_gmail_service(), USER_ID), TARGET_FILE_LABEL)
 
 
-def gmail_thread_message_link_etl(**kwargs):
+def gmail_thread_message_link_etl(**__):
     write_dataframe_to_file(
         get_link_message_thread(
-            SERVICE,
+            get_gmail_service(),
             USER_ID
             ),
         TARGET_FILE_THREAD_MESSAGE_LINK
