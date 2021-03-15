@@ -37,15 +37,14 @@ from data_pipeline.gmail_data.get_gmail_data import (
     # get_link_message_thread,
 )
 
-LOGGER = logging.getLogger(__name__)
-DAG_ID = "Get_Gmail_Data"
-
-USER_ID = 'production@elifesciences.org'
-
+USER_ID_ENV_NAME = "GMAIL_DATA_USER_ID"
+GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 DEPLOYMENT_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
+DAG_ID = "Get_Gmail_Label_Data"
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_env_var_or_use_default(env_var_name, default_value=None):
@@ -81,14 +80,14 @@ def data_config_from_xcom(context):
 
 
 def get_gmail_service():
-    return connect_to_email(USER_ID)
+    return connect_to_email(USER_ID_ENV_NAME)
 
 
 def create_bq_table_if_not_exist(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     schema_json = download_s3_json_object(
-        data_config.schema_file_s3_bucket,
-        data_config.schema_file_s3_object
+        data_config.schema_file_s3_bucket_labels,
+        data_config.schema_file_s3_object_labels
     )
 
     kwargs["ti"].xcom_push(
@@ -98,7 +97,7 @@ def create_bq_table_if_not_exist(**kwargs):
     create_table_if_not_exist(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset,
-        table_name=data_config.gmail_data_table,
+        table_name=data_config.table_name_labels,
         json_schema=schema_json
     )
     LOGGER.info('Created table: %s', data_config.gmail_data_table)
@@ -107,68 +106,45 @@ def create_bq_table_if_not_exist(**kwargs):
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     with TemporaryDirectory() as tmp_dir:
-        filename = Path(tmp_dir)/data_config.gmail_data_table
-        write_dataframe_to_file(get_label_list(get_gmail_service(), USER_ID), filename)
+        filename = Path(tmp_dir)/data_config.table_name_labels
+        write_dataframe_to_file(get_label_list(get_gmail_service(), USER_ID_ENV_NAME), filename)
         LOGGER.info('Created file: %s', filename)
         load_file_into_bq(
             filename=filename,
             dataset_name=data_config.dataset,
-            table_name=data_config.gmail_data_table,
+            table_name=data_config.table_name_labels,
             project_name=data_config.project_name,
             source_format=bigquery.SourceFormat.CSV
             )
-        LOGGER.info('Loaded table: %s', data_config.gmail_data_table)
+        LOGGER.info('Loaded table: %s', data_config.table_name_labels)
 
 
-# pylint: disable=pointless-string-statement
-'''
-def gmail_thread_message_link_etl(**__):
-    with TemporaryDirectory() as tmp_dir:
-        target_file = Path(tmp_dir)/TARGET_FILE_THREAD_MESSAGE_LINK
-        write_dataframe_to_file(
-            get_link_message_thread(
-                get_gmail_service(),
-                USER_ID
-                ),
-            target_file
-        )
-'''
-
-GET_GMAIL_DATA_DAG = create_dag(
+GET_GMAIL_LABEL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
     dagrun_timeout=timedelta(days=1)
 )
 
 get_data_config_task = create_python_task(
-    GET_GMAIL_DATA_DAG,
+    GET_GMAIL_LABEL_DATA_DAG,
     "get_data_config",
     get_data_config,
     retries=5
 )
 
 create_table_if_not_exist_task = create_python_task(
-    GET_GMAIL_DATA_DAG,
+    GET_GMAIL_LABEL_DATA_DAG,
     "create_table_if_not_exist",
     create_bq_table_if_not_exist,
     retries=5
 )
 
 gmail_label_data_etl_task = create_python_task(
-    GET_GMAIL_DATA_DAG,
+    GET_GMAIL_LABEL_DATA_DAG,
     "gmail_label_data_etl",
     gmail_label_data_etl,
     retries=5
 )
-
-'''
-gmail_thread_message_link_etl_task = create_python_task(
-    GET_GMAIL_DATA_DAG,
-    "gmail_thread_message_link_etl",
-    gmail_thread_message_link_etl,
-    retries=5
-)
-'''
 
 
 # pylint: disable=pointless-statement
@@ -176,5 +152,4 @@ gmail_thread_message_link_etl_task = create_python_task(
     get_data_config_task
     >> create_table_if_not_exist_task
     >> gmail_label_data_etl_task
-    # >> gmail_thread_message_link_etl_task
 )
