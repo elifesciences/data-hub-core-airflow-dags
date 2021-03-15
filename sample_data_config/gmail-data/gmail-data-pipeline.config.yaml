@@ -1,0 +1,8 @@
+projectName: 'elife-data-pipeline'
+dataset: '{ENV}'
+gmailData:
+  table: 'gmail_production_label_list'
+  schemaFile:
+    url:
+    bucket: '{ENV}-elife-data-pipeline'
+    object: 'airflow-config/get_gmail_data/data_schema/label_list/gmail_label_list_schema.json'
