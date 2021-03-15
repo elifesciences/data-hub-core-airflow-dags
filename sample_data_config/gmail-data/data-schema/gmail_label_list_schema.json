@@ -1,0 +1,32 @@
+[
+    {
+        "mode": "REQUIRED",
+        "name": "labelId",
+        "type": "STRING"
+    },
+    {
+        "mode": "REQUIRED",
+        "name": "labelName",
+        "type": "STRING"
+    },
+    {
+        "mode": "NULLABLE",
+        "name": "messageListVisibility",
+        "type": "STRING"
+    },
+    {
+        "mode": "NULLABLE",
+        "name": "labelListVisibility",
+        "type": "STRING"
+    },
+    {
+        "mode": "NULLABLE",
+        "name": "labelType",
+        "type": "STRING"
+    },
+    {
+        "mode": "NULLABLE",
+        "name": "labelColour",
+        "type": "STRING"
+    }
+]
