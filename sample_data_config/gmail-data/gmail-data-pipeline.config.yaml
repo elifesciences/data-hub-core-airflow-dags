@@ -1,6 +1,6 @@
 projectName: 'elife-data-pipeline'
 dataset: '{ENV}'
-gmailData:
+gmailLabelData:
   table: 'gmail_production_label_list'
   schemaFile:
     url:

@@ -18,12 +18,12 @@ class GmailGetDataConfig:
         self.project_name = self.data_config.get("projectName")
         self.dataset = self.data_config.get("dataset")
 
-        self.gmail_data_table = (
-            self.data_config.get("gmailData").get("table")
+        self.table_name_labels = (
+            self.data_config.get("gmailLabelData").get("table")
         )
-        self.schema_file_s3_bucket = (
-            self.data_config.get("gmailData").get("schemaFile", {}).get("bucket")
+        self.schema_file_s3_bucket_labels = (
+            self.data_config.get("gmailLabelData").get("schemaFile", {}).get("bucket")
         )
-        self.schema_file_s3_object = (
-            self.data_config.get("gmailData").get("schemaFile", {}).get("object")
+        self.schema_file_s3_object_labels = (
+            self.data_config.get("gmailLabelData").get("schemaFile", {}).get("object")
         )
