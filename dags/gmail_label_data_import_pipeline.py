@@ -100,7 +100,7 @@ def create_bq_table_if_not_exist(**kwargs):
         table_name=data_config.table_name_labels,
         json_schema=schema_json
     )
-    LOGGER.info('Created table: %s', data_config.gmail_data_table)
+    LOGGER.info('Created table: %s', data_config.table_name_labels)
 
 
 def gmail_label_data_etl(**kwargs):
