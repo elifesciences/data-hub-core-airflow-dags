@@ -81,7 +81,7 @@ def data_config_from_xcom(context):
 
 def get_gmail_service():
     secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV,"")
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
     return get_gmail_service_for_user_id(
         secret_file=secret_file,
         scopes=GMAIL_SCOPES,
@@ -111,7 +111,7 @@ def create_label_list_table(**kwargs):
 
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV,"")
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
     with TemporaryDirectory() as tmp_dir:
         filename = Path(tmp_dir)/data_config.table_name_labels
 
