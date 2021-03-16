@@ -17,7 +17,7 @@ def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -
 
 def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
     label_response = service.users().labels().list(userId=user_id).execute()
-    
+
     df = pd.DataFrame(label_response['labels'])
     return df
 
