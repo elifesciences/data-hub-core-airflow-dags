@@ -135,28 +135,28 @@ def gmail_label_data_etl(**kwargs):
         LOGGER.info('Loaded table: %s', data_config.table_name_labels)
 
 
-GMAIL_LABEL_DATA_DAG = create_dag(
+GMAIL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
     dagrun_timeout=timedelta(days=1)
 )
 
 get_data_config_task = create_python_task(
-    GMAIL_LABEL_DATA_DAG,
+    GMAIL_DATA_DAG,
     "get_data_config",
     get_data_config,
     retries=5
 )
 
 create_table_if_not_exist_task = create_python_task(
-    GMAIL_LABEL_DATA_DAG,
+    GMAIL_DATA_DAG,
     "create_table_if_not_exist",
     create_bq_table_if_not_exist,
     retries=5
 )
 
 gmail_label_data_etl_task = create_python_task(
-    GMAIL_LABEL_DATA_DAG,
+    GMAIL_DATA_DAG,
     "gmail_label_data_etl",
     gmail_label_data_etl,
     retries=5
