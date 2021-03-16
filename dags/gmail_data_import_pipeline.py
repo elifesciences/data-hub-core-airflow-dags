@@ -37,7 +37,7 @@ from data_pipeline.gmail_data.get_gmail_data import (
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-GMAIL_ACCOUNT_SECRET_FILE = 'DELETE/elife-data-pipeline-test.json'
+GMAIL_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_ACCOUNT_SECRET_FILE'
 
 GMAIL_DATA_USER_ID_ENV = "GMAIL_DATA_USER_ID"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
@@ -68,7 +68,6 @@ def get_data_config(**kwargs):
 
 def data_config_from_xcom(context):
     dag_context = context["ti"]
-    LOGGER.info('dag_context: %s', dag_context)
     data_config_dict = dag_context.xcom_pull(
         key="data_config_dict", task_ids="get_data_config"
     )
@@ -77,15 +76,16 @@ def data_config_from_xcom(context):
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     data_config = GmailGetDataConfig(
         data_config_dict, deployment_env)
-    LOGGER.info('data_config: %s', data_config)
     return data_config
 
 
 def get_gmail_service():
+    secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV,"")
     return get_gmail_service_for_user_id(
-        GMAIL_ACCOUNT_SECRET_FILE,
-        GMAIL_SCOPES,
-        GMAIL_DATA_USER_ID_ENV
+        secret_file=secret_file,
+        scopes=GMAIL_SCOPES,
+        user_id=user_id
     )
 
 
@@ -111,14 +111,14 @@ def create_label_list_table(**kwargs):
 
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV,"")
     with TemporaryDirectory() as tmp_dir:
         filename = Path(tmp_dir)/data_config.table_name_labels
 
         write_dataframe_to_csv_file(
             get_label_list(
                 get_gmail_service(),
-                GMAIL_DATA_USER_ID_ENV
+                user_id
             ),
             filename
         )
