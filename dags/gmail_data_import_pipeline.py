@@ -89,7 +89,7 @@ def get_gmail_service():
         )
 
 
-def create_bq_table_if_not_exist(**kwargs):
+def create_label_list_table(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     schema_json = download_s3_json_object(
         data_config.schema_file_s3_bucket_labels,
@@ -148,10 +148,10 @@ get_data_config_task = create_python_task(
     retries=5
 )
 
-create_table_if_not_exist_task = create_python_task(
+create_label_list_table_task = create_python_task(
     GMAIL_DATA_DAG,
-    "create_table_if_not_exist",
-    create_bq_table_if_not_exist,
+    "create_label_list_table",
+    create_label_list_table,
     retries=5
 )
 
@@ -165,6 +165,6 @@ gmail_label_data_etl_task = create_python_task(
 # pylint: disable=pointless-statement
 (
     get_data_config_task
-    >> create_table_if_not_exist_task
+    >> create_label_list_table_task
     >> gmail_label_data_etl_task
 )
