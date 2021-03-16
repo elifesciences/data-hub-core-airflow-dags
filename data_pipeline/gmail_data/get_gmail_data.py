@@ -6,33 +6,34 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery import Resource
 
 
-def get_gmail_service_for_user_id(secretFile: str, scopes: str, userId: str) -> Resource:
+def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -> Resource:
     credentials = service_account.Credentials.from_service_account_file(
-        secretFile, scopes=scopes)
-    delegated_credentials = credentials.with_subject(userId)
+        secret_file, scopes=scopes)
+    delegated_credentials = credentials.with_subject(user_id)
 
     service = build("gmail", "v1", credentials=delegated_credentials)
     return service
 
 
-def get_label_list(service: Resource, userId: str) -> pd.DataFrame:
-    label_response = service.users().labels().list(userId=userId).execute()
+def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
+    label_response = service.users().labels().list(userId=user_id).execute()
+    
     df = pd.DataFrame(label_response['labels'])
     return df
 
 
-def iter_link_message_thread(service: Resource, userId: str) -> Iterable[dict]:
-    response = service.users().messages().list(userId=userId).execute()
+def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
+    response = service.users().messages().list(userId=user_id).execute()
     if 'messages' in response:
         yield from response['messages']
     while ('nextPageToken' in response):
         page_token = response['nextPageToken']
-        response = service.users().messages().list(userId=userId, pageToken=page_token).execute()
+        response = service.users().messages().list(userId=user_id, pageToken=page_token).execute()
         yield from response['messages']
 
 
-def get_link_message_thread(service: Resource, userId: str) -> pd.DataFrame:
-    df = pd.DataFrame(iter_link_message_thread(service, userId))
+def get_link_message_thread(service: Resource, user_id: str) -> pd.DataFrame:
+    df = pd.DataFrame(iter_link_message_thread(service, user_id))
     return df
 
 
