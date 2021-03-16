@@ -31,18 +31,20 @@ from data_pipeline.utils.pipeline_file_io import (
 )
 
 from data_pipeline.gmail_data.get_gmail_data import (
-    connect_to_email,
+    get_gmail_service_for_user_id,
     get_label_list,
-    write_dataframe_to_file,
-    # get_link_message_thread,
+    write_dataframe_to_csv_file
 )
 
-USER_ID_ENV_NAME = "GMAIL_DATA_USER_ID"
+GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+GMAIL_ACCOUNT_SECRET_FILE = 'DELETE/elife-data-pipeline-test.json'
+
+GMAIL_DATA_USER_ID_ENV = "GMAIL_DATA_USER_ID"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
-DEPLOYMENT_ENV_NAME = "DEPLOYMENT_ENV"
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-DAG_ID = "Get_Gmail_Label_Data"
+DAG_ID = "Gmail_Label_Data"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ def get_data_config(**kwargs):
     kwargs["ti"].xcom_push(
         key="data_config_dict",
         value=data_config_dict
-        )
+    )
 
 
 def data_config_from_xcom(context):
@@ -72,7 +74,7 @@ def data_config_from_xcom(context):
     )
     LOGGER.info('data_config_dict: %s', data_config_dict)
     deployment_env = get_env_var_or_use_default(
-        DEPLOYMENT_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     data_config = GmailGetDataConfig(
         data_config_dict, deployment_env)
     LOGGER.info('data_config: %s', data_config)
@@ -80,7 +82,11 @@ def data_config_from_xcom(context):
 
 
 def get_gmail_service():
-    return connect_to_email(USER_ID_ENV_NAME)
+    return get_gmail_service_for_user_id(
+        GMAIL_ACCOUNT_SECRET_FILE,
+        GMAIL_SCOPES,
+        GMAIL_DATA_USER_ID_ENV
+        )
 
 
 def create_bq_table_if_not_exist(**kwargs):
@@ -105,47 +111,56 @@ def create_bq_table_if_not_exist(**kwargs):
 
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
+
     with TemporaryDirectory() as tmp_dir:
         filename = Path(tmp_dir)/data_config.table_name_labels
-        write_dataframe_to_file(get_label_list(get_gmail_service(), USER_ID_ENV_NAME), filename)
+
+        write_dataframe_to_csv_file(
+            get_label_list(
+                get_gmail_service(),
+                GMAIL_DATA_USER_ID_ENV
+            ),
+            filename
+        )
+
         LOGGER.info('Created file: %s', filename)
+
         load_file_into_bq(
             filename=filename,
             dataset_name=data_config.dataset,
             table_name=data_config.table_name_labels,
             project_name=data_config.project_name,
             source_format=bigquery.SourceFormat.CSV
-            )
+        )
         LOGGER.info('Loaded table: %s', data_config.table_name_labels)
 
 
-GET_GMAIL_LABEL_DATA_DAG = create_dag(
+GMAIL_LABEL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
     dagrun_timeout=timedelta(days=1)
 )
 
 get_data_config_task = create_python_task(
-    GET_GMAIL_LABEL_DATA_DAG,
+    GMAIL_LABEL_DATA_DAG,
     "get_data_config",
     get_data_config,
     retries=5
 )
 
 create_table_if_not_exist_task = create_python_task(
-    GET_GMAIL_LABEL_DATA_DAG,
+    GMAIL_LABEL_DATA_DAG,
     "create_table_if_not_exist",
     create_bq_table_if_not_exist,
     retries=5
 )
 
 gmail_label_data_etl_task = create_python_task(
-    GET_GMAIL_LABEL_DATA_DAG,
+    GMAIL_LABEL_DATA_DAG,
     "gmail_label_data_etl",
     gmail_label_data_etl,
     retries=5
 )
-
 
 # pylint: disable=pointless-statement
 (

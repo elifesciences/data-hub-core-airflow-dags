@@ -6,15 +6,10 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery import Resource
 
 
-# this connection type will be changed !!
-def connect_to_email(userId: str) -> Resource:
-    SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-    SERVICE_ACCOUNT_SECRET_FILE = 'DELETE/elife-data-pipeline-test.json'
-    EMAIL_ADDRESS = userId
-
+def get_gmail_service_for_user_id(secretFile: str, scopes: str, userId: str) -> Resource:
     credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_SECRET_FILE, scopes=SCOPES)
-    delegated_credentials = credentials.with_subject(EMAIL_ADDRESS)
+        secretFile, scopes=scopes)
+    delegated_credentials = credentials.with_subject(userId)
 
     service = build("gmail", "v1", credentials=delegated_credentials)
     return service
@@ -41,5 +36,5 @@ def get_link_message_thread(service: Resource, userId: str) -> pd.DataFrame:
     return df
 
 
-def write_dataframe_to_file(df_data_to_write: pd.DataFrame, target_file_path: str):
+def write_dataframe_to_csv_file(df_data_to_write: pd.DataFrame, target_file_path: str):
     df_data_to_write.to_csv(target_file_path, encoding='utf-8', index=False)
