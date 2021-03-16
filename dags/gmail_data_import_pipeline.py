@@ -44,7 +44,7 @@ GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-DAG_ID = "Gmail_Data_Pipeline"
+DAG_ID = "Gmail_Data_Import_Pipeline"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ def get_gmail_service():
         GMAIL_ACCOUNT_SECRET_FILE,
         GMAIL_SCOPES,
         GMAIL_DATA_USER_ID_ENV
-        )
+    )
 
 
 def create_label_list_table(**kwargs):
