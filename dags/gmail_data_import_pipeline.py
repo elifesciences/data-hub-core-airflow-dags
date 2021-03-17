@@ -29,7 +29,7 @@ from data_pipeline.utils.pipeline_file_io import (
 from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
-    write_dataframe_to_file
+    write_dataframe_to_jsonl_file
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -92,7 +92,7 @@ def gmail_label_data_etl(**kwargs):
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_labels)
 
-        write_dataframe_to_file(
+        write_dataframe_to_jsonl_file(
             df_data_to_write=get_label_list(get_gmail_service(),  user_id),
             target_file_path=filename
         )

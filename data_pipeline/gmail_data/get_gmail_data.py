@@ -50,13 +50,10 @@ def get_link_message_thread(service: Resource, user_id: str) -> pd.DataFrame:
     return df
 
 
-def write_dataframe_to_file(
+def write_dataframe_to_jsonl_file(
         df_data_to_write: pd.DataFrame,
         target_file_path: str):
 
-    if target_file_path.lower().endswith('.csv'):
-        df_data_to_write.to_csv(target_file_path, encoding='utf-8', index=False)
-    else:
-        with open(target_file_path, 'w', encoding='utf-8') as file:
-            # newline-delimited JSON
-            df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
+    with open(target_file_path, 'w', encoding='utf-8') as file:
+        # newline-delimited JSON
+        df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
