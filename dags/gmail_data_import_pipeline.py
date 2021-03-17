@@ -110,13 +110,6 @@ def gmail_label_data_etl(**kwargs):
         )
         LOGGER.info('Created table: %s', data_config.table_name_labels)
 
-        if filename.lower().endswith('.csv'):
-            source_format = bigquery.SourceFormat.CSV
-        else:
-            source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
-
-        LOGGER.info('source_format: %s', source_format)
-
         load_file_into_bq(
             filename=filename,
             dataset_name=data_config.dataset,
