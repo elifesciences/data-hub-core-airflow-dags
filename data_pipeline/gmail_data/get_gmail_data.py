@@ -1,5 +1,7 @@
+import datetime
 from typing import Iterable
 import pandas as pd
+import backoff
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -15,11 +17,23 @@ def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -
     return service
 
 
+@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
+    imported_timestamp = datetime.datetime.utcnow().isoformat()
     label_response = service.users().labels().list(userId=user_id).execute()
+    df_one_label = pd.DataFrame()
+    df_label = pd.DataFrame()
+    for i in range(len(label_response['labels'])):
+        label = label_response['labels'][i]
+        df_one_label['labelId'] = [label['id']]
+        df_one_label['labelName'] = [label['name']]
+        df_one_label['labelType'] = [label['type']]
+        df_label = df_label.append(df_one_label)
 
-    df = pd.DataFrame(label_response['labels'])
-    return df
+    df_label['user_id'] = user_id
+    df_label['imported_timestamp'] = imported_timestamp
+
+    return df_label
 
 
 def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
@@ -39,12 +53,11 @@ def get_link_message_thread(service: Resource, user_id: str) -> pd.DataFrame:
 
 def write_dataframe_to_file(
         df_data_to_write: pd.DataFrame,
-        target_file_path: str,
-        string_file_name: str):
+        target_file_path: str):
 
-    if string_file_name.lower().endswith('.csv'):
+    if target_file_path.lower().endswith('.csv'):
         df_data_to_write.to_csv(target_file_path, encoding='utf-8', index=False)
-    elif string_file_name.lower().endswith('.json'):
+    else:
         with open(target_file_path, 'w', encoding='utf-8') as file:
             # newline-delimited JSON
             df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
