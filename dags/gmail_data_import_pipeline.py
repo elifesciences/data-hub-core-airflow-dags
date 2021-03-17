@@ -33,7 +33,7 @@ from data_pipeline.utils.pipeline_file_io import (
 from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
-    write_dataframe_to_csv_file
+    write_dataframe_to_file
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -112,25 +112,32 @@ def create_label_list_table(**kwargs):
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
-    with TemporaryDirectory() as tmp_dir:
-        filename = Path(tmp_dir)/data_config.table_name_labels
+    string_file_name = data_config.stage_file_name_labels
 
-        write_dataframe_to_csv_file(
-            get_label_list(
-                get_gmail_service(),
-                user_id
-            ),
-            filename
+    with TemporaryDirectory() as tmp_dir:
+        filename = Path(tmp_dir) / string_file_name
+
+        write_dataframe_to_file(
+            df_data_to_write=get_label_list(get_gmail_service(),  user_id),
+            target_file_path=filename,
+            string_file_name=string_file_name
         )
 
         LOGGER.info('Created file: %s', filename)
+
+        if string_file_name.lower().endswith('.csv'):
+            source_format = bigquery.SourceFormat.CSV
+        else:
+            source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
+
+        LOGGER.info('source_format: %s', source_format)
 
         load_file_into_bq(
             filename=filename,
             dataset_name=data_config.dataset,
             table_name=data_config.table_name_labels,
             project_name=data_config.project_name,
-            source_format=bigquery.SourceFormat.CSV
+            source_format=source_format
         )
         LOGGER.info('Loaded table: %s', data_config.table_name_labels)
 

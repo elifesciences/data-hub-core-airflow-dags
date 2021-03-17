@@ -18,6 +18,9 @@ class GmailGetDataConfig:
         self.project_name = self.data_config.get("projectName")
         self.dataset = self.data_config.get("dataset")
 
+        self.stage_file_name_labels = (
+            self.data_config.get("gmailLabelData").get("stageFileName")
+        )
         self.table_name_labels = (
             self.data_config.get("gmailLabelData").get("table")
         )

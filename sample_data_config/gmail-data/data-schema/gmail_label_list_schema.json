@@ -1,12 +1,12 @@
 [
     {
         "mode": "REQUIRED",
-        "name": "labelId",
+        "name": "id",
         "type": "STRING"
     },
     {
         "mode": "REQUIRED",
-        "name": "labelName",
+        "name": "name",
         "type": "STRING"
     },
     {
@@ -21,12 +21,12 @@
     },
     {
         "mode": "NULLABLE",
-        "name": "labelType",
+        "name": "type",
         "type": "STRING"
     },
     {
         "mode": "NULLABLE",
-        "name": "labelColour",
+        "name": "color",
         "type": "STRING"
     }
 ]

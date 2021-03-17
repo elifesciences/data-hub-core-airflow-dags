@@ -1,6 +1,7 @@
 projectName: 'elife-data-pipeline'
 dataset: '{ENV}'
 gmailLabelData:
+  stageFileName: 'gmail_production_label_list.json'
   table: 'gmail_production_label_list'
   schemaFile:
     url:
