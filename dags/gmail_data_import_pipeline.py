@@ -4,17 +4,13 @@ import os
 import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
-from pathlib import Path
 
 from google.cloud import bigquery
 
 from data_pipeline.utils.data_store.bq_data_service import (
     create_table_if_not_exist,
     load_file_into_bq,
-)
-
-from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_json_object,
+    generate_schema_from_file
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -89,43 +85,32 @@ def get_gmail_service():
     )
 
 
-def create_label_list_table(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    schema_json = download_s3_json_object(
-        data_config.schema_file_s3_bucket_labels,
-        data_config.schema_file_s3_object_labels
-    )
-
-    kwargs["ti"].xcom_push(
-        key="data_schema", value=schema_json
-    )
-
-    create_table_if_not_exist(
-        project_name=data_config.project_name,
-        dataset_name=data_config.dataset,
-        table_name=data_config.table_name_labels,
-        json_schema=schema_json
-    )
-    LOGGER.info('Created table: %s', data_config.table_name_labels)
-
-
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
-    string_file_name = data_config.stage_file_name_labels
 
     with TemporaryDirectory() as tmp_dir:
-        filename = Path(tmp_dir) / string_file_name
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_labels)
 
         write_dataframe_to_file(
             df_data_to_write=get_label_list(get_gmail_service(),  user_id),
-            target_file_path=filename,
-            string_file_name=string_file_name
+            target_file_path=filename
         )
 
         LOGGER.info('Created file: %s', filename)
 
-        if string_file_name.lower().endswith('.csv'):
+        generated_schema = generate_schema_from_file(filename)
+        LOGGER.info('generated_schema: %s', generated_schema)
+
+        create_table_if_not_exist(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset,
+            table_name=data_config.table_name_labels,
+            json_schema=generated_schema
+        )
+        LOGGER.info('Created table: %s', data_config.table_name_labels)
+
+        if filename.lower().endswith('.csv'):
             source_format = bigquery.SourceFormat.CSV
         else:
             source_format = bigquery.SourceFormat.NEWLINE_DELIMITED_JSON
@@ -137,6 +122,7 @@ def gmail_label_data_etl(**kwargs):
             dataset_name=data_config.dataset,
             table_name=data_config.table_name_labels,
             project_name=data_config.project_name,
+            auto_detect_schema=True,
             source_format=source_format
         )
         LOGGER.info('Loaded table: %s', data_config.table_name_labels)
@@ -155,13 +141,6 @@ get_data_config_task = create_python_task(
     retries=5
 )
 
-create_label_list_table_task = create_python_task(
-    GMAIL_DATA_DAG,
-    "create_label_list_table",
-    create_label_list_table,
-    retries=5
-)
-
 gmail_label_data_etl_task = create_python_task(
     GMAIL_DATA_DAG,
     "gmail_label_data_etl",
@@ -172,6 +151,5 @@ gmail_label_data_etl_task = create_python_task(
 # pylint: disable=pointless-statement
 (
     get_data_config_task
-    >> create_label_list_table_task
     >> gmail_label_data_etl_task
 )
