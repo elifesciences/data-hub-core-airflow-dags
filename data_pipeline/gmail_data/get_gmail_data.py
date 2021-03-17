@@ -23,8 +23,7 @@ def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
     label_response = service.users().labels().list(userId=user_id).execute()
     df_one_label = pd.DataFrame()
     df_label = pd.DataFrame()
-    for i in range(len(label_response['labels'])):
-        label = label_response['labels'][i]
+    for label in label_response['labels']:
         df_one_label['labelId'] = [label['id']]
         df_one_label['labelName'] = [label['name']]
         df_one_label['labelType'] = [label['type']]
