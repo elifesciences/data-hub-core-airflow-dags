@@ -39,15 +39,15 @@ def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
     response = service.users().messages().list(userId=user_id).execute()
     if 'messages' in response:
         yield from response['messages']
-    while ('nextPageToken' in response):
+    while 'nextPageToken' in response:
         page_token = response['nextPageToken']
         response = service.users().messages().list(userId=user_id, pageToken=page_token).execute()
         yield from response['messages']
 
 
 def get_link_message_thread(service: Resource, user_id: str) -> pd.DataFrame:
-    df = pd.DataFrame(iter_link_message_thread(service, user_id))
-    return df
+    df_link = pd.DataFrame(iter_link_message_thread(service, user_id))
+    return df_link
 
 
 def write_dataframe_to_jsonl_file(
