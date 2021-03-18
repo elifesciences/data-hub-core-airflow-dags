@@ -5,8 +5,6 @@ import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
 
-from google.cloud import bigquery
-
 from data_pipeline.utils.data_store.bq_data_service import (
     create_table_if_not_exist,
     load_file_into_bq,
@@ -115,8 +113,7 @@ def gmail_label_data_etl(**kwargs):
             dataset_name=data_config.dataset,
             table_name=data_config.table_name_labels,
             project_name=data_config.project_name,
-            auto_detect_schema=True,
-            source_format=source_format
+            auto_detect_schema=True
         )
         LOGGER.info('Loaded table: %s', data_config.table_name_labels)
 
