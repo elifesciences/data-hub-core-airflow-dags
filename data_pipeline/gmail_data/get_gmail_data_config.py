@@ -24,9 +24,3 @@ class GmailGetDataConfig:
         self.table_name_labels = (
             self.data_config.get("gmailLabelData").get("table")
         )
-        self.schema_file_s3_bucket_labels = (
-            self.data_config.get("gmailLabelData").get("schemaFile", {}).get("bucket")
-        )
-        self.schema_file_s3_object_labels = (
-            self.data_config.get("gmailLabelData").get("schemaFile", {}).get("object")
-        )
