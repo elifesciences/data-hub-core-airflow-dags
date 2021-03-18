@@ -27,7 +27,8 @@ from data_pipeline.utils.pipeline_file_io import (
 from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
-    write_dataframe_to_jsonl_file
+    write_dataframe_to_jsonl_file,
+    get_link_message_thread_ids
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -86,6 +87,7 @@ def get_gmail_service():
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
+    table_name = data_config.table_name_labels
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_labels)
@@ -103,19 +105,55 @@ def gmail_label_data_etl(**kwargs):
         create_table_if_not_exist(
             project_name=data_config.project_name,
             dataset_name=data_config.dataset,
-            table_name=data_config.table_name_labels,
+            table_name=table_name,
             json_schema=generated_schema
         )
-        LOGGER.info('Created table: %s', data_config.table_name_labels)
+        LOGGER.info('Created table: %s', table_name)
 
         load_file_into_bq(
             filename=filename,
             dataset_name=data_config.dataset,
-            table_name=data_config.table_name_labels,
+            table_name=table_name,
             project_name=data_config.project_name,
             auto_detect_schema=True
         )
-        LOGGER.info('Loaded table: %s', data_config.table_name_labels)
+        LOGGER.info('Loaded table: %s', table_name)
+
+
+def gmail_link_message_thread_ids_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
+    table_name = data_config.table_name_link_ids
+
+    with TemporaryDirectory() as tmp_dir:
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_link_ids)
+
+        write_dataframe_to_jsonl_file(
+            df_data_to_write=get_link_message_thread_ids(get_gmail_service(),  user_id),
+            target_file_path=filename
+        )
+
+        LOGGER.info('Created file: %s', filename)
+
+        generated_schema = generate_schema_from_file(filename)
+        LOGGER.info('generated_schema: %s', generated_schema)
+
+        create_table_if_not_exist(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset,
+            table_name=table_name,
+            json_schema=generated_schema
+        )
+        LOGGER.info('Created table: %s', table_name)
+
+        load_file_into_bq(
+            filename=filename,
+            dataset_name=data_config.dataset,
+            table_name=table_name,
+            project_name=data_config.project_name,
+            auto_detect_schema=True
+        )
+        LOGGER.info('Loaded table: %s', table_name)
 
 
 GMAIL_DATA_DAG = create_dag(
@@ -138,8 +176,15 @@ gmail_label_data_etl_task = create_python_task(
     retries=5
 )
 
+gmail_link_message_thread_ids_etl_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "gmail_link_message_thread_ids_etl",
+    gmail_link_message_thread_ids_etl,
+    retries=5
+)
+
 # pylint: disable=pointless-statement
 (
-    get_data_config_task
-    >> gmail_label_data_etl_task
+    get_data_config_task 
+    >> [gmail_label_data_etl_task, gmail_link_message_thread_ids_etl_task]
 )

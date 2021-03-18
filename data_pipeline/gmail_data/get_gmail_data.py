@@ -45,7 +45,7 @@ def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
         yield from response['messages']
 
 
-def get_link_message_thread(service: Resource, user_id: str) -> pd.DataFrame:
+def get_link_message_thread_ids(service: Resource, user_id: str) -> pd.DataFrame:
     df_link = pd.DataFrame(iter_link_message_thread(service, user_id))
     return df_link
 
