@@ -74,9 +74,13 @@ def data_config_from_xcom(context):
     return data_config
 
 
+def get_gmail_user_id():
+    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
+
+
 def get_gmail_service():
     secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
+    user_id = get_gmail_user_id()
     return get_gmail_service_for_user_id(
         secret_file=secret_file,
         scopes=GMAIL_SCOPES,
@@ -86,7 +90,7 @@ def get_gmail_service():
 
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
+    user_id = get_gmail_user_id()
     table_name = data_config.table_name_labels
 
     with TemporaryDirectory() as tmp_dir:
@@ -122,7 +126,7 @@ def gmail_label_data_etl(**kwargs):
 
 def gmail_link_message_thread_ids_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV, "")
+    user_id = get_gmail_user_id()
     table_name = data_config.table_name_link_ids
 
     with TemporaryDirectory() as tmp_dir:
