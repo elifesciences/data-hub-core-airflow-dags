@@ -189,6 +189,6 @@ gmail_link_message_thread_ids_etl_task = create_python_task(
 
 # pylint: disable=pointless-statement
 (
-    get_data_config_task 
+    get_data_config_task
     >> [gmail_label_data_etl_task, gmail_link_message_thread_ids_etl_task]
 )
