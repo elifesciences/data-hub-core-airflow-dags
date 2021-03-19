@@ -17,9 +17,12 @@ def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -
     return service
 
 
+def get_current_timestamp():
+    return datetime.datetime.utcnow().isoformat()
+
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
-    imported_timestamp = datetime.datetime.utcnow().isoformat()
+    imported_timestamp = get_timestamp()
     label_response = service.users().labels().list(userId=user_id).execute()
     df_one_label = pd.DataFrame()
     df_label = pd.DataFrame()
