@@ -75,7 +75,7 @@ def data_config_from_xcom(context):
 
 
 def get_gmail_user_id():
-    user_id = get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
+    return get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
 
 
 def get_gmail_service():
