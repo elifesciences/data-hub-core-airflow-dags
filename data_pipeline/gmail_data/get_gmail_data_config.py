@@ -31,3 +31,10 @@ class GmailGetDataConfig:
         self.table_name_link_ids = (
             self.data_config.get("gmailLinkIdsData").get("table")
         )
+
+        self.stage_file_name_thread_details= (
+            self.data_config.get("gmailThreadData").get("stageFileName")
+        )
+        self.table_name_thread_details = (
+            self.data_config.get("gmailThreadData").get("table")
+        )

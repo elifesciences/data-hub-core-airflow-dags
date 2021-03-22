@@ -6,3 +6,6 @@ gmailLabelData:
 gmailLinkIdsData:
   stageFileName: 'gmail_link_message_thread_ids.json'
   table: 'gmail_link_message_thread_ids'
+gmailThreadData:
+  stageFileName: 'gmail_thread_details.json'
+  table: 'gmail_thread_details'
