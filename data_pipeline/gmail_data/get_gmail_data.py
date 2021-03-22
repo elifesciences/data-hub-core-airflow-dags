@@ -38,7 +38,7 @@ def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
     return df_label
 
 
-def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
+def iter_link_message_thread_ids(service: Resource, user_id: str) -> Iterable[dict]:
     response = service.users().messages().list(userId=user_id).execute()
     if 'messages' in response:
         yield from response['messages']
@@ -49,7 +49,10 @@ def iter_link_message_thread(service: Resource, user_id: str) -> Iterable[dict]:
 
 
 def get_link_message_thread_ids(service: Resource, user_id: str) -> pd.DataFrame:
-    df_link = pd.DataFrame(iter_link_message_thread(service, user_id))
+    imported_timestamp = get_timestamp()
+    df_link = pd.DataFrame(iter_link_message_thread_ids(service, user_id))
+    df_link['user_id'] = user_id
+    df_link['imported_timestamp'] = imported_timestamp
     return df_link
 
 
