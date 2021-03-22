@@ -12,3 +12,6 @@ gmailThreadData:
   listThreadId:
     table: 'gmail_link_message_thread_ids'
     column: 'threadId'
+  schemaFile:
+    bucket: '{ENV}-elife-data-pipeline'
+    object: 'airflow-config/get_gmail_data/data-schema/gmail_thread_details_schema.json'
