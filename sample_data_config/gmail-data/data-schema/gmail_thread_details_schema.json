@@ -33,5 +33,15 @@
     "mode": "NULLABLE",
     "name": "first_reponse_date",
     "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "user_id",
+    "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "imported_timestamp",
+    "type": "STRING"
   }
 ]
