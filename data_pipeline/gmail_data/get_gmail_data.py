@@ -61,7 +61,7 @@ def get_link_message_thread_ids(service: Resource, user_id: str) -> pd.DataFrame
 
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
-
+    imported_timestamp = get_current_timestamp()
     thread_results = service.users().threads().get(userId=user_id, id=thread_id).execute()
 
     df_thread = pd.DataFrame()
@@ -101,6 +101,9 @@ def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
         if header['name'] == 'Date':
             df_thread['first_reponse_date'] = [header['value']]
             break
+    
+    df_thread['user_id'] = user_id
+    df_thread['imported_timestamp'] = imported_timestamp
 
     return df_thread
 
