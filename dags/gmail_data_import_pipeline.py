@@ -4,6 +4,7 @@ import os
 import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
+import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
     create_table_if_not_exist,
@@ -28,7 +29,9 @@ from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
     write_dataframe_to_jsonl_file,
-    get_link_message_thread_ids
+    get_link_message_thread_ids,
+    get_distinct_values_from_bq,
+    get_one_thread
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -112,7 +115,6 @@ def gmail_label_data_etl(**kwargs):
             table_name=table_name,
             json_schema=generated_schema
         )
-        LOGGER.info('Created table: %s', table_name)
 
         load_file_into_bq(
             filename=filename,
@@ -148,7 +150,63 @@ def gmail_link_message_thread_ids_etl(**kwargs):
             table_name=table_name,
             json_schema=generated_schema
         )
-        LOGGER.info('Created table: %s', table_name)
+
+        load_file_into_bq(
+            filename=filename,
+            dataset_name=data_config.dataset,
+            table_name=table_name,
+            project_name=data_config.project_name,
+            auto_detect_schema=True
+        )
+        LOGGER.info('Loaded table: %s', table_name)
+
+
+def gmail_thread_details_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+    table_name = data_config.table_name_thread_details
+
+    df_thread_id_list = get_distinct_values_from_bq(
+        project_name=data_config.project_name,
+        # will be changed !!! for test 
+        dataset='hc_dev',  # data_config.dataset,
+        column_name=data_config.column_name_list_of_thread_ids,
+        table_name='test_gmail_ids'  # data_config.table_name_list_of_thread_ids
+        )
+
+    df_thread_details = pd.DataFrame()
+    df_thread_details_temp = pd.DataFrame()
+
+    for _, row in df_thread_id_list.iterrows():
+        df_thread_details_temp = get_one_thread(
+                                    get_gmail_service(),
+                                    user_id,
+                                    row[data_config.column_name_list_of_thread_ids]
+                                )
+        df_thread_details = pd.concat(
+                                [df_thread_details, df_thread_details_temp],
+                                ignore_index=True
+                            )
+
+    with TemporaryDirectory() as tmp_dir:
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_link_ids)
+
+        write_dataframe_to_jsonl_file(
+            df_data_to_write=df_thread_details,
+            target_file_path=filename
+        )
+
+        LOGGER.info('Created file: %s', filename)
+
+        generated_schema = generate_schema_from_file(filename)
+        LOGGER.info('generated_schema: %s', generated_schema)
+
+        create_table_if_not_exist(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset,
+            table_name=table_name,
+            json_schema=generated_schema
+        )
 
         load_file_into_bq(
             filename=filename,
@@ -187,8 +245,14 @@ gmail_link_message_thread_ids_etl_task = create_python_task(
     retries=5
 )
 
-# pylint: disable=pointless-statement
-(
-    get_data_config_task
-    >> [gmail_label_data_etl_task, gmail_link_message_thread_ids_etl_task]
+gmail_thread_details_etl_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "gmail_thread_details_etl",
+    gmail_thread_details_etl,
+    retries=5
 )
+
+# pylint: disable=pointless-statement
+# define dependencies between tasks in the DAG
+get_data_config_task >> [gmail_label_data_etl_task, gmail_link_message_thread_ids_etl_task]
+gmail_link_message_thread_ids_etl_task >> gmail_thread_details_etl_task
