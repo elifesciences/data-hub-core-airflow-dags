@@ -168,7 +168,7 @@ def gmail_thread_details_etl(**kwargs):
 
     df_thread_id_list = get_distinct_values_from_bq(
         project_name=data_config.project_name,
-        # will be changed !!! for test 
+        # will be changed !!!
         dataset='hc_dev',  # data_config.dataset,
         column_name=data_config.column_name_list_of_thread_ids,
         table_name='test_gmail_ids'  # data_config.table_name_list_of_thread_ids

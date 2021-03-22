@@ -101,7 +101,7 @@ def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
         if header['name'] == 'Date':
             df_thread['first_reponse_date'] = [header['value']]
             break
-    
+
     df_thread['user_id'] = user_id
     df_thread['imported_timestamp'] = imported_timestamp
 
