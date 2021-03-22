@@ -9,3 +9,6 @@ gmailLinkIdsData:
 gmailThreadData:
   stageFileName: 'gmail_thread_details.json'
   table: 'gmail_thread_details'
+  listThreadId:
+    table: 'gmail_link_message_thread_ids'
+    column: 'threadId'
