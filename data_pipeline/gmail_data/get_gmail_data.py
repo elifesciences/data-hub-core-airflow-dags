@@ -135,10 +135,4 @@ def get_distinct_values_from_bq(
     query_job = client.query(sql)  # API request
     results = query_job.result()  # Waits for query to finish
 
-    df_value = pd.DataFrame()
-    df_temp = pd.DataFrame()
-    for row in results:
-        df_temp[column_name] = [row.threadId]
-        df_value = pd.concat([df_value, df_temp], ignore_index=True)
-
-    return df_value
+    return pd.concat([ pd.DataFrame([row.threadId]) for row in results])
