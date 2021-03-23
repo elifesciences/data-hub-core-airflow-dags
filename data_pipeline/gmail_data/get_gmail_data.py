@@ -84,10 +84,9 @@ def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
     df_thread['sent_email_count'] = sent_email_count
 
     # to get first responder
-    # pylint: disable=consider-using-enumerate
     first_response_index = 0
-    for i in range(len(messages)):
-        header_list = messages[i]['payload']['headers']
+    for i, message in enumerate(messages):
+        header_list = message['payload']['headers']
         for header in header_list:
             if header['name'] == 'From':
                 if email_sent_pattern in header['value']:
