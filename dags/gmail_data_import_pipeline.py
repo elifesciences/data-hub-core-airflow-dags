@@ -12,6 +12,10 @@ from data_pipeline.utils.data_store.bq_data_service import (
     generate_schema_from_file
 )
 
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_json_object
+)
+
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task
@@ -74,6 +78,7 @@ def data_config_from_xcom(context):
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     data_config = GmailGetDataConfig(
         data_config_dict, deployment_env)
+    LOGGER.info('data_config: %r', data_config)
     return data_config
 
 
@@ -95,6 +100,8 @@ def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_labels
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_labels)
@@ -110,17 +117,17 @@ def gmail_label_data_etl(**kwargs):
         LOGGER.info('generated_schema: %s', generated_schema)
 
         create_table_if_not_exist(
-            project_name=data_config.project_name,
-            dataset_name=data_config.dataset,
+            project_name=project_name,
+            dataset_name=dataset_name,
             table_name=table_name,
             json_schema=generated_schema
         )
 
         load_file_into_bq(
             filename=filename,
-            dataset_name=data_config.dataset,
+            dataset_name=dataset_name,
             table_name=table_name,
-            project_name=data_config.project_name,
+            project_name=project_name,
             auto_detect_schema=True
         )
         LOGGER.info('Loaded table: %s', table_name)
@@ -130,6 +137,8 @@ def gmail_link_message_thread_ids_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_link_ids
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_link_ids)
@@ -145,17 +154,17 @@ def gmail_link_message_thread_ids_etl(**kwargs):
         LOGGER.info('generated_schema: %s', generated_schema)
 
         create_table_if_not_exist(
-            project_name=data_config.project_name,
-            dataset_name=data_config.dataset,
+            project_name=project_name,
+            dataset_name=dataset_name,
             table_name=table_name,
             json_schema=generated_schema
         )
 
         load_file_into_bq(
             filename=filename,
-            dataset_name=data_config.dataset,
+            dataset_name=dataset_name,
             table_name=table_name,
-            project_name=data_config.project_name,
+            project_name=project_name,
             auto_detect_schema=True
         )
         LOGGER.info('Loaded table: %s', table_name)
@@ -165,31 +174,32 @@ def gmail_thread_details_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_thread_details
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+
+    schema_json = download_s3_json_object(
+        data_config.schema_s3_bucket_thread_details,
+        data_config.schema_s3_object_thread_details
+    )
 
     df_thread_id_list = get_distinct_values_from_bq(
         project_name=data_config.project_name,
         # will be changed !!!
-        dataset='hc_dev',  # data_config.dataset,
+        dataset='hc_dev',  # dataset_name ,
         column_name=data_config.column_name_list_of_thread_ids,
         table_name='test_gmail_ids'  # data_config.table_name_list_of_thread_ids
         )
 
-    df_thread_details = pd.DataFrame()
-    df_thread_details_temp = pd.DataFrame()
-
-    for _, row in df_thread_id_list.iterrows():
-        df_thread_details_temp = get_one_thread(
-                                    get_gmail_service(),
-                                    user_id,
-                                    row[data_config.column_name_list_of_thread_ids]
-                                )
-        df_thread_details = pd.concat(
-                                [df_thread_details, df_thread_details_temp],
-                                ignore_index=True
-                            )
+    df_thread_details = pd.concat(
+        [get_one_thread(
+            get_gmail_service(),
+            user_id,
+            id)
+            for id in df_thread_id_list[0]]
+        )
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_link_ids)
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_details)
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=df_thread_details,
@@ -198,23 +208,20 @@ def gmail_thread_details_etl(**kwargs):
 
         LOGGER.info('Created file: %s', filename)
 
-        generated_schema = generate_schema_from_file(filename)
-        LOGGER.info('generated_schema: %s', generated_schema)
-
         create_table_if_not_exist(
             project_name=data_config.project_name,
-            dataset_name=data_config.dataset,
+            dataset_name=dataset_name,
             table_name=table_name,
-            json_schema=generated_schema
+            json_schema=schema_json
         )
 
         load_file_into_bq(
             filename=filename,
-            dataset_name=data_config.dataset,
+            dataset_name=dataset_name,
             table_name=table_name,
-            project_name=data_config.project_name,
-            auto_detect_schema=True
+            project_name=project_name
         )
+
         LOGGER.info('Loaded table: %s', table_name)
 
 
