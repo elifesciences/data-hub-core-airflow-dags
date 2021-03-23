@@ -48,8 +48,11 @@ class GmailGetDataConfig:
             self.data_config.get("gmailThreadData").get("listThreadId").get("column")
         )
         self.schema_s3_bucket_thread_details = (
-            self.data_config.get("gmailThreadData").get("schemaFile").get("bucket")
+            self.data_config.get("gmailThreadData")["schemaFile"]["bucket"]
         )
-        self.schema_s3_object_thread_details = self.data_config.get(
-            self.data_config.get("gmailThreadData").get("schemaFile").get("object")
+        self.schema_s3_object_thread_details = (
+            self.data_config.get("gmailThreadData")["schemaFile"]["object"]
         )
+
+    def __repr__(self):
+        return repr(vars(self))
