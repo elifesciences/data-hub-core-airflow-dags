@@ -65,44 +65,13 @@ def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
     thread_results = service.users().threads().get(userId=user_id, id=thread_id).execute()
 
     df_thread = pd.DataFrame()
-    messages = thread_results['messages']
 
     df_thread['threadId'] = [thread_results['id']]
     df_thread['historyId'] = [thread_results['historyId']]
-    df_thread['total_email_count'] = [len(messages)]
-
-    # to find count of emails from a specific address in a thread (sent_email_count)
-    sent_email_count = 0
-    email_sent_pattern = 'elifesciences.org'
-    for message in messages:
-        header_list = message['payload']['headers']
-        for header in header_list:
-            if header['name'] == 'From':
-                if email_sent_pattern in header['value']:
-                    sent_email_count += 1
-
-    df_thread['sent_email_count'] = sent_email_count
-
-    # to get first responder
-    first_response_index = 0
-    for i, message in enumerate(messages):
-        header_list = message['payload']['headers']
-        for header in header_list:
-            if header['name'] == 'From':
-                if email_sent_pattern in header['value']:
-                    df_thread['first_responder'] = [header['value']]
-                    first_response_index = i
-                    break
-
-    # to get first response date
-    header_list = messages[first_response_index]['payload']['headers']
-    for header in header_list:
-        if header['name'] == 'Date':
-            df_thread['first_reponse_date'] = [header['value']]
-            break
-
+    df_thread['total_email_count'] = [len(thread_results['messages'])]
     df_thread['user_id'] = user_id
     df_thread['imported_timestamp'] = imported_timestamp
+    df_thread['messages'] = [thread_results['messages']]
 
     return df_thread
 
