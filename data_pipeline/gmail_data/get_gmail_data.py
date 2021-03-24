@@ -68,7 +68,6 @@ def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
 
     df_thread['threadId'] = [thread_results['id']]
     df_thread['historyId'] = [thread_results['historyId']]
-    df_thread['total_email_count'] = [len(thread_results['messages'])]
     df_thread['user_id'] = user_id
     df_thread['imported_timestamp'] = imported_timestamp
     df_thread['messages'] = [thread_results['messages']]
