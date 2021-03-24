@@ -7,13 +7,9 @@ from tempfile import TemporaryDirectory
 import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
-    create_table_if_not_exist,
     load_file_into_bq,
-    generate_schema_from_file
-)
-
-from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_json_object
+    generate_schema_from_file,
+    create_or_extend_table_schema
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -116,11 +112,12 @@ def gmail_label_data_etl(**kwargs):
         generated_schema = generate_schema_from_file(filename)
         LOGGER.info('generated_schema: %s', generated_schema)
 
-        create_table_if_not_exist(
-            project_name=project_name,
+        create_or_extend_table_schema(
+            gcp_project=project_name,
             dataset_name=dataset_name,
             table_name=table_name,
-            json_schema=generated_schema
+            full_file_location=filename,
+            quoted_values_are_strings=True
         )
 
         load_file_into_bq(
@@ -150,14 +147,12 @@ def gmail_link_message_thread_ids_etl(**kwargs):
 
         LOGGER.info('Created file: %s', filename)
 
-        generated_schema = generate_schema_from_file(filename)
-        LOGGER.info('generated_schema: %s', generated_schema)
-
-        create_table_if_not_exist(
-            project_name=project_name,
+        create_or_extend_table_schema(
+            gcp_project=project_name,
             dataset_name=dataset_name,
             table_name=table_name,
-            json_schema=generated_schema
+            full_file_location=filename,
+            quoted_values_are_strings=True
         )
 
         load_file_into_bq(
@@ -176,11 +171,6 @@ def gmail_thread_details_etl(**kwargs):
     table_name = data_config.table_name_thread_details
     dataset_name = data_config.dataset
     project_name = data_config.project_name
-
-    schema_json = download_s3_json_object(
-        data_config.schema_s3_bucket_thread_details,
-        data_config.schema_s3_object_thread_details
-    )
 
     df_thread_id_list = get_distinct_values_from_bq(
         project_name=data_config.project_name,
@@ -207,11 +197,12 @@ def gmail_thread_details_etl(**kwargs):
 
         LOGGER.info('Created file: %s', filename)
 
-        create_table_if_not_exist(
-            project_name=data_config.project_name,
+        create_or_extend_table_schema(
+            gcp_project=project_name,
             dataset_name=dataset_name,
             table_name=table_name,
-            json_schema=schema_json
+            full_file_location=filename,
+            quoted_values_are_strings=True
         )
 
         load_file_into_bq(
