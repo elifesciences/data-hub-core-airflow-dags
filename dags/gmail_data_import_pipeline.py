@@ -31,7 +31,8 @@ from data_pipeline.gmail_data.get_gmail_data import (
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
     get_distinct_values_from_bq,
-    get_one_thread
+    get_one_thread,
+    dataframe_chunk
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
@@ -43,6 +44,8 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
+
+CHUNK_SIZE = 5000
 
 LOGGER = logging.getLogger(__name__)
 
@@ -174,42 +177,39 @@ def gmail_thread_details_etl(**kwargs):
 
     df_thread_id_list = get_distinct_values_from_bq(
                             project_name=data_config.project_name,
-                            dataset=dataset_name,
+                            dataset= dataset_name,
                             column_name=data_config.column_name_list_of_thread_ids,
                             table_name=data_config.table_name_list_of_thread_ids
                         )
 
-    df_thread_details = pd.concat([
-                                    get_one_thread(get_gmail_service(), user_id, id)
-                                    for id in df_thread_id_list[0]
-                        ])
-
-    with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_details)
-
-        write_dataframe_to_jsonl_file(
-            df_data_to_write=df_thread_details,
-            target_file_path=filename
-        )
-
-        LOGGER.info('Created file: %s', filename)
-
-        create_or_extend_table_schema(
-            gcp_project=project_name,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            full_file_location=filename,
-            quoted_values_are_strings=True
-        )
-
-        load_file_into_bq(
-            filename=filename,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            project_name=project_name
-        )
-
-        LOGGER.info('Loaded table: %s', table_name)
+    # because of big amount of data created chunks of dataframe to load data
+    for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
+        LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
+        df_thread_details = pd.concat([
+                                        get_one_thread(get_gmail_service(), user_id, id)
+                                        for id in df_ids_part[0]
+                            ], ignore_index=True)
+        with TemporaryDirectory() as tmp_dir:
+            filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_details)
+            write_dataframe_to_jsonl_file(
+                df_data_to_write=df_thread_details,
+                target_file_path=filename
+            )
+            LOGGER.info('Created file: %s', filename)
+            create_or_extend_table_schema(
+                gcp_project=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                full_file_location=filename,
+                quoted_values_are_strings=True
+            )
+            load_file_into_bq(
+                filename=filename,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                project_name=project_name
+            )
+            LOGGER.info('Loaded table: %s', table_name)
 
 
 GMAIL_DATA_DAG = create_dag(
