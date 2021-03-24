@@ -173,19 +173,16 @@ def gmail_thread_details_etl(**kwargs):
     project_name = data_config.project_name
 
     df_thread_id_list = get_distinct_values_from_bq(
-        project_name=data_config.project_name,
-        dataset=dataset_name,
-        column_name=data_config.column_name_list_of_thread_ids,
-        table_name=data_config.table_name_list_of_thread_ids
-        )
+                            project_name=data_config.project_name,
+                            dataset=dataset_name,
+                            column_name=data_config.column_name_list_of_thread_ids,
+                            table_name=data_config.table_name_list_of_thread_ids
+                        )
 
-    df_thread_details = pd.concat(
-        [get_one_thread(
-            get_gmail_service(),
-            user_id,
-            id)
-            for id in df_thread_id_list[0]]
-        )
+    df_thread_details = pd.concat([
+                                    get_one_thread(get_gmail_service(), user_id, id)
+                                    for id in df_thread_id_list[0]
+                        ])
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_details)
