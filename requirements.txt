@@ -7,7 +7,7 @@ cattrs==1.0.0
 cloudpickle==1.4.1
 dateparser==1.0.0
 dask[complete]==2021.2.0
-distributed==2021.2.0
+distributed==2021.3.0
 fsspec==0.8.7
 google-api-python-client==2.0.2
 google-cloud-bigquery==2.13.1
