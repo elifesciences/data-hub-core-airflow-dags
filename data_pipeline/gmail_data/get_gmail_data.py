@@ -41,6 +41,7 @@ def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
     return df_label
 
 
+@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def iter_link_message_thread_ids(service: Resource, user_id: str) -> Iterable[dict]:
     response = service.users().messages().list(userId=user_id).execute()
     if 'messages' in response:
@@ -103,4 +104,9 @@ def get_distinct_values_from_bq(
     query_job = client.query(sql)  # API request
     results = query_job.result()  # Waits for query to finish
 
-    return pd.concat([pd.DataFrame([row.threadId]) for row in results])
+    return pd.concat([pd.DataFrame([row.threadId]) for row in results], ignore_index=True)
+
+
+def dataframe_chunk(seq, size):
+    for pos in range(0, len(seq), size):
+        yield seq.iloc[pos:pos + size]
