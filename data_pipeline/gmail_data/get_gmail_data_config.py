@@ -34,6 +34,14 @@ class GmailGetDataConfig:
             self.data_config.get("gmailLinkIdsData").get("table")
         )
 
+        # history details
+        self.stage_file_name_history_details = (
+            self.data_config.get("gmailHistoryData").get("stageFileName")
+        )
+        self.table_name_history_details = (
+            self.data_config.get("gmailHistoryData").get("table")
+        )
+
         # thread details
         self.stage_file_name_thread_details = (
             self.data_config.get("gmailThreadData").get("stageFileName")
