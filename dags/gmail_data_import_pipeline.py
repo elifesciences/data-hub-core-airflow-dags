@@ -45,7 +45,7 @@ DEFAULT_DEPLOYMENT_ENV = "ci"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
-CHUNK_SIZE = 5000
+CHUNK_SIZE = 3000
 
 LOGGER = logging.getLogger(__name__)
 
