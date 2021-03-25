@@ -179,7 +179,8 @@ def gmail_thread_details_etl(**kwargs):
                             project_name=data_config.project_name,
                             dataset=dataset_name,
                             column_name=data_config.column_name_list_of_thread_ids,
-                            table_name=data_config.table_name_list_of_thread_ids
+                            table_name_to_execute=data_config.table_name_list_of_thread_ids,
+                            table_name_executed=data_config.table_name_thread_details
                         )
 
     # because of big amount of data created chunks of dataframe to load data

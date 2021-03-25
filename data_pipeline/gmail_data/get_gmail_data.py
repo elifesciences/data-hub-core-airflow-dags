@@ -85,19 +85,36 @@ def write_dataframe_to_jsonl_file(
         df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
 
 
+# pylint: disable=duplicate-string-formatting-argument
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_distinct_values_from_bq(
             project_name: str,
             dataset: str,
             column_name: str,
-            table_name: str
+            table_name_to_execute: str,
+            table_name_executed: str
         ) -> pd.DataFrame:
 
     sql = (
         """
         SELECT DISTINCT {}
         FROM  `{}.{}.{}`
-        """.format(column_name, project_name, dataset, table_name)
+        WHERE {} NOT IN
+            (
+                SELECT {}
+                FROM `{}.{}.{}`
+            )
+        """.format(
+                column_name,
+                project_name,
+                dataset,
+                table_name_to_execute,
+                column_name,
+                column_name,
+                project_name,
+                dataset,
+                table_name_executed
+            )
     )
 
     client = bigquery.Client(project_name)
