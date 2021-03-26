@@ -111,13 +111,15 @@ def write_dataframe_to_jsonl_file(
         df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
 
 
+# pylint: disable=too-many-arguments
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_distinct_values_from_bq(
             project_name: str,
             dataset: str,
             column_name: str,
             table_name: str,
-            table_name_for_exclusion: str
+            table_name_for_exclusion: str,
+            table_name_for_update: str
         ) -> pd.DataFrame:
 
     sql = (
@@ -129,12 +131,17 @@ def get_distinct_values_from_bq(
                 SELECT {column_name}
                 FROM `{project_name}.{dataset}.{table_name_for_exclusion}`
             )
+        UNION DISTINCT
+        SELECT DISTINCT msg.{column_name}
+        FROM `{project_name}.{dataset}.{table_name_for_update}`,
+        UNNEST(messages) msg
         """.format(
                 column_name=column_name,
                 project_name=project_name,
                 dataset=dataset,
                 table_name=table_name,
-                table_name_for_exclusion=table_name_for_exclusion
+                table_name_for_exclusion=table_name_for_exclusion,
+                table_name_for_update=table_name_for_update
             )
     )
 

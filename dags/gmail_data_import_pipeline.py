@@ -223,7 +223,8 @@ def gmail_thread_details_etl(**kwargs):
                             dataset=dataset_name,
                             column_name=data_config.column_name_list_of_thread_ids,
                             table_name=data_config.table_name_list_of_thread_ids,
-                            table_name_for_exclusion=data_config.table_name_thread_details
+                            table_name_for_exclusion=data_config.table_name_thread_details,
+                            table_name_for_update=data_config.table_name_history_details
                         )
 
     # because of big amount of data created chunks of dataframe to load data
