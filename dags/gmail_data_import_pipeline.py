@@ -30,6 +30,8 @@ from data_pipeline.gmail_data.get_gmail_data import (
     get_label_list,
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
+    get_gmail_history_details,
+    get_max_history_id_from_bq,
     get_distinct_values_from_bq,
     get_one_thread,
     dataframe_chunk
@@ -168,6 +170,47 @@ def gmail_link_message_thread_ids_etl(**kwargs):
         LOGGER.info('Loaded table: %s', table_name)
 
 
+def gmail_history_details_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+    table_name = data_config.table_name_history_details
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+
+    start_id = get_max_history_id_from_bq(
+                            project_name=data_config.project_name,
+                            dataset=dataset_name,
+                            column_name='historyId',
+                            table_name=data_config.table_name_thread_details
+                        )
+
+    with TemporaryDirectory() as tmp_dir:
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_history_details)
+
+        write_dataframe_to_jsonl_file(
+            df_data_to_write=get_gmail_history_details(get_gmail_service(),  user_id, start_id),
+            target_file_path=filename
+        )
+
+        LOGGER.info('Created file: %s', filename)
+
+        create_or_extend_table_schema(
+            gcp_project=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            full_file_location=filename,
+            quoted_values_are_strings=True
+        )
+
+        load_file_into_bq(
+            filename=filename,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            project_name=project_name
+        )
+        LOGGER.info('Loaded table: %s', table_name)
+
+
 def gmail_thread_details_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
@@ -240,6 +283,13 @@ gmail_link_message_thread_ids_etl_task = create_python_task(
     retries=5
 )
 
+gmail_history_details_etl_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "gmail_history_details_etl",
+    gmail_history_details_etl,
+    retries=5
+)
+
 gmail_thread_details_etl_task = create_python_task(
     GMAIL_DATA_DAG,
     "gmail_thread_details_etl",
@@ -249,5 +299,12 @@ gmail_thread_details_etl_task = create_python_task(
 
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
-get_data_config_task >> [gmail_label_data_etl_task, gmail_link_message_thread_ids_etl_task]
-gmail_link_message_thread_ids_etl_task >> gmail_thread_details_etl_task
+get_data_config_task >> [
+                            gmail_label_data_etl_task,
+                            gmail_link_message_thread_ids_etl_task,
+                            gmail_history_details_etl_task
+                        ]
+[
+    gmail_link_message_thread_ids_etl_task,
+    gmail_history_details_etl_task
+] >> gmail_thread_details_etl_task
