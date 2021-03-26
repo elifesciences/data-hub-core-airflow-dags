@@ -178,11 +178,11 @@ def gmail_history_details_etl(**kwargs):
     project_name = data_config.project_name
 
     start_id = get_max_history_id_from_bq(
-                            project_name=data_config.project_name,
-                            dataset=dataset_name,
-                            column_name='historyId',
-                            table_name=data_config.table_name_thread_details
-                        )
+                    project_name=data_config.project_name,
+                    dataset=dataset_name,
+                    column_name='historyId',
+                    table_name=data_config.table_name_thread_details
+                )
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.stage_file_name_history_details)
@@ -300,10 +300,11 @@ gmail_thread_details_etl_task = create_python_task(
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
 get_data_config_task >> [
-                            gmail_label_data_etl_task,
-                            gmail_link_message_thread_ids_etl_task,
-                            gmail_history_details_etl_task
-                        ]
+        gmail_label_data_etl_task,
+        gmail_link_message_thread_ids_etl_task,
+        gmail_history_details_etl_task
+    ]
+
 [
     gmail_link_message_thread_ids_etl_task,
     gmail_history_details_etl_task
