@@ -12,3 +12,6 @@ gmailThreadData:
   listThreadId:
     table: 'gmail_link_message_thread_ids'
     column: 'threadId'
+gmailHistoryData:
+  stageFileName: 'gmail_history_details.json'
+  table: 'gmail_history_details'
