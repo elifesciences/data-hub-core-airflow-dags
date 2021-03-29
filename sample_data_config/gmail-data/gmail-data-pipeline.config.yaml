@@ -4,10 +4,12 @@ gmailLabelData:
   stageFileName: 'gmail_label_list.json'
   table: 'gmail_label_list'
   stageTable: 'gmail_label_list_staging'
+  uniqueIdColumn: 'labelId'
 gmailLinkIdsData:
   stageFileName: 'gmail_link_message_thread_ids.json'
   table: 'gmail_link_message_thread_ids'
   stageTable: 'gmail_link_message_thread_ids_staging'
+  uniqueIdColumn: 'id'
 gmailThreadData:
   stageFileName: 'gmail_thread_details.json'
   table: 'gmail_thread_details'
