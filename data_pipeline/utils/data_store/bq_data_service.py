@@ -291,3 +291,16 @@ def create_or_extend_table_schema(
             table_name,
             schema
         )
+
+
+def delete_table_from_bq(
+        project_name: str,
+        dataset_name: str,
+        table_name: str
+):
+    client = get_bq_client(project=project_name)
+    table_id = compose_full_table_name(
+        project_name, dataset_name, table_name
+    )
+    client.delete_table(table_id, not_found_ok=True)
+    LOGGER.info("Deleted table %s", table_id)

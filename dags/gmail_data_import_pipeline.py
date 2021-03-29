@@ -9,7 +9,8 @@ import pandas as pd
 from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     generate_schema_from_file,
-    create_or_extend_table_schema
+    create_or_extend_table_schema,
+    delete_table_from_bq
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -100,7 +101,7 @@ def get_gmail_service():
 def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_labels
+    table_name = data_config.table_name_labels_staging
     dataset_name = data_config.dataset
     project_name = data_config.project_name
 
@@ -138,7 +139,7 @@ def gmail_label_data_etl(**kwargs):
 def gmail_link_message_thread_ids_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_link_ids
+    table_name = data_config.table_name_link_ids_staging
     dataset_name = data_config.dataset
     project_name = data_config.project_name
 
@@ -257,6 +258,19 @@ def gmail_thread_details_etl(**kwargs):
             LOGGER.info('Loaded table: %s', table_name)
 
 
+def delete_history_details_table(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+    table_name = data_config.table_name_history_details
+
+    delete_table_from_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name
+            )
+
+
 GMAIL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
@@ -298,6 +312,13 @@ gmail_thread_details_etl_task = create_python_task(
     retries=5
 )
 
+delete_history_details_table_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "delete_history_details_table",
+    delete_history_details_table,
+    retries=5
+)
+
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
 get_data_config_task >> [
@@ -309,4 +330,4 @@ get_data_config_task >> [
 [
     gmail_link_message_thread_ids_etl_task,
     gmail_history_details_etl_task
-] >> gmail_thread_details_etl_task
+] >> gmail_thread_details_etl_task >> delete_history_details_table_task
