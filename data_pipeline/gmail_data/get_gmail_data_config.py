@@ -25,6 +25,9 @@ class GmailGetDataConfig:
         self.table_name_labels = (
             self.data_config.get("gmailLabelData").get("table")
         )
+        self.table_name_labels_staging = (
+            self.data_config.get("gmailLabelData").get("stageTable")
+        )
 
         # message-thread ids list
         self.stage_file_name_link_ids = (
@@ -32,6 +35,9 @@ class GmailGetDataConfig:
         )
         self.table_name_link_ids = (
             self.data_config.get("gmailLinkIdsData").get("table")
+        )
+        self.table_name_link_ids_staging = (
+            self.data_config.get("gmailLinkIdsData").get("stageTable")
         )
 
         # history details
