@@ -10,7 +10,8 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     generate_schema_from_file,
     create_or_extend_table_schema,
-    delete_table_from_bq
+    delete_table_from_bq,
+    load_table_difference_from_staging
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -271,6 +272,38 @@ def delete_history_details_table(**kwargs):
             )
 
 
+def load_label_difference_from_staging(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+    table_name = data_config.table_name_labels
+    staging_table_name = data_config.table_name_labels_staging
+
+    load_table_difference_from_staging(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                staging_table_name=staging_table_name,
+                column_name=data_config.unique_id_column_labels
+            )
+
+
+def load_link_ids_difference_from_staging(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+    table_name = data_config.table_name_link_ids
+    staging_table_name = data_config.table_name_link_ids_staging
+
+    load_table_difference_from_staging(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                staging_table_name=staging_table_name,
+                column_name=data_config.unique_id_column_link_ids
+            )
+
+
 GMAIL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
@@ -319,6 +352,20 @@ delete_history_details_table_task = create_python_task(
     retries=5
 )
 
+load_label_difference_from_staging_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "load_label_difference_from_staging",
+    load_label_difference_from_staging,
+    retries=5
+)
+
+load_link_ids_difference_from_staging = create_python_task(
+    GMAIL_DATA_DAG,
+    "load_link_ids_difference_from_staging",
+    load_link_ids_difference_from_staging,
+    retries=5
+)
+
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
 get_data_config_task >> [
@@ -330,4 +377,8 @@ get_data_config_task >> [
 [
     gmail_link_message_thread_ids_etl_task,
     gmail_history_details_etl_task
-] >> gmail_thread_details_etl_task >> delete_history_details_table_task
+] >> gmail_thread_details_etl_task >> [
+    delete_history_details_table_task,
+    load_label_difference_from_staging_task,
+    load_link_ids_difference_from_staging
+]

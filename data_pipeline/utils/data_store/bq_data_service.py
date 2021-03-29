@@ -304,3 +304,48 @@ def delete_table_from_bq(
     )
     client.delete_table(table_id, not_found_ok=True)
     LOGGER.info("Deleted table %s", table_id)
+
+
+def load_table_difference_from_staging(
+        project_name: str,
+        dataset_name: str,
+        table_name: str,
+        staging_table_name: str,
+        column_name: str
+):
+    client = get_bq_client(project=project_name)
+    table_id = compose_full_table_name(
+        project_name, dataset_name, table_name
+    )
+
+    sql = (
+        """
+        SELECT t.* EXCEPT(seqnum)
+        FROM (SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY {column_name}
+                                ORDER BY imported_timestamp DESC
+                               ) AS seqnum
+            FROM `{project_name}.{dataset_name}.{staging_table_name}`
+            ) t
+        WHERE seqnum = 1
+        AND labelId NOT IN (SELECT DISTINCT {column_name}
+                      FROM `{project_name}.{dataset_name}.{table_name}`)
+        """.format(
+                column_name=column_name,
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                staging_table_name=staging_table_name
+            )
+    )
+
+    job_config = bigquery.QueryJobConfig(
+        allow_large_results=True,
+        destination=table_id,
+        write_disposition='WRITE_APPEND'
+    )
+
+    query_job = client.query(sql, job_config=job_config)  # Make an API request.
+    query_job.result()  # Wait for the job to complete.
+
+    LOGGER.info("Loaded table %s", table_id)
