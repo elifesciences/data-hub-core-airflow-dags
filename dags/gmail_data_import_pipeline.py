@@ -11,7 +11,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     generate_schema_from_file,
     create_or_extend_table_schema,
     delete_table_from_bq,
-    load_table_difference_from_staging
+    load_new_data_in_temp_table_to_actual_table
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -99,15 +99,15 @@ def get_gmail_service():
     )
 
 
-def gmail_label_data_etl(**kwargs):
+def gmail_label_data_to_temp_table_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_labels_staging
-    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_labels
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_labels)
+        filename = os.path.join(tmp_dir, data_config.temp_file_name_labels)
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_label_list(get_gmail_service(),  user_id),
@@ -137,15 +137,15 @@ def gmail_label_data_etl(**kwargs):
         LOGGER.info('Loaded table: %s', table_name)
 
 
-def gmail_thread_ids_list_etl(**kwargs):
+def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_thread_ids_staging
-    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_thread_ids
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_ids)
+        filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_ids)
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_link_message_thread_ids(get_gmail_service(),  user_id),
@@ -172,12 +172,12 @@ def gmail_thread_ids_list_etl(**kwargs):
         LOGGER.info('Loaded table: %s', table_name)
 
 
-def gmail_history_details_etl(**kwargs):
+def gmail_history_details_to_temp_table_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_history_details
-    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_history_details
 
     start_id = get_max_history_id_from_bq(
                     project_name=data_config.project_name,
@@ -187,7 +187,7 @@ def gmail_history_details_etl(**kwargs):
                 )
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_history_details)
+        filename = os.path.join(tmp_dir, data_config.temp_table_name_history_details)
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_gmail_history_details(get_gmail_service(),  user_id, start_id),
@@ -216,17 +216,17 @@ def gmail_history_details_etl(**kwargs):
 def gmail_thread_details_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_thread_details
-    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.table_name_thread_details
 
     df_thread_id_list = get_distinct_values_from_bq(
                             project_name=data_config.project_name,
                             dataset_name=dataset_name,
-                            column_name=data_config.column_name_list_of_thread_ids,
-                            table_name=data_config.table_name_list_of_thread_ids,
-                            table_name_for_exclusion=data_config.table_name_thread_details,
-                            table_name_for_update=data_config.table_name_history_details
+                            column_name=data_config.column_name_input,
+                            table_name_source=data_config.temp_table_name_thread_ids,
+                            table_name_for_exclusion=table_name,
+                            table_name_for_update=data_config.temp_table_name_history_details
                         )
 
     # because of big amount of data created chunks of dataframe to load data
@@ -237,7 +237,7 @@ def gmail_thread_details_etl(**kwargs):
                                         for id in df_ids_part[0]
                             ], ignore_index=True)
         with TemporaryDirectory() as tmp_dir:
-            filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_details)
+            filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
             write_dataframe_to_jsonl_file(
                 df_data_to_write=df_thread_details,
                 target_file_path=filename
@@ -259,62 +259,74 @@ def gmail_thread_details_etl(**kwargs):
             LOGGER.info('Loaded table: %s', table_name)
 
 
-def load_label_difference_from_staging(**kwargs):
+def load_new_data_from_temp_table_labels(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_labels
-    staging_table_name = data_config.table_name_labels_staging
+    temp_table_name = data_config.temp_table_name_labels
 
-    load_table_difference_from_staging(
+    load_new_data_in_temp_table_to_actual_table(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
-                staging_table_name=staging_table_name,
+                temp_table_name=temp_table_name,
                 column_name=data_config.unique_id_column_labels
             )
 
 
-def load_thread_ids_difference_from_staging(**kwargs):
+def load_new_data_from_temp_table_thread_ids(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_thread_ids
-    staging_table_name = data_config.table_name_thread_ids_staging
+    temp_table_name = data_config.temp_table_name_thread_ids
 
-    load_table_difference_from_staging(
+    load_new_data_in_temp_table_to_actual_table(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
-                staging_table_name=staging_table_name,
+                temp_table_name=temp_table_name,
                 column_name=data_config.unique_id_column_thread_ids
             )
 
 
-def delete_staging_tables(**kwargs):
+def delete_temp_table_labels(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
-    table_name_hist = data_config.table_name_history_details
-    table_name_label = data_config.table_name_labels_staging
-    table_name_ids = data_config.table_name_thread_ids_staging
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_labels
 
     delete_table_from_bq(
                 project_name=project_name,
                 dataset_name=dataset_name,
-                table_name=table_name_hist
+                table_name=table_name
             )
 
-    delete_table_from_bq(
-                project_name=project_name,
-                dataset_name=dataset_name,
-                table_name=table_name_label
-            )
+
+def delete_temp_table_thread_ids(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_thread_ids
 
     delete_table_from_bq(
                 project_name=project_name,
                 dataset_name=dataset_name,
-                table_name=table_name_ids
+                table_name=table_name
+            )
+
+
+def delete_temp_table_history_details(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_history_details
+
+    delete_table_from_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name
             )
 
 
@@ -331,24 +343,24 @@ get_data_config_task = create_python_task(
     retries=5
 )
 
-gmail_label_data_etl_task = create_python_task(
+gmail_label_data_to_temp_table_etl_task = create_python_task(
     GMAIL_DATA_DAG,
-    "gmail_label_data_etl",
-    gmail_label_data_etl,
+    "gmail_label_data_to_temp_table_etl",
+    gmail_label_data_to_temp_table_etl,
     retries=5
 )
 
-gmail_thread_ids_list_etl_task = create_python_task(
+gmail_thread_ids_list_to_temp_table_etl_task = create_python_task(
     GMAIL_DATA_DAG,
-    "gmail_thread_ids_list_etl",
-    gmail_thread_ids_list_etl,
+    "gmail_thread_ids_list_to_temp_table_etl",
+    gmail_thread_ids_list_to_temp_table_etl,
     retries=5
 )
 
-gmail_history_details_etl_task = create_python_task(
+gmail_history_details_to_temp_table_etl_task = create_python_task(
     GMAIL_DATA_DAG,
-    "gmail_history_details_etl",
-    gmail_history_details_etl,
+    "gmail_history_details_to_temp_table_etl",
+    gmail_history_details_to_temp_table_etl,
     retries=5
 )
 
@@ -359,39 +371,72 @@ gmail_thread_details_etl_task = create_python_task(
     retries=5
 )
 
-delete_staging_tables_task = create_python_task(
+delete_temp_table_labels_task = create_python_task(
     GMAIL_DATA_DAG,
-    "delete_staging_tables",
-    delete_staging_tables,
+    "delete_temp_table_labels",
+    delete_temp_table_labels,
     retries=5
 )
 
-load_label_difference_from_staging_task = create_python_task(
+delete_temp_table_thread_ids_task = create_python_task(
     GMAIL_DATA_DAG,
-    "load_label_difference_from_staging",
-    load_label_difference_from_staging,
+    "delete_temp_table_thread_ids",
+    delete_temp_table_thread_ids,
     retries=5
 )
 
-load_thread_ids_difference_from_staging_task = create_python_task(
+delete_temp_table_history_details_task = create_python_task(
     GMAIL_DATA_DAG,
-    "load_thread_ids_difference_from_staging",
-    load_thread_ids_difference_from_staging,
+    "delete_temp_table_history_details",
+    delete_temp_table_history_details,
+    retries=5
+)
+
+load_new_data_from_temp_table_labels_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "load_new_data_from_temp_table_labels",
+    load_new_data_from_temp_table_labels,
+    retries=5
+)
+
+load_new_data_from_temp_table_thread_ids_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "load_new_data_from_temp_table_thread_ids",
+    load_new_data_from_temp_table_thread_ids,
     retries=5
 )
 
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
-get_data_config_task >> [
-        gmail_label_data_etl_task,
-        gmail_thread_ids_list_etl_task,
-        gmail_history_details_etl_task
-    ]
 
-[
-    gmail_thread_ids_list_etl_task,
-    gmail_history_details_etl_task
-] >> gmail_thread_details_etl_task >> [
-    load_label_difference_from_staging_task,
-    load_thread_ids_difference_from_staging_task
-] >> delete_staging_tables_task
+(
+    get_data_config_task >> [
+        gmail_label_data_to_temp_table_etl_task,
+        gmail_thread_ids_list_to_temp_table_etl_task,
+        gmail_history_details_to_temp_table_etl_task
+    ]
+)
+
+(
+    gmail_label_data_to_temp_table_etl_task
+    >> load_new_data_from_temp_table_labels_task
+    >> delete_temp_table_labels_task
+)
+
+(
+    [
+        gmail_thread_ids_list_to_temp_table_etl_task,
+        gmail_history_details_to_temp_table_etl_task
+    ] >> gmail_thread_details_etl_task
+)
+
+(
+    gmail_thread_details_etl_task
+    >> delete_temp_table_history_details_task
+)
+
+(
+    gmail_thread_details_etl_task
+    >> load_new_data_from_temp_table_thread_ids_task
+    >> delete_temp_table_thread_ids_task
+)
