@@ -131,8 +131,7 @@ def gmail_label_data_to_temp_table_etl(**kwargs):
             filename=filename,
             dataset_name=dataset_name,
             table_name=table_name,
-            project_name=project_name,
-            auto_detect_schema=True
+            project_name=project_name
         )
         LOGGER.info('Loaded table: %s', table_name)
 
@@ -166,8 +165,7 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
             filename=filename,
             dataset_name=dataset_name,
             table_name=table_name,
-            project_name=project_name,
-            auto_detect_schema=True
+            project_name=project_name
         )
         LOGGER.info('Loaded table: %s', table_name)
 
