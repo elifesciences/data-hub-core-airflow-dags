@@ -328,7 +328,7 @@ def load_table_difference_from_staging(
             FROM `{project_name}.{dataset_name}.{staging_table_name}`
             ) t
         WHERE seqnum = 1
-        AND labelId NOT IN (SELECT DISTINCT {column_name}
+        AND {column_name} NOT IN (SELECT DISTINCT {column_name}
                       FROM `{project_name}.{dataset_name}.{table_name}`)
         """.format(
                 column_name=column_name,
