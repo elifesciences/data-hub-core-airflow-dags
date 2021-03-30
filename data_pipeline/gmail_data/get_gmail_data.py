@@ -117,7 +117,7 @@ def get_distinct_values_from_bq(
             project_name: str,
             dataset_name: str,
             column_name: str,
-            table_name: str,
+            table_name_source: str,
             table_name_for_exclusion: str,
             table_name_for_update: str
         ) -> pd.DataFrame:
@@ -125,7 +125,7 @@ def get_distinct_values_from_bq(
     sql = (
         """
         SELECT DISTINCT {column_name} AS column
-        FROM  `{project_name}.{dataset_name}.{table_name}`
+        FROM  `{project_name}.{dataset_name}.{table_name_source}`
         WHERE {column_name} NOT IN
             (
                 SELECT {column_name}
@@ -139,7 +139,7 @@ def get_distinct_values_from_bq(
                 column_name=column_name,
                 project_name=project_name,
                 dataset_name=dataset_name,
-                table_name=table_name,
+                table_name_source=table_name_source,
                 table_name_for_exclusion=table_name_for_exclusion,
                 table_name_for_update=table_name_for_update
             )
