@@ -306,11 +306,11 @@ def delete_table_from_bq(
     LOGGER.info("Deleted table %s", table_id)
 
 
-def load_table_difference_from_staging(
+def load_new_data_in_temp_table_to_actual_table(
         project_name: str,
         dataset_name: str,
         table_name: str,
-        staging_table_name: str,
+        temp_table_name: str,
         column_name: str
 ):
     client = get_bq_client(project=project_name)
@@ -325,7 +325,7 @@ def load_table_difference_from_staging(
                 ROW_NUMBER() OVER (PARTITION BY {column_name}
                                 ORDER BY imported_timestamp DESC
                                ) AS seqnum
-            FROM `{project_name}.{dataset_name}.{staging_table_name}`
+            FROM `{project_name}.{dataset_name}.{temp_table_name}`
             ) t
         WHERE seqnum = 1
         AND {column_name} NOT IN (SELECT DISTINCT {column_name}
@@ -335,7 +335,7 @@ def load_table_difference_from_staging(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
-                staging_table_name=staging_table_name
+                temp_table_name=temp_table_name
             )
     )
 
