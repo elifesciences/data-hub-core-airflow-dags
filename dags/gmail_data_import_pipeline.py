@@ -259,19 +259,6 @@ def gmail_thread_details_etl(**kwargs):
             LOGGER.info('Loaded table: %s', table_name)
 
 
-def delete_history_details_table(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    dataset_name = data_config.dataset
-    project_name = data_config.project_name
-    table_name = data_config.table_name_history_details
-
-    delete_table_from_bq(
-                project_name=project_name,
-                dataset_name=dataset_name,
-                table_name=table_name
-            )
-
-
 def load_label_difference_from_staging(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     dataset_name = data_config.dataset
@@ -301,6 +288,33 @@ def load_link_ids_difference_from_staging(**kwargs):
                 table_name=table_name,
                 staging_table_name=staging_table_name,
                 column_name=data_config.unique_id_column_link_ids
+            )
+
+
+def delete_staging_tables(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    dataset_name = data_config.dataset
+    project_name = data_config.project_name
+    table_name_hist = data_config.table_name_history_details
+    table_name_label = data_config.table_name_labels_staging
+    table_name_ids = data_config.table_name_link_ids_staging
+
+    delete_table_from_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name_hist
+            )
+
+    delete_table_from_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name_label
+            )
+
+    delete_table_from_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name_ids
             )
 
 
@@ -345,10 +359,10 @@ gmail_thread_details_etl_task = create_python_task(
     retries=5
 )
 
-delete_history_details_table_task = create_python_task(
+delete_staging_tables_task = create_python_task(
     GMAIL_DATA_DAG,
-    "delete_history_details_table",
-    delete_history_details_table,
+    "delete_staging_tables",
+    delete_staging_tables,
     retries=5
 )
 
@@ -359,7 +373,7 @@ load_label_difference_from_staging_task = create_python_task(
     retries=5
 )
 
-load_link_ids_difference_from_staging = create_python_task(
+load_link_ids_difference_from_staging_task = create_python_task(
     GMAIL_DATA_DAG,
     "load_link_ids_difference_from_staging",
     load_link_ids_difference_from_staging,
@@ -378,7 +392,6 @@ get_data_config_task >> [
     gmail_link_message_thread_ids_etl_task,
     gmail_history_details_etl_task
 ] >> gmail_thread_details_etl_task >> [
-    delete_history_details_table_task,
     load_label_difference_from_staging_task,
-    load_link_ids_difference_from_staging
-]
+    load_link_ids_difference_from_staging_task
+] >> delete_staging_tables_task
