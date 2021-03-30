@@ -115,7 +115,7 @@ def write_dataframe_to_jsonl_file(
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_distinct_values_from_bq(
             project_name: str,
-            dataset: str,
+            dataset_name: str,
             column_name: str,
             table_name: str,
             table_name_for_exclusion: str,
@@ -125,20 +125,20 @@ def get_distinct_values_from_bq(
     sql = (
         """
         SELECT DISTINCT {column_name} AS column
-        FROM  `{project_name}.{dataset}.{table_name}`
+        FROM  `{project_name}.{dataset_name}.{table_name}`
         WHERE {column_name} NOT IN
             (
                 SELECT {column_name}
-                FROM `{project_name}.{dataset}.{table_name_for_exclusion}`
+                FROM `{project_name}.{dataset_name}.{table_name_for_exclusion}`
             )
         UNION DISTINCT
         SELECT DISTINCT msg.{column_name}
-        FROM `{project_name}.{dataset}.{table_name_for_update}`,
+        FROM `{project_name}.{dataset_name}.{table_name_for_update}`,
         UNNEST(messages) msg
         """.format(
                 column_name=column_name,
                 project_name=project_name,
-                dataset=dataset,
+                dataset_name=dataset_name,
                 table_name=table_name,
                 table_name_for_exclusion=table_name_for_exclusion,
                 table_name_for_update=table_name_for_update
@@ -160,7 +160,7 @@ def dataframe_chunk(seq, size):
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_max_history_id_from_bq(
             project_name: str,
-            dataset: str,
+            dataset_name: str,
             column_name: str,
             table_name: str,
         ) -> str:
@@ -169,11 +169,11 @@ def get_max_history_id_from_bq(
         """
         SELECT
         MAX({column_name}) AS start_id
-        FROM `{project_name}.{dataset}.{table_name}`
+        FROM `{project_name}.{dataset_name}.{table_name}`
         """.format(
                 column_name=column_name,
                 project_name=project_name,
-                dataset=dataset,
+                dataset_name=dataset_name,
                 table_name=table_name
             )
     )

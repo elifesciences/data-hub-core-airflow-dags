@@ -16,7 +16,7 @@ class GmailGetDataConfig:
             env_placeholder
         )
         self.project_name = self.data_config.get("projectName")
-        self.dataset = self.data_config.get("dataset")
+        self.dataset_name = self.data_config.get("dataset_name")
 
         # label list
         self.stage_file_name_labels = (
@@ -33,16 +33,16 @@ class GmailGetDataConfig:
         )
 
         # message-thread ids list
-        self.stage_file_name_link_ids = (
+        self.stage_file_name_thread_ids = (
             self.data_config.get("gmailLinkIdsData").get("stageFileName")
         )
-        self.table_name_link_ids = (
+        self.table_name_thread_ids = (
             self.data_config.get("gmailLinkIdsData").get("table")
         )
-        self.table_name_link_ids_staging = (
+        self.table_name_thread_ids_staging = (
             self.data_config.get("gmailLinkIdsData").get("stageTable")
         )
-        self.unique_id_column_link_ids = (
+        self.unique_id_column_thread_ids = (
             self.data_config.get("gmailLinkIdsData").get("uniqueIdColumn")
         )
 

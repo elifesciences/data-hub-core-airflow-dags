@@ -103,7 +103,7 @@ def gmail_label_data_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_labels_staging
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
 
     with TemporaryDirectory() as tmp_dir:
@@ -137,15 +137,15 @@ def gmail_label_data_etl(**kwargs):
         LOGGER.info('Loaded table: %s', table_name)
 
 
-def gmail_link_message_thread_ids_etl(**kwargs):
+def gmail_thread_ids_list_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
-    table_name = data_config.table_name_link_ids_staging
-    dataset_name = data_config.dataset
+    table_name = data_config.table_name_thread_ids_staging
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.stage_file_name_link_ids)
+        filename = os.path.join(tmp_dir, data_config.stage_file_name_thread_ids)
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_link_message_thread_ids(get_gmail_service(),  user_id),
@@ -176,12 +176,12 @@ def gmail_history_details_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_history_details
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
 
     start_id = get_max_history_id_from_bq(
                     project_name=data_config.project_name,
-                    dataset=dataset_name,
+                    dataset_name=dataset_name,
                     column_name='historyId',
                     table_name=data_config.table_name_thread_details
                 )
@@ -217,12 +217,12 @@ def gmail_thread_details_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     table_name = data_config.table_name_thread_details
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
 
     df_thread_id_list = get_distinct_values_from_bq(
                             project_name=data_config.project_name,
-                            dataset=dataset_name,
+                            dataset_name=dataset_name,
                             column_name=data_config.column_name_list_of_thread_ids,
                             table_name=data_config.table_name_list_of_thread_ids,
                             table_name_for_exclusion=data_config.table_name_thread_details,
@@ -261,7 +261,7 @@ def gmail_thread_details_etl(**kwargs):
 
 def load_label_difference_from_staging(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_labels
     staging_table_name = data_config.table_name_labels_staging
@@ -275,29 +275,29 @@ def load_label_difference_from_staging(**kwargs):
             )
 
 
-def load_link_ids_difference_from_staging(**kwargs):
+def load_thread_ids_difference_from_staging(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
-    table_name = data_config.table_name_link_ids
-    staging_table_name = data_config.table_name_link_ids_staging
+    table_name = data_config.table_name_thread_ids
+    staging_table_name = data_config.table_name_thread_ids_staging
 
     load_table_difference_from_staging(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
                 staging_table_name=staging_table_name,
-                column_name=data_config.unique_id_column_link_ids
+                column_name=data_config.unique_id_column_thread_ids
             )
 
 
 def delete_staging_tables(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    dataset_name = data_config.dataset
+    dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name_hist = data_config.table_name_history_details
     table_name_label = data_config.table_name_labels_staging
-    table_name_ids = data_config.table_name_link_ids_staging
+    table_name_ids = data_config.table_name_thread_ids_staging
 
     delete_table_from_bq(
                 project_name=project_name,
@@ -338,10 +338,10 @@ gmail_label_data_etl_task = create_python_task(
     retries=5
 )
 
-gmail_link_message_thread_ids_etl_task = create_python_task(
+gmail_thread_ids_list_etl_task = create_python_task(
     GMAIL_DATA_DAG,
-    "gmail_link_message_thread_ids_etl",
-    gmail_link_message_thread_ids_etl,
+    "gmail_thread_ids_list_etl",
+    gmail_thread_ids_list_etl,
     retries=5
 )
 
@@ -373,10 +373,10 @@ load_label_difference_from_staging_task = create_python_task(
     retries=5
 )
 
-load_link_ids_difference_from_staging_task = create_python_task(
+load_thread_ids_difference_from_staging_task = create_python_task(
     GMAIL_DATA_DAG,
-    "load_link_ids_difference_from_staging",
-    load_link_ids_difference_from_staging,
+    "load_thread_ids_difference_from_staging",
+    load_thread_ids_difference_from_staging,
     retries=5
 )
 
@@ -384,14 +384,14 @@ load_link_ids_difference_from_staging_task = create_python_task(
 # define dependencies between tasks in the DAG
 get_data_config_task >> [
         gmail_label_data_etl_task,
-        gmail_link_message_thread_ids_etl_task,
+        gmail_thread_ids_list_etl_task,
         gmail_history_details_etl_task
     ]
 
 [
-    gmail_link_message_thread_ids_etl_task,
+    gmail_thread_ids_list_etl_task,
     gmail_history_details_etl_task
 ] >> gmail_thread_details_etl_task >> [
     load_label_difference_from_staging_task,
-    load_link_ids_difference_from_staging_task
+    load_thread_ids_difference_from_staging_task
 ] >> delete_staging_tables_task
