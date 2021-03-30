@@ -1,21 +1,19 @@
 projectName: 'elife-data-pipeline'
-dataset_name: '{ENV}'
+datasetName: '{ENV}'
 gmailLabelData:
-  stageFileName: 'gmail_label_list.json'
+  tempFileName: 'gmail_label_list.json'
   table: 'gmail_label_list'
-  stageTable: 'gmail_label_list_staging'
+  tempTable: 'temp_gmail_label_list'
   uniqueIdColumn: 'labelId'
 gmailLinkIdsData:
-  stageFileName: 'gmail_thread_ids_list.json'
+  tempFileName: 'gmail_thread_ids_list.json'
   table: 'gmail_thread_ids_list'
-  stageTable: 'gmail_thread_ids_list_staging'
+  tempTable: 'temp_gmail_thread_ids_list'
   uniqueIdColumn: 'id'
 gmailThreadData:
-  stageFileName: 'gmail_thread_details.json'
+  tempFileName: 'gmail_thread_details.json'
   table: 'gmail_thread_details'
-  listThreadId:
-    table: 'gmail_thread_ids_list'
-    column: 'threadId'
+  inputColumn: 'threadId'
 gmailHistoryData:
-  stageFileName: 'gmail_history_details.json'
-  table: 'gmail_history_details'
+  tempFileName: 'gmail_history_details.json'
+  tempTable: 'temp_gmail_history_details'
