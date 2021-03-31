@@ -11,7 +11,9 @@ from data_pipeline.utils.data_store.bq_data_service import (
     generate_schema_from_file,
     create_or_extend_table_schema,
     delete_table_from_bq,
-    load_new_data_in_temp_table_to_actual_table
+    load_from_temp_table_to_actual_table,
+    get_distinct_values_from_bq,
+    get_max_value_from_bq_table
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -33,8 +35,6 @@ from data_pipeline.gmail_data.get_gmail_data import (
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
     get_gmail_history_details,
-    get_max_history_id_from_bq,
-    get_distinct_values_from_bq,
     get_one_thread,
     dataframe_chunk
 )
@@ -177,10 +177,10 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
     dataset_name = data_config.dataset_name
     table_name = data_config.temp_table_name_history_details
 
-    start_id = get_max_history_id_from_bq(
+    start_id = get_max_value_from_bq_table(
                     project_name=data_config.project_name,
                     dataset_name=dataset_name,
-                    column_name='historyId',
+                    column_name=data_config.column_name_history_check,
                     table_name=data_config.table_name_thread_details
                 )
 
@@ -211,7 +211,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
         LOGGER.info('Loaded table: %s', table_name)
 
 
-def gmail_thread_details_etl(**kwargs):
+def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
     project_name = data_config.project_name
@@ -223,8 +223,7 @@ def gmail_thread_details_etl(**kwargs):
                             dataset_name=dataset_name,
                             column_name=data_config.column_name_input,
                             table_name_source=data_config.temp_table_name_thread_ids,
-                            table_name_for_exclusion=table_name,
-                            table_name_for_update=data_config.temp_table_name_history_details
+                            table_name_for_exclusion=table_name
                         )
 
     # because of big amount of data created chunks of dataframe to load data
@@ -257,14 +256,59 @@ def gmail_thread_details_etl(**kwargs):
             LOGGER.info('Loaded table: %s', table_name)
 
 
-def load_new_data_from_temp_table_labels(**kwargs):
+def gmail_thread_details_from_temp_history_details_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.table_name_thread_details
+
+    df_thread_id_list = get_distinct_values_from_bq(
+                            project_name=data_config.project_name,
+                            dataset_name=dataset_name,
+                            column_name=data_config.column_name_input,
+                            table_name_source=data_config.temp_table_name_history_details,
+                            table_name_for_exclusion=data_config.temp_table_name_thread_ids
+                        )
+
+    # because of big amount of data created chunks of dataframe to load data
+    for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
+        LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
+        df_thread_details = pd.concat([
+                                        get_one_thread(get_gmail_service(), user_id, id)
+                                        for id in df_ids_part[0]
+                            ], ignore_index=True)
+        with TemporaryDirectory() as tmp_dir:
+            filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
+            write_dataframe_to_jsonl_file(
+                df_data_to_write=df_thread_details,
+                target_file_path=filename
+            )
+            LOGGER.info('Created file: %s', filename)
+            create_or_extend_table_schema(
+                gcp_project=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                full_file_location=filename,
+                quoted_values_are_strings=True
+            )
+            load_file_into_bq(
+                filename=filename,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                project_name=project_name
+            )
+            LOGGER.info('Loaded table: %s', table_name)
+
+
+def load_from_temp_table_to_label_list(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_labels
     temp_table_name = data_config.temp_table_name_labels
 
-    load_new_data_in_temp_table_to_actual_table(
+    load_from_temp_table_to_actual_table(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
@@ -273,14 +317,14 @@ def load_new_data_from_temp_table_labels(**kwargs):
             )
 
 
-def load_new_data_from_temp_table_thread_ids(**kwargs):
+def load_from_temp_table_to_thread_ids_list(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_thread_ids
     temp_table_name = data_config.temp_table_name_thread_ids
 
-    load_new_data_in_temp_table_to_actual_table(
+    load_from_temp_table_to_actual_table(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
@@ -362,10 +406,17 @@ gmail_history_details_to_temp_table_etl_task = create_python_task(
     retries=5
 )
 
-gmail_thread_details_etl_task = create_python_task(
+gmail_thread_details_from_temp_thread_ids_etl_task = create_python_task(
     GMAIL_DATA_DAG,
-    "gmail_thread_details_etl",
-    gmail_thread_details_etl,
+    "gmail_thread_details_from_temp_thread_ids_etl",
+    gmail_thread_details_from_temp_thread_ids_etl,
+    retries=5
+)
+
+gmail_thread_details_from_temp_history_details_etl_task = create_python_task(
+    GMAIL_DATA_DAG,
+    "gmail_thread_details_from_temp_history_details_etl",
+    gmail_thread_details_from_temp_history_details_etl,
     retries=5
 )
 
@@ -390,17 +441,17 @@ delete_temp_table_history_details_task = create_python_task(
     retries=5
 )
 
-load_new_data_from_temp_table_labels_task = create_python_task(
+load_from_temp_table_to_label_list_task = create_python_task(
     GMAIL_DATA_DAG,
-    "load_new_data_from_temp_table_labels",
-    load_new_data_from_temp_table_labels,
+    "load_from_temp_table_to_label_list",
+    load_from_temp_table_to_label_list,
     retries=5
 )
 
-load_new_data_from_temp_table_thread_ids_task = create_python_task(
+load_from_temp_table_to_thread_ids_list_task = create_python_task(
     GMAIL_DATA_DAG,
-    "load_new_data_from_temp_table_thread_ids",
-    load_new_data_from_temp_table_thread_ids,
+    "load_from_temp_table_to_thread_ids_list",
+    load_from_temp_table_to_thread_ids_list,
     retries=5
 )
 
@@ -417,24 +468,22 @@ load_new_data_from_temp_table_thread_ids_task = create_python_task(
 
 (
     gmail_label_data_to_temp_table_etl_task
-    >> load_new_data_from_temp_table_labels_task
+    >> load_from_temp_table_to_label_list_task
     >> delete_temp_table_labels_task
 )
 
 (
-    [
-        gmail_thread_ids_list_to_temp_table_etl_task,
-        gmail_history_details_to_temp_table_etl_task
-    ] >> gmail_thread_details_etl_task
+    gmail_thread_ids_list_to_temp_table_etl_task
+    >> gmail_thread_details_from_temp_thread_ids_etl_task
+    >> gmail_history_details_to_temp_table_etl_task
+    >> gmail_thread_details_from_temp_history_details_etl_task
+    >> [
+        delete_temp_table_history_details_task,
+        load_from_temp_table_to_thread_ids_list_task
+    ]
 )
 
 (
-    gmail_thread_details_etl_task
-    >> delete_temp_table_history_details_task
-)
-
-(
-    gmail_thread_details_etl_task
-    >> load_new_data_from_temp_table_thread_ids_task
+    load_from_temp_table_to_thread_ids_list_task
     >> delete_temp_table_thread_ids_task
 )
