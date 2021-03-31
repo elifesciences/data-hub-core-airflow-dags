@@ -375,7 +375,7 @@ def get_distinct_values_from_bq(
     params = {
         'project_name': project_name,
         'dataset_name': dataset_name,
-        'column_name': column_name
+        'column_name': column_name,
         'table_name_source': table_name_source,
         'table_name_for_exclusion': table_name_for_exclusion
         }

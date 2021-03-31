@@ -4,7 +4,6 @@ import pandas as pd
 import backoff
 
 from google.oauth2 import service_account
-from google.cloud import bigquery
 
 from googleapiclient.discovery import build
 from googleapiclient.discovery import Resource
@@ -96,7 +95,7 @@ def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -
     df_temp = pd.DataFrame(iter_gmail_history(service, user_id, start_id))
     df_hist = pd.DataFrame()
     df_hist['historyId'] = df_temp['id']
-    thread_list=[]
+    thread_list = []
     for message in df_temp['messages']:
         thread_list.append(message['threadId'])
     df_hist['threadId'] = [thread_list]
