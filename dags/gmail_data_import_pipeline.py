@@ -188,7 +188,11 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
         filename = os.path.join(tmp_dir, data_config.temp_table_name_history_details)
 
         write_dataframe_to_jsonl_file(
-            df_data_to_write=get_gmail_history_details(get_gmail_service(),  user_id, start_id),
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(),
+                user_id,
+                str(start_id)
+            ),
             target_file_path=filename
         )
 

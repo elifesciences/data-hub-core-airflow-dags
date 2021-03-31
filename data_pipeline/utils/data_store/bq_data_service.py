@@ -362,7 +362,7 @@ def get_distinct_values_from_bq(
         ) -> pd.DataFrame:
 
     sql = """
-        SELECT DISTINCT {{ column_name }}
+        SELECT DISTINCT {{ column_name }} AS column
         FROM  `{{ project_name }}.{{ dataset_name }}.{{ table_name_source }}`
         {% if table_name_for_exclusion %}
         WHERE {{ column_name }} NOT IN
@@ -386,7 +386,7 @@ def get_distinct_values_from_bq(
     query_job = client.query(query % bind_params)  # Make an API request.
     results = query_job.result()  # Waits for query to finish
 
-    return pd.concat([pd.DataFrame([row.column]) for row in results], ignore_index=True)
+    return pd.Series([row.column for row in results]).to_frame().reset_index()
 
 
 def get_max_value_from_bq_table(
@@ -398,7 +398,7 @@ def get_max_value_from_bq_table(
 
     sql = """
         SELECT
-        MAX({{ column_name }}) AS start_id
+        MAX({{ column_name }}) AS max_value
         FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name }}`
     """
     params = {
@@ -414,7 +414,4 @@ def get_max_value_from_bq_table(
     query_job = client.query(query % bind_params)  # Make an API request.
     results = query_job.result()  # Waits for query to finish
 
-    for row in results:
-        result = row.start_id
-
-    return str(result)
+    return list(results)[0].max_value
