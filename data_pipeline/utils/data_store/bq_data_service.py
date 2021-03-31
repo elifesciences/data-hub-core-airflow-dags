@@ -2,6 +2,8 @@ import logging
 import os
 from math import ceil
 from typing import List
+import pandas as pd
+from jinjasql import JinjaSql
 from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
@@ -306,7 +308,7 @@ def delete_table_from_bq(
     LOGGER.info("Deleted table %s", table_id)
 
 
-def load_new_data_in_temp_table_to_actual_table(
+def load_from_temp_table_to_actual_table(
         project_name: str,
         dataset_name: str,
         table_name: str,
@@ -349,3 +351,70 @@ def load_new_data_in_temp_table_to_actual_table(
     query_job.result()  # Wait for the job to complete.
 
     LOGGER.info("Loaded table %s", table_id)
+
+
+def get_distinct_values_from_bq(
+            project_name: str,
+            dataset_name: str,
+            column_name: str,
+            table_name_source: str,
+            table_name_for_exclusion: str = None
+        ) -> pd.DataFrame:
+
+    sql = """
+        SELECT DISTINCT {{ column_name }}
+        FROM  `{{ project_name }}.{{ dataset_name }}.{{ table_name_source }}`
+        {% if table_name_for_exclusion %}
+        WHERE {{ column_name }} NOT IN
+            (
+                SELECT {{ column_name }}
+                FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name_for_exclusion }}`
+            )
+        {% endif %}
+    """
+    params = {
+        'project_name': project_name,
+        'dataset_name': dataset_name,
+        'column_name': column_name
+        'table_name_source': table_name_source,
+        'table_name_for_exclusion': table_name_for_exclusion
+        }
+
+    jin = JinjaSql(param_style='pyformat')
+    query, bind_params = jin.prepare_query(sql, params)
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query % bind_params)  # Make an API request.
+    results = query_job.result()  # Waits for query to finish
+
+    return pd.concat([pd.DataFrame([row.column]) for row in results], ignore_index=True)
+
+
+def get_max_value_from_bq_table(
+            project_name: str,
+            dataset_name: str,
+            column_name: str,
+            table_name: str,
+        ) -> str:
+
+    sql = """
+        SELECT
+        MAX({{ column_name }}) AS start_id
+        FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name }}`
+    """
+    params = {
+        'project_name': project_name,
+        'dataset_name': dataset_name,
+        'table_name': table_name,
+        'column_name': column_name
+        }
+
+    jin = JinjaSql(param_style='pyformat')
+    query, bind_params = jin.prepare_query(sql, params)
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query % bind_params)  # Make an API request.
+    results = query_job.result()  # Waits for query to finish
+
+    for row in results:
+        result = row.start_id
+
+    return str(result)
