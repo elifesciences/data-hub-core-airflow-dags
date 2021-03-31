@@ -64,6 +64,9 @@ class GmailGetDataConfig:
         self.column_name_input = (
             self.data_config.get("gmailThreadData").get("inputColumn")
         )
+        self.column_name_history_check = (
+            self.data_config.get("gmailThreadData").get("historyCheckColumn")
+        )
 
     def __repr__(self):
         return repr(vars(self))

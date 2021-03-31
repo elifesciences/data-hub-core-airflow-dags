@@ -14,6 +14,7 @@ gmailThreadData:
   tempFileName: 'gmail_thread_details.json'
   table: 'gmail_thread_details'
   inputColumn: 'threadId'
+  historyCheckColumn: 'historyId'
 gmailHistoryData:
   tempFileName: 'gmail_history_details.json'
   tempTable: 'temp_gmail_history_details'
