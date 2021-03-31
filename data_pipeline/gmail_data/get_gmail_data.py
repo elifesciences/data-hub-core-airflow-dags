@@ -4,7 +4,6 @@ import pandas as pd
 import backoff
 
 from google.oauth2 import service_account
-from google.cloud import bigquery
 
 from googleapiclient.discovery import build
 from googleapiclient.discovery import Resource
@@ -95,8 +94,10 @@ def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -
     imported_timestamp = get_current_timestamp()
     df_temp = pd.DataFrame(iter_gmail_history(service, user_id, start_id))
     df_hist = pd.DataFrame()
+    df_temp = df_temp.explode('messages')
     df_hist['historyId'] = df_temp['id']
     df_hist['messages'] = df_temp['messages']
+    df_hist['threadId'] = df_hist['messages'].apply(pd.Series)['threadId']
     df_hist['user_id'] = user_id
     df_hist['imported_timestamp'] = imported_timestamp
     return df_hist
@@ -111,78 +112,6 @@ def write_dataframe_to_jsonl_file(
         df_data_to_write.to_json(file, orient='records', lines=True, force_ascii=False)
 
 
-# pylint: disable=too-many-arguments
-@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
-def get_distinct_values_from_bq(
-            project_name: str,
-            dataset: str,
-            column_name: str,
-            table_name: str,
-            table_name_for_exclusion: str,
-            table_name_for_update: str
-        ) -> pd.DataFrame:
-
-    sql = (
-        """
-        SELECT DISTINCT {column_name} AS column
-        FROM  `{project_name}.{dataset}.{table_name}`
-        WHERE {column_name} NOT IN
-            (
-                SELECT {column_name}
-                FROM `{project_name}.{dataset}.{table_name_for_exclusion}`
-            )
-        UNION DISTINCT
-        SELECT DISTINCT msg.{column_name}
-        FROM `{project_name}.{dataset}.{table_name_for_update}`,
-        UNNEST(messages) msg
-        """.format(
-                column_name=column_name,
-                project_name=project_name,
-                dataset=dataset,
-                table_name=table_name,
-                table_name_for_exclusion=table_name_for_exclusion,
-                table_name_for_update=table_name_for_update
-            )
-    )
-
-    client = bigquery.Client(project_name)
-    query_job = client.query(sql)  # API request
-    results = query_job.result()  # Waits for query to finish
-
-    return pd.concat([pd.DataFrame([row.column]) for row in results], ignore_index=True)
-
-
 def dataframe_chunk(seq, size):
     for pos in range(0, len(seq), size):
         yield seq.iloc[pos:pos + size]
-
-
-@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
-def get_max_history_id_from_bq(
-            project_name: str,
-            dataset: str,
-            column_name: str,
-            table_name: str,
-        ) -> str:
-
-    sql = (
-        """
-        SELECT
-        MAX({column_name}) AS start_id
-        FROM `{project_name}.{dataset}.{table_name}`
-        """.format(
-                column_name=column_name,
-                project_name=project_name,
-                dataset=dataset,
-                table_name=table_name
-            )
-    )
-
-    client = bigquery.Client(project_name)
-    query_job = client.query(sql)  # API request
-    results = query_job.result()  # Waits for query to finish
-
-    for row in results:
-        result = row.start_id
-
-    return str(result)

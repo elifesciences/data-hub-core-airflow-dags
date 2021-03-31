@@ -2,6 +2,8 @@ import logging
 import os
 from math import ceil
 from typing import List
+import pandas as pd
+from jinjasql import JinjaSql
 from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
@@ -291,3 +293,125 @@ def create_or_extend_table_schema(
             table_name,
             schema
         )
+
+
+def delete_table_from_bq(
+        project_name: str,
+        dataset_name: str,
+        table_name: str
+):
+    client = get_bq_client(project=project_name)
+    table_id = compose_full_table_name(
+        project_name, dataset_name, table_name
+    )
+    client.delete_table(table_id, not_found_ok=True)
+    LOGGER.info("Deleted table %s", table_id)
+
+
+def load_from_temp_table_to_actual_table(
+        project_name: str,
+        dataset_name: str,
+        table_name: str,
+        temp_table_name: str,
+        column_name: str
+):
+    client = get_bq_client(project=project_name)
+    table_id = compose_full_table_name(
+        project_name, dataset_name, table_name
+    )
+
+    sql = (
+        """
+        SELECT t.* EXCEPT(seqnum)
+        FROM (SELECT *,
+                ROW_NUMBER() OVER (PARTITION BY {column_name}
+                                ORDER BY imported_timestamp DESC
+                               ) AS seqnum
+            FROM `{project_name}.{dataset_name}.{temp_table_name}`
+            ) t
+        WHERE seqnum = 1
+        AND {column_name} NOT IN (SELECT DISTINCT {column_name}
+                      FROM `{project_name}.{dataset_name}.{table_name}`)
+        """.format(
+                column_name=column_name,
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                temp_table_name=temp_table_name
+            )
+    )
+
+    job_config = bigquery.QueryJobConfig(
+        allow_large_results=True,
+        destination=table_id,
+        write_disposition='WRITE_APPEND'
+    )
+
+    query_job = client.query(sql, job_config=job_config)  # Make an API request.
+    query_job.result()  # Wait for the job to complete.
+
+    LOGGER.info("Loaded table %s", table_id)
+
+
+def get_distinct_values_from_bq(
+            project_name: str,
+            dataset_name: str,
+            column_name: str,
+            table_name_source: str,
+            table_name_for_exclusion: str = None
+        ) -> pd.DataFrame:
+
+    sql = """
+        SELECT DISTINCT {{ column_name }} AS column
+        FROM  `{{ project_name }}.{{ dataset_name }}.{{ table_name_source }}`
+        {% if table_name_for_exclusion %}
+        WHERE {{ column_name }} NOT IN
+            (
+                SELECT {{ column_name }}
+                FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name_for_exclusion }}`
+            )
+        {% endif %}
+    """
+    params = {
+        'project_name': project_name,
+        'dataset_name': dataset_name,
+        'column_name': column_name,
+        'table_name_source': table_name_source,
+        'table_name_for_exclusion': table_name_for_exclusion
+        }
+
+    jin = JinjaSql(param_style='pyformat')
+    query, bind_params = jin.prepare_query(sql, params)
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query % bind_params)  # Make an API request.
+    results = query_job.result()  # Waits for query to finish
+
+    return pd.Series([row.column for row in results]).to_frame().reset_index()
+
+
+def get_max_value_from_bq_table(
+            project_name: str,
+            dataset_name: str,
+            column_name: str,
+            table_name: str,
+        ) -> str:
+
+    sql = """
+        SELECT
+        MAX({{ column_name }}) AS max_value
+        FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name }}`
+    """
+    params = {
+        'project_name': project_name,
+        'dataset_name': dataset_name,
+        'table_name': table_name,
+        'column_name': column_name
+        }
+
+    jin = JinjaSql(param_style='pyformat')
+    query, bind_params = jin.prepare_query(sql, params)
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query % bind_params)  # Make an API request.
+    results = query_job.result()  # Waits for query to finish
+
+    return list(results)[0].max_value

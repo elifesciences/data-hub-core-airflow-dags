@@ -12,6 +12,7 @@ fsspec==0.8.7
 google-api-python-client==2.0.2
 google-cloud-bigquery==2.13.1
 google-oauth==1.0.1
+jinjasql==0.1.8
 PyYAML==5.4.1
 s3fs==0.5.1
 six==1.15.0

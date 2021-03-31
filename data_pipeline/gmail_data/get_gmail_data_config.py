@@ -16,44 +16,56 @@ class GmailGetDataConfig:
             env_placeholder
         )
         self.project_name = self.data_config.get("projectName")
-        self.dataset = self.data_config.get("dataset")
+        self.dataset_name = self.data_config.get("datasetName")
 
         # label list
-        self.stage_file_name_labels = (
-            self.data_config.get("gmailLabelData").get("stageFileName")
+        self.temp_file_name_labels = (
+            self.data_config.get("gmailLabelData").get("tempFileName")
         )
         self.table_name_labels = (
             self.data_config.get("gmailLabelData").get("table")
         )
+        self.temp_table_name_labels = (
+            self.data_config.get("gmailLabelData").get("tempTable")
+        )
+        self.unique_id_column_labels = (
+            self.data_config.get("gmailLabelData").get("uniqueIdColumn")
+        )
 
         # message-thread ids list
-        self.stage_file_name_link_ids = (
-            self.data_config.get("gmailLinkIdsData").get("stageFileName")
+        self.temp_file_name_thread_ids = (
+            self.data_config.get("gmailLinkIdsData").get("tempFileName")
         )
-        self.table_name_link_ids = (
+        self.table_name_thread_ids = (
             self.data_config.get("gmailLinkIdsData").get("table")
+        )
+        self.temp_table_name_thread_ids = (
+            self.data_config.get("gmailLinkIdsData").get("tempTable")
+        )
+        self.unique_id_column_thread_ids = (
+            self.data_config.get("gmailLinkIdsData").get("uniqueIdColumn")
         )
 
         # history details
-        self.stage_file_name_history_details = (
-            self.data_config.get("gmailHistoryData").get("stageFileName")
+        self.temp_file_name_history_details = (
+            self.data_config.get("gmailHistoryData").get("tempFileName")
         )
-        self.table_name_history_details = (
-            self.data_config.get("gmailHistoryData").get("table")
+        self.temp_table_name_history_details = (
+            self.data_config.get("gmailHistoryData").get("tempTable")
         )
 
         # thread details
-        self.stage_file_name_thread_details = (
-            self.data_config.get("gmailThreadData").get("stageFileName")
+        self.temp_file_name_thread_details = (
+            self.data_config.get("gmailThreadData").get("tempFileName")
         )
         self.table_name_thread_details = (
             self.data_config.get("gmailThreadData").get("table")
         )
-        self.table_name_list_of_thread_ids = (
-            self.data_config.get("gmailThreadData").get("listThreadId").get("table")
+        self.column_name_input = (
+            self.data_config.get("gmailThreadData").get("inputColumn")
         )
-        self.column_name_list_of_thread_ids = (
-            self.data_config.get("gmailThreadData").get("listThreadId").get("column")
+        self.column_name_history_check = (
+            self.data_config.get("gmailThreadData").get("historyCheckColumn")
         )
 
     def __repr__(self):
