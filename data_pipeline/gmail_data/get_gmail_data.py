@@ -94,11 +94,10 @@ def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -
     imported_timestamp = get_current_timestamp()
     df_temp = pd.DataFrame(iter_gmail_history(service, user_id, start_id))
     df_hist = pd.DataFrame()
+    df_temp = df_temp.explode('messages')
     df_hist['historyId'] = df_temp['id']
-    thread_list = []
-    for message in df_temp['messages']:
-        thread_list.append(message['threadId'])
-    df_hist['threadId'] = [thread_list]
+    df_hist['messages'] = df_temp['messages']
+    df_hist['threadId'] = df_hist['messages'].apply(pd.Series)['threadId']
     df_hist['user_id'] = user_id
     df_hist['imported_timestamp'] = imported_timestamp
     return df_hist
