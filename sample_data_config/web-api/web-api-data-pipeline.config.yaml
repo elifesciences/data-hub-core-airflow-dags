@@ -182,7 +182,7 @@ webApi:
         dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
     response:
       recordTimestamp:
-        timestampFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+        timestampFormat: "%Y-%m-%dT%H:%M:%S.%f+00:00"
         itemTimestampKeyFromItemRoot:
           - updated
       itemsKeyFromResponseRoot:
