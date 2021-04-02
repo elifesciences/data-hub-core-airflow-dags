@@ -209,7 +209,7 @@ webApi:
       totalItemsCountKeyFromResponseRoot:
         - total_count
       recordTimestamp:
-        timestampFormat: "%Y-%m-%dT%H:%M:%S%z"
+        timestampFormat: "%Y-%m-%dT%H:%M:%S+00:00"
         itemTimestampKeyFromItemRoot:
           - updated
     authentication:
