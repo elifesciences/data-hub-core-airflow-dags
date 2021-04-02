@@ -426,7 +426,7 @@ def copy_bq_table(
         target_table_name: str,
 ):
 
-    client = get_bq_client(project=project_name)
+    client = get_bq_client(project=source_project_name)
 
     source_table_id = compose_full_table_name(
         source_project_name, source_dataset_name, source_table_name
