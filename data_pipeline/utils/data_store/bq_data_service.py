@@ -415,3 +415,31 @@ def get_max_value_from_bq_table(
     results = query_job.result()  # Waits for query to finish
 
     return list(results)[0].max_value
+
+
+def copy_bq_table(
+        source_project_name: str,
+        source_dataset_name: str,
+        source_table_name: str,
+        target_project_name: str,
+        target_dataset_name: str,
+        target_table_name: str,
+):
+
+    client = get_bq_client(project=source_project_name)
+
+    source_table_id = compose_full_table_name(
+        source_project_name, source_dataset_name, source_table_name
+    )
+    target_table_id = compose_full_table_name(
+        target_project_name, target_dataset_name, target_table_name
+    )
+
+    job = client.copy_table(source_table_id, target_table_id)
+    job.result()  # Wait for the job to complete.
+
+    LOGGER.info(
+        "Copied table  from %s to %s",
+        source_table_id,
+        target_table_id
+    )
