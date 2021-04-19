@@ -78,7 +78,7 @@ def get_dataframe_for_thread_response(
         thread_response: dict,
         user_id: str,
         imported_timestamp: str) -> pd.DataFrame:
-    
+
     df_thread = pd.DataFrame()
 
     df_thread['threadId'] = [thread_response['id']]
