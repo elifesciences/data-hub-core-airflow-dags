@@ -125,19 +125,19 @@ class TestIterLinkMessageThreadIds:
         assert actual_messages == ['messages1', 'messages2']
 
     def test_should_next_page_messages_if_exists_next_page_token(
-        self,
-        gmail_service_mock,
-        gmail_message_ids_list_mock):
-        
-        response = {'messages':['messages1'], 'nextPageToken':'nextPageToken1'}
-        response_in_next_page = {'messages':['messages_in_next_page1']}
+            self,
+            gmail_service_mock,
+            gmail_message_ids_list_mock):
+
+        response = {'messages': ['messages1'], 'nextPageToken': 'nextPageToken1'}
+        response_in_next_page = {'messages':  ['messages_in_next_page1']}
 
         execute_mock = gmail_message_ids_list_mock.return_value.execute
         execute_mock.side_effect = [response, response_in_next_page]
 
         actual_messages = list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))
 
-        assert actual_messages == ['messages1','messages_in_next_page1']
+        assert actual_messages == ['messages1', 'messages_in_next_page1']
 
 
 class TestGetDataframeForThreadResponse:
@@ -191,10 +191,10 @@ class TestIterGmailHistory:
         assert actual_messages == ['history1']
 
     def test_should_next_page_history_if_exists_next_page_token(
-        self,
-        gmail_service_mock,
-        gmail_history_list_mock):
-        
+            self,
+            gmail_service_mock,
+            gmail_history_list_mock):
+
         response = {'history': ['history1'], 'nextPageToken': 'nextPageToken1'}
         response_in_next_page = {'history': ['history_in_next_page1']}
 
@@ -203,7 +203,7 @@ class TestIterGmailHistory:
 
         actual_messages = list(iter_gmail_history(gmail_service_mock, USER_ID1, START_ID1))
 
-        assert actual_messages == ['history1','history_in_next_page1']
+        assert actual_messages == ['history1', 'history_in_next_page1']
 
 
 class TestGetDataframeForHistoryResponse:
