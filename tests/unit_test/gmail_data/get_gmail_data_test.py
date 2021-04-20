@@ -6,7 +6,9 @@ from data_pipeline.gmail_data.get_gmail_data import (
     get_dataframe_for_thread_response,
     get_dataframe_for_history_response,
     iter_link_message_thread_ids,
-    iter_gmail_history
+    iter_gmail_history,
+    get_label_list,
+    get_one_thread
 )
 
 USER_ID1 = 'user_id1'
@@ -25,8 +27,8 @@ def _gmail_service_mock() -> MagicMock:
 @pytest.fixture(name='gmail_label_list_mock')
 def _gmail_label_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
     users_mock = gmail_service_mock.users
-    labels_mock = users_mock.return_value.lables
-    list_mock = labels_mock.return_value.get
+    labels_mock = users_mock.return_value.labels
+    list_mock = labels_mock.return_value.list
     return list_mock
 
 
@@ -58,12 +60,10 @@ class TestGetLabelList:
 
     def test_should_pass_user_id_to_list_method(
             self,
-            # gmail_service_mock,
+            gmail_service_mock,
             gmail_label_list_mock):
 
-        # get_label_list(gmail_service_mock, USER_ID1)
-        # NEED TO FIX
-        gmail_label_list_mock(userId=USER_ID1)
+        get_label_list(gmail_service_mock, USER_ID1)
         gmail_label_list_mock.assert_called_with(userId=USER_ID1)
 
 
@@ -124,8 +124,20 @@ class TestIterLinkMessageThreadIds:
 
         assert actual_messages == ['messages1', 'messages2']
 
-    # NEED TO ADD
-    # test_should_next_page_messages_if_exists_next_page_token
+    def test_should_next_page_messages_if_exists_next_page_token(
+        self,
+        gmail_service_mock,
+        gmail_message_ids_list_mock):
+        
+        response = {'messages':['messages1'], 'nextPageToken':'nextPageToken1'}
+        response_in_next_page = {'messages':['messages_in_next_page1']}
+
+        execute_mock = gmail_message_ids_list_mock.return_value.execute
+        execute_mock.side_effect = [response, response_in_next_page]
+
+        actual_messages = list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))
+
+        assert actual_messages == ['messages1','messages_in_next_page1']
 
 
 class TestGetDataframeForThreadResponse:
@@ -148,16 +160,14 @@ class TestGetOneThread:
 
     def test_should_pass_user_id_and_thread_id_to_get_method(
             self,
-            # gmail_service_mock,
+            gmail_service_mock,
             gmail_thread_get_mock):
 
-        # get_one_thread(gmail_service_mock, USER_ID1, THREAD_ID1)
-        # NEED TO FIX
-        gmail_thread_get_mock(userId=USER_ID1, id=THREAD_ID1)
+        get_one_thread(gmail_service_mock, USER_ID1, THREAD_ID1)
         gmail_thread_get_mock.assert_called_with(userId=USER_ID1, id=THREAD_ID1)
 
 
-class IterGmailHistory:
+class TestIterGmailHistory:
 
     def test_should_pass_user_id_and_start_history_id_to_history_list_method(
             self,
@@ -177,12 +187,23 @@ class IterGmailHistory:
         execute_mock = gmail_history_list_mock.return_value.execute
         execute_mock.return_value = response
 
-        actual_messages = list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))
+        actual_messages = list(iter_gmail_history(gmail_service_mock, USER_ID1, START_ID1))
+        assert actual_messages == ['history1']
 
-        assert actual_messages == ['messages1']
+    def test_should_next_page_history_if_exists_next_page_token(
+        self,
+        gmail_service_mock,
+        gmail_history_list_mock):
+        
+        response = {'history': ['history1'], 'nextPageToken': 'nextPageToken1'}
+        response_in_next_page = {'history': ['history_in_next_page1']}
 
-    # #NEED TO ADD
-    # test_should_next_page_history_if_exists_next_page_token
+        execute_mock = gmail_history_list_mock.return_value.execute
+        execute_mock.side_effect = [response, response_in_next_page]
+
+        actual_messages = list(iter_gmail_history(gmail_service_mock, USER_ID1, START_ID1))
+
+        assert actual_messages == ['history1','history_in_next_page1']
 
 
 class TestGetDataframeForHistoryResponse:
