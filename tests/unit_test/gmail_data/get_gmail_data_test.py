@@ -76,7 +76,7 @@ class TestGetDataframeForLabelResponse:
         assert df['user_id'].values == [USER_ID1]
         assert df['imported_timestamp'].values == [IMPORTED_TIMESTAMP]
 
-    def test_should_return_elements_in_label_response(self):
+    def test_should_extract_selected_fields_from_label_response(self):
         label_response = {
             "labels": [
                 {
@@ -124,7 +124,7 @@ class TestIterLinkMessageThreadIds:
 
         assert actual_messages == ['messages1', 'messages2']
 
-    def test_should_next_page_messages_if_exists_next_page_token(
+    def test_should_include_next_page_messages_if_next_page_token_exists(
             self,
             gmail_service_mock,
             gmail_message_list_mock):
@@ -148,7 +148,7 @@ class TestGetDataframeForThreadResponse:
         assert df['user_id'].values == [USER_ID1]
         assert df['imported_timestamp'].values == [IMPORTED_TIMESTAMP]
 
-    def test_should_return_elements_in_thread_response(self):
+    def test_should_extract_selected_fields_from_thread_response(self):
         thread_response = {"id": "id1", "historyId": "historyId1", "messages": "messages1"}
         df = get_dataframe_for_thread_response(thread_response, USER_ID1, IMPORTED_TIMESTAMP)
         assert df['threadId'].values == ['id1']
@@ -190,7 +190,7 @@ class TestIterGmailHistory:
         actual_messages = list(iter_gmail_history(gmail_service_mock, USER_ID1, START_ID1))
         assert actual_messages == ['history1']
 
-    def test_should_next_page_history_if_exists_next_page_token(
+    def test_should_include_next_page_history_if_next_page_token_exists(
             self,
             gmail_service_mock,
             gmail_history_list_mock):
