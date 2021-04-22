@@ -26,6 +26,14 @@ def get_current_timestamp():
 def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
     label_response = service.users().labels().list(userId=user_id).execute()
+    return get_dataframe_for_label_response(label_response, user_id, imported_timestamp)
+
+
+def get_dataframe_for_label_response(
+        label_response: dict,
+        user_id: str,
+        imported_timestamp: str) -> pd.DataFrame:
+
     df_one_label = pd.DataFrame()
     df_label = pd.DataFrame()
     for label in label_response['labels']:
@@ -62,15 +70,22 @@ def get_link_message_thread_ids(service: Resource, user_id: str) -> pd.DataFrame
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
-    thread_results = service.users().threads().get(userId=user_id, id=thread_id).execute()
+    thread_response = service.users().threads().get(userId=user_id, id=thread_id).execute()
+    return get_dataframe_for_thread_response(thread_response, user_id, imported_timestamp)
+
+
+def get_dataframe_for_thread_response(
+        thread_response: dict,
+        user_id: str,
+        imported_timestamp: str) -> pd.DataFrame:
 
     df_thread = pd.DataFrame()
 
-    df_thread['threadId'] = [thread_results['id']]
-    df_thread['historyId'] = [thread_results['historyId']]
+    df_thread['threadId'] = [thread_response['id']]
+    df_thread['historyId'] = [thread_response['historyId']]
     df_thread['user_id'] = user_id
     df_thread['imported_timestamp'] = imported_timestamp
-    df_thread['messages'] = [thread_results['messages']]
+    df_thread['messages'] = [thread_response['messages']]
 
     return df_thread
 
@@ -90,10 +105,12 @@ def iter_gmail_history(service: Resource, user_id: str, start_id: str) -> Iterab
         yield from response['history']
 
 
-def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -> pd.DataFrame:
-    imported_timestamp = get_current_timestamp()
-    df_temp = pd.DataFrame(iter_gmail_history(service, user_id, start_id))
+def get_dataframe_for_history_iterable(
+        history_iterable: Iterable[dict],
+        user_id: str,
+        imported_timestamp: str) -> pd.DataFrame:
     df_hist = pd.DataFrame()
+    df_temp = pd.DataFrame(history_iterable)
     df_temp = df_temp.explode('messages')
     df_hist['historyId'] = df_temp['id']
     df_hist['messages'] = df_temp['messages']
@@ -101,6 +118,12 @@ def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -
     df_hist['user_id'] = user_id
     df_hist['imported_timestamp'] = imported_timestamp
     return df_hist
+
+
+def get_gmail_history_details(service: Resource, user_id: str,  start_id: str) -> pd.DataFrame:
+    imported_timestamp = get_current_timestamp()
+    history_iterable = iter_gmail_history(service, user_id, start_id)
+    return get_dataframe_for_history_iterable(history_iterable, user_id, imported_timestamp)
 
 
 def write_dataframe_to_jsonl_file(
