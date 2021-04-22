@@ -83,7 +83,7 @@ class TestGetDataframeForLabelResponse:
                     "id": "id1",
                     "name": "name1",
                     "type": "type1"
-                    },
+                },
                 {
                     "id": "id2",
                     "name": "name2",
