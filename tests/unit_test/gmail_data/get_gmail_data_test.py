@@ -32,8 +32,8 @@ def _gmail_label_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
     return list_mock
 
 
-@pytest.fixture(name='gmail_message_ids_list_mock')
-def _gmail_message_ids_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
+@pytest.fixture(name='gmail_message_list_mock')
+def _gmail_message_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
     users_mock = gmail_service_mock.users
     messages_mock = users_mock.return_value.messages
     list_mock = messages_mock.return_value.list
@@ -105,19 +105,19 @@ class TestIterLinkMessageThreadIds:
     def test_should_pass_user_id_to_list_method(
             self,
             gmail_service_mock,
-            gmail_message_ids_list_mock):
+            gmail_message_list_mock):
 
         list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))
-        gmail_message_ids_list_mock.assert_called_with(userId=USER_ID1)
+        gmail_message_list_mock.assert_called_with(userId=USER_ID1)
 
     def test_should_yield_first_page_messages_only_without_next_page_token(
             self,
             gmail_service_mock,
-            gmail_message_ids_list_mock):
+            gmail_message_list_mock):
 
         response = {'messages': ['messages1', 'messages2']}
 
-        execute_mock = gmail_message_ids_list_mock.return_value.execute
+        execute_mock = gmail_message_list_mock.return_value.execute
         execute_mock.return_value = response
 
         actual_messages = list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))
@@ -127,12 +127,12 @@ class TestIterLinkMessageThreadIds:
     def test_should_next_page_messages_if_exists_next_page_token(
             self,
             gmail_service_mock,
-            gmail_message_ids_list_mock):
+            gmail_message_list_mock):
 
         response = {'messages': ['messages1'], 'nextPageToken': 'nextPageToken1'}
         response_in_next_page = {'messages':  ['messages_in_next_page1']}
 
-        execute_mock = gmail_message_ids_list_mock.return_value.execute
+        execute_mock = gmail_message_list_mock.return_value.execute
         execute_mock.side_effect = [response, response_in_next_page]
 
         actual_messages = list(iter_link_message_thread_ids(gmail_service_mock, USER_ID1))

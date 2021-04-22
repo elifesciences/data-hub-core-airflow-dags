@@ -22,6 +22,13 @@ def get_current_timestamp():
     return datetime.datetime.utcnow().isoformat()
 
 
+@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
+def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
+    imported_timestamp = get_current_timestamp()
+    label_response = service.users().labels().list(userId=user_id).execute()
+    return get_dataframe_for_label_response(label_response, user_id, imported_timestamp)
+
+
 def get_dataframe_for_label_response(
         label_response: dict,
         user_id: str,
@@ -39,14 +46,6 @@ def get_dataframe_for_label_response(
     df_label['imported_timestamp'] = imported_timestamp
 
     return df_label
-
-
-@backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
-def get_label_list(service: Resource, user_id: str) -> pd.DataFrame:
-    imported_timestamp = get_current_timestamp()
-    label_response = service.users().labels().list(userId=user_id).execute()
-    return get_dataframe_for_label_response(label_response, user_id, imported_timestamp)
-
 
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
 def iter_link_message_thread_ids(service: Resource, user_id: str) -> Iterable[dict]:
