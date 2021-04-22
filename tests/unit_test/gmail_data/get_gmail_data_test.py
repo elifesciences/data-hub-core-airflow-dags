@@ -4,7 +4,7 @@ import pytest
 from data_pipeline.gmail_data.get_gmail_data import (
     get_dataframe_for_label_response,
     get_dataframe_for_thread_response,
-    get_dataframe_for_history_response,
+    get_dataframe_for_history_iterable,
     iter_link_message_thread_ids,
     iter_gmail_history,
     get_label_list,
@@ -206,12 +206,12 @@ class TestIterGmailHistory:
         assert actual_messages == ['history1', 'history_in_next_page1']
 
 
-class TestGetDataframeForHistoryResponse:
+class TestGetDataframeForHistoryIterable:
 
-    def test_get_dataframe_for_history_one_response(self):
-        history_response = [{'id': 'id1', 'messages': [{'id': 'id2', 'threadId': 'threadId1'}]}]
+    def test_get_dataframe_for_history_one_iteration(self):
+        history_iterable = [{'id': 'id1', 'messages': [{'id': 'id2', 'threadId': 'threadId1'}]}]
 
-        df = get_dataframe_for_history_response(history_response, USER_ID1, IMPORTED_TIMESTAMP)
+        df = get_dataframe_for_history_iterable(history_iterable, USER_ID1, IMPORTED_TIMESTAMP)
         assert df['threadId'].values == ['threadId1']
         assert df['historyId'].values == ['id1']
         assert df['messages'].values == [{'id': 'id2', 'threadId': 'threadId1'}]
