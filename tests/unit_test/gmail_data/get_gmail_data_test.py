@@ -24,34 +24,35 @@ def _gmail_service_mock() -> MagicMock:
     return MagicMock(name='service')
 
 
+@pytest.fixture(name='gmail_users_mock')
+def _gmail_users_mock(gmail_service_mock: MagicMock) -> MagicMock:
+    return gmail_service_mock.users
+
+
 @pytest.fixture(name='gmail_label_list_mock')
-def _gmail_label_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
-    users_mock = gmail_service_mock.users
-    labels_mock = users_mock.return_value.labels
+def _gmail_label_list_mock(gmail_users_mock: MagicMock) -> MagicMock:
+    labels_mock = gmail_users_mock.return_value.labels
     list_mock = labels_mock.return_value.list
     return list_mock
 
 
 @pytest.fixture(name='gmail_message_list_mock')
-def _gmail_message_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
-    users_mock = gmail_service_mock.users
-    messages_mock = users_mock.return_value.messages
+def _gmail_message_list_mock(gmail_users_mock: MagicMock) -> MagicMock:
+    messages_mock = gmail_users_mock.return_value.messages
     list_mock = messages_mock.return_value.list
     return list_mock
 
 
 @pytest.fixture(name='gmail_thread_get_mock')
-def _gmail_thread_get_mock(gmail_service_mock: MagicMock) -> MagicMock:
-    users_mock = gmail_service_mock.users
-    threads_mock = users_mock.return_value.threads
+def _gmail_thread_get_mock(gmail_users_mock: MagicMock) -> MagicMock:
+    threads_mock = gmail_users_mock.return_value.threads
     get_mock = threads_mock.return_value.get
     return get_mock
 
 
 @pytest.fixture(name='gmail_history_list_mock')
-def _gmail_history_list_mock(gmail_service_mock: MagicMock) -> MagicMock:
-    users_mock = gmail_service_mock.users
-    history_mock = users_mock.return_value.history
+def _gmail_history_list_mock(gmail_users_mock: MagicMock) -> MagicMock:
+    history_mock = gmail_users_mock.return_value.history
     list_mock = history_mock.return_value.list
     return list_mock
 
