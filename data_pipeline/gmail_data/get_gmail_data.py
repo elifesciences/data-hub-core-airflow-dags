@@ -1,9 +1,9 @@
 import datetime
 from typing import Iterable
+import logging
 from itertools import islice
 import pandas as pd
 import backoff
-import logging
 
 from google.oauth2 import service_account
 
