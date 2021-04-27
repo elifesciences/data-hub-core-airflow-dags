@@ -3,11 +3,15 @@ from typing import Iterable
 from itertools import islice
 import pandas as pd
 import backoff
+import logging
 
 from google.oauth2 import service_account
 
 from googleapiclient.discovery import build
 from googleapiclient.discovery import Resource
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -> Resource:
@@ -67,7 +71,7 @@ def get_link_message_thread_ids(
     imported_timestamp = get_current_timestamp()
     messages_iterable = iter_link_message_thread_ids(service, user_id)
     if is_gmail_end2end_test:
-        messages_iterable = islice(messages_iterable, 1)
+        messages_iterable = islice(messages_iterable, 4)
     df_link = pd.DataFrame(messages_iterable)
     df_link['user_id'] = user_id
     df_link['imported_timestamp'] = imported_timestamp
@@ -118,10 +122,16 @@ def get_dataframe_for_history_iterable(
         imported_timestamp: str) -> pd.DataFrame:
     df_hist = pd.DataFrame()
     df_temp = pd.DataFrame(history_iterable)
-    df_temp = df_temp.explode('messages')
-    df_hist['historyId'] = df_temp['id']
-    df_hist['messages'] = df_temp['messages']
-    df_hist['threadId'] = df_hist['messages'].apply(pd.Series)['threadId']
+    if 'messages' in df_temp:
+        df_temp = df_temp.explode('messages')
+        df_hist['historyId'] = df_temp['id']
+        df_hist['messages'] = df_temp['messages']
+        df_hist['threadId'] = df_hist['messages'].apply(pd.Series)['threadId']
+    else:
+        LOGGER.info('No updates found! Response: %s', df_temp)
+        df_hist['historyId'] = ''
+        df_hist['messages'] = ''
+        df_hist['threadId'] = ''
     df_hist['user_id'] = user_id
     df_hist['imported_timestamp'] = imported_timestamp
     return df_hist
@@ -135,7 +145,7 @@ def get_gmail_history_details(
     imported_timestamp = get_current_timestamp()
     history_iterable = iter_gmail_history(service, user_id, start_id)
     if is_gmail_end2end_test:
-        history_iterable = islice(history_iterable, 1)
+        history_iterable = islice(history_iterable, 4)
     return get_dataframe_for_history_iterable(history_iterable, user_id, imported_timestamp)
 
 
