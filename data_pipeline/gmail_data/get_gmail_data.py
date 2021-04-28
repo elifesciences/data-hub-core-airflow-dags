@@ -127,13 +127,11 @@ def get_dataframe_for_history_iterable(
         df_hist['historyId'] = df_temp['id']
         df_hist['messages'] = df_temp['messages']
         df_hist['threadId'] = df_hist['messages'].apply(pd.Series)['threadId']
+        df_hist['user_id'] = user_id
+        df_hist['imported_timestamp'] = imported_timestamp
     else:
         LOGGER.info('No updates found! Response: %s', df_temp)
-        df_hist['historyId'] = ''
-        df_hist['messages'] = ''
-        df_hist['threadId'] = ''
-    df_hist['user_id'] = user_id
-    df_hist['imported_timestamp'] = imported_timestamp
+
     return df_hist
 
 
