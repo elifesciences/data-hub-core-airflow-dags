@@ -67,7 +67,9 @@ TRUE_VALUES = {'true', '1', 't', 'y', 'yes'}
 FALSE_VALUES = {'false', '0', 'f', 'n', 'no'}
 
 
-def str_to_bool(value: str) -> bool:
+def str_to_bool(value: str, default_value=None) -> bool:
+    if not value and default_value is not None:
+        return default_value
     lower_value = value.lower()
     if lower_value in TRUE_VALUES:
         return True

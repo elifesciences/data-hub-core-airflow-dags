@@ -31,6 +31,10 @@ from data_pipeline.utils.pipeline_file_io import (
     get_yaml_file_as_dict
 )
 
+from data_pipeline.utils.pipeline_config import (
+    str_to_bool
+)
+
 from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
@@ -48,6 +52,8 @@ GMAIL_DATA_USER_ID_ENV = "GMAIL_DATA_USER_ID"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
+
+IS_END2END_TEST_ENV = "IS_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
@@ -89,6 +95,13 @@ def data_config_from_xcom(context):
 
 def get_gmail_user_id():
     return get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
+
+
+def is_end2end_test():
+    return str_to_bool(
+        get_env_var_or_use_default(IS_END2END_TEST_ENV, default_value=""),
+        default_value=False
+    )
 
 
 def get_gmail_service():
@@ -149,7 +162,11 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
         filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_ids)
 
         write_dataframe_to_jsonl_file(
-            df_data_to_write=get_link_message_thread_ids(get_gmail_service(),  user_id),
+            df_data_to_write=get_link_message_thread_ids(
+                get_gmail_service(),
+                user_id,
+                is_end2end_test()
+            ),
             target_file_path=filename
         )
 
@@ -189,32 +206,37 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, data_config.temp_table_name_history_details)
 
-        write_dataframe_to_jsonl_file(
-            df_data_to_write=get_gmail_history_details(
+        df_data_to_write = get_gmail_history_details(
                 get_gmail_service(),
                 user_id,
-                str(start_id)
-            ),
-            target_file_path=filename
-        )
+                str(start_id),
+                is_end2end_test()
+            )
+        if not df_data_to_write.empty:
+            write_dataframe_to_jsonl_file(
+                df_data_to_write,
+                target_file_path=filename
+            )
 
-        LOGGER.info('Created file: %s', filename)
+            LOGGER.info('Created file: %s', filename)
 
-        create_or_extend_table_schema(
-            gcp_project=project_name,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            full_file_location=filename,
-            quoted_values_are_strings=True
-        )
+            create_or_extend_table_schema(
+                gcp_project=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                full_file_location=filename,
+                quoted_values_are_strings=True
+            )
 
-        load_file_into_bq(
-            filename=filename,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            project_name=project_name
-        )
-        LOGGER.info('Loaded table: %s', table_name)
+            load_file_into_bq(
+                filename=filename,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                project_name=project_name
+            )
+            LOGGER.info('Loaded table: %s', table_name)
+        else:
+            LOGGER.info('No updates found!')
 
 
 def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
@@ -281,42 +303,47 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
     dataset_name = data_config.dataset_name
     table_name = data_config.table_name_thread_details
 
-    df_thread_id_list = get_distinct_values_from_bq(
-                            project_name=data_config.project_name,
-                            dataset_name=dataset_name,
-                            column_name=data_config.column_name_input,
-                            table_name_source=data_config.temp_table_name_history_details,
-                            table_name_for_exclusion=data_config.temp_table_name_thread_ids
-                        )
+    if does_bigquery_table_exist(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=data_config.temp_table_name_history_details
+    ):
+        df_thread_id_list = get_distinct_values_from_bq(
+                                project_name=data_config.project_name,
+                                dataset_name=dataset_name,
+                                column_name=data_config.column_name_input,
+                                table_name_source=data_config.temp_table_name_history_details,
+                                table_name_for_exclusion=data_config.temp_table_name_thread_ids
+                            )
 
-    # because of big amount of data created chunks of dataframe to load data
-    for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
-        LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
-        df_thread_details = pd.concat([
-                                        get_one_thread(get_gmail_service(), user_id, id)
-                                        for id in df_ids_part[0]
-                            ], ignore_index=True)
-        with TemporaryDirectory() as tmp_dir:
-            filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
-            write_dataframe_to_jsonl_file(
-                df_data_to_write=df_thread_details,
-                target_file_path=filename
-            )
-            LOGGER.info('Created file: %s', filename)
-            create_or_extend_table_schema(
-                gcp_project=project_name,
-                dataset_name=dataset_name,
-                table_name=table_name,
-                full_file_location=filename,
-                quoted_values_are_strings=True
-            )
-            load_file_into_bq(
-                filename=filename,
-                dataset_name=dataset_name,
-                table_name=table_name,
-                project_name=project_name
-            )
-            LOGGER.info('Loaded table: %s', table_name)
+        # because of big amount of data created chunks of dataframe to load data
+        for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
+            LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
+            df_thread_details = pd.concat([
+                                            get_one_thread(get_gmail_service(), user_id, id)
+                                            for id in df_ids_part[0]
+                                ], ignore_index=True)
+            with TemporaryDirectory() as tmp_dir:
+                filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
+                write_dataframe_to_jsonl_file(
+                    df_data_to_write=df_thread_details,
+                    target_file_path=filename
+                )
+                LOGGER.info('Created file: %s', filename)
+                create_or_extend_table_schema(
+                    gcp_project=project_name,
+                    dataset_name=dataset_name,
+                    table_name=table_name,
+                    full_file_location=filename,
+                    quoted_values_are_strings=True
+                )
+                load_file_into_bq(
+                    filename=filename,
+                    dataset_name=dataset_name,
+                    table_name=table_name,
+                    project_name=project_name
+                )
+                LOGGER.info('Loaded table: %s', table_name)
 
 
 def load_from_temp_table_to_label_list(**kwargs):

@@ -320,26 +320,41 @@ def load_from_temp_table_to_actual_table(
         project_name, dataset_name, table_name
     )
 
-    sql = (
-        """
-        SELECT t.* EXCEPT(seqnum)
-        FROM (SELECT *,
-                ROW_NUMBER() OVER (PARTITION BY {column_name}
-                                ORDER BY imported_timestamp DESC
-                               ) AS seqnum
+    if does_bigquery_table_exist(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name):
+        sql = (
+            """
+            SELECT t.* EXCEPT(seqnum)
+            FROM (SELECT *,
+                    ROW_NUMBER() OVER (PARTITION BY {column_name}
+                                    ORDER BY imported_timestamp DESC
+                                ) AS seqnum
+                FROM `{project_name}.{dataset_name}.{temp_table_name}`
+                ) t
+            WHERE seqnum = 1
+            AND {column_name} NOT IN (SELECT DISTINCT {column_name}
+                        FROM `{project_name}.{dataset_name}.{table_name}`)
+            """.format(
+                    column_name=column_name,
+                    project_name=project_name,
+                    dataset_name=dataset_name,
+                    table_name=table_name,
+                    temp_table_name=temp_table_name
+                )
+        )
+    else:
+        sql = (
+            """
+            SELECT *
             FROM `{project_name}.{dataset_name}.{temp_table_name}`
-            ) t
-        WHERE seqnum = 1
-        AND {column_name} NOT IN (SELECT DISTINCT {column_name}
-                      FROM `{project_name}.{dataset_name}.{table_name}`)
-        """.format(
-                column_name=column_name,
-                project_name=project_name,
-                dataset_name=dataset_name,
-                table_name=table_name,
-                temp_table_name=temp_table_name
-            )
-    )
+            """.format(
+                    project_name=project_name,
+                    dataset_name=dataset_name,
+                    temp_table_name=temp_table_name
+                )
+        )
 
     job_config = bigquery.QueryJobConfig(
         allow_large_results=True,
