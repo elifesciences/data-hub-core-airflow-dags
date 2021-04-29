@@ -31,6 +31,10 @@ from data_pipeline.utils.pipeline_file_io import (
     get_yaml_file_as_dict
 )
 
+from data_pipeline.utils.pipeline_config import (
+    str_to_bool
+)
+
 from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_for_user_id,
     get_label_list,
@@ -49,7 +53,7 @@ GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-IS_GMAIL_END2END_TEST_ENV = "IS_GMAIL_END2END_TEST"
+IS_END2END_TEST_ENV = "IS_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
@@ -93,8 +97,8 @@ def get_gmail_user_id():
     return get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
 
 
-def is_gmail_end2end_test():
-    return get_env_var_or_use_default(IS_GMAIL_END2END_TEST_ENV)
+def is_end2end_test():
+    return str_to_bool(get_env_var_or_use_default(IS_END2END_TEST_ENV))
 
 
 def get_gmail_service():
@@ -158,7 +162,7 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
             df_data_to_write=get_link_message_thread_ids(
                 get_gmail_service(),
                 user_id,
-                is_gmail_end2end_test()
+                is_end2end_test()
             ),
             target_file_path=filename
         )
@@ -203,7 +207,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
                 get_gmail_service(),
                 user_id,
                 str(start_id),
-                is_gmail_end2end_test()
+                is_end2end_test()
             )
         if not df_data_to_write.empty:
             write_dataframe_to_jsonl_file(
