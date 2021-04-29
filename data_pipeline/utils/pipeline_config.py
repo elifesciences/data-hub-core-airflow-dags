@@ -64,7 +64,7 @@ def replace_env_placeholder(
 
 
 TRUE_VALUES = {'true', '1', 't', 'y', 'yes'}
-FALSE_VALUES = {'false', '0', 'f', 'n', 'no'}
+FALSE_VALUES = {'false', '0', 'f', 'n', 'no', ''}
 
 
 def str_to_bool(value: str) -> bool:

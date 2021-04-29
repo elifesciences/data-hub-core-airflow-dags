@@ -16,9 +16,8 @@ class TestStrToBool:
     def test_should_return_false_for_false(self):
         assert str_to_bool('false') is False
 
-    def test_should_raise_error_for_empty_value(self):
-        with pytest.raises(ValueError):
-            str_to_bool('')
+    def test_should_return_false_for_empty_value(self):
+        assert str_to_bool('') is False
 
     def test_should_raise_error_for_invalid_value(self):
         with pytest.raises(ValueError):
