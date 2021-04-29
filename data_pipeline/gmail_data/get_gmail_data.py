@@ -67,10 +67,10 @@ def iter_link_message_thread_ids(service: Resource, user_id: str) -> Iterable[di
 def get_link_message_thread_ids(
         service: Resource,
         user_id: str,
-        is_gmail_end2end_test: bool) -> pd.DataFrame:
+        is_end2end_test: bool) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
     messages_iterable = iter_link_message_thread_ids(service, user_id)
-    if is_gmail_end2end_test:
+    if is_end2end_test:
         messages_iterable = islice(messages_iterable, 4)
     df_link = pd.DataFrame(messages_iterable)
     df_link['user_id'] = user_id
@@ -139,10 +139,10 @@ def get_gmail_history_details(
         service: Resource,
         user_id: str,
         start_id: str,
-        is_gmail_end2end_test: bool) -> pd.DataFrame:
+        is_end2end_test: bool) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
     history_iterable = iter_gmail_history(service, user_id, start_id)
-    if is_gmail_end2end_test:
+    if is_end2end_test:
         history_iterable = islice(history_iterable, 4)
     return get_dataframe_for_history_iterable(history_iterable, user_id, imported_timestamp)
 
