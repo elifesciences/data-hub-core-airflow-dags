@@ -98,7 +98,10 @@ def get_gmail_user_id():
 
 
 def is_end2end_test():
-    return str_to_bool(get_env_var_or_use_default(IS_END2END_TEST_ENV))
+    return str_to_bool(
+        get_env_var_or_use_default(IS_END2END_TEST_ENV, default_value=""),
+        default_value=False
+    )
 
 
 def get_gmail_service():
