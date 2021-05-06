@@ -115,101 +115,15 @@ def get_gmail_service():
     )
 
 
-def gmail_label_data_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
-    project_name = data_config.project_name
-    dataset_name = data_config.dataset_name
-    table_name = data_config.temp_table_name_labels
+def get_gmail_df_to_load_bq_table(
+        project_name: str,
+        dataset_name: str,
+        table_name: str,
+        df_data_to_write: pd.DataFrame):
 
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, table_name+'.json')
 
-        write_dataframe_to_jsonl_file(
-            df_data_to_write=get_label_list(get_gmail_service(),  user_id),
-            target_file_path=filename
-        )
-
-        LOGGER.info('Created file: %s', filename)
-
-        create_or_extend_table_schema(
-            gcp_project=project_name,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            full_file_location=filename,
-            quoted_values_are_strings=True
-        )
-
-        load_file_into_bq(
-            filename=filename,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            project_name=project_name
-        )
-        LOGGER.info('Loaded table: %s', table_name)
-
-
-def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
-    project_name = data_config.project_name
-    dataset_name = data_config.dataset_name
-    table_name = data_config.temp_table_name_thread_ids
-
-    with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, table_name+'.json')
-
-        write_dataframe_to_jsonl_file(
-            df_data_to_write=get_link_message_thread_ids(
-                get_gmail_service(),
-                user_id,
-                is_end2end_test()
-            ),
-            target_file_path=filename
-        )
-
-        LOGGER.info('Created file: %s', filename)
-
-        create_or_extend_table_schema(
-            gcp_project=project_name,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            full_file_location=filename,
-            quoted_values_are_strings=True
-        )
-
-        load_file_into_bq(
-            filename=filename,
-            dataset_name=dataset_name,
-            table_name=table_name,
-            project_name=project_name
-        )
-        LOGGER.info('Loaded table: %s', table_name)
-
-
-def gmail_history_details_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
-    project_name = data_config.project_name
-    dataset_name = data_config.dataset_name
-    table_name = data_config.temp_table_name_history_details
-
-    start_id = get_max_value_from_bq_table(
-                    project_name=data_config.project_name,
-                    dataset_name=dataset_name,
-                    column_name=data_config.column_name_history_check,
-                    table_name=data_config.table_name_thread_details
-                )
-
-    with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, table_name+'.json')
-
-        df_data_to_write = get_gmail_history_details(
-                get_gmail_service(),
-                user_id,
-                str(start_id),
-                is_end2end_test()
-            )
         if not df_data_to_write.empty:
             write_dataframe_to_jsonl_file(
                 df_data_to_write,
@@ -234,7 +148,61 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
             )
             LOGGER.info('Loaded table: %s', table_name)
         else:
-            LOGGER.info('No updates found!')
+            LOGGER.info('No updates found for the table: %s', table_name)
+
+
+def gmail_label_data_to_temp_table_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+
+    get_gmail_df_to_load_bq_table(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name=data_config.temp_table_name_labels,
+        df_data_to_write=get_label_list(get_gmail_service(),  user_id)
+    )
+
+
+def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+
+    get_gmail_df_to_load_bq_table(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name=data_config.temp_table_name_thread_ids,
+        df_data_to_write=get_link_message_thread_ids(
+            get_gmail_service(),
+            user_id,
+            is_end2end_test()
+        )
+    )
+
+
+def gmail_history_details_to_temp_table_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    user_id = get_gmail_user_id()
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+
+    start_id = get_max_value_from_bq_table(
+                    project_name=project_name,
+                    dataset_name=dataset_name,
+                    column_name=data_config.column_name_history_check,
+                    table_name=data_config.table_name_thread_details
+                )
+
+    get_gmail_df_to_load_bq_table(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=data_config.temp_table_name_history_details,
+        df_data_to_write=get_gmail_history_details(
+            get_gmail_service(),
+            user_id,
+            str(start_id),
+            is_end2end_test()
+        )
+    )
 
 
 def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
@@ -250,7 +218,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
             table_name=table_name
     ):
         df_thread_id_list = get_distinct_values_from_bq(
-                            project_name=data_config.project_name,
+                            project_name=project_name,
                             dataset_name=dataset_name,
                             column_name=data_config.column_name_input,
                             table_name_source=data_config.temp_table_name_thread_ids,
@@ -258,7 +226,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                         )
     else:
         df_thread_id_list = get_distinct_values_from_bq(
-                            project_name=data_config.project_name,
+                            project_name=project_name,
                             dataset_name=dataset_name,
                             column_name=data_config.column_name_input,
                             table_name_source=data_config.temp_table_name_thread_ids
@@ -271,27 +239,13 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                                         get_one_thread(get_gmail_service(), user_id, id)
                                         for id in df_ids_part[0]
                             ], ignore_index=True)
-        with TemporaryDirectory() as tmp_dir:
-            filename = os.path.join(tmp_dir, table_name+'.json')
-            write_dataframe_to_jsonl_file(
-                df_data_to_write=df_thread_details,
-                target_file_path=filename
-            )
-            LOGGER.info('Created file: %s', filename)
-            create_or_extend_table_schema(
-                gcp_project=project_name,
-                dataset_name=dataset_name,
-                table_name=table_name,
-                full_file_location=filename,
-                quoted_values_are_strings=True
-            )
-            load_file_into_bq(
-                filename=filename,
-                dataset_name=dataset_name,
-                table_name=table_name,
-                project_name=project_name
-            )
-            LOGGER.info('Loaded table: %s', table_name)
+
+        get_gmail_df_to_load_bq_table(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            df_data_to_write=df_thread_details
+        )
 
 
 def gmail_thread_details_from_temp_history_details_etl(**kwargs):
@@ -321,27 +275,12 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
                                             get_one_thread(get_gmail_service(), user_id, id)
                                             for id in df_ids_part[0]
                                 ], ignore_index=True)
-            with TemporaryDirectory() as tmp_dir:
-                filename = os.path.join(tmp_dir, table_name+'.json')
-                write_dataframe_to_jsonl_file(
-                    df_data_to_write=df_thread_details,
-                    target_file_path=filename
-                )
-                LOGGER.info('Created file: %s', filename)
-                create_or_extend_table_schema(
-                    gcp_project=project_name,
-                    dataset_name=dataset_name,
-                    table_name=table_name,
-                    full_file_location=filename,
-                    quoted_values_are_strings=True
-                )
-                load_file_into_bq(
-                    filename=filename,
-                    dataset_name=dataset_name,
-                    table_name=table_name,
-                    project_name=project_name
-                )
-                LOGGER.info('Loaded table: %s', table_name)
+            get_gmail_df_to_load_bq_table(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                df_data_to_write=df_thread_details
+            )
 
 
 def load_from_temp_table_to_label_list(**kwargs):
