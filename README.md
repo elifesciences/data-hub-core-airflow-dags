@@ -10,6 +10,7 @@ Generic data pipelines implemented so far include
 * Generic Web Api Data Pipeline
 * Google Analytics Data Pipeline
 * Twitter Data Pipeline
+* Gmail Data Pipeline
 
 The sample configuration for the different data pipelines can be found in `sample_data_config` directory of this project
 
