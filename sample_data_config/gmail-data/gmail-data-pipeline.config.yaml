@@ -1,20 +1,16 @@
 projectName: 'elife-data-pipeline'
 datasetName: '{ENV}'
 gmailLabelData:
-  tempFileName: 'gmail_label_list.json'
   table: 'gmail_label_list'
   tempTable: 'temp_gmail_label_list'
   uniqueIdColumn: 'labelId'
 gmailLinkIdsData:
-  tempFileName: 'gmail_thread_ids_list.json'
   table: 'gmail_thread_ids_list'
   tempTable: 'temp_gmail_thread_ids_list'
   uniqueIdColumn: 'id'
 gmailThreadData:
-  tempFileName: 'gmail_thread_details.json'
   table: 'gmail_thread_details'
   inputColumn: 'threadId'
   historyCheckColumn: 'historyId'
 gmailHistoryData:
-  tempFileName: 'gmail_history_details.json'
   tempTable: 'temp_gmail_history_details'

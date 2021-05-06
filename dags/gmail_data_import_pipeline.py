@@ -8,7 +8,6 @@ import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
-    generate_schema_from_file,
     create_or_extend_table_schema,
     delete_table_from_bq,
     load_from_temp_table_to_actual_table,
@@ -124,7 +123,7 @@ def gmail_label_data_to_temp_table_etl(**kwargs):
     table_name = data_config.temp_table_name_labels
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.temp_file_name_labels)
+        filename = os.path.join(tmp_dir, table_name+'.json')
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_label_list(get_gmail_service(),  user_id),
@@ -132,9 +131,6 @@ def gmail_label_data_to_temp_table_etl(**kwargs):
         )
 
         LOGGER.info('Created file: %s', filename)
-
-        generated_schema = generate_schema_from_file(filename)
-        LOGGER.info('generated_schema: %s', generated_schema)
 
         create_or_extend_table_schema(
             gcp_project=project_name,
@@ -161,7 +157,7 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
     table_name = data_config.temp_table_name_thread_ids
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_ids)
+        filename = os.path.join(tmp_dir, table_name+'.json')
 
         write_dataframe_to_jsonl_file(
             df_data_to_write=get_link_message_thread_ids(
@@ -206,7 +202,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
                 )
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, data_config.temp_table_name_history_details)
+        filename = os.path.join(tmp_dir, table_name+'.json')
 
         df_data_to_write = get_gmail_history_details(
                 get_gmail_service(),
@@ -276,7 +272,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                                         for id in df_ids_part[0]
                             ], ignore_index=True)
         with TemporaryDirectory() as tmp_dir:
-            filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
+            filename = os.path.join(tmp_dir, table_name+'.json')
             write_dataframe_to_jsonl_file(
                 df_data_to_write=df_thread_details,
                 target_file_path=filename
@@ -326,7 +322,7 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
                                             for id in df_ids_part[0]
                                 ], ignore_index=True)
             with TemporaryDirectory() as tmp_dir:
-                filename = os.path.join(tmp_dir, data_config.temp_file_name_thread_details)
+                filename = os.path.join(tmp_dir, table_name+'.json')
                 write_dataframe_to_jsonl_file(
                     df_data_to_write=df_thread_details,
                     target_file_path=filename
