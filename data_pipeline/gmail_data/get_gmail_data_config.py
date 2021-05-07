@@ -19,9 +19,6 @@ class GmailGetDataConfig:
         self.dataset_name = self.data_config.get("datasetName")
 
         # label list
-        self.temp_file_name_labels = (
-            self.data_config.get("gmailLabelData").get("tempFileName")
-        )
         self.table_name_labels = (
             self.data_config.get("gmailLabelData").get("table")
         )
@@ -33,9 +30,6 @@ class GmailGetDataConfig:
         )
 
         # message-thread ids list
-        self.temp_file_name_thread_ids = (
-            self.data_config.get("gmailLinkIdsData").get("tempFileName")
-        )
         self.table_name_thread_ids = (
             self.data_config.get("gmailLinkIdsData").get("table")
         )
@@ -47,17 +41,11 @@ class GmailGetDataConfig:
         )
 
         # history details
-        self.temp_file_name_history_details = (
-            self.data_config.get("gmailHistoryData").get("tempFileName")
-        )
         self.temp_table_name_history_details = (
             self.data_config.get("gmailHistoryData").get("tempTable")
         )
 
         # thread details
-        self.temp_file_name_thread_details = (
-            self.data_config.get("gmailThreadData").get("tempFileName")
-        )
         self.table_name_thread_details = (
             self.data_config.get("gmailThreadData").get("table")
         )
