@@ -115,7 +115,7 @@ def get_gmail_service():
     )
 
 
-def get_gmail_df_to_load_bq_table(
+def load_bq_table_from_df(
         project_name: str,
         dataset_name: str,
         table_name: str,
@@ -155,7 +155,7 @@ def gmail_label_data_to_temp_table_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
 
-    get_gmail_df_to_load_bq_table(
+    load_bq_table_from_df(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset_name,
         table_name=data_config.temp_table_name_labels,
@@ -167,7 +167,7 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
     user_id = get_gmail_user_id()
 
-    get_gmail_df_to_load_bq_table(
+    load_bq_table_from_df(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset_name,
         table_name=data_config.temp_table_name_thread_ids,
@@ -192,7 +192,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
                     table_name=data_config.table_name_thread_details
                 )
 
-    get_gmail_df_to_load_bq_table(
+    load_bq_table_from_df(
         project_name=project_name,
         dataset_name=dataset_name,
         table_name=data_config.temp_table_name_history_details,
@@ -240,7 +240,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                                         for id in df_ids_part[0]
                             ], ignore_index=True)
 
-        get_gmail_df_to_load_bq_table(
+        load_bq_table_from_df(
             project_name=project_name,
             dataset_name=dataset_name,
             table_name=table_name,
@@ -275,7 +275,7 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
                                             get_one_thread(get_gmail_service(), user_id, id)
                                             for id in df_ids_part[0]
                                 ], ignore_index=True)
-            get_gmail_df_to_load_bq_table(
+            load_bq_table_from_df(
                 project_name=project_name,
                 dataset_name=dataset_name,
                 table_name=table_name,
