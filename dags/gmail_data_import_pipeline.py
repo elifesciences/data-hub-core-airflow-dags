@@ -122,7 +122,7 @@ def get_gmail_df_to_load_bq_table(
         df_data_to_write: pd.DataFrame):
 
     with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, table_name+'.json')
+        filename = os.path.join(tmp_dir, 'tmp_file.json')
 
         if not df_data_to_write.empty:
             write_dataframe_to_jsonl_file(
