@@ -199,16 +199,26 @@ def log_last_record_date(**kwargs):
 
 # pylint: disable=invalid-name, pointless-statement
 get_data_config_task = create_python_task(
-    CROSSREF_DAG, "get_data_config", get_data_config, retries=5
+    CROSSREF_DAG,
+    "get_data_config",
+    get_data_config,
+    retries=5
 )
+
 create_table_if_not_exist_task = create_python_task(
-    CROSSREF_DAG, "create_table_if_not_exist",
-    create_bq_table_if_not_exist, retries=5
+    CROSSREF_DAG,
+    "create_table_if_not_exist",
+    create_bq_table_if_not_exist,
+    retries=5
 )
+
 crossref_event_data_etl_task = create_python_task(
-    CROSSREF_DAG, "crossref_event_data_etl",
+    CROSSREF_DAG,
+    "crossref_event_data_etl",
     crossref_data_etl,
+    retries=5
 )
+
 log_last_record_date_task = create_python_task(
     CROSSREF_DAG,
     "log_last_record_date",
