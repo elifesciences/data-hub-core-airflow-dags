@@ -207,7 +207,7 @@ create_table_if_not_exist_task = create_python_task(
 )
 crossref_event_data_etl_task = create_python_task(
     CROSSREF_DAG, "crossref_event_data_etl",
-    crossref_data_etl, retries=2
+    crossref_data_etl, retries=5
 )
 log_last_record_date_task = create_python_task(
     CROSSREF_DAG,
