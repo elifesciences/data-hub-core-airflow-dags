@@ -27,7 +27,7 @@ def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
         )
     else:
         timestamp_obj = dateparser.parse(
-            timestamp_as_str.strip()
+            timestamp_as_str
         )
     return timestamp_obj
 

@@ -138,8 +138,7 @@ def get_latest_record_list_timestamp(
                 get_dict_values_from_path_as_list(
                     record,
                     data_config.item_timestamp_key_path_from_item_root
-                ),
-                data_config.item_timestamp_format,
+                )
             )
             latest_collected_record_timestamp_list.append(record_timestamp)
     latest_collected_record_timestamp_list = [

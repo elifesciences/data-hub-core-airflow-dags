@@ -162,7 +162,6 @@ webApi:
       itemsKeyFromResponseRoot:
         - values
       recordTimestamp:
-        timestampFormat: "%Y-%m-%d %H:%M:%S"
         itemTimestampKeyFromItemRoot:
           - modified_date
 
@@ -182,7 +181,6 @@ webApi:
         dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
     response:
       recordTimestamp:
-        timestampFormat: "%Y-%m-%dT%H:%M:%S.%f+00:00"
         itemTimestampKeyFromItemRoot:
           - updated
       itemsKeyFromResponseRoot:
@@ -209,7 +207,6 @@ webApi:
       totalItemsCountKeyFromResponseRoot:
         - total_count
       recordTimestamp:
-        timestampFormat: "%Y-%m-%dT%H:%M:%S+00:00"
         itemTimestampKeyFromItemRoot:
           - updated
     authentication:
