@@ -2,8 +2,8 @@ from datetime import (
     datetime,
     timezone
 )
+import dateparser
 import pytz
-from dateutil import parser
 
 
 def get_current_timestamp_as_string(
@@ -26,7 +26,7 @@ def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
             timestamp_as_str.strip(), time_format
         )
     else:
-        timestamp_obj = parser.parse(
+        timestamp_obj = dateparser.parse(
             timestamp_as_str
         )
     return timestamp_obj
