@@ -199,11 +199,6 @@ class WebApiConfig:
                     "itemTimestampKeyFromItemRoot", []
                 )
         )
-        self.item_timestamp_format = (
-            api_config.get("response", {}).get(
-                "recordTimestamp", {}).get(
-                    "timestampFormat", None)
-        )
         auth_type = api_config.get("authentication", {}).get(
             "auth_type", None
         )
