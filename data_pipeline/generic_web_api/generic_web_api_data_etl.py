@@ -49,8 +49,7 @@ def get_stored_state(
                 download_s3_object_as_string(
                     data_config.state_file_bucket_name,
                     data_config.state_file_object_name
-                ),
-                ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+                )
             )
             if data_config.state_file_bucket_name and
             data_config.state_file_object_name else None
@@ -58,8 +57,7 @@ def get_stored_state(
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
             stored_state = parse_timestamp_from_str(
-                data_config.default_start_date,
-                data_config.url_builder.date_format
+                data_config.default_start_date
             ) if (
                 data_config.default_start_date and
                 data_config.url_builder.date_format
