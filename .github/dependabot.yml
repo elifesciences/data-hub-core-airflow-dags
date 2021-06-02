@@ -1,0 +1,58 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: apache-airflow[celery,crypto,jdbc,postgres,ssh]
+    versions:
+    - ">= 2.a, < 3"
+  - dependency-name: cattrs
+    versions:
+    - ">= 1.1.a, < 1.2"
+  - dependency-name: cloudpickle
+    versions:
+    - ">= 1.5.a, < 1.6"
+  - dependency-name: boto3
+    versions:
+    - 1.17.16
+    - 1.17.22
+    - 1.17.35
+    - 1.17.59
+  - dependency-name: cattrs
+    versions:
+    - 1.2.0
+    - 1.3.0
+    - 1.4.0
+  - dependency-name: fsspec
+    versions:
+    - 0.9.0
+  - dependency-name: dask[complete]
+    versions:
+    - 2021.3.0
+    - 2021.3.1
+    - 2021.4.0
+  - dependency-name: distributed
+    versions:
+    - 2021.3.0
+    - 2021.3.1
+    - 2021.4.0
+  - dependency-name: s3fs
+    versions:
+    - 0.5.2
+    - 0.6.0
+  - dependency-name: setuptools
+    versions:
+    - 52.0.0
+    - 53.0.0
+    - 53.1.0
+    - 54.0.0
+    - 54.1.1
+    - 54.1.2
+    - 54.2.0
+  - dependency-name: pip
+    versions:
+    - "21.0"
+    - 21.0.1
