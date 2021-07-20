@@ -14,6 +14,9 @@ USER airflow
 COPY requirements.build.txt ./
 RUN pip install --disable-pip-version-check -r requirements.build.txt
 
+COPY requirements.monitoring.txt ./
+RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
+
 COPY requirements.txt ./
 RUN pip install --disable-pip-version-check -r requirements.txt
 
@@ -24,6 +27,7 @@ ENV PATH /home/airflow/.local/bin:$PATH
 
 COPY --chown=airflow:airflow data_pipeline ./data_pipeline
 COPY --chown=airflow:airflow dags ./dags
+COPY --chown=airflow:airflow monitoring ./monitoring
 COPY --chown=airflow:airflow setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
