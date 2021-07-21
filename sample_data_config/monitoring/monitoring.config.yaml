@@ -1,0 +1,6 @@
+project: 'elife-data-pipeline'
+dataset: '{ENV}'
+table: 'v_data_hub_pipeline_status'
+stateFile:
+  bucket: '{ENV}-elife-data-pipeline'
+  object: 'airflow-config/monitoring/{ENV}-status.csv'
