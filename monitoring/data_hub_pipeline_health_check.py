@@ -1,13 +1,9 @@
 import os
 import logging
-from pathlib import Path
-
 import pandas as pd
 import requests
-
+from io import StringIO, BytesIO
 import boto3
-
-# import data_hub_notifier.configure_warnings  # noqa pylint: disable=unused-import
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,26 +18,33 @@ def read_big_query(query: str, **kwargs):
 
 
 def get_query(
-        project_id: str,
+        project: str,
         dataset: str,
-        table_name: str):
-    return 'SELECT * FROM {project_id}.{dataset}.{table_name}'.format(
-        project_id=project_id,
+        table: str):
+    return 'SELECT * FROM {project}.{dataset}.{table}'.format(
+        project=project,
         dataset=dataset,
-        table_name=table_name
+        table=table
     )
 
 
-def read_state_df(status_file: str) -> pd.DataFrame:
-    if not os.path.exists(status_file):
-        return None
-    return pd.read_csv(status_file, sep='\t')
+def read_dataframe_from_s3_bucket(
+    bucket_name: str,
+    object_name: str
+) -> pd.DataFrame:
+    s3_object = boto3.client('s3').get_object(Bucket=bucket_name, Key=object_name)
+    return pd.read_csv(BytesIO(s3_object['Body'].read()))
 
 
-def save_state_df(status_df: pd.DataFrame, status_file: str):
-    status_file_path = Path(status_file)
-    status_file_path.parent.mkdir(parents=True, exist_ok=True)  # pylint: disable=no-member
-    status_df.to_csv(status_file_path, sep='\t', index=False)
+def write_dataframe_to_s3_bucket(
+    df_name: pd.DataFrame,
+    bucket_name: str,
+    object_name: str
+):
+    csv_buffer = StringIO()
+    df_name.to_csv(csv_buffer, index=False)
+    s3_resource = boto3.resource('s3')
+    s3_resource.Object(bucket_name, object_name).put(Body=csv_buffer.getvalue())
 
 
 def get_merged_status_df(
@@ -88,18 +91,25 @@ def send_slack_notification(
     ))
 
 
-def run(
-        project_id: str,
+def run_data_hub_pipeline_health_check(
+        project: str,
         dataset: str,
-        table_name: str,
-        status_file: str):
+        table: str,
+        bucket_name: str,
+        object_name: str
+):
+
     query = get_query(
-        project_id=project_id,
+        project=project,
         dataset=dataset,
-        table_name=table_name
+        table=table
     )
-    previous_status_df = read_state_df(status_file=status_file)
-    status_df = read_big_query(query, project_id=project_id)
+
+    previous_status_df = read_dataframe_from_s3_bucket(
+        bucket_name=bucket_name,
+        object_name=object_name
+    )
+    status_df = read_big_query(query, project_id=project)
     with pd.option_context("display.max_rows", 100, "display.max_columns", 10):
         LOGGER.info('status_df:\n%s', status_df)
         if previous_status_df is not None:
@@ -114,19 +124,9 @@ def run(
                 send_slack_notification(changed_status_df)
             else:
                 LOGGER.info('no changes')
-    save_state_df(status_df, status_file=status_file)
 
-
-def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:
-    s3_client = boto3.client("s3")
-    s3_client.put_object(Body=data_object, Bucket=bucket, Key=object_key)
-    return True
-
-
-def main():
-    run(
-        project_id='elife-data-pipeline',
-        dataset='de_proto',
-        table_name='v_tech_data_status',
-        status_file='./data/status.tsv'
+    write_dataframe_to_s3_bucket(
+        df_name=status_df,
+        bucket_name=bucket_name,
+        object_name=object_name
     )
