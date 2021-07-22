@@ -1,7 +1,6 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
 import logging
-import os
 
 from datetime import timedelta
 
