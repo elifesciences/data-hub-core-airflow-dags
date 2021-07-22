@@ -80,11 +80,11 @@ build-dev:
 
 flake8:
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \
-		python -m flake8 data_pipeline dags tests monitoring
+		python -m flake8 data_pipeline dags tests
 
 pylint:
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \
-		python -m pylint data_pipeline dags tests monitoring
+		python -m pylint data_pipeline dags tests
 
 lint: flake8 pylint
 
