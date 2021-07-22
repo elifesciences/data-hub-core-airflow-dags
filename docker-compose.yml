@@ -45,6 +45,7 @@ x-airflow-volumes:
     - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
     - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
+    - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
