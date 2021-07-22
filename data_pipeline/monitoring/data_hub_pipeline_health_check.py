@@ -2,7 +2,8 @@ import os
 import logging
 import pandas as pd
 import requests
-from io import StringIO, BytesIO
+from io import StringIO
+
 import boto3
 
 LOGGER = logging.getLogger(__name__)
@@ -32,8 +33,7 @@ def read_dataframe_from_s3_bucket(
     bucket_name: str,
     object_name: str
 ) -> pd.DataFrame:
-    s3_object = boto3.client('s3').get_object(Bucket=bucket_name, Key=object_name)
-    return pd.read_csv(BytesIO(s3_object['Body'].read()))
+    return pd.read_csv(f's3://{bucket_name}/{object_name}')
 
 
 def write_dataframe_to_s3_bucket(
@@ -45,6 +45,7 @@ def write_dataframe_to_s3_bucket(
     df_name.to_csv(csv_buffer, index=False)
     s3_resource = boto3.resource('s3')
     s3_resource.Object(bucket_name, object_name).put(Body=csv_buffer.getvalue())
+    csv_buffer.truncate(0)
 
 
 def get_merged_status_df(
