@@ -23,3 +23,8 @@ def ping():
     except socket.error as err:
         LOGGER.info("Ping failed: %s", err)
         LOGGER.info(response.raise_for_status())
+
+
+def main():
+    logging.basicConfig(level='INFO')
+    ping()
