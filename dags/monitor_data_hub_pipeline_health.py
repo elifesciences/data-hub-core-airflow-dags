@@ -1,5 +1,5 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
-
+import os
 import logging
 
 from datetime import timedelta
@@ -29,21 +29,19 @@ LOGGER = logging.getLogger(__name__)
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
-# Do not forgot to add formula:
 MONITORING_CONFIG_FILE_PATH_ENV_NAME = "MONITORING_CONFIG_FILE_PATH"
 
 DAG_ID = "Monitor_Data_Hub_Pipeline_Health"
-# don't forget to add the env var to the formula - 3 hours!
 MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL_ENV_NAME = (
     "MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL"
 )
 
 MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG = create_dag(
     dag_id=DAG_ID,
-    # schedule_interval=os.getenv(
-    #     MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL_ENV_NAME
-    # ),
-    dagrun_timeout=timedelta(hours=6)
+    schedule_interval=os.getenv(
+        MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL_ENV_NAME, None
+    ),
+    dagrun_timeout=timedelta(days=1)
 )
 
 
