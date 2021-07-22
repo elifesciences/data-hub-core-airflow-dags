@@ -93,3 +93,7 @@ def get_environment_variable_value(
     if value_converter:
         value = value_converter(value)
     return value
+
+
+def get_env_var_or_use_default(env_var_name, default_value=None):
+    return os.getenv(env_var_name, default_value)

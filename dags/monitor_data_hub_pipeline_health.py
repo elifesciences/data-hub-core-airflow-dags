@@ -9,6 +9,8 @@ from data_pipeline.utils.pipeline_file_io import (
     get_yaml_file_as_dict
 )
 
+from data_pipeline.utils.pipeline_config import get_env_var_or_use_default
+
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task
@@ -44,10 +46,6 @@ MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG = create_dag(
     # ),
     dagrun_timeout=timedelta(hours=6)
 )
-
-
-def get_env_var_or_use_default(env_var_name, default_value=None):
-    return os.getenv(env_var_name, default_value)
 
 
 def data_config_from_xcom(context):
