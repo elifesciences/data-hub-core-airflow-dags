@@ -74,7 +74,7 @@ def get_data_config(**kwargs):
     )
 
 
-def ping_health_checks_io(_):
+def ping_health_checks_io(**__):
     ping()
 
 
@@ -87,7 +87,7 @@ def check_data_hub_tables_status(**kwargs):
         object_name=data_config.object_name,
         project=data_config.project_name,
         dataset=data_config.dataset_name,
-        table=data_config.dataset_name
+        table=data_config.table_name
     )
 
 
@@ -112,9 +112,8 @@ check_data_hub_tables_status_task = create_python_task(
     retries=5
 )
 
-# pylint: disable=pointless-statement
-# define dependencies between tasks in the DAG
-(
+# defined dependencies between tasks in the DAG
+_ = (
     get_data_config_task >> [
         monitor_airflow_health_task,
         check_data_hub_tables_status_task
