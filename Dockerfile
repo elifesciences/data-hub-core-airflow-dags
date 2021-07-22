@@ -27,7 +27,6 @@ ENV PATH /home/airflow/.local/bin:$PATH
 
 COPY --chown=airflow:airflow data_pipeline ./data_pipeline
 COPY --chown=airflow:airflow dags ./dags
-COPY --chown=airflow:airflow monitoring ./monitoring
 COPY --chown=airflow:airflow setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
