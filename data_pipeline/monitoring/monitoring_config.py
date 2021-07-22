@@ -20,3 +20,6 @@ class MonitoringConfig:
         self.table_name = self.data_config.get("table")
         self.bucket_name = self.data_config.get("stateFile").get("bucket")
         self.object_name = self.data_config.get("stateFile").get("object")
+
+def __repr__(self):
+        return repr(vars(self))
