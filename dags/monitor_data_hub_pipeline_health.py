@@ -46,6 +46,7 @@ MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG = create_dag(
     dagrun_timeout=timedelta(hours=6)
 )
 
+
 # pylint: disable=duplicate-code
 def data_config_from_xcom(context):
     dag_context = context["ti"]
