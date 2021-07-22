@@ -18,7 +18,7 @@ from data_pipeline.monitoring.monitoring_config import (
     MonitoringConfig
 )
 
-from data_pipeline.monitoring.ping_healthchecks import ping
+from data_pipeline.monitoring.ping_healthchecks import main as ping
 
 from data_pipeline.monitoring.data_hub_pipeline_health_check import (
     run_data_hub_pipeline_health_check
@@ -77,9 +77,7 @@ def get_data_config(**kwargs):
     )
 
 
-# pylint: disable=unused-argument
-def ping_health_checks_io(**context):
-    logging.basicConfig(level='INFO')
+def ping_health_checks_io(_):
     ping()
 
 
