@@ -14,13 +14,13 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task
 )
 
-from monitoring.monitoring_config import (
+from data_pipeline.monitoring.monitoring_config import (
     MonitoringConfig
 )
 
-from monitoring.ping_healthchecks import ping
+from data_pipeline.monitoring.ping_healthchecks import ping
 
-from monitoring.data_hub_pipeline_health_check import (
+from data_pipeline.monitoring.data_hub_pipeline_health_check import (
     run_data_hub_pipeline_health_check
 )
 
