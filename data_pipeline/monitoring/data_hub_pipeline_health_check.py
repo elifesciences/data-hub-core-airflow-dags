@@ -1,8 +1,8 @@
 import os
 import logging
+from io import StringIO
 import pandas as pd
 import requests
-from io import StringIO
 
 import boto3
 
