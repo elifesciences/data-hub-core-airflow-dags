@@ -34,6 +34,8 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=${MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT}
     - MATERIALIZE_BIGQUERY_VIEWS_DATASET=${MATERIALIZE_BIGQUERY_VIEWS_DATASET}
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
+    - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     
 
 x-airflow-volumes:
@@ -43,6 +45,7 @@ x-airflow-volumes:
     - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
     - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
+    - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml

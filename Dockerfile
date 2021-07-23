@@ -14,6 +14,9 @@ USER airflow
 COPY requirements.build.txt ./
 RUN pip install --disable-pip-version-check -r requirements.build.txt
 
+COPY requirements.monitoring.txt ./
+RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
+
 COPY requirements.txt ./
 RUN pip install --disable-pip-version-check -r requirements.txt
 
