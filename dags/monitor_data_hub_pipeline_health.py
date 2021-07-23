@@ -45,27 +45,26 @@ MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG = create_dag(
 )
 
 
-# pylint: disable=duplicate-code
 def data_config_from_xcom(context):
     dag_context = context["ti"]
     data_config_dict = dag_context.xcom_pull(
         key="data_config_dict", task_ids="get_data_config"
     )
     LOGGER.info('data_config_dict: %s', data_config_dict)
-    deployment_env = get_env_var_or_use_default(
+    deployment_env_var = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     data_config = MonitoringConfig(
-        data_config_dict, deployment_env)
+        data_config_dict, deployment_env_var)
     LOGGER.info('data_config: %r', data_config)
     return data_config
 
 
 def get_data_config(**kwargs):
-    conf_file_path = get_env_var_or_use_default(
+    conf_file = get_env_var_or_use_default(
         MONITORING_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-    LOGGER.info('conf_file_path: %s', conf_file_path)
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
+    LOGGER.info('conf_file_path: %s', conf_file)
+    data_config_dict = get_yaml_file_as_dict(conf_file)
     LOGGER.info('data_config_dict: %s', data_config_dict)
     kwargs["ti"].xcom_push(
         key="data_config_dict",

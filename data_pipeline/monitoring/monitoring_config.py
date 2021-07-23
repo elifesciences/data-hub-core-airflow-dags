@@ -7,12 +7,12 @@ from data_pipeline.utils.pipeline_config import (
 class MonitoringConfig:
 
     def __init__(self, data_config: dict,
-                 deployment_env: str,
+                 deployment_env_var: str,
                  env_placeholder: str = "{ENV}"
                  ):
         self.data_config = update_deployment_env_placeholder(
             data_config,
-            deployment_env,
+            deployment_env_var,
             env_placeholder
         )
         self.project_name = self.data_config.get("project")
