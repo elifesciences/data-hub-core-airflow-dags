@@ -8,11 +8,11 @@ import boto3
 
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV = "ci"
+DEFAULT_DEPLOYMENT_ENV = "staging"
 
 DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME = "DATA_HUB_MONITORING_SLACK_WEBHOOK_URL"
 DEFAULT_DATA_HUB_MONITORING_SLACK_WEBHOOK_URL = (
-    "https://hooks.slack.com/services/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"
+    "https://hooks.slack.com/services/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"
 )
 
 
@@ -78,7 +78,11 @@ def get_changed_status_df(
 
 
 def send_slack_message(message: str):
-    webhook_url = os.getenv('DATA_HUB_NOTIFIER_SLACK_WEBHOOK_URL')
+    webhook_url = os.getenv(
+        DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME,
+        DEFAULT_DATA_HUB_MONITORING_SLACK_WEBHOOK_URL
+    )
+    LOGGER.info('slack webhook url: %s', webhook_url)
     response = requests.post(webhook_url, json={
         'text': message
     })
@@ -145,3 +149,18 @@ def run_data_hub_pipeline_health_check(
         bucket_name=bucket_name,
         object_name=object_name
     )
+
+def main():
+    run_data_hub_pipeline_health_check(
+        project='elife-data-pipeline',
+        dataset='staging',
+        table='v_Data_Hub_Pipeline_Status',
+        bucket_name="staging-elife-data-pipeline",
+        object_name='airflow-config/monitoring/staging-status.csv'
+    )
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level='INFO')
+
+    main()
