@@ -36,6 +36,7 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
+    - DATA_HUB_MONITORING_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
     
 
 x-airflow-volumes:
