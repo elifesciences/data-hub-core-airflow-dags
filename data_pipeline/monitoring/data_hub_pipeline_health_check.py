@@ -149,18 +149,3 @@ def run_data_hub_pipeline_health_check(
         bucket_name=bucket_name,
         object_name=object_name
     )
-
-def main():
-    run_data_hub_pipeline_health_check(
-        project='elife-data-pipeline',
-        dataset='staging',
-        table='v_Data_Hub_Pipeline_Status',
-        bucket_name="staging-elife-data-pipeline",
-        object_name='airflow-config/monitoring/staging-status.csv'
-    )
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level='INFO')
-
-    main()
