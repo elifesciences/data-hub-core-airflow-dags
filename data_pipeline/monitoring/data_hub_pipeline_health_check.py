@@ -6,6 +6,16 @@ import requests
 
 import boto3
 
+
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
+DEFAULT_DEPLOYMENT_ENV = "ci"
+
+DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME = "DATA_HUB_MONITORING_SLACK_WEBHOOK_URL"
+DEFAULT_DATA_HUB_MONITORING_SLACK_WEBHOOK_URL = (
+    "https://hooks.slack.com/services/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"
+)
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -68,7 +78,7 @@ def get_changed_status_df(
 
 
 def send_slack_message(message: str):
-    webhook_url = os.environ['DATA_HUB_NOTIFIER_SLACK_WEBHOOK_URL']
+    webhook_url = os.getenv('DATA_HUB_NOTIFIER_SLACK_WEBHOOK_URL')
     response = requests.post(webhook_url, json={
         'text': message
     })
@@ -77,7 +87,11 @@ def send_slack_message(message: str):
 
 def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
         changed_status_df: pd.DataFrame) -> str:
-    return 'Data availability status update: %s' % ', '.join([
+    deployment_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
+    return f'[{deployment_env}] Data availability status update: %s' % ', '.join([
         '`%s` changed from `%s` to `%s`' % (
             row['name'], row['status_previous'], row['status_current']
         )
