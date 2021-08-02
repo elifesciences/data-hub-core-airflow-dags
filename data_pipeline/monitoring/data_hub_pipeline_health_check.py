@@ -11,10 +11,6 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "staging"
 
 DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME = "DATA_HUB_MONITORING_SLACK_WEBHOOK_URL"
-DEFAULT_DATA_HUB_MONITORING_SLACK_WEBHOOK_URL = (
-    "https://hooks.slack.com/services/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"
-)
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -79,8 +75,7 @@ def get_changed_status_df(
 
 def send_slack_message(message: str):
     webhook_url = os.getenv(
-        DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME,
-        DEFAULT_DATA_HUB_MONITORING_SLACK_WEBHOOK_URL
+        DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME
     )
     LOGGER.info('slack webhook url: %s', webhook_url)
     response = requests.post(webhook_url, json={
@@ -90,11 +85,7 @@ def send_slack_message(message: str):
 
 
 def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
-        changed_status_df: pd.DataFrame) -> str:
-    deployment_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV
-    )
+        changed_status_df: pd.DataFrame, deployment_env: str) -> str:
     return f'[{deployment_env}] Data availability status update: %s' % ', '.join([
         '`%s` changed from `%s` to `%s`' % (
             row['name'], row['status_previous'], row['status_current']
@@ -104,9 +95,9 @@ def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
 
 
 def send_slack_notification(
-        changed_status_df: pd.DataFrame):
+        changed_status_df: pd.DataFrame, deployment_env: str):
     send_slack_message(get_formatted_changed_status_slack_message(
-        changed_status_df
+        changed_status_df, deployment_env
     ))
 
 
@@ -129,6 +120,10 @@ def run_data_hub_pipeline_health_check(
         object_name=object_name
     )
     status_df = read_big_query(query, project_id=project)
+    deployment_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
     with pd.option_context("display.max_rows", 100, "display.max_columns", 10):
         LOGGER.info('status_df:\n%s', status_df)
         if previous_status_df is not None:
@@ -140,7 +135,8 @@ def run_data_hub_pipeline_health_check(
             changed_status_df = get_changed_status_df(merged_status_df)
             if len(changed_status_df) > 0:  # pylint: disable=len-as-condition
                 LOGGER.info('changed: %s', changed_status_df.to_dict(orient='rows'))
-                send_slack_notification(changed_status_df)
+                if deployment_env in ("staging", "prod"):
+                    send_slack_notification(changed_status_df, deployment_env)
             else:
                 LOGGER.info('no changes')
 
