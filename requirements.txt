@@ -16,3 +16,4 @@ jinjasql==0.1.8
 PyYAML==5.4.1
 s3fs==2021.5.0
 six==1.16.0
+oauth2client==4.1.3
