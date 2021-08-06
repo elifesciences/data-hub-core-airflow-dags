@@ -1,25 +1,58 @@
 import datetime
+import json
 from typing import Iterable
 import logging
 from itertools import islice
 import pandas as pd
 import backoff
 
-from google.oauth2 import service_account
-
-from googleapiclient.discovery import build
-from googleapiclient.discovery import Resource
-
+from googleapiclient.discovery import build, Resource
+import httplib2
+from oauth2client import GOOGLE_REVOKE_URI, GOOGLE_TOKEN_URI, client
 
 LOGGER = logging.getLogger(__name__)
 
 
-def get_gmail_service_for_user_id(secret_file: str, scopes: str, user_id: str) -> Resource:
-    credentials = service_account.Credentials.from_service_account_file(
-        secret_file, scopes=scopes)
-    delegated_credentials = credentials.with_subject(user_id)
+class GmailCredentials:
+    def __init__(self, filename):
+        self.filename = filename
+        self.data = self.read_credential_file()
+        self.client_id = self.data["client_id"]
+        self.client_secret = self.data["client_secret"]
+        self.refresh_token = self.data["refresh_token"]
+        self.user_id = self.data["user"]
 
-    service = build("gmail", "v1", credentials=delegated_credentials)
+    def read_credential_file(self):
+        with open(self.filename, "r") as json_file:
+            return json.load(json_file)
+
+
+def get_gmail_access_token_from_refresh_token(
+    client_id: str,
+    client_secret: str,
+    refresh_token: str,
+    scopes: str
+) -> Resource:
+    credentials = client.OAuth2Credentials(
+        # access_token expires in 1 hour
+        # set access_token to None since we use a refresh token
+        access_token=None,
+        client_id=client_id,
+        client_secret=client_secret,
+        refresh_token=refresh_token,
+        token_expiry=None,
+        token_uri=GOOGLE_TOKEN_URI,
+        user_agent=None,
+        revoke_uri=GOOGLE_REVOKE_URI,
+        scopes=scopes)
+    # refresh the access token
+    credentials.refresh(httplib2.Http())
+    return credentials
+
+
+def get_gmail_service_via_refresh_token(credentials: Resource) -> Resource:
+    http = credentials.authorize(httplib2.Http())
+    service = build("gmail", "v1", http=http)
     return service
 
 

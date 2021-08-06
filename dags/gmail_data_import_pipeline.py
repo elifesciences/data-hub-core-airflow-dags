@@ -4,6 +4,7 @@ import os
 import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
+from googleapiclient.discovery import Resource
 import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -35,7 +36,9 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 from data_pipeline.gmail_data.get_gmail_data import (
-    get_gmail_service_for_user_id,
+    GmailCredentials,
+    get_gmail_access_token_from_refresh_token,
+    get_gmail_service_via_refresh_token,
     get_label_list,
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
@@ -46,15 +49,15 @@ from data_pipeline.gmail_data.get_gmail_data import (
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 GMAIL_ACCOUNT_SECRET_FILE_ENV = 'GOOGLE_APPLICATION_CREDENTIALS'
+GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE'
 
-GMAIL_DATA_USER_ID_ENV = "GMAIL_DATA_USER_ID"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = "GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-IS_END2END_TEST_ENV = "IS_END2END_TEST"
+IS_GMAIL_END2END_TEST_ENV = "IS_GMAIL_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
@@ -94,24 +97,37 @@ def data_config_from_xcom(context):
     return data_config
 
 
-def get_gmail_user_id():
-    return get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
-
-
 def is_end2end_test():
     return str_to_bool(
-        get_env_var_or_use_default(IS_END2END_TEST_ENV, default_value=""),
+        get_env_var_or_use_default(IS_GMAIL_END2END_TEST_ENV, default_value=""),
         default_value=False
     )
 
 
-def get_gmail_service():
-    secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
-    user_id = get_gmail_user_id()
-    return get_gmail_service_for_user_id(
-        secret_file=secret_file,
-        scopes=GMAIL_SCOPES,
-        user_id=user_id
+def get_gmail_credentials(is_e2e_test: bool) -> GmailCredentials:
+    if is_e2e_test:
+        secret_file = get_env_var_or_use_default(GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV, "")
+        LOGGER.info("[end2end-test] gmail secret file name %s", secret_file)
+    else:
+        secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
+        LOGGER.info("gmail secret file name %s", secret_file)
+    return GmailCredentials(secret_file)
+
+
+def get_gmail_user_id() -> str:
+    gmail_credentials = get_gmail_credentials(is_end2end_test())
+    return gmail_credentials.user_id
+
+
+def get_gmail_service() -> Resource:
+    gmail_credentials = get_gmail_credentials(is_end2end_test())
+    return get_gmail_service_via_refresh_token(
+        get_gmail_access_token_from_refresh_token(
+            client_id=gmail_credentials.client_id,
+            client_secret=gmail_credentials.client_secret,
+            refresh_token=gmail_credentials.refresh_token,
+            scopes=GMAIL_SCOPES
+        )
     )
 
 
