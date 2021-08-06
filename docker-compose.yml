@@ -16,6 +16,8 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
+    - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
+    - GMAIL_ACCOUNT_SECRET_FILE=
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=ci
     - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
@@ -36,7 +38,6 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
-    - DATA_HUB_MONITORING_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
     
 
 x-airflow-volumes:
