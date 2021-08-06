@@ -37,7 +37,7 @@ from data_pipeline.utils.pipeline_config import (
 
 from data_pipeline.gmail_data.get_gmail_data import (
     GmailCredentials,
-    get_gmail_access_token_from_refresh_token,
+    refresh_gmail_token,
     get_gmail_service_via_refresh_token,
     get_label_list,
     write_dataframe_to_jsonl_file,
@@ -122,7 +122,7 @@ def get_gmail_user_id() -> str:
 def get_gmail_service() -> Resource:
     gmail_credentials = get_gmail_credentials(is_end2end_test())
     return get_gmail_service_via_refresh_token(
-        get_gmail_access_token_from_refresh_token(
+        refresh_gmail_token(
             client_id=gmail_credentials.client_id,
             client_secret=gmail_credentials.client_secret,
             refresh_token=gmail_credentials.refresh_token,

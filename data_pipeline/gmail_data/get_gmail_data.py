@@ -27,7 +27,7 @@ class GmailCredentials:
             return json.load(json_file)
 
 
-def get_gmail_access_token_from_refresh_token(
+def refresh_gmail_token(
     client_id: str,
     client_secret: str,
     refresh_token: str,
