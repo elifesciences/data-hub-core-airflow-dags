@@ -41,7 +41,6 @@ def test_dag_runs_data_imported():
         is_running = AIRFLW_API.is_dag_running(dag_id_gmail, execution_date)
         time.sleep(5)
         LOGGER.info("etl in progress")
-        LOGGER.info("config: %s", config)
     assert not is_running
     assert AIRFLW_API.get_dag_status(dag_id_gmail, execution_date) == "success"
 
