@@ -16,8 +16,8 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
-    - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
-    - GMAIL_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_credentials.json
+    - GMAIL_ACCOUNT_SECRET_FILE:path-for-gmail-secret
+    - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE:/home/airflow/gmail_e2e_test_credentials/gmail_end2end_test_credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=ci
     - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
