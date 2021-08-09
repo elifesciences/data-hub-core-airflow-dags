@@ -71,7 +71,6 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
 
 
 def get_data_config(**kwargs):
-    logging.basicConfig(level='INFO')
     conf_file_path = get_env_var_or_use_default(
         GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME, ""
     )
@@ -106,7 +105,6 @@ def is_end2end_test():
 
 
 def get_gmail_credentials(is_e2e_test: bool) -> GmailCredentials:
-    logging.basicConfig(level='INFO')
     if is_e2e_test:
         secret_file = get_env_var_or_use_default(GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV, "")
         LOGGER.info("[end2end-test] gmail secret file name %s", secret_file)
