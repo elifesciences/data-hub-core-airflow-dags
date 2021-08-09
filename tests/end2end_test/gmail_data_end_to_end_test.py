@@ -18,6 +18,7 @@ PROJECT = "elife-data-pipeline"
 
 # pylint: disable=broad-except
 def test_dag_runs_data_imported():
+    logging.basicConfig(level='INFO')
     try:
         simple_query(
             query=TestQueryTemplate.CLEAN_TABLE_QUERY,
