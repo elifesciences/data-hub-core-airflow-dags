@@ -50,7 +50,7 @@ x-airflow-volumes:
     - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
-    - ./secrets/gmail_end2end_test_credentials.json:/tmp/gmail_end2end_test_credentials.json
+    - ~/.secrets/gmail_end2end_test_credentials.json:/home/airflow/gmail_e2e_test_credentials/gmail_end2end_test_credentials.json
     - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
 
 
@@ -111,7 +111,6 @@ services:
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
-            && sudo install -D /tmp/gmail_end2end_test_credentials.json -m 644 --no-target-directory /home/airflow/gmail_e2e_test_credentials
             && ./run_test.sh with-end-to-end"
 
     postgres:
