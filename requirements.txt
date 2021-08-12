@@ -10,7 +10,7 @@ dask[complete]<=2021.2.0
 distributed<=2021.2.0
 fsspec>=2021.4.0
 google-api-python-client==2.7.0
-google-cloud-bigquery<=2.20.0
+google-cloud-bigquery~=1.27.2
 google-oauth==1.0.1
 jinjasql==0.1.8
 PyYAML~=5.3.1
