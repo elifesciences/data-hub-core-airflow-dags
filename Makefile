@@ -140,7 +140,7 @@ ci-build-and-end2end-test:
 		end2end-test
 
 ci-end2end-test-logs:
-	$(DOCKER_COMPOSE_CI) exec dask-worker bash -c \
+	$(DOCKER_COMPOSE_CI) exec -it dask-worker bash -c \
 		'cat logs/*/*/*/*.log'
 
 ci-clean:
