@@ -37,7 +37,9 @@ elifePipeline {
 def withDataPipelineCredentialsFromVault(doSomething) {
     withDataPipelineGcpCredentials{
         withDataPipelineGmailCredentials{
-            doSomething()
+            withDataPipelineGmailTestCredentials{
+                doSomething()
+            }
         }
     }
 }
@@ -52,6 +54,16 @@ def withDataPipelineGcpCredentials(doSomething) {
 }
 
 def withDataPipelineGmailCredentials(doSomething) {
+    try {
+        sh 'mkdir -p .secrets'
+        sh 'vault.sh kv get -field credentials secret/containers/data-hub/gmail > ./.secrets/gmail_credentials.json'
+        doSomething()
+    } finally {
+        sh 'echo > ./.secrets/gmail_credentials.json'
+    }
+}
+
+def withDataPipelineGmailTestCredentials(doSomething) {
     try {
         sh 'mkdir -p .secrets'
         sh 'vault.sh kv get -field credentials secret/containers/data-hub/gmail-test > ./.secrets/gmail_end2end_test_credentials.json'
