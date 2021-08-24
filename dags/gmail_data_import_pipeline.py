@@ -5,6 +5,7 @@ import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
 from googleapiclient.discovery import Resource
+from googleapiclient import errors
 import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -42,6 +43,7 @@ from data_pipeline.gmail_data.get_gmail_data import (
     get_label_list,
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
+    get_gmail_user_profile,
     get_gmail_history_details,
     get_one_thread,
     dataframe_chunk
@@ -116,7 +118,9 @@ def get_gmail_credentials(is_e2e_test: bool) -> GmailCredentials:
 
 def get_gmail_user_id() -> str:
     gmail_credentials = get_gmail_credentials(is_end2end_test())
-    return gmail_credentials.user_id
+    user_id = gmail_credentials.user_id
+    LOGGER.info("gmail user_id: %s", user_id)
+    return user_id
 
 
 def get_gmail_service() -> Resource:
@@ -201,24 +205,46 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
 
-    start_id = get_max_value_from_bq_table(
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    column_name=data_config.column_name_history_check,
-                    table_name=data_config.table_name_thread_details
-                )
+    try:
+        start_id = get_max_value_from_bq_table(
+                        project_name=project_name,
+                        dataset_name=dataset_name,
+                        column_name=data_config.column_name_history_check,
+                        table_name=data_config.table_name_thread_details
+                    )
+        
+        LOGGER.info('Get history start_id from BigQuery: %s', start_id)
 
-    load_bq_table_from_df(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=data_config.temp_table_name_history_details,
-        df_data_to_write=get_gmail_history_details(
-            get_gmail_service(),
-            user_id,
-            str(start_id),
-            is_end2end_test()
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(),
+                user_id,
+                str(start_id),
+                is_end2end_test()
+            )
         )
-    )
+    except errors.HttpError:
+        start_id = get_gmail_user_profile(
+            get_gmail_service(),
+            get_gmail_user_id()
+        )["historyId"]
+
+        LOGGER.info('Get history start_id from user profile: %s', start_id)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(),
+                user_id,
+                str(start_id),
+                is_end2end_test()
+            )
+        )
 
 
 def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
