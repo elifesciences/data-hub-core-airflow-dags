@@ -54,6 +54,7 @@ def withDataPipelineGcpCredentials(doSomething) {
 
 def withDataPipelineGmailCredentials(doSomething) {
     try {
+        sh 'mkdir -p .secrets'
         sh 'vault.sh kv get -field credentials secret/containers/data-hub/gmail-test > ./.secrets/gmail_end2end_test_credentials.json'
         doSomething()
     } finally {
