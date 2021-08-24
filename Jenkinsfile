@@ -13,6 +13,7 @@ elifePipeline {
         stage 'Build and run tests', {
             lock('data-hub-core-airflow-dags--ci') {
                 withDataPipelineGcpCredentials {
+                    withDataPipelineGmailCredentials{
                         try {
                             timeout(time: 40, unit: 'MINUTES') {
                                 sh "make ci-build-and-end2end-test"
