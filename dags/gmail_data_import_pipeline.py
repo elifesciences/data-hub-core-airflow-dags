@@ -212,7 +212,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
                         column_name=data_config.column_name_history_check,
                         table_name=data_config.table_name_thread_details
                     )
-        
+
         LOGGER.info('Get history start_id from BigQuery: %s', start_id)
 
         load_bq_table_from_df(
