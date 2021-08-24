@@ -52,7 +52,7 @@ def refresh_gmail_token(
 
 def get_gmail_service_via_refresh_token(credentials: Resource) -> Resource:
     http = credentials.authorize(httplib2.Http())
-    service = build("gmail", "v1", http=http)
+    service = build("gmail", "v1", http=http, cache_discovery=False)
     return service
 
 
@@ -132,6 +132,10 @@ def get_dataframe_for_thread_response(
     df_thread['messages'] = [thread_response['messages']]
 
     return df_thread
+
+
+def get_gmail_user_profile(service: Resource, user_id: str):
+    return service.users().getProfile(userId=user_id).execute()
 
 
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
