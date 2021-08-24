@@ -13,17 +13,15 @@ elifePipeline {
         stage 'Build and run tests', {
             lock('data-hub-core-airflow-dags--ci') {
                 withDataPipelineGcpCredentials {
-                    withDataPipelineGmailCredentials{
-                        try {
-                            timeout(time: 40, unit: 'MINUTES') {
-                                sh "make ci-build-and-end2end-test"
-                            }
-                        } finally {
-                            sh "make ci-end2end-test-logs"
-                            sh "docker-compose logs"
-                            sh "make ci-clean"
+                    try {
+                        timeout(time: 40, unit: 'MINUTES') {
+                            sh "make ci-build-and-end2end-test"
                         }
-                    } 
+                    } finally {
+                        sh "make ci-end2end-test-logs"
+                        sh "docker-compose logs"
+                        sh "make ci-clean"
+                    }
                 }
             }
         }
@@ -42,15 +40,6 @@ def withDataPipelineGcpCredentials(doSomething) {
         doSomething()
     } finally {
         sh 'echo > credentials.json'
-    }
-}
-
-def withDataPipelineGmailCredentials(doSomething) {
-    try {
-        sh 'vault.sh kv get -field credentials secret/containers/data-hub/gmail-test > gmail_end2end_test_credentials.json'
-        doSomething()
-    } finally {
-        sh 'echo > gmail_end2end_test_credentials.json'
     }
 }
 
