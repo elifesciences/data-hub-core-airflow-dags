@@ -12,19 +12,17 @@ elifePipeline {
 
         stage 'Build and run tests', {
             lock('data-hub-core-airflow-dags--ci') {
-                withDataPipelineGcpCredentials {
-                    withDataPipelineGmailCredentials{
-                        try {
-                            timeout(time: 40, unit: 'MINUTES') {
-                                sh "make ci-build-and-end2end-test"
-                            }
-                        } finally {
-                            sh "make ci-end2end-test-logs"
-                            sh "docker-compose logs"
-                            sh "make ci-clean"
+                withDataPipelineCredentialsFromVault{
+                    try {
+                        timeout(time: 40, unit: 'MINUTES') {
+                            sh "make ci-build-and-end2end-test"
                         }
-                    } 
-                }
+                    } finally {
+                        sh "make ci-end2end-test-logs"
+                        sh "docker-compose logs"
+                        sh "make ci-clean"
+                    }
+                } 
             }
         }
 
@@ -32,6 +30,15 @@ elifePipeline {
             stage 'Build data pipeline image with latest commit', {
                 triggerImageBuild(jenkins_image_building_ci_pipeline, git_url, commit)
             }
+        }
+    }
+}
+
+
+def withDataPipelineCredentialsFromVault(doSomething) {
+    withDataPipelineGcpCredentials{
+        withDataPipelineGmailCredentials{
+            doSomething()
         }
     }
 }
