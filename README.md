@@ -25,6 +25,7 @@ Following are the credentials that you may need to provide
 * Twitter's developer credentials
 * CiviCRM's credentials
 * Toggl credentials
+* Gmail refresh token credentials
 
 To run the application locally:
 

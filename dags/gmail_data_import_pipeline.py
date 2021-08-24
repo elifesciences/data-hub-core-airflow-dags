@@ -4,6 +4,8 @@ import os
 import logging
 from datetime import timedelta
 from tempfile import TemporaryDirectory
+from googleapiclient.discovery import Resource
+from googleapiclient import errors
 import pandas as pd
 
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -35,26 +37,29 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 from data_pipeline.gmail_data.get_gmail_data import (
-    get_gmail_service_for_user_id,
+    GmailCredentials,
+    refresh_gmail_token,
+    get_gmail_service_via_refresh_token,
     get_label_list,
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids,
+    get_gmail_user_profile,
     get_gmail_history_details,
     get_one_thread,
     dataframe_chunk
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-GMAIL_ACCOUNT_SECRET_FILE_ENV = 'GOOGLE_APPLICATION_CREDENTIALS'
+GMAIL_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_ACCOUNT_SECRET_FILE'
+GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE'
 
-GMAIL_DATA_USER_ID_ENV = "GMAIL_DATA_USER_ID"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
 GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = "GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-IS_END2END_TEST_ENV = "IS_END2END_TEST"
+IS_GMAIL_END2END_TEST_ENV = "IS_GMAIL_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
@@ -94,24 +99,39 @@ def data_config_from_xcom(context):
     return data_config
 
 
-def get_gmail_user_id():
-    return get_env_var_or_use_default(GMAIL_DATA_USER_ID_ENV)
-
-
 def is_end2end_test():
     return str_to_bool(
-        get_env_var_or_use_default(IS_END2END_TEST_ENV, default_value=""),
+        get_env_var_or_use_default(IS_GMAIL_END2END_TEST_ENV, default_value=""),
         default_value=False
     )
 
 
-def get_gmail_service():
-    secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
-    user_id = get_gmail_user_id()
-    return get_gmail_service_for_user_id(
-        secret_file=secret_file,
-        scopes=GMAIL_SCOPES,
-        user_id=user_id
+def get_gmail_credentials(is_e2e_test: bool) -> GmailCredentials:
+    if is_e2e_test:
+        secret_file = get_env_var_or_use_default(GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV, "")
+        LOGGER.info("[end2end-test] gmail secret file name %s", secret_file)
+    else:
+        secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
+        LOGGER.info("gmail secret file name %s", secret_file)
+    return GmailCredentials(secret_file)
+
+
+def get_gmail_user_id() -> str:
+    gmail_credentials = get_gmail_credentials(is_end2end_test())
+    user_id = gmail_credentials.user_id
+    LOGGER.info("gmail user_id: %s", user_id)
+    return user_id
+
+
+def get_gmail_service() -> Resource:
+    gmail_credentials = get_gmail_credentials(is_end2end_test())
+    return get_gmail_service_via_refresh_token(
+        refresh_gmail_token(
+            client_id=gmail_credentials.client_id,
+            client_secret=gmail_credentials.client_secret,
+            refresh_token=gmail_credentials.refresh_token,
+            scopes=GMAIL_SCOPES
+        )
     )
 
 
@@ -185,24 +205,46 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
 
-    start_id = get_max_value_from_bq_table(
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    column_name=data_config.column_name_history_check,
-                    table_name=data_config.table_name_thread_details
-                )
+    try:
+        start_id = get_max_value_from_bq_table(
+                        project_name=project_name,
+                        dataset_name=dataset_name,
+                        column_name=data_config.column_name_history_check,
+                        table_name=data_config.table_name_thread_details
+                    )
 
-    load_bq_table_from_df(
-        project_name=project_name,
-        dataset_name=dataset_name,
-        table_name=data_config.temp_table_name_history_details,
-        df_data_to_write=get_gmail_history_details(
-            get_gmail_service(),
-            user_id,
-            str(start_id),
-            is_end2end_test()
+        LOGGER.info('Get history start_id from BigQuery: %s', start_id)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(),
+                user_id,
+                str(start_id),
+                is_end2end_test()
+            )
         )
-    )
+    except errors.HttpError:
+        start_id = get_gmail_user_profile(
+            get_gmail_service(),
+            get_gmail_user_id()
+        )["historyId"]
+
+        LOGGER.info('Get history start_id from user profile: %s', start_id)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(),
+                user_id,
+                str(start_id),
+                is_end2end_test()
+            )
+        )
 
 
 def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
