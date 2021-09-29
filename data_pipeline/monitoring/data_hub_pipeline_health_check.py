@@ -70,6 +70,15 @@ def get_changed_status_df(
     merged_status_df = merged_status_df.dropna()
     return merged_status_df[
         (merged_status_df['status_current'] != merged_status_df['status_previous'])
+        and (merged_status_df['status_previous'] == 'Out of date')
+    ]
+
+
+def get_out_dated_status(
+        merged_status_df: pd.DataFrame) -> pd.DataFrame:
+    merged_status_df = merged_status_df.dropna()
+    return merged_status_df[
+        (merged_status_df['status_current'] == 'Out of date')
     ]
 
 
@@ -79,6 +88,20 @@ def send_slack_message(message: str, webhook_url: str):
         'text': message
     })
     response.raise_for_status()
+
+
+def get_formatted_out_dated_status_slack_message(  # pylint: disable=invalid-name
+        out_dated_status_df: pd.DataFrame) -> str:
+    deployment_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
+    return f'[{deployment_env}] Data pipeline out dated tables: %s' % ', '.join([
+        '`%s` is `%s`.' % (
+            row['name'], row['status_previous']
+        )
+        for row in out_dated_status_df.to_dict(orient='rows')
+    ])
 
 
 def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
@@ -96,9 +119,9 @@ def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
 
 
 def send_slack_notification(
-        changed_status_df: pd.DataFrame, webhook_url: str):
+        out_dated_status_df: pd.DataFrame, webhook_url: str):
     send_slack_message(
-        get_formatted_changed_status_slack_message(changed_status_df),
+        get_formatted_out_dated_status_slack_message(out_dated_status_df),
         webhook_url
     )
 
