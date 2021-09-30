@@ -81,8 +81,6 @@ def check_data_hub_tables_status(**kwargs):
     data_config = data_config_from_xcom(kwargs)
 
     run_data_hub_pipeline_health_check(
-        bucket_name=data_config.bucket_name,
-        object_name=data_config.object_name,
         project=data_config.project_name,
         dataset=data_config.dataset_name,
         table=data_config.table_name

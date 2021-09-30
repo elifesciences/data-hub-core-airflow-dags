@@ -54,31 +54,11 @@ def write_dataframe_to_s3_bucket(
     csv_buffer.truncate(0)
 
 
-def get_merged_status_df(
-        previous_status_df: pd.DataFrame,
-        current_status_df: pd.DataFrame) -> pd.DataFrame:
-    return current_status_df.merge(
-        previous_status_df,
-        on='name',
-        how='outer',
-        suffixes=('_current', '_previous')
-    )
-
-
-def get_changed_status_df(
-        merged_status_df: pd.DataFrame) -> pd.DataFrame:
-    merged_status_df = merged_status_df.dropna()
-    return merged_status_df[
-        (merged_status_df['status_current'] != merged_status_df['status_previous'])
-        and (merged_status_df['status_previous'] == 'Out of date')
-    ]
-
-
 def get_out_dated_status(
-        merged_status_df: pd.DataFrame) -> pd.DataFrame:
-    merged_status_df = merged_status_df.dropna()
-    return merged_status_df[
-        (merged_status_df['status_current'] == 'Out of date')
+        status_df: pd.DataFrame) -> pd.DataFrame:
+    status_df = status_df.dropna()
+    return status_df[
+        (status_df['status'] == 'Out of date')
     ]
 
 
@@ -96,76 +76,59 @@ def get_formatted_out_dated_status_slack_message(  # pylint: disable=invalid-nam
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
     )
-    return f'[{deployment_env}] Data pipeline out dated tables: %s' % ', '.join([
-        '`%s` is `%s`.' % (
-            row['name'], row['status_previous']
+    return f'[{deployment_env}] Data pipeline out dated tables: %s' % '\n '.join([
+        '`%s` is `%s` since `%s`.' % (
+            row['name'], row['status_previous'], row['latest_imported_timestamp']
         )
         for row in out_dated_status_df.to_dict(orient='rows')
     ])
 
 
-def get_formatted_changed_status_slack_message(  # pylint: disable=invalid-name
-        changed_status_df: pd.DataFrame) -> str:
+def get_formatted_message_not_exist_out_dated_table() -> str:
     deployment_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
     )
-    return f'[{deployment_env}] Data availability status update: %s' % ', '.join([
-        '`%s` changed from `%s` to `%s`' % (
-            row['name'], row['status_previous'], row['status_current']
-        )
-        for row in changed_status_df.to_dict(orient='rows')
-    ])
+    return f'[{deployment_env}] All tables are `up to date`! '
 
 
 def send_slack_notification(
         out_dated_status_df: pd.DataFrame, webhook_url: str):
-    send_slack_message(
-        get_formatted_out_dated_status_slack_message(out_dated_status_df),
-        webhook_url
-    )
+    if len(out_dated_status_df) > 0:
+        send_slack_message(
+            get_formatted_out_dated_status_slack_message(out_dated_status_df),
+            webhook_url
+        )
+    else:
+        send_slack_message(
+            get_formatted_message_not_exist_out_dated_table(),
+            webhook_url
+        )
 
 
 def run_data_hub_pipeline_health_check(
         project: str,
         dataset: str,
-        table: str,
-        bucket_name: str,
-        object_name: str
+        table: str
 ):
-
     query = get_query(
         project=project,
         dataset=dataset,
         table=table
     )
 
-    previous_status_df = read_dataframe_from_s3_bucket(
-        bucket_name=bucket_name,
-        object_name=object_name
-    )
     status_df = read_big_query(query, project_id=project)
     webhook_url = os.getenv(
         DATA_HUB_MONITORING_SLACK_WEBHOOK_URL_ENV_NAME
     )
     with pd.option_context("display.max_rows", 100, "display.max_columns", 10):
         LOGGER.info('status_df:\n%s', status_df)
-        if previous_status_df is not None:
-            merged_status_df = get_merged_status_df(
-                previous_status_df=previous_status_df,
-                current_status_df=status_df
-            )
-            LOGGER.info('merged: %s', merged_status_df.to_dict(orient='rows'))
-            changed_status_df = get_changed_status_df(merged_status_df)
-            if len(changed_status_df) > 0:  # pylint: disable=len-as-condition
-                LOGGER.info('changed: %s', changed_status_df.to_dict(orient='rows'))
-                if webhook_url:
-                    send_slack_notification(changed_status_df, webhook_url)
-            else:
-                LOGGER.info('no changes')
-
-    write_dataframe_to_s3_bucket(
-        df_name=status_df,
-        bucket_name=bucket_name,
-        object_name=object_name
-    )
+        out_dated_status_df = get_out_dated_status(status_df)
+        if len(out_dated_status_df) > 0:  # pylint: disable=len-as-condition
+            LOGGER.info('changed: %s', out_dated_status_df.to_dict(orient='rows'))
+            if webhook_url:
+                send_slack_notification(out_dated_status_df, webhook_url)
+        else:
+            LOGGER.info('no changes')
+            if webhook_url:
+                send_slack_notification(out_dated_status_df, webhook_url)
