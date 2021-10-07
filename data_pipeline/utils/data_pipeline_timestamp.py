@@ -37,8 +37,6 @@ def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
 
 
 def is_datetime_tz_aware(datetime_obj: datetime):
-    LOGGER.info("datetime_obj: %s", datetime_obj)
-    LOGGER.info("datetime_obj.tzinfo: %s", datetime_obj.tzinfo)
     return (
         datetime_obj.tzinfo is not None
         and datetime_obj.tzinfo.utcoffset(
