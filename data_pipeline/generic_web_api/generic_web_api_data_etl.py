@@ -106,7 +106,6 @@ def get_data_single_page(
         session_response = session.get(url)
         session_response.raise_for_status()
         resp = session_response.content
-        LOGGER.info('session_response.content: %s', resp)
         try:
             json_resp = json.loads(resp)
         except JSONDecodeError:
