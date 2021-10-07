@@ -376,6 +376,7 @@ def upload_latest_timestamp_as_pipeline_state(
             get_tz_aware_datetime(latest_record_timestamp),
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
+        LOGGER.info('latest_record_date: %s', latest_record_date)
         state_file_name_key = data_config.state_file_object_name
         state_file_bucket = data_config.state_file_bucket_name
         upload_s3_object(
