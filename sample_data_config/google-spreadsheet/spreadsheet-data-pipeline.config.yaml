@@ -1,42 +1,14 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: "imported_timestamp"
 spreadsheets:
-  # Note this provide configurations for a list of sheets in a list of google spreadsheets
-  #- spreadsheetId: "11VnpuiY3o4iCEIEWjCKfXFFyowxTfTxzno2VU5UnRINE" # the google id of the spreadsheet
-  #  sheets :
-  #    - sheetName : 'BREs' # Name of spreadsheet sheet
-  #      sheetRange : '' # can be null (which means all the data in the sheet) or a specific sheet range
-  #      headerLineIndex : 0 # On which line based on data extracted from sheetRange is the header
-  #      dataValuesStartLineIndex : 1  # On which line based on data extracted from sheetRange does the data value start
-  #      datasetName : '{ENV}'
-  #      tableName : 'BRE_Keywords'
-  #      tableWriteAppend: "true"
-  #      # This annotates every record created by this pipeline config with this fixed values
-  #      fixedSheetMetadata :
-  #        - metadataSchemaFieldName : 'editor_role'
-  #          fixedSheetValue: "BRE"
-  #     This adds to every record created by this pipeline config a field whose name is given by metadataSchemaFieldName
-  #     and whose value is given by the string value of the spreadsheet line given by metadataLineIndex
-  #      inSheetRecordMetadata:
-  #        - metadataSchemaFieldName: 'metadata_example'
-  #          metadataLineIndex: 4
-  #    - sheetName : 'Senior Editors' # Name of spreadsheet sheet
-  #      sheetRange : ''
-  #      headerLineIndex : 0
-  #      dataValuesStartLineIndex : 1
-  #      datasetName : {ENV}
-  #      tableName : 'BRE_Keywords'
-  #      tableWriteAppend: true
-  #      fixedSheetRecordMetadata :
-  #        - metadataSchemaFieldName : 'editor_role'
-  #          fixedSheetValue: "Senior Editor"
-
-  - spreadsheetId: '1Nl1rPUSgWzWxDgwkmreU37l3RVrSH12D0MHUD4LA6tU'
+  # sample spreadsheet:
+  # https://docs.google.com/spreadsheets/d/1UbM9eExvJligr1bzq22xdK3cL8KIW6oqyJnu8R3uSrU/edit#gid=0
+  - spreadsheetId: '1UbM9eExvJligr1bzq22xdK3cL8KIW6oqyJnu8R3uSrU'
     sheets:
-      - sheetName: 'sheet_0' # Name of spreadsheet sheet
+      - sheetName: 'Sheet1' # Name of spreadsheet sheet
         sheetRange: 'A:D'
-        headerLineIndex: 0
-        dataValuesStartLineIndex: 1
+        headerLineIndex: 3
+        dataValuesStartLineIndex: 4
         datasetName: "{ENV}"
         tableName: 'test_google_spreadsheet'
         tableWriteAppend: true
@@ -44,7 +16,7 @@ spreadsheets:
         # and whose value is given by the string value of the spreadsheet line given by metadataLineIndex
         inSheetRecordMetadata:
           - metadataSchemaFieldName: 'metadata_example'
-            metadataLineIndex: 4
+            metadataLineIndex: 1
 
   #    - sheetName: 'Country and continent list'
   #      sheetRange: 'A:B'
