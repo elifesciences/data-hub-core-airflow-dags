@@ -1,0 +1,4 @@
+projectName: 'elife-data-pipeline'
+datasetName: '{ENV}'
+surveyMonkeySurveyList:
+  table: 'surveymonkey_survey_list'
