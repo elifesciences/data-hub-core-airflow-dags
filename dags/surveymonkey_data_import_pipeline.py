@@ -30,6 +30,7 @@ from data_pipeline.surveymonkey.get_surveymonkey_data_config import (
 
 LOGGER = logging.getLogger(__name__)
 
+SURVEYMONKEY_ACCESS_TOKEN_ENV_VAR = "SURVEYMONKEY_ACCESS_TOKEN"
 SURVEYMONKEY_DATA_CONFIG_FILE_PATH_ENV_NAME = "SURVEYMONKEY_DATA_CONFIG_FILE_PATH"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
@@ -46,11 +47,11 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
 
 
 def get_data_config(**kwargs):
-    conf_file_path = get_env_var_or_use_default(
+    config_file_path = get_env_var_or_use_default(
         SURVEYMONKEY_DATA_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-    LOGGER.info('conf_file_path: %s', conf_file_path)
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
+    LOGGER.info('conf_file_path: %s', config_file_path)
+    data_config_dict = get_yaml_file_as_dict(config_file_path)
     LOGGER.info('data_config_dict: %s', data_config_dict)
     kwargs["ti"].xcom_push(
         key="data_config_dict",
@@ -61,23 +62,28 @@ def get_data_config(**kwargs):
 def data_config_from_xcom(context):
     dag_context = context["ti"]
     data_config_dict = dag_context.xcom_pull(
-        key="data_config_dict", task_ids="get_data_config"
+        key="data_config_dict",
+        task_ids="get_data_config"
     )
     LOGGER.info('data_config_dict: %s', data_config_dict)
     deployment_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
     )
-    data_config = SurveyMonkeyDataConfig(
+    data_conf = SurveyMonkeyDataConfig(
         data_config_dict, deployment_env)
-    LOGGER.info('data_config: %r', data_config)
-    return data_config
+    LOGGER.info('data_config: %r', data_conf)
+    return data_conf
+
+
+def get_surveymonkey_access_token():
+    return get_env_var_or_use_default(SURVEYMONKEY_ACCESS_TOKEN_ENV_VAR, "")
 
 
 def surveymonkey_survey_list_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
 
-    survey_list = get_survey_list()
+    survey_list = get_survey_list(get_surveymonkey_access_token())
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, 'tmp_file.json')
         LOGGER.info(type(filename))
