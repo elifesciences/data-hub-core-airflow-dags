@@ -17,7 +17,7 @@ def get_surveymonkey_api_headers(access_token: str) -> dict:
 
 
 def get_survey_list(access_token: str) -> list:
-    headers=get_surveymonkey_api_headers(access_token)
+    headers = get_surveymonkey_api_headers(access_token)
     response = requests.get('https://api.surveymonkey.com/v3/surveys', headers=headers)
     response.raise_for_status()
     survey_list = response.json()["data"]
