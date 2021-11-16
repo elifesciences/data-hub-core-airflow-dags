@@ -31,7 +31,7 @@ from data_pipeline.surveymonkey.get_surveymonkey_data_config import (
 
 LOGGER = logging.getLogger(__name__)
 
-SURVEYMONKEY_SECRET_FILE_ENV_VAR = "SURVEYMONKEY_SECRET_FILE"
+SURVEYMONKEY_SECRET_FILE_ENV_VAR_NAME = "SURVEYMONKEY_SECRET_FILE"
 SURVEYMONKEY_DATA_CONFIG_FILE_PATH_ENV_NAME = "SURVEYMONKEY_DATA_CONFIG_FILE_PATH"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
@@ -75,7 +75,7 @@ def data_config_from_xcom(context):
 
 
 def get_surveymonkey_access_token():
-    secret_file = get_env_var_or_use_default(SURVEYMONKEY_SECRET_FILE_ENV_VAR, "")
+    secret_file = get_env_var_or_use_default(SURVEYMONKEY_SECRET_FILE_ENV_VAR_NAME, "")
     LOGGER.info("surveymonkey secret file name %s", secret_file)
     with open(secret_file) as file:
         return json.load(file)["access_token"]
