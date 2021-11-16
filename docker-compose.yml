@@ -39,7 +39,8 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
-    - SURVEYMONKEY_ACCESS_TOKEN='SURVEYMONKEY_ACCESS_TOKEN'
+    - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
+
     
 
 x-airflow-volumes:

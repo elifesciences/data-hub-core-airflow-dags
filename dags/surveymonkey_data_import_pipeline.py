@@ -2,6 +2,7 @@
 
 import os
 import logging
+import json
 from datetime import timedelta
 from tempfile import TemporaryDirectory
 
@@ -30,7 +31,7 @@ from data_pipeline.surveymonkey.get_surveymonkey_data_config import (
 
 LOGGER = logging.getLogger(__name__)
 
-SURVEYMONKEY_ACCESS_TOKEN_ENV_VAR = "SURVEYMONKEY_ACCESS_TOKEN"
+SURVEYMONKEY_SECRET_FILE_ENV_VAR = "SURVEYMONKEY_SECRET_FILE"
 SURVEYMONKEY_DATA_CONFIG_FILE_PATH_ENV_NAME = "SURVEYMONKEY_DATA_CONFIG_FILE_PATH"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
@@ -50,9 +51,7 @@ def get_data_config(**kwargs):
     config_file_path = get_env_var_or_use_default(
         SURVEYMONKEY_DATA_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-    LOGGER.info('conf_file_path: %s', config_file_path)
     data_config_dict = get_yaml_file_as_dict(config_file_path)
-    LOGGER.info('data_config_dict: %s', data_config_dict)
     kwargs["ti"].xcom_push(
         key="data_config_dict",
         value=data_config_dict
@@ -60,12 +59,11 @@ def get_data_config(**kwargs):
 
 
 def data_config_from_xcom(context):
-    dag_context = context["ti"]
-    data_config_dict = dag_context.xcom_pull(
+    dag_cont = context["ti"]
+    data_config_dict = dag_cont.xcom_pull(
         key="data_config_dict",
         task_ids="get_data_config"
     )
-    LOGGER.info('data_config_dict: %s', data_config_dict)
     deployment_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
@@ -77,7 +75,10 @@ def data_config_from_xcom(context):
 
 
 def get_surveymonkey_access_token():
-    return get_env_var_or_use_default(SURVEYMONKEY_ACCESS_TOKEN_ENV_VAR, "")
+    secret_file = get_env_var_or_use_default(SURVEYMONKEY_SECRET_FILE_ENV_VAR, "")
+    LOGGER.info("surveymonkey secret file name %s", secret_file)
+    with open(secret_file) as file:
+        return json.load(file)["access_token"]
 
 
 def surveymonkey_survey_list_etl(**kwargs):
