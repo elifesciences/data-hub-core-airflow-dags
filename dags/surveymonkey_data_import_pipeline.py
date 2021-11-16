@@ -65,7 +65,9 @@ def data_config_from_xcom(context):
     )
     LOGGER.info('data_config_dict: %s', data_config_dict)
     deployment_env = get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
     data_config = SurveyMonkeyDataConfig(
         data_config_dict, deployment_env)
     LOGGER.info('data_config: %r', data_config)
