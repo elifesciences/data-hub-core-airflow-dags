@@ -13,7 +13,7 @@ def get_surveymonkey_api_headers(access_token: str) -> dict:
     return {
         'Accept': "application/json",
         'Authorization': f"Bearer {access_token}"
-        }
+    }
 
 
 def get_survey_list(access_token: str) -> list:
