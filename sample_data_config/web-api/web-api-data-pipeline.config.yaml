@@ -192,7 +192,7 @@ webApi:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-toggl-processing-state.json'
     dataUrl:
-      urlExcludingConfigurableParameters: "https://toggl.com/reports/api/v2/details?workspace_id=3533142&user_agent=api_test&order_field=date&order_desc=off"
+      urlExcludingConfigurableParameters: "https://api.track.toggl.com/reports/api/v2/details?workspace_id=3533142&user_agent=api_test&order_field=date&order_desc=off"
       configurableParameters:
         fromDateParameterName: since
         toDateParameterName: until
