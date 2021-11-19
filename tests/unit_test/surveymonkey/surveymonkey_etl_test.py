@@ -31,7 +31,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
             {**DEFAULT_SURVEY_RESPONSE_JSON, "response_count": 13}
         )
         assert result["response_count"] == 13
-    
+
     def test_should_extract_date_modified(self):
         result = get_bq_json_for_survey_questions_response_json(
             {**DEFAULT_SURVEY_RESPONSE_JSON, "date_modified": "2021-11-19"}
