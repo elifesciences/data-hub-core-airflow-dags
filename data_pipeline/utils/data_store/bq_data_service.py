@@ -2,6 +2,7 @@ import logging
 import os
 from math import ceil
 from typing import List
+from tempfile import TemporaryDirectory
 import pandas as pd
 from jinjasql import JinjaSql
 from google.cloud import bigquery
@@ -10,6 +11,7 @@ from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
 from bigquery_schema_generator.generate_schema import SchemaGenerator
+from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 LOGGER = logging.getLogger(__name__)
 
@@ -458,3 +460,34 @@ def copy_bq_table(
         source_table_id,
         target_table_id
     )
+
+
+def load_given_json_list_data_from_tempdir_to_bq(
+    project_name: str,
+    dataset_name: str,
+    table_name: str,
+    json_list: str
+):
+    with TemporaryDirectory() as tmp_dir:
+        filename = os.path.join(tmp_dir, 'tmp_file.json')
+        write_jsonl_to_file(
+            json_list=json_list,
+            full_temp_file_location=filename,
+        )
+        if os.path.getsize(filename) > 0:
+            create_or_extend_table_schema(
+                gcp_project=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                full_file_location=filename,
+                quoted_values_are_strings=True
+            )
+            load_file_into_bq(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                filename=filename
+            )
+            LOGGER.info('Loaded table: %s', table_name)
+        else:
+            LOGGER.info('No updates found for the table: %s', table_name)
