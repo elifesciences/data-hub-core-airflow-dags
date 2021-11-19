@@ -30,7 +30,7 @@ class TestGetBqJsonForSurveyResponseJson():
         assert result["survey_id"] == "ID"
 
     def test_shoud_extract_question(self):
-        result = get_bq_json_for_survey_response_json({  
+        result = get_bq_json_for_survey_response_json({
             **DEFAULT_SURVEY_RESPONSE_JSON,
             "pages":[{
                 "questions":[{
