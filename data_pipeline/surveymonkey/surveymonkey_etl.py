@@ -24,3 +24,11 @@ def get_survey_list(access_token: str) -> list:
     for survey in survey_list:
         survey["imported_timestamp"] = get_current_timestamp()
     return survey_list
+
+
+def get_bq_json_for_survey_response_json(survey_response_json: dict) -> dict:
+
+    return {
+        "title":survey_response_json["title"],
+        "survey_id":survey_response_json["id"]
+    }
