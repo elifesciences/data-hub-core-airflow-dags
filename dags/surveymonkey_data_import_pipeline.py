@@ -4,13 +4,13 @@ import os
 import logging
 import json
 from datetime import timedelta
-from tempfile import TemporaryDirectory
 
 from data_pipeline.surveymonkey.surveymonkey_etl import (
-    get_survey_list
+    get_survey_list,
+    get_survey_question_details,
+    get_bq_json_for_survey_questions_response_json
 )
 
-from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task
@@ -21,8 +21,8 @@ from data_pipeline.utils.pipeline_file_io import (
 )
 
 from data_pipeline.utils.data_store.bq_data_service import (
-    load_file_into_bq,
-    create_or_extend_table_schema
+    get_distinct_values_from_bq,
+    load_given_json_list_data_from_tempdir_to_bq
 )
 
 from data_pipeline.surveymonkey.get_surveymonkey_data_config import (
@@ -83,33 +83,38 @@ def get_surveymonkey_access_token():
 
 def surveymonkey_survey_list_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-
     survey_list = get_survey_list(get_surveymonkey_access_token())
-    with TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, 'tmp_file.json')
-        LOGGER.info(type(filename))
-        LOGGER.info(type(survey_list))
-        write_jsonl_to_file(
-            json_list=survey_list,
-            full_temp_file_location=filename,
+    load_given_json_list_data_from_tempdir_to_bq(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name=data_config.survey_list_table_name,
+        json_list=survey_list
+    )
+
+
+def surveymonkey_survey_questions_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    survey_id_list = get_distinct_values_from_bq(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name_source=data_config.survey_list_table_name,
+        column_name=data_config.survey_id_column_name
+    ).values.tolist()
+
+    for survey_id in survey_id_list:
+        survey_questions_list = [get_bq_json_for_survey_questions_response_json(
+            get_survey_question_details(
+                access_token=get_surveymonkey_access_token(),
+                survey_id=str(survey_id[1])
+            )
+        )]
+
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset_name,
+            table_name=data_config.survey_questions_table_name,
+            json_list=survey_questions_list
         )
-        if os.path.getsize(filename) > 0:
-            create_or_extend_table_schema(
-                gcp_project=data_config.project_name,
-                dataset_name=data_config.dataset_name,
-                table_name=data_config.survey_list_table_name,
-                full_file_location=filename,
-                quoted_values_are_strings=True
-            )
-            load_file_into_bq(
-                project_name=data_config.project_name,
-                dataset_name=data_config.dataset_name,
-                table_name=data_config.survey_list_table_name,
-                filename=filename
-            )
-            LOGGER.info('Loaded table: %s', data_config.survey_list_table_name)
-        else:
-            LOGGER.info('No updates found for the table: %s', data_config.survey_list_table_name)
 
 
 SURVERMONKEY_DAG = create_dag(
@@ -134,5 +139,12 @@ surveymonkey_survey_list_task = create_python_task(
     retries=3
 )
 
+surveymonkey_survey_questions_task = create_python_task(
+    SURVERMONKEY_DAG,
+    "surveymonkey_survey_questions_etl",
+    surveymonkey_survey_questions_etl,
+    retries=3
+)
+
 # pylint: disable=pointless-statement
-get_data_config_task >> surveymonkey_survey_list_task
+get_data_config_task >> surveymonkey_survey_list_task >> surveymonkey_survey_questions_task

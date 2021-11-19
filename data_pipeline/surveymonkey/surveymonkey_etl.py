@@ -26,11 +26,24 @@ def get_survey_list(access_token: str) -> list:
     return survey_list
 
 
-def get_bq_json_for_survey_response_json(survey_response_json: dict) -> dict:
+def get_survey_question_details(access_token: str, survey_id: str) -> list:
+    headers = get_surveymonkey_api_headers(access_token)
+    response = requests.get(
+        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/details',
+        headers=headers
+    )
+    reponse_json = response.json()
+    return reponse_json
 
+
+def get_bq_json_for_survey_questions_response_json(
+    survey_response_json: dict
+) -> dict:
     return {
         "title": survey_response_json["title"],
         "survey_id": survey_response_json["id"],
+        "response_count": survey_response_json["response_count"],
+        "date_modified": survey_response_json["date_modified"],
         "questions": [
             {
                 "question_id": question_response_json["id"],
@@ -38,5 +51,6 @@ def get_bq_json_for_survey_response_json(survey_response_json: dict) -> dict:
             }
             for page_reponse_json in survey_response_json["pages"]
             for question_response_json in page_reponse_json["questions"]
-        ]
+        ],
+        "imported_timestamp": get_current_timestamp()
     }
