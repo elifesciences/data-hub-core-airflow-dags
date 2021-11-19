@@ -5,7 +5,10 @@ from data_pipeline.surveymonkey.surveymonkey_etl import (
 DEFAULT_SURVEY_RESPONSE_JSON = {
     "title": "DEFAULT_TITLE",
     "id": "DEFAULT_ID",
-    "pages": []
+    "pages": [],
+    "imported_timestamp": "",
+    "response_count": "",
+    "date_modified": ""
 }
 
 
