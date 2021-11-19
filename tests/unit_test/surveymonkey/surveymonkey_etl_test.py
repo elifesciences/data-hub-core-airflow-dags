@@ -4,7 +4,8 @@ from data_pipeline.surveymonkey.surveymonkey_etl import (
 
 DEFAULT_SURVEY_RESPONSE_JSON = {
     "title": "DEFAULT_TITLE",
-    "id": "DEFAULT_ID"
+    "id": "DEFAULT_ID",
+    "pages": []
 }
 
 
@@ -27,3 +28,19 @@ class TestGetBqJsonForSurveyResponseJson():
             {**DEFAULT_SURVEY_RESPONSE_JSON, "id": "ID"}
         )
         assert result["survey_id"] == "ID"
+
+    def test_shoud_extract_question(self):
+        result = get_bq_json_for_survey_response_json({  
+            **DEFAULT_SURVEY_RESPONSE_JSON,
+            "pages":[{
+                "questions":[{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }]
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {"question_id": "Q_ID", "question_title": "Is this the question?"}
+        ]

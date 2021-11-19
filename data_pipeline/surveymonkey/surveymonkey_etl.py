@@ -30,5 +30,13 @@ def get_bq_json_for_survey_response_json(survey_response_json: dict) -> dict:
 
     return {
         "title":survey_response_json["title"],
-        "survey_id":survey_response_json["id"]
+        "survey_id":survey_response_json["id"],
+        "questions":[
+            {
+                "question_id": question_response_json["id"],
+                "question_title": question_response_json["headings"][0]["heading"]
+            }
+            for page_reponse_json in survey_response_json["pages"]
+            for question_response_json in page_reponse_json["questions"]
+        ]
     }
