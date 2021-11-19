@@ -54,3 +54,33 @@ def get_bq_json_for_survey_questions_response_json(
         ],
         "imported_timestamp": get_current_timestamp()
     }
+
+
+def get_bq_json_for_survey_answers_response_json(
+    survey_response_json: dict
+) -> dict:
+    return {
+        "survey_answer_id": survey_response_json["id"],
+        "survey_id": survey_response_json["survey_id"],
+        "response_status": survey_response_json["response_status"],
+        "total_time_spent": survey_response_json["total_time"],
+        "date_modified": survey_response_json["date_modified"],
+        "questions": [
+            {
+                "question_id": question_response_json["id"],
+                "answers": [
+                    {
+                        "choice_id": answer_id_response_json.get("choice_id"),
+                        "row_id": answer_id_response_json.get("row_id"),
+                        "col_id": answer_id_response_json.get("col_id"),
+                        "other_id": answer_id_response_json.get("other_id"),
+                        "text": answer_id_response_json.get("text")
+                    }
+                    for answer_id_response_json in question_response_json["answers"]
+                ]
+            }
+            for page_response_json in survey_response_json["pages"]
+            for question_response_json in page_response_json["questions"]
+        ],
+        "imported_timestamp": get_current_timestamp()
+    }
