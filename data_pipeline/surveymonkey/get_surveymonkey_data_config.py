@@ -29,6 +29,9 @@ class SurveyMonkeyDataConfig:
         self.survey_questions_table_name = (
             self.data_config.get("surveyMonkeySurveyQuestions").get("table")
         )
+        self.survey_answers_table_name = (
+            self.data_config.get("surveyMonkeySurveyAnswers").get("table")
+        )
 
     def __repr__(self):
         return repr(vars(self))
