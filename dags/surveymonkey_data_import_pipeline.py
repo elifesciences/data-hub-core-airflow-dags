@@ -137,7 +137,7 @@ def surveymonkey_survey_answers_etl(**kwargs):
         )
         len_of_answer_list = len(list_of_answers_of_one_survey)
         LOGGER.info("length of answers is %s", len_of_answer_list)
-        if len_of_answer_list>0:
+        if len_of_answer_list > 0:
             for answers_dict in list_of_answers_of_one_survey:
                 survey_answers_list = [
                     get_bq_json_for_survey_answers_response_json(answers_dict)
