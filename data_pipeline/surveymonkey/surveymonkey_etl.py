@@ -56,6 +56,16 @@ def get_bq_json_for_survey_questions_response_json(
     }
 
 
+def get_survey_answer_details(access_token: str, survey_id: str) -> list:
+    headers = get_surveymonkey_api_headers(access_token)
+    response = requests.get(
+        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk',
+        headers=headers
+    )
+    reponse_json = response.json()
+    return reponse_json["data"]
+
+
 def get_bq_json_for_survey_answers_response_json(
     survey_response_json: dict
 ) -> dict:
