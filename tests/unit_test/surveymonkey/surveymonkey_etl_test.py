@@ -43,11 +43,11 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
         )
         assert result["response_count"] == 13
 
-    def test_should_extract_date_modified(self):
+    def test_should_extract_modified_timestamp(self):
         result = get_bq_json_for_survey_questions_response_json(
-            {**DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON, "date_modified": "2021-11-19"}
+            {**DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON, "date_modified": "2021-11-19 00:00:00"}
         )
-        assert result["date_modified"] == "2021-11-19"
+        assert result["modified_timestamp"] == "2021-11-19 00:00:00"
 
     def test_should_ignore_other_field(self):
         result = get_bq_json_for_survey_questions_response_json(
@@ -92,17 +92,17 @@ class TestGetBqJsonForSurveyAnswersResponseJson():
         )
         assert result["response_status"] == "completed"
 
-    def test_should_extract_total_time_as_total_time_spent(self):
+    def test_should_extract_total_time_as_total_time_spent_in_secs(self):
         result = get_bq_json_for_survey_answers_response_json(
             {**DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON, "total_time": 123}
         )
-        assert result["total_time_spent"] == 123
+        assert result["total_time_spent_in_secs"] == 123
 
-    def test_should_extract_date_modified(self):
+    def test_should_extract_modified_timestamp(self):
         result = get_bq_json_for_survey_answers_response_json(
-            {**DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON, "date_modified": "2021-11-19"}
+            {**DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON, "date_modified": "2021-11-19 00:00:00"}
         )
-        assert result["date_modified"] == "2021-11-19"
+        assert result["modified_timestamp"] == "2021-11-19 00:00:00"
 
     def test_should_extract_question_and_its_answers(self):
         result = get_bq_json_for_survey_answers_response_json({

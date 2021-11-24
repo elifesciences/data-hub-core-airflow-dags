@@ -43,7 +43,7 @@ def get_bq_json_for_survey_questions_response_json(
         "title": survey_response_json["title"],
         "survey_id": survey_response_json["id"],
         "response_count": survey_response_json["response_count"],
-        "date_modified": survey_response_json["date_modified"],
+        "modified_timestamp": survey_response_json["date_modified"],
         "questions": [
             {
                 "question_id": question_response_json["id"],
@@ -73,8 +73,8 @@ def get_bq_json_for_survey_answers_response_json(
         "survey_answer_id": survey_response_json["id"],
         "survey_id": survey_response_json["survey_id"],
         "response_status": survey_response_json["response_status"],
-        "total_time_spent": survey_response_json["total_time"],
-        "date_modified": survey_response_json["date_modified"],
+        "total_time_spent_in_secs": survey_response_json["total_time"],
+        "modified_timestamp": survey_response_json["date_modified"],
         "questions": [
             {
                 "question_id": question_response_json["id"],
