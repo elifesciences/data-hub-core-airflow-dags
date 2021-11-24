@@ -135,21 +135,19 @@ def surveymonkey_survey_answers_etl(**kwargs):
             access_token=get_surveymonkey_access_token(),
             survey_id=survey_id
         )
-        len_of_answer_list = len(list_of_answers_of_one_survey)
-        LOGGER.info("length of answers is %s", len_of_answer_list)
-        if len_of_answer_list > 0:
-            for answers_dict in list_of_answers_of_one_survey:
-                survey_answers_list = [
-                    get_bq_json_for_survey_answers_response_json(answers_dict)
-                ]
-                load_given_json_list_data_from_tempdir_to_bq(
-                    project_name=data_config.project_name,
-                    dataset_name=data_config.dataset_name,
-                    table_name=data_config.survey_answers_table_name,
-                    json_list=survey_answers_list
-                )
-        else:
+        LOGGER.info("length of answers is %s", len(list_of_answers_of_one_survey))
+        if not list_of_answers_of_one_survey:
             LOGGER.info("There is no answer for the survey %s", survey_id)
+        for answers_dict in list_of_answers_of_one_survey:
+            survey_answers_list = [
+                get_bq_json_for_survey_answers_response_json(answers_dict)
+            ]
+            load_given_json_list_data_from_tempdir_to_bq(
+                project_name=data_config.project_name,
+                dataset_name=data_config.dataset_name,
+                table_name=data_config.survey_answers_table_name,
+                json_list=survey_answers_list
+            )
 
 
 SURVERMONKEY_DAG = create_dag(
