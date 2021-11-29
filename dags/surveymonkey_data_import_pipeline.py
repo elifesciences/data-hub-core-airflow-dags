@@ -6,11 +6,10 @@ import json
 from datetime import timedelta
 
 from data_pipeline.surveymonkey.surveymonkey_etl import (
-    get_survey_answer_details,
+    iter_formated_survey_user_answers,
     get_survey_list,
     get_survey_question_details,
-    get_bq_json_for_survey_questions_response_json,
-    get_bq_json_for_survey_answers_response_json,
+    get_bq_json_for_survey_questions_response_json
 )
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -131,23 +130,19 @@ def surveymonkey_survey_answers_etl(**kwargs):
     for survey_id_list in survey_id_list_from_df:
         survey_id = str(survey_id_list[1])
         LOGGER.info("answers for survey_id: %s", survey_id)
-        list_of_answers_of_one_survey = get_survey_answer_details(
+        iterable_of_answers_of_one_survey = iter_formated_survey_user_answers(
             access_token=get_surveymonkey_access_token(),
             survey_id=survey_id
         )
-        LOGGER.info("length of answers is %s", len(list_of_answers_of_one_survey))
-        if not list_of_answers_of_one_survey:
+        if not iterable_of_answers_of_one_survey:
             LOGGER.info("There is no answer for the survey %s", survey_id)
-        for answers_dict in list_of_answers_of_one_survey:
-            survey_answers_list = [
-                get_bq_json_for_survey_answers_response_json(answers_dict)
-            ]
-            load_given_json_list_data_from_tempdir_to_bq(
-                project_name=data_config.project_name,
-                dataset_name=data_config.dataset_name,
-                table_name=data_config.survey_answers_table_name,
-                json_list=survey_answers_list
-            )
+
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset_name,
+            table_name=data_config.survey_answers_table_name,
+            json_list=iterable_of_answers_of_one_survey
+        )
 
 
 SURVERMONKEY_DAG = create_dag(

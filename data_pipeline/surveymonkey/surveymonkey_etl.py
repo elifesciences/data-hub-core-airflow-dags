@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Iterable
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -56,14 +57,27 @@ def get_bq_json_for_survey_questions_response_json(
     }
 
 
-def get_survey_answer_details(access_token: str, survey_id: str) -> list:
+def get_survey_answers_in_next_page(
+    access_token: str,
+    page_url: str
+) -> dict:
+    headers = get_surveymonkey_api_headers(access_token)
+    return requests.get(page_url, headers=headers).json()
+
+
+def iter_survey_answer_detail_response(access_token: str, survey_id: str) -> Iterable[dict]:
     headers = get_surveymonkey_api_headers(access_token)
     response = requests.get(
-        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk',
+        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100',
         headers=headers
     )
-    reponse_json = response.json()
-    return reponse_json["data"]
+    response_json = response.json()
+    yield from response_json["data"]
+    while "next" in response_json["links"]:
+        response_json = (
+            get_survey_answers_in_next_page(access_token, response_json["links"]["next"])
+        )
+        yield from response_json["data"]
 
 
 def get_bq_json_for_survey_answers_response_json(
@@ -94,3 +108,15 @@ def get_bq_json_for_survey_answers_response_json(
         ],
         "imported_timestamp": get_current_timestamp()
     }
+
+
+def iter_formated_survey_user_answers(
+    access_token: str,
+    survey_id: str
+) -> Iterable:
+    survey_answers_iterable = iter_survey_answer_detail_response(
+        access_token=access_token,
+        survey_id=survey_id
+    )
+    for user_survey_answers in survey_answers_iterable:
+        yield get_bq_json_for_survey_answers_response_json(user_survey_answers)
