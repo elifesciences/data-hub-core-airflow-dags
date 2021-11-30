@@ -57,7 +57,7 @@ def get_bq_json_for_survey_questions_response_json(
     }
 
 
-def get_survey_answers_in_next_page(
+def get_survey_answers(
     access_token: str,
     page_url: str
 ) -> dict:
@@ -66,18 +66,16 @@ def get_survey_answers_in_next_page(
 
 
 def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
-    headers = get_surveymonkey_api_headers(access_token)
-    response = requests.get(
-        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100',
-        headers=headers
+    response_json = get_survey_answers(
+        access_token,
+        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100'
     )
-    response_json = response.json()
     if not response_json["data"]:
         LOGGER.info("No answers for the survey: %s", survey_id)
     yield from response_json["data"]
     while "next" in response_json["links"]:
         response_json = (
-            get_survey_answers_in_next_page(access_token, response_json["links"]["next"])
+            get_survey_answers(access_token, response_json["links"]["next"])
         )
         yield from response_json["data"]
 
