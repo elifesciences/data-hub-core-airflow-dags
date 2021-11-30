@@ -3,6 +3,7 @@ import os
 from math import ceil
 from typing import List
 from tempfile import TemporaryDirectory
+from numpy.lib.function_base import iterable
 import pandas as pd
 from jinjasql import JinjaSql
 from google.cloud import bigquery
@@ -466,7 +467,7 @@ def load_given_json_list_data_from_tempdir_to_bq(
     project_name: str,
     dataset_name: str,
     table_name: str,
-    json_list: list
+    json_list: iterable
 ):
     with TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, 'tmp_file.json')

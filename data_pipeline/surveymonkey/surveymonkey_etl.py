@@ -65,13 +65,15 @@ def get_survey_answers_in_next_page(
     return requests.get(page_url, headers=headers).json()
 
 
-def iter_survey_answer_detail_response(access_token: str, survey_id: str) -> Iterable[dict]:
+def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
     headers = get_surveymonkey_api_headers(access_token)
     response = requests.get(
         f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100',
         headers=headers
     )
     response_json = response.json()
+    if not response_json["data"]:
+        LOGGER.info("No answers for the survey: %s", survey_id)
     yield from response_json["data"]
     while "next" in response_json["links"]:
         response_json = (
@@ -114,7 +116,7 @@ def iter_formated_survey_user_answers(
     access_token: str,
     survey_id: str
 ) -> Iterable:
-    survey_answers_iterable = iter_survey_answer_detail_response(
+    survey_answers_iterable = iter_survey_answers(
         access_token=access_token,
         survey_id=survey_id
     )

@@ -134,8 +134,6 @@ def surveymonkey_survey_answers_etl(**kwargs):
             access_token=get_surveymonkey_access_token(),
             survey_id=survey_id
         )
-        if not iterable_of_answers_of_one_survey:
-            LOGGER.info("There is no answer for the survey %s", survey_id)
 
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=data_config.project_name,
