@@ -6,6 +6,7 @@ import json
 from datetime import timedelta
 
 from data_pipeline.surveymonkey.surveymonkey_etl import (
+    iter_formated_survey_user_answers,
     get_survey_list,
     get_survey_question_details,
     get_bq_json_for_survey_questions_response_json
@@ -102,18 +103,43 @@ def surveymonkey_survey_questions_etl(**kwargs):
     ).values.tolist()
 
     for survey_id in survey_id_list:
+        LOGGER.info("questions for survey_id: %s", str(survey_id[1]))
         survey_questions_list = [get_bq_json_for_survey_questions_response_json(
             get_survey_question_details(
                 access_token=get_surveymonkey_access_token(),
                 survey_id=str(survey_id[1])
             )
         )]
-
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=data_config.project_name,
             dataset_name=data_config.dataset_name,
             table_name=data_config.survey_questions_table_name,
             json_list=survey_questions_list
+        )
+
+
+def surveymonkey_survey_answers_etl(**kwargs):
+    data_config = data_config_from_xcom(kwargs)
+    survey_id_list_from_df = get_distinct_values_from_bq(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name_source=data_config.survey_list_table_name,
+        column_name=data_config.survey_id_column_name
+    ).values.tolist()
+
+    for survey_id_list in survey_id_list_from_df:
+        survey_id = str(survey_id_list[1])
+        LOGGER.info("answers for survey_id: %s", survey_id)
+        iterable_of_answers_of_one_survey = iter_formated_survey_user_answers(
+            access_token=get_surveymonkey_access_token(),
+            survey_id=survey_id
+        )
+
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset_name,
+            table_name=data_config.survey_answers_table_name,
+            json_list=iterable_of_answers_of_one_survey
         )
 
 
@@ -146,5 +172,20 @@ surveymonkey_survey_questions_task = create_python_task(
     retries=3
 )
 
+surveymonkey_survey_answers_task = create_python_task(
+    SURVERMONKEY_DAG,
+    "surveymonkey_survey_answers_etl",
+    surveymonkey_survey_answers_etl,
+    retries=3
+)
+
 # pylint: disable=pointless-statement
-get_data_config_task >> surveymonkey_survey_list_task >> surveymonkey_survey_questions_task
+(
+    get_data_config_task >> surveymonkey_survey_list_task
+)
+(
+    surveymonkey_survey_list_task >> [
+        surveymonkey_survey_questions_task,
+        surveymonkey_survey_answers_task
+    ]
+)

@@ -5,3 +5,5 @@ surveyMonkeySurveyList:
   survey_id_column_name: 'id'
 surveyMonkeySurveyQuestions:
   table: 'surveymonkey_survey_questions'
+surveyMonkeySurveyAnswers:
+  table: 'surveymonkey_survey_answers'

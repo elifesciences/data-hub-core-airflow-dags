@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import Iterable
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ def get_bq_json_for_survey_questions_response_json(
         "title": survey_response_json["title"],
         "survey_id": survey_response_json["id"],
         "response_count": survey_response_json["response_count"],
-        "date_modified": survey_response_json["date_modified"],
+        "modified_timestamp": survey_response_json["date_modified"],
         "questions": [
             {
                 "question_id": question_response_json["id"],
@@ -54,3 +55,68 @@ def get_bq_json_for_survey_questions_response_json(
         ],
         "imported_timestamp": get_current_timestamp()
     }
+
+
+def get_survey_answers(
+    access_token: str,
+    page_url: str
+) -> dict:
+    headers = get_surveymonkey_api_headers(access_token)
+    return requests.get(page_url, headers=headers).json()
+
+
+def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
+    response_json = get_survey_answers(
+        access_token,
+        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100'
+    )
+    if not response_json["data"]:
+        LOGGER.info("No answers for the survey: %s", survey_id)
+    yield from response_json["data"]
+    while "next" in response_json["links"]:
+        response_json = (
+            get_survey_answers(access_token, response_json["links"]["next"])
+        )
+        yield from response_json["data"]
+
+
+def get_bq_json_for_survey_answers_response_json(
+    survey_response_json: dict
+) -> dict:
+    return {
+        "survey_answer_id": survey_response_json["id"],
+        "survey_id": survey_response_json["survey_id"],
+        "response_status": survey_response_json["response_status"],
+        "total_time_spent_in_secs": survey_response_json["total_time"],
+        "modified_timestamp": survey_response_json["date_modified"],
+        "questions": [
+            {
+                "question_id": question_response_json["id"],
+                "answers": [
+                    {
+                        "choice_id": answer_id_response_json.get("choice_id"),
+                        "row_id": answer_id_response_json.get("row_id"),
+                        "col_id": answer_id_response_json.get("col_id"),
+                        "other_id": answer_id_response_json.get("other_id"),
+                        "text": answer_id_response_json.get("text")
+                    }
+                    for answer_id_response_json in question_response_json["answers"]
+                ]
+            }
+            for page_response_json in survey_response_json["pages"]
+            for question_response_json in page_response_json["questions"]
+        ],
+        "imported_timestamp": get_current_timestamp()
+    }
+
+
+def iter_formated_survey_user_answers(
+    access_token: str,
+    survey_id: str
+) -> Iterable:
+    survey_answers_iterable = iter_survey_answers(
+        access_token=access_token,
+        survey_id=survey_id
+    )
+    for user_survey_answers in survey_answers_iterable:
+        yield get_bq_json_for_survey_answers_response_json(user_survey_answers)
