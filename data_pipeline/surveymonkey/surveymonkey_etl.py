@@ -48,7 +48,9 @@ def get_bq_json_for_survey_questions_response_json(
         "questions": [
             {
                 "question_id": question_response_json["id"],
-                "question_title": question_response_json["headings"][0]["heading"]
+                "question_title": question_response_json["headings"][0]["heading"],
+                "question_type": question_response_json["family"],
+                "question_subtype": question_response_json["subtype"]
             }
             for page_reponse_json in survey_response_json["pages"]
             for question_response_json in page_reponse_json["questions"]

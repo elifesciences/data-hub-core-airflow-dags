@@ -63,12 +63,19 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                     "id": "Q_ID",
                     "headings": [{
                         "heading": "Is this the question?"
-                    }]
+                    }],
+                    'family': 'matrix',
+                    'subtype': 'rating'
                 }]
             }]
         })
         assert result["questions"] == [
-            {"question_id": "Q_ID", "question_title": "Is this the question?"}
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating"
+            }
         ]
 
 
