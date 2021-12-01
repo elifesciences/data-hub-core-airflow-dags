@@ -55,7 +55,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
         )
         assert result.get("other") is None
 
-    def test_should_extract_question(self):
+    def test_should_extract_question_answer_options_even_answers_field_not_exist(self):
         result = get_bq_json_for_survey_questions_response_json({
             **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
             "pages": [{
@@ -64,8 +64,8 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                     "headings": [{
                         "heading": "Is this the question?"
                     }],
-                    'family': 'matrix',
-                    'subtype': 'rating'
+                    "family": "matrix",
+                    "subtype": "rating",
                 }]
             }]
         })
@@ -74,7 +74,105 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_id": "Q_ID",
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
-                "question_subtype": "rating"
+                "question_subtype": "rating",
+                "question_answers": [{
+                    "choices": [{
+                        "id": None,
+                        "text": None,
+                        "type": None,
+                        "weight": None
+                    }],
+                    "other": [{
+                        "id": None,
+                        "text": None,
+                        "type": None,
+                        "weight": None
+                    }],
+                    "rows": [{
+                        "id": None,
+                        "text": None,
+                        "type": None,
+                        "weight": None
+                    }],
+                    "cols": [{
+                        "id": None,
+                        "text": None,
+                        "type": None,
+                        "weight": None
+                    }]
+                }]
+            }
+        ]
+
+    def test_should_extract_question_answers(self):
+        result = get_bq_json_for_survey_questions_response_json({
+            **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
+                    "answers": {
+                        "choices": [{
+                            "id": "CHOICE_ID",
+                            "text": "This is the choice"
+                        }],
+                        "other": {
+                            "id": "OTHER_ID",
+                            "text": "This is the other option",
+                            "type": "OTHER_TYPE"
+                        },
+                        "rows": [{
+                            "id": "ROW_ID",
+                            "text": "This is the row",
+                            "weight": 0
+                        }],
+                        "cols": [{
+                            "id": "COL_ID",
+                            "text": "This is the col",
+                            "type": "COL_TYPE",
+                            "weight": 100
+                        }]
+                    }
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": [{
+                    "choices": [{
+                        "id": "CHOICE_ID",
+                        "text": "This is the choice",
+                        "type": None,
+                        "weight": None
+                    }],
+                    "other": [{
+                        "id": "OTHER_ID",
+                        "text": "This is the other option",
+                        "type": "OTHER_TYPE",
+                        "weight": None
+                    }],
+                    "rows": [{
+                        "id": "ROW_ID",
+                        "text": "This is the row",
+                        "type": None,
+                        "weight": 0
+                    }],
+                    "cols": [{
+                        "id": "COL_ID",
+                        "text": "This is the col",
+                        "type": "COL_TYPE",
+                        "weight": 100
+                    }],
+
+                }]
             }
         ]
 

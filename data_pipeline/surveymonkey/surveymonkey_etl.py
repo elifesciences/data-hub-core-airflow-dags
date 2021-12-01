@@ -12,14 +12,14 @@ def get_current_timestamp():
 
 def get_surveymonkey_api_headers(access_token: str) -> dict:
     return {
-        'Accept': "application/json",
-        'Authorization': f"Bearer {access_token}"
+        "Accept": "application/json",
+        "Authorization": f"Bearer {access_token}"
     }
 
 
 def get_survey_list(access_token: str) -> list:
     headers = get_surveymonkey_api_headers(access_token)
-    response = requests.get('https://api.surveymonkey.com/v3/surveys', headers=headers)
+    response = requests.get("https://api.surveymonkey.com/v3/surveys", headers=headers)
     response.raise_for_status()
     survey_list = response.json()["data"]
     for survey in survey_list:
@@ -30,11 +30,66 @@ def get_survey_list(access_token: str) -> list:
 def get_survey_question_details(access_token: str, survey_id: str) -> list:
     headers = get_surveymonkey_api_headers(access_token)
     response = requests.get(
-        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/details',
+        f"https://api.surveymonkey.com/v3/surveys/{survey_id}/details",
         headers=headers
     )
     reponse_json = response.json()
     return reponse_json
+
+
+def get_no_answer_options_from_question_json() -> dict:
+    return {
+        "id": None,
+        "text": None,
+        "type": None,
+        "weight": None
+    }
+
+
+def parse_answer_options_from_question_json(
+    question_answer_response_json: dict,
+    option_key: str
+) -> dict:
+    if isinstance(question_answer_response_json[option_key], list):
+        return {
+            "id": question_answer_response_json[option_key][0].get("id"),
+            "text": question_answer_response_json[option_key][0].get("text"),
+            "type": question_answer_response_json[option_key][0].get("type"),
+            "weight": question_answer_response_json[option_key][0].get("weight")
+        }
+    return {
+        "id": question_answer_response_json[option_key].get("id"),
+        "text": question_answer_response_json[option_key].get("text"),
+        "type": question_answer_response_json[option_key].get("type"),
+        "weight": question_answer_response_json[option_key].get("weight")
+    }
+
+
+def parse_answer_options_in_question(question_response_json: dict) -> dict:
+    result = {
+        "choices": [get_no_answer_options_from_question_json()],
+        "other": [get_no_answer_options_from_question_json()],
+        "rows": [get_no_answer_options_from_question_json()],
+        "cols": [get_no_answer_options_from_question_json()]
+    }
+    if "answers" in question_response_json:
+        if "choices" in question_response_json["answers"]:
+            result["choices"] = [parse_answer_options_from_question_json(
+                question_response_json["answers"],
+                "choices")]
+        if "other" in question_response_json["answers"]:
+            result["other"] = [parse_answer_options_from_question_json(
+                question_response_json["answers"],
+                "other")]
+        if "rows" in question_response_json["answers"]:
+            result["rows"] = [parse_answer_options_from_question_json(
+                question_response_json["answers"],
+                "rows")]
+        if "cols" in question_response_json["answers"]:
+            result["cols"] = [parse_answer_options_from_question_json(
+                question_response_json["answers"],
+                "cols")]
+    return result
 
 
 def get_bq_json_for_survey_questions_response_json(
@@ -50,7 +105,8 @@ def get_bq_json_for_survey_questions_response_json(
                 "question_id": question_response_json["id"],
                 "question_title": question_response_json["headings"][0]["heading"],
                 "question_type": question_response_json["family"],
-                "question_subtype": question_response_json["subtype"]
+                "question_subtype": question_response_json["subtype"],
+                "question_answers": [parse_answer_options_in_question(question_response_json)]
             }
             for page_reponse_json in survey_response_json["pages"]
             for question_response_json in page_reponse_json["questions"]
@@ -70,7 +126,7 @@ def get_survey_answers(
 def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
     response_json = get_survey_answers(
         access_token,
-        f'https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100'
+        f"https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100"
     )
     if not response_json["data"]:
         LOGGER.info("No answers for the survey: %s", survey_id)
