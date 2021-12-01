@@ -37,7 +37,7 @@ def get_survey_question_details(access_token: str, survey_id: str) -> list:
     return reponse_json
 
 
-def get_no_answer_options_from_question_json() -> dict:
+def get_no_answer_options_for_question_json() -> dict:
     return {
         "id": None,
         "text": None,
@@ -46,49 +46,52 @@ def get_no_answer_options_from_question_json() -> dict:
     }
 
 
-def parse_answer_options_from_question_json(
+def parse_answer_options_in_question_answer_json(
     question_answer_response_json: dict,
     option_key: str
 ) -> dict:
     if isinstance(question_answer_response_json[option_key], list):
-        return {
-            "id": question_answer_response_json[option_key][0].get("id"),
-            "text": question_answer_response_json[option_key][0].get("text"),
-            "type": question_answer_response_json[option_key][0].get("type"),
-            "weight": question_answer_response_json[option_key][0].get("weight")
-        }
-    return {
+        result_list = []
+        for answer_option in question_answer_response_json[option_key]:
+            result_list.append({
+                "id": answer_option.get("id"),
+                "text": answer_option.get("text"),
+                "type": answer_option.get("type"),
+                "weight": answer_option.get("weight")
+            })
+        return result_list
+    return [{
         "id": question_answer_response_json[option_key].get("id"),
         "text": question_answer_response_json[option_key].get("text"),
         "type": question_answer_response_json[option_key].get("type"),
         "weight": question_answer_response_json[option_key].get("weight")
-    }
+    }]
 
 
-def parse_answer_options_in_question(question_response_json: dict) -> dict:
+def parse_answers_in_question_json(question_response_json: dict) -> dict:
     result = {
-        "choices": [get_no_answer_options_from_question_json()],
-        "other": [get_no_answer_options_from_question_json()],
-        "rows": [get_no_answer_options_from_question_json()],
-        "cols": [get_no_answer_options_from_question_json()]
+        "choices": [get_no_answer_options_for_question_json()],
+        "other": [get_no_answer_options_for_question_json()],
+        "rows": [get_no_answer_options_for_question_json()],
+        "cols": [get_no_answer_options_for_question_json()]
     }
     if "answers" in question_response_json:
         if "choices" in question_response_json["answers"]:
-            result["choices"] = [parse_answer_options_from_question_json(
+            result["choices"] = parse_answer_options_in_question_answer_json(
                 question_response_json["answers"],
-                "choices")]
+                "choices")
         if "other" in question_response_json["answers"]:
-            result["other"] = [parse_answer_options_from_question_json(
+            result["other"] = parse_answer_options_in_question_answer_json(
                 question_response_json["answers"],
-                "other")]
+                "other")
         if "rows" in question_response_json["answers"]:
-            result["rows"] = [parse_answer_options_from_question_json(
+            result["rows"] = parse_answer_options_in_question_answer_json(
                 question_response_json["answers"],
-                "rows")]
+                "rows")
         if "cols" in question_response_json["answers"]:
-            result["cols"] = [parse_answer_options_from_question_json(
+            result["cols"] = parse_answer_options_in_question_answer_json(
                 question_response_json["answers"],
-                "cols")]
+                "cols")
     return result
 
 
@@ -106,7 +109,7 @@ def get_bq_json_for_survey_questions_response_json(
                 "question_title": question_response_json["headings"][0]["heading"],
                 "question_type": question_response_json["family"],
                 "question_subtype": question_response_json["subtype"],
-                "question_answers": [parse_answer_options_in_question(question_response_json)]
+                "question_answers": [parse_answers_in_question_json(question_response_json)]
             }
             for page_reponse_json in survey_response_json["pages"]
             for question_response_json in page_reponse_json["questions"]
