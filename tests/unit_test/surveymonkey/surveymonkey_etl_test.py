@@ -191,8 +191,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "choices": [{
                             "id": "CHOICE_ID",
                             "text": "This is the choice"
-                        },
-                        {
+                        }, {
                             "id": "CHOICE_ID_2",
                             "text": "This is the second choice"
                         }]
@@ -212,8 +211,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "text": "This is the choice",
                         "type": None,
                         "weight": None
-                    },
-                    {
+                    }, {
                         "id": "CHOICE_ID_2",
                         "text": "This is the second choice",
                         "type": None,
