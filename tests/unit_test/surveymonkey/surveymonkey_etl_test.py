@@ -77,28 +77,28 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_subtype": "rating",
                 "question_answers": [{
                     "choices": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }],
                     "other": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }],
                     "rows": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }],
                     "cols": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }]
                 }]
             }
@@ -128,7 +128,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "rows": [{
                             "id": "ROW_ID",
                             "text": "This is the row",
-                            "weight": 0
+                            "weight": "3"
                         }],
                         "cols": [{
                             "id": "COL_ID",
@@ -150,26 +150,26 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                     "choices": [{
                         "id": "CHOICE_ID",
                         "text": "This is the choice",
-                        "type": None,
-                        "weight": None
+                        "type": "",
+                        "weight": ""
                     }],
                     "other": [{
                         "id": "OTHER_ID",
                         "text": "This is the other option",
                         "type": "OTHER_TYPE",
-                        "weight": None
+                        "weight": ""
                     }],
                     "rows": [{
                         "id": "ROW_ID",
                         "text": "This is the row",
-                        "type": None,
-                        "weight": 0
+                        "type": "",
+                        "weight": "3"
                     }],
                     "cols": [{
                         "id": "COL_ID",
                         "text": "This is the col",
                         "type": "COL_TYPE",
-                        "weight": 100
+                        "weight": "100"
                     }],
 
                 }]
@@ -209,31 +209,31 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                     "choices": [{
                         "id": "CHOICE_ID",
                         "text": "This is the choice",
-                        "type": None,
-                        "weight": None
+                        "type": "",
+                        "weight": ""
                     }, {
                         "id": "CHOICE_ID_2",
                         "text": "This is the second choice",
-                        "type": None,
-                        "weight": None
+                        "type": "",
+                        "weight": ""
                     }],
                     "other": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }],
                     "rows": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }],
                     "cols": [{
-                        "id": None,
-                        "text": None,
-                        "type": None,
-                        "weight": None
+                        "id": "",
+                        "text": "",
+                        "type": "",
+                        "weight": ""
                     }]
                 }]
             }

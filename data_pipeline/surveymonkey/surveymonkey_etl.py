@@ -38,34 +38,31 @@ def get_survey_question_details(access_token: str, survey_id: str) -> list:
 
 
 def get_no_answer_options_for_question_json() -> dict:
+    """Added for consistency of the schema in BQ"""
     return {
-        "id": None,
-        "text": None,
-        "type": None,
-        "weight": None
+        "id": "",
+        "text": "",
+        "type": "",
+        "weight": ""
     }
 
 
 def parse_answer_options_in_question_answer_json(
-    question_answer_response_json: dict,
-    option_key: str
+    question_answer_response_json: dict
 ) -> dict:
-    if isinstance(question_answer_response_json[option_key], list):
-        result_list = []
-        for answer_option in question_answer_response_json[option_key]:
-            result_list.append({
-                "id": answer_option.get("id"),
-                "text": answer_option.get("text"),
-                "type": answer_option.get("type"),
-                "weight": answer_option.get("weight")
-            })
-        return result_list
-    return [{
-        "id": question_answer_response_json[option_key].get("id"),
-        "text": question_answer_response_json[option_key].get("text"),
-        "type": question_answer_response_json[option_key].get("type"),
-        "weight": question_answer_response_json[option_key].get("weight")
-    }]
+    if isinstance(question_answer_response_json, list):
+        answer_options = question_answer_response_json
+    else:
+        answer_options = [question_answer_response_json]
+    return [
+        {
+            "id": str(answer_option.get("id", "")),
+            "text": str(answer_option.get("text", "")),
+            "type": str(answer_option.get("type", "")),
+            "weight": str(answer_option.get("weight", ""))
+        }
+        for answer_option in answer_options
+    ]
 
 
 def parse_answers_in_question_json(question_response_json: dict) -> dict:
@@ -76,22 +73,11 @@ def parse_answers_in_question_json(question_response_json: dict) -> dict:
         "cols": [get_no_answer_options_for_question_json()]
     }
     if "answers" in question_response_json:
-        if "choices" in question_response_json["answers"]:
-            result["choices"] = parse_answer_options_in_question_answer_json(
-                question_response_json["answers"],
-                "choices")
-        if "other" in question_response_json["answers"]:
-            result["other"] = parse_answer_options_in_question_answer_json(
-                question_response_json["answers"],
-                "other")
-        if "rows" in question_response_json["answers"]:
-            result["rows"] = parse_answer_options_in_question_answer_json(
-                question_response_json["answers"],
-                "rows")
-        if "cols" in question_response_json["answers"]:
-            result["cols"] = parse_answer_options_in_question_answer_json(
-                question_response_json["answers"],
-                "cols")
+        for key in ["choices", "other", "rows", "cols"]:
+            if key in question_response_json["answers"]:
+                result[key] = parse_answer_options_in_question_answer_json(
+                    question_response_json["answers"][key]
+                )
     return result
 
 
@@ -131,7 +117,7 @@ def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
         access_token,
         f"https://api.surveymonkey.com/v3/surveys/{survey_id}/responses/bulk/?per_page=100"
     )
-    if not response_json["data"]:
+    if not response_json.get("data"):
         LOGGER.info("No answers for the survey: %s", survey_id)
     yield from response_json["data"]
     while "next" in response_json["links"]:
