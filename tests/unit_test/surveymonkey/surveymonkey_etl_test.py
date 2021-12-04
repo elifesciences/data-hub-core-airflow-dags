@@ -75,32 +75,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
                 "question_subtype": "rating",
-                "question_answers": [{
-                    "choices": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }],
-                    "other": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }],
-                    "rows": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }],
-                    "cols": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }]
-                }]
+                "question_answers": [{}]
             }
         ]
 
@@ -128,7 +103,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "rows": [{
                             "id": "ROW_ID",
                             "text": "This is the row",
-                            "weight": "3"
+                            "weight": 3
                         }],
                         "cols": [{
                             "id": "COL_ID",
@@ -151,25 +126,25 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "id": "CHOICE_ID",
                         "text": "This is the choice",
                         "type": "",
-                        "weight": ""
+                        "weight": -99
                     }],
                     "other": [{
                         "id": "OTHER_ID",
                         "text": "This is the other option",
                         "type": "OTHER_TYPE",
-                        "weight": ""
+                        "weight": -99
                     }],
                     "rows": [{
                         "id": "ROW_ID",
                         "text": "This is the row",
                         "type": "",
-                        "weight": "3"
+                        "weight": 3
                     }],
                     "cols": [{
                         "id": "COL_ID",
                         "text": "This is the col",
                         "type": "COL_TYPE",
-                        "weight": "100"
+                        "weight": 100
                     }],
 
                 }]
@@ -210,31 +185,49 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "id": "CHOICE_ID",
                         "text": "This is the choice",
                         "type": "",
-                        "weight": ""
+                        "weight": -99
                     }, {
                         "id": "CHOICE_ID_2",
                         "text": "This is the second choice",
                         "type": "",
-                        "weight": ""
-                    }],
-                    "other": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }],
-                    "rows": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
-                    }],
-                    "cols": [{
-                        "id": "",
-                        "text": "",
-                        "type": "",
-                        "weight": ""
+                        "weight": -99
                     }]
+                }]
+            }
+        ]
+
+    def test_should_handle_if_there_is_no_id_for_the_option(self):
+        result = get_bq_json_for_survey_questions_response_json({
+            **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
+                    "answers": {
+                        "other": {
+                            "text": "It is a text"
+                        }
+                    }
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": [{
+                    "other": [{
+                            "id": "",
+                            "text": "It is a text",
+                            "type": "",
+                            "weight": -99
+                        }]
                 }]
             }
         ]

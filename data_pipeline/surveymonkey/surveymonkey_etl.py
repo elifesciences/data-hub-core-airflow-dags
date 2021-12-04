@@ -37,16 +37,6 @@ def get_survey_question_details(access_token: str, survey_id: str) -> list:
     return reponse_json
 
 
-def get_no_answer_options_for_question_json() -> dict:
-    """Added for consistency of the schema in BQ"""
-    return {
-        "id": "",
-        "text": "",
-        "type": "",
-        "weight": ""
-    }
-
-
 def parse_answer_options_in_question_answer_json(
     question_answer_response_json: dict
 ) -> dict:
@@ -56,22 +46,17 @@ def parse_answer_options_in_question_answer_json(
         answer_options = [question_answer_response_json]
     return [
         {
-            "id": str(answer_option.get("id", "")),
-            "text": str(answer_option.get("text", "")),
-            "type": str(answer_option.get("type", "")),
-            "weight": str(answer_option.get("weight", ""))
+            "id": answer_option.get("id", ""),
+            "text": answer_option.get("text", ""),
+            "type": answer_option.get("type", ""),
+            "weight": answer_option.get("weight", -99)
         }
         for answer_option in answer_options
     ]
 
 
 def parse_answers_in_question_json(question_response_json: dict) -> dict:
-    result = {
-        "choices": [get_no_answer_options_for_question_json()],
-        "other": [get_no_answer_options_for_question_json()],
-        "rows": [get_no_answer_options_for_question_json()],
-        "cols": [get_no_answer_options_for_question_json()]
-    }
+    result = {}
     if "answers" in question_response_json:
         for key in ["choices", "other", "rows", "cols"]:
             if key in question_response_json["answers"]:
