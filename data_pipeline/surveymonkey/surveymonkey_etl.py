@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Iterable
+from typing import Iterable, List, Union
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -33,23 +33,23 @@ def get_survey_question_details(access_token: str, survey_id: str) -> list:
         f"https://api.surveymonkey.com/v3/surveys/{survey_id}/details",
         headers=headers
     )
+    response.raise_for_status()
     reponse_json = response.json()
     return reponse_json
 
 
 def parse_answer_options_in_question_answer_json(
     question_answer_response_json: dict
-) -> dict:
+) -> Union[dict, List[dict]]:
     if isinstance(question_answer_response_json, list):
         answer_options = question_answer_response_json
     else:
         answer_options = [question_answer_response_json]
     return [
         {
-            "id": answer_option.get("id", ""),
-            "text": answer_option.get("text", ""),
-            "type": answer_option.get("type", ""),
-            "weight": answer_option.get("weight", -99)
+            key: value
+            for key, value in answer_option.items()
+            if key in {"id", "text", "type", "weight"} and value is not None
         }
         for answer_option in answer_options
     ]
@@ -80,7 +80,7 @@ def get_bq_json_for_survey_questions_response_json(
                 "question_title": question_response_json["headings"][0]["heading"],
                 "question_type": question_response_json["family"],
                 "question_subtype": question_response_json["subtype"],
-                "question_answers": [parse_answers_in_question_json(question_response_json)]
+                "question_answers": parse_answers_in_question_json(question_response_json)
             }
             for page_reponse_json in survey_response_json["pages"]
             for question_response_json in page_reponse_json["questions"]
@@ -94,7 +94,9 @@ def get_survey_answers(
     page_url: str
 ) -> dict:
     headers = get_surveymonkey_api_headers(access_token)
-    return requests.get(page_url, headers=headers).json()
+    response = requests.get(page_url, headers=headers)
+    response.raise_for_status()
+    return response.json()
 
 
 def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:

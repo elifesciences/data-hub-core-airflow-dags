@@ -223,11 +223,11 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_subtype": "rating",
                 "question_answers": [{
                     "other": [{
-                            "id": "",
-                            "text": "It is a text",
-                            "type": "",
-                            "weight": -99
-                        }]
+                        "id": "",
+                        "text": "It is a text",
+                        "type": "",
+                        "weight": -99
+                    }]
                 }]
             }
         ]
