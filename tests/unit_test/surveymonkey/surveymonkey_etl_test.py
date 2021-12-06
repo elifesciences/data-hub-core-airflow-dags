@@ -55,7 +55,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
         )
         assert result.get("other") is None
 
-    def test_should_extract_question(self):
+    def test_should_extract_question_answer_options_even_answers_field_not_exist(self):
         result = get_bq_json_for_survey_questions_response_json({
             **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
             "pages": [{
@@ -63,12 +63,162 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                     "id": "Q_ID",
                     "headings": [{
                         "heading": "Is this the question?"
-                    }]
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
                 }]
             }]
         })
         assert result["questions"] == [
-            {"question_id": "Q_ID", "question_title": "Is this the question?"}
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": {}
+            }
+        ]
+
+    def test_should_extract_question_answers(self):
+        result = get_bq_json_for_survey_questions_response_json({
+            **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
+                    "answers": {
+                        "choices": [{
+                            "id": "CHOICE_ID",
+                            "text": "This is the choice"
+                        }],
+                        "other": {
+                            "id": "OTHER_ID",
+                            "text": "This is the other option",
+                            "type": "OTHER_TYPE"
+                        },
+                        "rows": [{
+                            "id": "ROW_ID",
+                            "text": "This is the row",
+                            "weight": 3
+                        }],
+                        "cols": [{
+                            "id": "COL_ID",
+                            "text": "This is the col",
+                            "type": "COL_TYPE",
+                            "weight": 100
+                        }]
+                    }
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": {
+                    "choices": [{
+                        "id": "CHOICE_ID",
+                        "text": "This is the choice"
+                    }],
+                    "other": [{
+                        "id": "OTHER_ID",
+                        "text": "This is the other option",
+                        "type": "OTHER_TYPE"
+                    }],
+                    "rows": [{
+                        "id": "ROW_ID",
+                        "text": "This is the row",
+                        "weight": 3
+                    }],
+                    "cols": [{
+                        "id": "COL_ID",
+                        "text": "This is the col",
+                        "type": "COL_TYPE",
+                        "weight": 100
+                    }],
+
+                }
+            }
+        ]
+
+    def test_should_extract_question_answers_if_there_is_more_than_one(self):
+        result = get_bq_json_for_survey_questions_response_json({
+            **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
+                    "answers": {
+                        "choices": [{
+                            "id": "CHOICE_ID",
+                            "text": "This is the choice"
+                        }, {
+                            "id": "CHOICE_ID_2",
+                            "text": "This is the second choice"
+                        }]
+                    }
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": {
+                    "choices": [{
+                        "id": "CHOICE_ID",
+                        "text": "This is the choice",
+                    }, {
+                        "id": "CHOICE_ID_2",
+                        "text": "This is the second choice"
+                    }]
+                }
+            }
+        ]
+
+    def test_should_handle_if_there_is_no_id_for_the_option(self):
+        result = get_bq_json_for_survey_questions_response_json({
+            **DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "headings": [{
+                        "heading": "Is this the question?"
+                    }],
+                    "family": "matrix",
+                    "subtype": "rating",
+                    "answers": {
+                        "other": {
+                            "text": "It is a text"
+                        }
+                    }
+                }]
+            }]
+        })
+        assert result["questions"] == [
+            {
+                "question_id": "Q_ID",
+                "question_title": "Is this the question?",
+                "question_type": "matrix",
+                "question_subtype": "rating",
+                "question_answers": {
+                    "other": [{
+                        "text": "It is a text"
+                    }]
+                }
+            }
         ]
 
 
