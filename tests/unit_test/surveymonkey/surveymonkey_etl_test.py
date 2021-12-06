@@ -75,7 +75,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
                 "question_subtype": "rating",
-                "question_answers": [{}]
+                "question_answers": {}
             }
         ]
 
@@ -121,23 +121,19 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
                 "question_subtype": "rating",
-                "question_answers": [{
+                "question_answers": {
                     "choices": [{
                         "id": "CHOICE_ID",
-                        "text": "This is the choice",
-                        "type": "",
-                        "weight": -99
+                        "text": "This is the choice"
                     }],
                     "other": [{
                         "id": "OTHER_ID",
                         "text": "This is the other option",
-                        "type": "OTHER_TYPE",
-                        "weight": -99
+                        "type": "OTHER_TYPE"
                     }],
                     "rows": [{
                         "id": "ROW_ID",
                         "text": "This is the row",
-                        "type": "",
                         "weight": 3
                     }],
                     "cols": [{
@@ -147,7 +143,7 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                         "weight": 100
                     }],
 
-                }]
+                }
             }
         ]
 
@@ -180,19 +176,15 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
                 "question_subtype": "rating",
-                "question_answers": [{
+                "question_answers": {
                     "choices": [{
                         "id": "CHOICE_ID",
                         "text": "This is the choice",
-                        "type": "",
-                        "weight": -99
                     }, {
                         "id": "CHOICE_ID_2",
-                        "text": "This is the second choice",
-                        "type": "",
-                        "weight": -99
+                        "text": "This is the second choice"
                     }]
-                }]
+                }
             }
         ]
 
@@ -221,14 +213,11 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
                 "question_title": "Is this the question?",
                 "question_type": "matrix",
                 "question_subtype": "rating",
-                "question_answers": [{
+                "question_answers": {
                     "other": [{
-                        "id": "",
-                        "text": "It is a text",
-                        "type": "",
-                        "weight": -99
+                        "text": "It is a text"
                     }]
-                }]
+                }
             }
         ]
 
