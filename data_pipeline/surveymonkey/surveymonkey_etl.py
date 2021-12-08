@@ -116,7 +116,7 @@ def iter_survey_answers(access_token: str, survey_id: str) -> Iterable[dict]:
 
 def parse_answers_part_in_survey_answers_response(question_response_json: dict):
     result = {}
-    if "answers" in  question_response_json:
+    if "answers" in question_response_json:
         for answer in question_response_json["answers"]:
             for key in ["choice_id", "row_id", "col_id", "other_id", "text"]:
                 if key in answer:
