@@ -265,7 +265,7 @@ class TestGetBqJsonForSurveyAnswersResponseJson():
             }]
         })
         assert result["questions"] == [
-            {"question_id": "Q_ID", "answers": []}
+            {"question_id": "Q_ID", "answers": [{}]}
         ]
 
     def test_should_include_all_existing_answer_id_keys(self):
@@ -295,13 +295,14 @@ class TestGetBqJsonForSurveyAnswersResponseJson():
             }]
         }]
 
-    def test_should_include_all_id_keys_even_they_dont_exist_in_reponse(self):
+    def test_should_not_include_ids_if_they_dont_exist_in_reponse(self):
         result = get_bq_json_for_survey_answers_response_json({
             **DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON,
             "pages": [{
                 "questions": [{
                     "id": "Q_ID",
                     "answers": [{
+                        "choice_id": "CHOICE_ID"
                     }]
                 }]
             }]
@@ -309,10 +310,6 @@ class TestGetBqJsonForSurveyAnswersResponseJson():
         assert result["questions"] == [{
             "question_id": "Q_ID",
             "answers": [{
-                "choice_id": None,
-                "row_id": None,
-                "col_id": None,
-                "other_id": None,
-                "text": None
+                "choice_id": "CHOICE_ID"
             }]
         }]
