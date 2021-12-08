@@ -9,6 +9,7 @@ DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON = {
     "pages": [],
     "imported_timestamp": "",
     "response_count": 0,
+    "question_count": 0,
     "date_modified": "DEFAULT_DATE"
 }
 
@@ -39,9 +40,15 @@ class TestGetBqJsonForSurveyQuestionsResponseJson():
 
     def test_should_extract_response_count(self):
         result = get_bq_json_for_survey_questions_response_json(
-            {**DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON, "response_count": 13}
+            {**DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON, "response_count": 1113}
         )
-        assert result["response_count"] == 13
+        assert result["response_count"] == 1113
+
+    def test_should_extract_question_count(self):
+        result = get_bq_json_for_survey_questions_response_json(
+            {**DEFAULT_SURVEY_QUESTIONS_RESPONSE_JSON, "question_count": 10}
+        )
+        assert result["question_count"] == 10
 
     def test_should_extract_modified_timestamp(self):
         result = get_bq_json_for_survey_questions_response_json(

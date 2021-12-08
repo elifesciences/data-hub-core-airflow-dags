@@ -72,6 +72,7 @@ def get_bq_json_for_survey_questions_response_json(
     return {
         "title": survey_response_json["title"],
         "survey_id": survey_response_json["id"],
+        "question_count": survey_response_json["question_count"],
         "response_count": survey_response_json["response_count"],
         "modified_timestamp": survey_response_json["date_modified"],
         "questions": [
