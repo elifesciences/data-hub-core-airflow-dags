@@ -5,11 +5,11 @@ bigquery-views-manager>=1.0.3
 boto3==1.17.87
 cattrs==1.10.0
 cloudpickle==1.4.1
-dateparser==1.0.0
+dateparser==1.1.0
 dask[complete]<=2021.2.0
 distributed<=2021.2.0
 fsspec>=2021.4.0
-google-api-python-client==2.33.0
+google-api-python-client==2.35.0
 google-cloud-bigquery>=1.27.2
 google-oauth==1.0.1
 jinjasql==0.1.8
