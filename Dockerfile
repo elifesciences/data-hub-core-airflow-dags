@@ -3,6 +3,8 @@ ARG install_dev=n
 
 USER root
 
+RUN sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
+
 RUN apt-get update \
   && apt-get install sudo gcc -yqq \
   && rm -rf /var/lib/apt/lists/*
