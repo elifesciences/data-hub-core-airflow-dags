@@ -1,0 +1,6 @@
+projectName: 'elife-data-pipeline'
+datasetName: '{ENV}'
+civiEmailIdSource:
+  table: 'mv_Marketing_Civi_Sent_Email'
+  column: 'Mail_Id'
+civiCrmApiUrl: 'https://crm.elifesciences.org/crm/sites/all/modules/civicrm/extern/rest.php'
