@@ -1,4 +1,7 @@
+# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+
 import os
+from ruamel import yaml
 import logging
 from datetime import timedelta
 
@@ -15,15 +18,14 @@ from data_pipeline.civicrm_email_report.get_civicrm_email_report_data_config imp
 
 LOGGER = logging.getLogger(__name__)
 
-CIVICRM_API_KEY_FILE_PATH_ENV = "CIVICRM_API_KEY_FILE_PATH"
-CIVICRM_SITE_KEY_FILE_PATH_ENV = "CIVICRM_SITE_KEY_FILE_PATH"
+CIVICRM_KEY_SECRET_FILE_PATH_ENV = "CIVICRM_KEY_SECRET_FILE_PATH"
 
 CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
 
-DAG_ID = "civicrm_email_report_pipeline"
+DAG_ID = "Civicrm_Email_Summary_Report_Pipeline"
 CIVICRM_EMAIL_REPORT_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
     "CIVICRM_EMAIL_REPORT_DATA_PIPELINE_SCHEDULE_INTERVAL"
 )
@@ -59,16 +61,12 @@ def data_config_from_xcom(context):
     return data_conf
 
 
-def get_civicrm_credential_for_api_key():
-    secret_file = get_env_var_or_use_default(CIVICRM_API_KEY_FILE_PATH_ENV, "")
-    with open(secret_file) as file:
-        return file.read()
-
-
-def get_civicrm_credential_for_site_key():
-    secret_file = get_env_var_or_use_default(CIVICRM_SITE_KEY_FILE_PATH_ENV, "")
-    with open(secret_file) as file:
-        return file.read()
+def get_civicrm_credential(key_name: str):
+    secret_file = get_env_var_or_use_default(CIVICRM_KEY_SECRET_FILE_PATH_ENV, "")
+    data = yaml.safe_load(open(secret_file))
+    if key_name=="api_key":
+        return data["data"]["civi_api_key.txt"]
+    return data["data"]["civi_site_key.txt"]
 
 
 def civicrm_email_report_etl(**kwargs):
@@ -85,8 +83,8 @@ def civicrm_email_report_etl(**kwargs):
         email_report = get_email_report(
             url=data_config.civicrm_api_url,
             mail_id=email_id,
-            api_key=get_civicrm_credential_for_api_key(),
-            site_key=get_civicrm_credential_for_site_key(),
+            api_key=get_civicrm_credential("api_key"),
+            site_key=get_civicrm_credential("site_key"),
         )
 
         load_given_json_list_data_from_tempdir_to_bq(
