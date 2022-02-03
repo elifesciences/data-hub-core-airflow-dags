@@ -1,9 +1,10 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
 import os
-from ruamel import yaml
 import logging
 from datetime import timedelta
+import base64
+from ruamel import yaml
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag, create_python_task
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
@@ -29,6 +30,7 @@ DAG_ID = "Civicrm_Email_Summary_Report_Pipeline"
 CIVICRM_EMAIL_REPORT_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
     "CIVICRM_EMAIL_REPORT_DATA_PIPELINE_SCHEDULE_INTERVAL"
 )
+
 
 def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
@@ -63,10 +65,11 @@ def data_config_from_xcom(context):
 
 def get_civicrm_credential(key_name: str):
     secret_file = get_env_var_or_use_default(CIVICRM_KEY_SECRET_FILE_PATH_ENV, "")
+    # pylint: disable=consider-using-with
     data = yaml.safe_load(open(secret_file))
-    if key_name=="api_key":
-        return data["data"]["civi_api_key.txt"]
-    return data["data"]["civi_site_key.txt"]
+    if key_name == "api_key":
+        return base64.b64decode(data["data"]["civi_api_key.txt"])
+    return base64.b64decode(data["data"]["civi_site_key.txt"])
 
 
 def civicrm_email_report_etl(**kwargs):

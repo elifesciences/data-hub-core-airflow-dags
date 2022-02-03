@@ -15,7 +15,7 @@ def get_connection_parameters(mail_id: int, api_key, site_key):
     return {
         "entity": "Mailing",
         "action": "stats",
-        "json" : get_mailing_id_dict(mail_id),
+        "json": get_mailing_id_dict(mail_id),
         "api_key": api_key,
         "key": site_key
     }
