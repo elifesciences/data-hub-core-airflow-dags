@@ -65,8 +65,8 @@ def data_config_from_xcom(context):
 
 def get_civicrm_credential(key_name: str):
     secret_file = get_env_var_or_use_default(CIVICRM_KEY_SECRET_FILE_PATH_ENV, "")
-    # pylint: disable=consider-using-with
-    data = yaml.safe_load(open(secret_file))
+    with open(secret_file) as file:
+        data = yaml.safe_load(file)
     if key_name == "api_key":
         return base64.b64decode(data["data"]["civi_api_key.txt"])
     return base64.b64decode(data["data"]["civi_site_key.txt"])
@@ -74,12 +74,13 @@ def get_civicrm_credential(key_name: str):
 
 def civicrm_email_report_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    email_id_list = get_distinct_values_from_bq(
+    email_id_df = get_distinct_values_from_bq(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset_name,
         table_name_source=data_config.email_id_source_table,
         column_name=data_config.email_id_column
-    ).values.tolist()
+    )
+    email_id_list = email_id_df[0].values.tolist()
 
     email_reports = iter_email_report(
         url=data_config.civicrm_api_url,

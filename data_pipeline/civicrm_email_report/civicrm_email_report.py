@@ -61,5 +61,5 @@ def iter_email_report(
 ) -> Iterable[dict]:
     LOGGER.info("total email count is %s", len(mail_id_list))
     for mail_id in mail_id_list:
-        LOGGER.info("mail_id to process is %s", mail_id[1])
-        yield get_email_report(url, int(mail_id[1]), api_key, site_key)
+        LOGGER.info("mail_id to process is %s", mail_id)
+        yield get_email_report(url, mail_id, api_key, site_key)
