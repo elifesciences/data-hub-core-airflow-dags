@@ -381,8 +381,9 @@ def get_distinct_values_from_bq(
     sql = """
         SELECT DISTINCT {{ column_name }} AS column
         FROM  `{{ project_name }}.{{ dataset_name }}.{{ table_name_source }}`
+        WHERE {{ column_name }} IS NOT NULL
         {% if table_name_for_exclusion %}
-        WHERE {{ column_name }} NOT IN
+        AND {{ column_name }} NOT IN
             (
                 SELECT {{ column_name }}
                 FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name_for_exclusion }}`
