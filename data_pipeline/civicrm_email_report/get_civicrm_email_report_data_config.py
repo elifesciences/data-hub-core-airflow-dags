@@ -17,6 +17,7 @@ class CiviCrmEmailReportDataConfig:
         )
         self.project_name = self.data_config.get("projectName")
         self.dataset_name = self.data_config.get("datasetName")
+        self.table_name = self.data_config.get("tableName")
 
         self.email_id_source_table = (
             self.data_config.get("civiEmailIdSource").get("table")

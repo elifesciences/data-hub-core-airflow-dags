@@ -93,7 +93,7 @@ def civicrm_email_report_etl(**kwargs):
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=data_config.project_name,
             dataset_name=data_config.dataset_name,
-            table_name=data_config.email_id_source_table,
+            table_name=data_config.table_name,
             json_list=[email_report]
         )
 
