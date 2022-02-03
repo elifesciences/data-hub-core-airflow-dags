@@ -33,18 +33,22 @@ def get_email_report(
 ) -> dict:
     response = requests.post(url=url, data=get_connection_parameters(mail_id, api_key, site_key))
     response.raise_for_status()
-    dict_response = eval(response.text)
+    dict_response = json.loads(response.text)
     mail_id_str = str(mail_id)
     return {
         "mail_id": mail_id,
-        "delivered": dict_response["values"][mail_id_str]["Delivered"],
-        "delivered_rate": dict_response["values"][mail_id_str]["delivered_rate"],
-        "bounces": dict_response["values"][mail_id_str]["Bounces"],
-        "unsubscribers": dict_response["values"][mail_id_str]["Unsubscribers"],
-        "unique_clicks": dict_response["values"][mail_id_str]["Unique Clicks"],
-        "opened": dict_response["values"][mail_id_str]["Opened"],
-        "opened_rate": dict_response["values"][mail_id_str]["opened_rate"],
-        "clickthrough_rate": dict_response["values"][mail_id_str]["clickthrough_rate"],
+        "delivered": int(dict_response["values"][mail_id_str]["Delivered"]),
+        "delivered_rate": float(
+            dict_response["values"][mail_id_str]["delivered_rate"].replace("%", "")
+        ),
+        "bounces": int(dict_response["values"][mail_id_str]["Bounces"]),
+        "unsubscribers": int(dict_response["values"][mail_id_str]["Unsubscribers"]),
+        "unique_clicks": int(dict_response["values"][mail_id_str]["Unique Clicks"]),
+        "opened": int(dict_response["values"][mail_id_str]["Opened"]),
+        "opened_rate": float(dict_response["values"][mail_id_str]["opened_rate"].replace("%", "")),
+        "clickthrough_rate": float(
+            dict_response["values"][mail_id_str]["clickthrough_rate"].replace("%", "")
+        ),
         "imported_timestamp": get_current_timestamp()
     }
 
