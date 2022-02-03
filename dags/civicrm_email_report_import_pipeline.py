@@ -8,7 +8,7 @@ from ruamel import yaml
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag, create_python_task
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
-from data_pipeline.civicrm_email_report.civicrm_email_report import get_email_report
+from data_pipeline.civicrm_email_report.civicrm_email_report import iter_email_report
 from data_pipeline.utils.data_store.bq_data_service import (
     get_distinct_values_from_bq,
     load_given_json_list_data_from_tempdir_to_bq
@@ -80,22 +80,20 @@ def civicrm_email_report_etl(**kwargs):
         table_name_source=data_config.email_id_source_table,
         column_name=data_config.email_id_column
     ).values.tolist()
-
-    for email_id in email_id_list:
-        LOGGER.info("mail_id to process is: %s", int(email_id[1]))
-        email_report = get_email_report(
-            url=data_config.civicrm_api_url,
-            mail_id=int(email_id[1]),
-            api_key=get_civicrm_credential("api_key"),
-            site_key=get_civicrm_credential("site_key"),
-        )
-
-        load_given_json_list_data_from_tempdir_to_bq(
-            project_name=data_config.project_name,
-            dataset_name=data_config.dataset_name,
-            table_name=data_config.table_name,
-            json_list=[email_report]
-        )
+    print(email_id_list)
+    
+    email_reports = iter_email_report(
+        url=data_config.civicrm_api_url,
+        mail_id_list=email_id_list,
+        api_key=get_civicrm_credential("api_key"),
+        site_key=get_civicrm_credential("site_key"),
+    )
+    load_given_json_list_data_from_tempdir_to_bq(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name=data_config.table_name,
+        json_list=email_reports
+    )
 
 
 CIVICRM_EMAIL_DAG = create_dag(
