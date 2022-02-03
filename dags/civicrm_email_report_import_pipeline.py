@@ -79,10 +79,10 @@ def civicrm_email_report_etl(**kwargs):
     ).values.tolist()
 
     for email_id in email_id_list:
-        LOGGER.info("email id: %s", email_id)
+        LOGGER.info("mail_id to process is: %s", int(email_id[1]))
         email_report = get_email_report(
             url=data_config.civicrm_api_url,
-            mail_id=email_id,
+            mail_id=int(email_id[1]),
             api_key=get_civicrm_credential("api_key"),
             site_key=get_civicrm_credential("site_key"),
         )

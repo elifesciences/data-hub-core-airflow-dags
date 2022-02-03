@@ -1,5 +1,10 @@
 import json
 import requests
+import datetime
+
+
+def get_current_timestamp():
+    return datetime.datetime.utcnow().isoformat()
 
 
 def get_mailing_id_dict(mail_id: int) -> str(dict):
@@ -27,7 +32,7 @@ def get_email_report(
     dict_response = eval(response.text)
     mail_id_str = str(mail_id)
     return {
-        "mail_id": dict_response["id"],
+        "mail_id": mail_id,
         "delivered": dict_response["values"][mail_id_str]["Delivered"],
         "delivered_rate": dict_response["values"][mail_id_str]["delivered_rate"],
         "bounces": dict_response["values"][mail_id_str]["Bounces"],
@@ -35,5 +40,6 @@ def get_email_report(
         "unique_clicks": dict_response["values"][mail_id_str]["Unique Clicks"],
         "opened": dict_response["values"][mail_id_str]["Opened"],
         "opened_rate": dict_response["values"][mail_id_str]["opened_rate"],
-        "clickthrough_rate": dict_response["values"][mail_id_str]["clickthrough_rate"]
+        "clickthrough_rate": dict_response["values"][mail_id_str]["clickthrough_rate"],
+        "imported_timestamp": get_current_timestamp()
     }
