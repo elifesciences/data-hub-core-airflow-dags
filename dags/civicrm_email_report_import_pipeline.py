@@ -40,16 +40,16 @@ def get_data_config(**kwargs):
     config_file_path = get_env_var_or_use_default(
         CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME, ""
     )
-    data_config_dict = get_yaml_file_as_dict(config_file_path)
+    data_config_dictionary = get_yaml_file_as_dict(config_file_path)
     kwargs["ti"].xcom_push(
         key="data_config_dict",
-        value=data_config_dict
+        value=data_config_dictionary
     )
 
 
 def data_config_from_xcom(context):
-    dag_cont = context["ti"]
-    data_config_dict = dag_cont.xcom_pull(
+    dag_con = context["ti"]
+    data_config_dict = dag_con.xcom_pull(
         key="data_config_dict",
         task_ids="get_data_config"
     )
@@ -57,10 +57,10 @@ def data_config_from_xcom(context):
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
     )
-    data_conf = CiviCrmEmailReportDataConfig(
+    data_configuration = CiviCrmEmailReportDataConfig(
         data_config_dict, deployment_env)
-    LOGGER.info('data_config: %r', data_conf)
-    return data_conf
+    LOGGER.info('data_config: %r', data_configuration)
+    return data_configuration
 
 
 def get_civicrm_credential(key_name: str):
@@ -80,7 +80,7 @@ def civicrm_email_report_etl(**kwargs):
         table_name_source=data_config.email_id_source_table,
         column_name=data_config.email_id_column
     ).values.tolist()
-    
+
     email_reports = iter_email_report(
         url=data_config.civicrm_api_url,
         mail_id_list=email_id_list,
