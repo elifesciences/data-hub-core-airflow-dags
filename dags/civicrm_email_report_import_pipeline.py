@@ -80,7 +80,6 @@ def civicrm_email_report_etl(**kwargs):
         table_name_source=data_config.email_id_source_table,
         column_name=data_config.email_id_column
     ).values.tolist()
-    print(email_id_list)
     
     email_reports = iter_email_report(
         url=data_config.civicrm_api_url,
