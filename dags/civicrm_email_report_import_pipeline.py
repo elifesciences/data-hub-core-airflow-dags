@@ -3,8 +3,6 @@
 import os
 import logging
 from datetime import timedelta
-import base64
-from ruamel import yaml
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag, create_python_task
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
@@ -16,10 +14,14 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.civicrm_email_report.get_civicrm_email_report_data_config import (
     CiviCrmEmailReportDataConfig
 )
+from data_pipeline.utils.pipeline_file_io import read_file_content
 
 LOGGER = logging.getLogger(__name__)
 
 CIVICRM_KEY_SECRET_FILE_PATH_ENV = "CIVICRM_KEY_SECRET_FILE_PATH"
+
+CIVICRM_API_KEY_FILE_PATH_ENV = "CIVICRM_API_KEY_FILE_PATH"
+CIVICRM_SITE_KEY_FILE_PATH_ENV = "CIVICRM_SITE_KEY_FILE_PATH"
 
 CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH"
 
@@ -64,12 +66,13 @@ def data_config_from_xcom(context):
 
 
 def get_civicrm_credential(key_name: str):
-    secret_file = get_env_var_or_use_default(CIVICRM_KEY_SECRET_FILE_PATH_ENV, "")
-    with open(secret_file) as file:
-        data = yaml.safe_load(file)
     if key_name == "api_key":
-        return base64.b64decode(data["data"]["civi_api_key.txt"])
-    return base64.b64decode(data["data"]["civi_site_key.txt"])
+        return read_file_content(
+            get_env_var_or_use_default(CIVICRM_API_KEY_FILE_PATH_ENV, "")
+        )
+    return read_file_content(
+        get_env_var_or_use_default(CIVICRM_SITE_KEY_FILE_PATH_ENV, "")
+    )
 
 
 def civicrm_email_report_etl(**kwargs):
