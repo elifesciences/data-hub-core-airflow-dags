@@ -18,8 +18,6 @@ from data_pipeline.utils.pipeline_file_io import read_file_content
 
 LOGGER = logging.getLogger(__name__)
 
-CIVICRM_KEY_SECRET_FILE_PATH_ENV = "CIVICRM_KEY_SECRET_FILE_PATH"
-
 CIVICRM_API_KEY_FILE_PATH_ENV = "CIVICRM_API_KEY_FILE_PATH"
 CIVICRM_SITE_KEY_FILE_PATH_ENV = "CIVICRM_SITE_KEY_FILE_PATH"
 
@@ -65,8 +63,8 @@ def data_config_from_xcom(context):
     return data_configuration
 
 
-def get_civicrm_credential(key_name: str):
-    if key_name == "api_key":
+def get_civicrm_credential(env_var_name: str):
+    if env_var_name == "CIVICRM_API_KEY_FILE_PATH_ENV":
         return read_file_content(
             get_env_var_or_use_default(CIVICRM_API_KEY_FILE_PATH_ENV, "")
         )
