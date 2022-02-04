@@ -1,7 +1,7 @@
 import json
 import datetime
 import logging
-from typing import Iterable
+from typing import Iterable, Sequence
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def get_connection_parameters(mail_id: int, api_key, site_key):
     }
 
 
-def get_email_report(
+def connect_civiapi_and_get_email_report(
     url: str,
     mail_id: int,
     api_key: str,
@@ -33,7 +33,13 @@ def get_email_report(
 ) -> dict:
     response = requests.post(url=url, data=get_connection_parameters(mail_id, api_key, site_key))
     response.raise_for_status()
-    dict_response = json.loads(response.text)
+    return response.json()
+
+
+def format_email_report(
+    dict_response: dict,
+    mail_id: int
+) -> dict:
     mail_id_str = str(mail_id)
     return {
         "mail_id": mail_id,
@@ -55,11 +61,14 @@ def get_email_report(
 
 def iter_email_report(
     url: str,
-    mail_id_list: list,
+    mail_id_list: Sequence[str],
     api_key: str,
     site_key: str
 ) -> Iterable[dict]:
     LOGGER.info("total email count is %s", len(mail_id_list))
     for mail_id in mail_id_list:
         LOGGER.info("mail_id to process is %s", mail_id)
-        yield get_email_report(url, mail_id, api_key, site_key)
+        yield format_email_report(
+            dict_response=connect_civiapi_and_get_email_report(url, mail_id, api_key, site_key),
+            mail_id=mail_id
+        )
