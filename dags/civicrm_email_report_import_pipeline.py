@@ -64,9 +64,7 @@ def data_config_from_xcom(context):
 
 
 def get_civicrm_credential(env_var_name: str):
-    return read_file_content(
-            get_env_var_or_use_default(env_var_name, "")
-        )
+    return read_file_content(get_env_var_or_use_default(env_var_name, ""))
 
 
 def civicrm_email_report_etl(**kwargs):
