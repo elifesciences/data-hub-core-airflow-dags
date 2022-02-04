@@ -36,7 +36,7 @@ def connect_civiapi_and_get_email_report(
     return response.json()
 
 
-def format_email_report(
+def transform_email_report(
     dict_response: dict,
     mail_id: int
 ) -> dict:
