@@ -68,7 +68,7 @@ def iter_email_report(
     LOGGER.info("total email count is %s", len(mail_id_list))
     for mail_id in mail_id_list:
         LOGGER.info("mail_id to process is %s", mail_id)
-        yield format_email_report(
+        yield transform_email_report(
             dict_response=connect_civiapi_and_get_email_report(url, mail_id, api_key, site_key),
             mail_id=mail_id
         )

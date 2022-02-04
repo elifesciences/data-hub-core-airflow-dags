@@ -64,13 +64,9 @@ def data_config_from_xcom(context):
 
 
 def get_civicrm_credential(env_var_name: str):
-    if env_var_name == "CIVICRM_API_KEY_FILE_PATH_ENV":
-        return read_file_content(
-            get_env_var_or_use_default(CIVICRM_API_KEY_FILE_PATH_ENV, "")
-        )
     return read_file_content(
-        get_env_var_or_use_default(CIVICRM_SITE_KEY_FILE_PATH_ENV, "")
-    )
+            get_env_var_or_use_default(env_var_name, "")
+        )
 
 
 def civicrm_email_report_etl(**kwargs):
@@ -86,8 +82,8 @@ def civicrm_email_report_etl(**kwargs):
     email_reports = iter_email_report(
         url=data_config.civicrm_api_url,
         mail_id_list=email_id_list,
-        api_key=get_civicrm_credential("api_key"),
-        site_key=get_civicrm_credential("site_key"),
+        api_key=get_civicrm_credential("CIVICRM_API_KEY_FILE_PATH_ENV"),
+        site_key=get_civicrm_credential("CIVICRM_SITE_KEY_FILE_PATH_ENV"),
     )
     load_given_json_list_data_from_tempdir_to_bq(
         project_name=data_config.project_name,
