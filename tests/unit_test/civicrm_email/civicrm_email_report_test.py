@@ -56,7 +56,7 @@ class TestTransformEmailReport():
             MAIL_ID
         )
         assert result["opened"] == 251
-    
+
     def test_should_extract_delivered_rate_as_float(self):
         result = transform_email_report(
             DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE,
