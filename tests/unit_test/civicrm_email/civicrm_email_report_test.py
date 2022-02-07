@@ -31,6 +31,13 @@ DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE = {
 
 class TestTransformEmailReport():
 
+    def test_shoul_mail_id_be_an_integer(self):
+        result = transform_email_report(
+            DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE,
+            MAIL_ID
+        )
+        assert result["mail_id"] == MAIL_ID
+
     def test_should_extract_delivered_as_integer(self):
         result = transform_email_report(
             DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE,
