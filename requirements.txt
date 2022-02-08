@@ -6,8 +6,8 @@ boto3==1.17.87
 cattrs==1.10.0
 cloudpickle==1.4.1
 dateparser==1.1.0
-dask[complete]<=2021.2.0
-distributed<=2021.2.0
+dask[complete]<=2021.2.0, >=2.17.0
+distributed<=2021.2.0, >=2.17.0
 fsspec>=2021.4.0
 google-api-python-client==2.36.0
 google-cloud-bigquery>=1.27.2
