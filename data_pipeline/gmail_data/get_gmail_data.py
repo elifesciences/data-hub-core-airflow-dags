@@ -115,6 +115,7 @@ def get_link_message_thread_ids(
 def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
     thread_response = service.users().threads().get(userId=user_id, id=thread_id).execute()
+    LOGGER.info('Getting details for threadId: %s', thread_id)
     return get_dataframe_for_thread_response(thread_response, user_id, imported_timestamp)
 
 
