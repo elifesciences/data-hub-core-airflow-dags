@@ -263,7 +263,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                             project_name=project_name,
                             dataset_name=dataset_name,
                             column_name=data_config.column_name_input,
-                            table_name_source=data_config.table_name_thread_ids,
+                            table_name_source=data_config.temp_table_name_thread_ids,
                             table_name_for_exclusion=table_name,
                             array_table_name=data_config.array_name_in_thread_details,
                             array_column_for_exclusion=data_config.array_column_name,
