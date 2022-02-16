@@ -55,6 +55,12 @@ class GmailGetDataConfig:
         self.column_name_history_check = (
             self.data_config.get("gmailThreadData").get("historyCheckColumn")
         )
+        self.array_name_in_thread_details = (
+            self.data_config.get("gmailThreadData").get("array_name_in_table")
+        )
+        self.array_column_name = (
+            self.data_config.get("gmailThreadData").get("array_column_name")
+        )
 
     def __repr__(self):
         return repr(vars(self))
