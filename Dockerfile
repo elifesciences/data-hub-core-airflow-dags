@@ -1,5 +1,4 @@
 FROM apache/airflow:1.10.15-python3.7
-ARG install_dev=n
 
 USER root
 
@@ -22,6 +21,7 @@ RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
 COPY requirements.txt ./
 RUN pip install --disable-pip-version-check -r requirements.txt
 
+ARG install_dev=n
 COPY --chown=airflow:airflow requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then pip install --user --disable-pip-version-check -r requirements.dev.txt; fi
 

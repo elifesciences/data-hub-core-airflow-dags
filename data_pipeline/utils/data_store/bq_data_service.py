@@ -375,14 +375,23 @@ def get_distinct_values_from_bq(
             dataset_name: str,
             column_name: str,
             table_name_source: str,
-            table_name_for_exclusion: str = None
+            table_name_for_exclusion: str = None,
+            array_column_for_exclusion: str = None,
+            array_table_name: str = None,
         ) -> pd.DataFrame:
 
     sql = """
         SELECT DISTINCT {{ column_name }} AS column
         FROM  `{{ project_name }}.{{ dataset_name }}.{{ table_name_source }}`
         WHERE {{ column_name }} IS NOT NULL
-        {% if table_name_for_exclusion %}
+        {% if array_table_name %}
+        AND {{ array_column_for_exclusion }} NOT IN
+            (
+                SELECT t_array.{{ array_column_for_exclusion }}
+                FROM `{{ project_name }}.{{ dataset_name }}.{{ table_name_for_exclusion }}`
+                LEFT JOIN UNNEST({{ array_table_name }}) AS t_array
+            )
+        {% elif table_name_for_exclusion %}
         AND {{ column_name }} NOT IN
             (
                 SELECT {{ column_name }}
@@ -395,7 +404,9 @@ def get_distinct_values_from_bq(
         'dataset_name': dataset_name,
         'column_name': column_name,
         'table_name_source': table_name_source,
-        'table_name_for_exclusion': table_name_for_exclusion
+        'table_name_for_exclusion': table_name_for_exclusion,
+        'array_column_for_exclusion': array_column_for_exclusion,
+        'array_table_name': array_table_name,
         }
 
     jin = JinjaSql(param_style='pyformat')
