@@ -63,7 +63,8 @@ IS_GMAIL_END2END_TEST_ENV = "IS_GMAIL_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
-CHUNK_SIZE = 3000
+GMAIL_THREAD_DETAILS_CHUNK_SIZE_ENV_NAME = "GMAIL_THREAD_DETAILS_CHUNK_SIZE"
+DEFAULT_GMAIL_THREAD_DETAILS_CHUNK_SIZE = "100"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -133,6 +134,15 @@ def get_gmail_service() -> Resource:
             scopes=GMAIL_SCOPES
         )
     )
+
+
+def get_gmail_thread_details_chunk_size() -> int:
+    chunk_size = int(get_env_var_or_use_default(
+        GMAIL_THREAD_DETAILS_CHUNK_SIZE_ENV_NAME,
+        DEFAULT_GMAIL_THREAD_DETAILS_CHUNK_SIZE
+    ))
+    LOGGER.info("Thread details chunk size is :%s", chunk_size)
+    return chunk_size
 
 
 def load_bq_table_from_df(
@@ -277,7 +287,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
                         )
 
     # because of big amount of data created chunks of dataframe to load data
-    for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
+    for df_ids_part in dataframe_chunk(df_thread_id_list, get_gmail_thread_details_chunk_size()):
         LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
         df_thread_details = pd.concat([
                                         get_one_thread(get_gmail_service(), user_id, id)
@@ -313,7 +323,10 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
                             )
 
         # because of big amount of data created chunks of dataframe to load data
-        for df_ids_part in dataframe_chunk(df_thread_id_list, CHUNK_SIZE):
+        for df_ids_part in dataframe_chunk(
+            df_thread_id_list,
+            get_gmail_thread_details_chunk_size()
+        ):
             LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
             df_thread_details = pd.concat([
                                             get_one_thread(get_gmail_service(), user_id, id)
