@@ -1,7 +1,7 @@
 credentials.json
 *.egg-info
 .pytest_cache
-venv
+venv*
 .secrets
 main.py
 *.local
