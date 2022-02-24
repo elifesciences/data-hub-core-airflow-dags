@@ -11,7 +11,7 @@ dateparser==1.1.0
 dask[complete]<=2021.2.0, >=2.17.0
 distributed<=2021.2.0, >=2.17.0
 fsspec==2021.11.1
-google-api-python-client==2.36.0
+google-api-python-client==2.38.0
 google-cloud-bigquery>=1.27.2
 google-oauth==1.0.1
 jinjasql==0.1.8
