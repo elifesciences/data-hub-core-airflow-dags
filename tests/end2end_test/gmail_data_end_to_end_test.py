@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 AIRFLW_API = AirflowAPI()
 
 DATASET = "ci"
-TABLE = "gmail_thread_details"
+TABLE = "gmail_e2e_test_thread_details"
 PROJECT = "elife-data-pipeline"
 
 
