@@ -1,18 +1,39 @@
 projectName: 'elife-data-pipeline'
 datasetName: '{ENV}'
-gmailLabelData:
-  table: 'gmail_label_list'
-  tempTable: 'temp_gmail_label_list'
-  uniqueIdColumn: 'labelId'
-gmailLinkIdsData:
-  table: 'gmail_thread_ids_list'
-  tempTable: 'temp_gmail_thread_ids_list'
-  uniqueIdColumn: 'id'
-gmailThreadData:
-  table: 'gmail_thread_details'
-  inputColumn: 'threadId'
-  historyCheckColumn: 'historyId'
-  array_name_in_table: 'messages'
-  array_column_name: 'id'
-gmailHistoryData:
-  tempTable: 'temp_gmail_history_details'
+gmailData:
+  # - dataPipelineId: gmail_production_data_pipeline
+  #   gmailLabelData:
+  #     table: 'gmail_label_list'
+  #     tempTable: 'temp_gmail_label_list'
+  #     uniqueIdColumn: 'labelId'
+  #   gmailLinkIdsData:
+  #     table: 'gmail_thread_ids_list'
+  #     tempTable: 'temp_gmail_thread_ids_list'
+  #     uniqueIdColumn: 'id'
+  #   gmailThreadData:
+  #     table: 'gmail_thread_details'
+  #     inputColumn: 'threadId'
+  #     historyCheckColumn: 'historyId'
+  #     array_name_in_table: 'messages'
+  #     array_column_name: 'id'
+  #   gmailHistoryData:
+  #     tempTable: 'temp_gmail_history_details'
+  #   gmailAccountSecretFile: GMAIL_PRODUCTION_ACCOUNT_SECRET_FILE
+  - dataPipelineId: gmail_e2e_test_data_pipeline
+    gmailLabelData:
+      table: 'gmail_e2e_test_label_list'
+      tempTable: 'temp_gmail_e2e_test_label_list'
+      uniqueIdColumn: 'labelId'
+    gmailLinkIdsData:
+      table: 'gmail_e2e_test_thread_ids_list'
+      tempTable: 'temp_gmail_e2e_test_thread_ids_list'
+      uniqueIdColumn: 'id'
+    gmailThreadData:
+      table: 'gmail_e2e_test_thread_details'
+      inputColumn: 'threadId'
+      historyCheckColumn: 'historyId'
+      array_name_in_table: 'messages'
+      array_column_name: 'id'
+    gmailHistoryData:
+      tempTable: 'temp_gmail_e2e_test_history_details'
+    gmailSecretFileEnvName: GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE
