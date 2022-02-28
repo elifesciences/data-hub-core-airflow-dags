@@ -25,11 +25,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 )
 
 from data_pipeline.gmail_data.get_gmail_data_config import (
-    GmailGetDataConfig
-)
-
-from data_pipeline.utils.pipeline_file_io import (
-    get_yaml_file_as_dict
+    GmailDataConfig
 )
 
 from data_pipeline.utils.pipeline_config import (
@@ -50,11 +46,6 @@ from data_pipeline.gmail_data.get_gmail_data import (
 )
 
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
-GMAIL_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_ACCOUNT_SECRET_FILE'
-GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV = 'GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE'
-
-GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
-GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = "GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL"
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
@@ -73,30 +64,17 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
-def get_data_config(**kwargs):
-    conf_file_path = get_env_var_or_use_default(
-        GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME, ""
-    )
-    LOGGER.info('conf_file_path: %s', conf_file_path)
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    LOGGER.info('data_config_dict: %s', data_config_dict)
-    kwargs["ti"].xcom_push(
-        key="data_config_dict",
-        value=data_config_dict
-    )
-
-
-def data_config_from_xcom(context):
-    dag_context = context["ti"]
-    data_config_dict = dag_context.xcom_pull(
-        key="data_config_dict", task_ids="get_data_config"
-    )
+def get_data_config(context):
+    data_config_dict = context["dag_run"].conf
     LOGGER.info('data_config_dict: %s', data_config_dict)
     deployment_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
-    data_config = GmailGetDataConfig(
-        data_config_dict, deployment_env)
-    LOGGER.info('data_config: %r', data_config)
+    LOGGER.info("deployment_env: %s", deployment_env)
+    data_config = GmailDataConfig(
+        data_config=data_config_dict,
+        deployment_env=deployment_env
+    )
+    LOGGER.info('data_config: %s', data_config)
     return data_config
 
 
@@ -107,25 +85,25 @@ def is_end2end_test():
     )
 
 
-def get_gmail_credentials(is_e2e_test: bool) -> GmailCredentials:
+def get_gmail_credentials(is_e2e_test: bool, data_config: GmailDataConfig) -> GmailCredentials:
     if is_e2e_test:
-        secret_file = get_env_var_or_use_default(GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE_ENV, "")
+        secret_file = get_env_var_or_use_default(data_config.gmail_secret_file_env_name)
         LOGGER.info("[end2end-test] gmail secret file name %s", secret_file)
     else:
-        secret_file = get_env_var_or_use_default(GMAIL_ACCOUNT_SECRET_FILE_ENV, "")
+        secret_file = get_env_var_or_use_default(data_config.gmail_secret_file_env_name)
         LOGGER.info("gmail secret file name %s", secret_file)
     return GmailCredentials(secret_file)
 
 
-def get_gmail_user_id() -> str:
-    gmail_credentials = get_gmail_credentials(is_end2end_test())
+def get_gmail_user_id(data_config: GmailDataConfig) -> str:
+    gmail_credentials = get_gmail_credentials(is_end2end_test(), data_config)
     user_id = gmail_credentials.user_id
     LOGGER.info("gmail user_id: %s", user_id)
     return user_id
 
 
-def get_gmail_service() -> Resource:
-    gmail_credentials = get_gmail_credentials(is_end2end_test())
+def get_gmail_service(data_config: GmailDataConfig) -> Resource:
+    gmail_credentials = get_gmail_credentials(is_end2end_test(), data_config)
     return get_gmail_service_via_refresh_token(
         refresh_gmail_token(
             client_id=gmail_credentials.client_id,
@@ -182,27 +160,27 @@ def load_bq_table_from_df(
 
 
 def gmail_label_data_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
+    data_config = get_data_config(kwargs)
+    user_id = get_gmail_user_id(data_config)
 
     load_bq_table_from_df(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset_name,
         table_name=data_config.temp_table_name_labels,
-        df_data_to_write=get_label_list(get_gmail_service(),  user_id)
+        df_data_to_write=get_label_list(get_gmail_service(data_config),  user_id)
     )
 
 
 def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
+    data_config = get_data_config(kwargs)
+    user_id = get_gmail_user_id(data_config)
 
     load_bq_table_from_df(
         project_name=data_config.project_name,
         dataset_name=data_config.dataset_name,
         table_name=data_config.temp_table_name_thread_ids,
         df_data_to_write=get_link_message_thread_ids(
-            get_gmail_service(),
+            get_gmail_service(data_config),
             user_id,
             is_end2end_test()
         )
@@ -210,8 +188,8 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
 
 
 def gmail_history_details_to_temp_table_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
+    data_config = get_data_config(kwargs)
+    user_id = get_gmail_user_id(data_config)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
 
@@ -230,7 +208,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
             dataset_name=dataset_name,
             table_name=data_config.temp_table_name_history_details,
             df_data_to_write=get_gmail_history_details(
-                get_gmail_service(),
+                get_gmail_service(data_config),
                 user_id,
                 str(start_id),
                 is_end2end_test()
@@ -238,8 +216,8 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
         )
     except errors.HttpError:
         start_id = get_gmail_user_profile(
-            get_gmail_service(),
-            get_gmail_user_id()
+            get_gmail_service(data_config),
+            get_gmail_user_id(data_config)
         )["historyId"]
 
         LOGGER.info('Get history start_id from user profile: %s', start_id)
@@ -249,7 +227,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
             dataset_name=dataset_name,
             table_name=data_config.temp_table_name_history_details,
             df_data_to_write=get_gmail_history_details(
-                get_gmail_service(),
+                get_gmail_service(data_config),
                 user_id,
                 str(start_id),
                 is_end2end_test()
@@ -258,8 +236,8 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
 
 
 def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
+    data_config = get_data_config(kwargs)
+    user_id = get_gmail_user_id(data_config)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
     table_name = data_config.table_name_thread_details
@@ -290,7 +268,7 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
     for df_ids_part in dataframe_chunk(df_thread_id_list, get_gmail_thread_details_chunk_size()):
         LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
         df_thread_details = pd.concat([
-                                        get_one_thread(get_gmail_service(), user_id, id)
+                                        get_one_thread(get_gmail_service(data_config), user_id, id)
                                         for id in df_ids_part[0]
                             ], ignore_index=True)
 
@@ -303,8 +281,8 @@ def gmail_thread_details_from_temp_thread_ids_etl(**kwargs):
 
 
 def gmail_thread_details_from_temp_history_details_etl(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
-    user_id = get_gmail_user_id()
+    data_config = get_data_config(kwargs)
+    user_id = get_gmail_user_id(data_config)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
     table_name = data_config.table_name_thread_details
@@ -329,7 +307,10 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
         ):
             LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
             df_thread_details = pd.concat([
-                                            get_one_thread(get_gmail_service(), user_id, id)
+                                            get_one_thread(
+                                                get_gmail_service(data_config),
+                                                user_id, id
+                                            )
                                             for id in df_ids_part[0]
                                 ], ignore_index=True)
             load_bq_table_from_df(
@@ -341,7 +322,7 @@ def gmail_thread_details_from_temp_history_details_etl(**kwargs):
 
 
 def load_from_temp_table_to_label_list(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_data_config(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_labels
@@ -372,7 +353,7 @@ def load_from_temp_table_to_label_list(**kwargs):
 
 
 def load_from_temp_table_to_thread_ids_list(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_data_config(kwargs)
     dataset_name = data_config.dataset_name
     project_name = data_config.project_name
     table_name = data_config.table_name_thread_ids
@@ -388,7 +369,7 @@ def load_from_temp_table_to_thread_ids_list(**kwargs):
 
 
 def delete_temp_table_labels(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_data_config(kwargs)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
     table_name = data_config.temp_table_name_labels
@@ -401,7 +382,7 @@ def delete_temp_table_labels(**kwargs):
 
 
 def delete_temp_table_thread_ids(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_data_config(kwargs)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
     table_name = data_config.temp_table_name_thread_ids
@@ -414,7 +395,7 @@ def delete_temp_table_thread_ids(**kwargs):
 
 
 def delete_temp_table_history_details(**kwargs):
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_data_config(kwargs)
     project_name = data_config.project_name
     dataset_name = data_config.dataset_name
     table_name = data_config.temp_table_name_history_details
@@ -428,17 +409,8 @@ def delete_temp_table_history_details(**kwargs):
 
 GMAIL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
-        GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
-    ),
+    schedule_interval=None,
     dagrun_timeout=timedelta(days=1)
-)
-
-get_data_config_task = create_python_task(
-    GMAIL_DATA_DAG,
-    "get_data_config",
-    get_data_config,
-    retries=5
 )
 
 gmail_label_data_to_temp_table_etl_task = create_python_task(
@@ -513,15 +485,6 @@ load_from_temp_table_to_thread_ids_list_task = create_python_task(
 
 # pylint: disable=pointless-statement
 # define dependencies between tasks in the DAG
-
-(
-    get_data_config_task >> [
-        gmail_label_data_to_temp_table_etl_task,
-        gmail_thread_ids_list_to_temp_table_etl_task,
-        gmail_history_details_to_temp_table_etl_task
-    ]
-)
-
 (
     gmail_label_data_to_temp_table_etl_task
     >> load_from_temp_table_to_label_list_task
