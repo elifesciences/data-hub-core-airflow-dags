@@ -9,7 +9,7 @@ from tests.dag_validation_test import (
 
 def test_dag_should_contain_n_task(dagbag):
     target_dag = dagbag.get_dag(DAG_ID)
-    assert len(target_dag.tasks) == 11
+    assert len(target_dag.tasks) == 10
 
 
 def test_dag_should_contain_named_tasks(dagbag):
