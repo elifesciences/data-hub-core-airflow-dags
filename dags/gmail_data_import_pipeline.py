@@ -28,10 +28,6 @@ from data_pipeline.gmail_data.get_gmail_data_config import (
     GmailDataConfig
 )
 
-from data_pipeline.utils.pipeline_config import (
-    str_to_bool
-)
-
 from data_pipeline.gmail_data.get_gmail_data import (
     GmailCredentials,
     refresh_gmail_token,
@@ -49,8 +45,6 @@ GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV = "ci"
-
-IS_GMAIL_END2END_TEST_ENV = "IS_GMAIL_END2END_TEST"
 
 DAG_ID = "Gmail_Data_Import_Pipeline"
 
@@ -78,32 +72,21 @@ def get_data_config(context):
     return data_config
 
 
-def is_end2end_test():
-    return str_to_bool(
-        get_env_var_or_use_default(IS_GMAIL_END2END_TEST_ENV, default_value=""),
-        default_value=False
-    )
-
-
-def get_gmail_credentials(is_e2e_test: bool, data_config: GmailDataConfig) -> GmailCredentials:
-    if is_e2e_test:
-        secret_file = get_env_var_or_use_default(data_config.gmail_secret_file_env_name)
-        LOGGER.info("[end2end-test] gmail secret file name %s", secret_file)
-    else:
-        secret_file = get_env_var_or_use_default(data_config.gmail_secret_file_env_name)
-        LOGGER.info("gmail secret file name %s", secret_file)
+def get_gmail_credentials(data_config: GmailDataConfig) -> GmailCredentials:
+    secret_file = get_env_var_or_use_default(data_config.gmail_secret_file_env_name)
+    LOGGER.info("gmail secret file name %s", secret_file)
     return GmailCredentials(secret_file)
 
 
 def get_gmail_user_id(data_config: GmailDataConfig) -> str:
-    gmail_credentials = get_gmail_credentials(is_end2end_test(), data_config)
+    gmail_credentials = get_gmail_credentials(data_config)
     user_id = gmail_credentials.user_id
     LOGGER.info("gmail user_id: %s", user_id)
     return user_id
 
 
 def get_gmail_service(data_config: GmailDataConfig) -> Resource:
-    gmail_credentials = get_gmail_credentials(is_end2end_test(), data_config)
+    gmail_credentials = get_gmail_credentials(data_config)
     return get_gmail_service_via_refresh_token(
         refresh_gmail_token(
             client_id=gmail_credentials.client_id,
@@ -181,8 +164,7 @@ def gmail_thread_ids_list_to_temp_table_etl(**kwargs):
         table_name=data_config.temp_table_name_thread_ids,
         df_data_to_write=get_link_message_thread_ids(
             get_gmail_service(data_config),
-            user_id,
-            is_end2end_test()
+            user_id
         )
     )
 
@@ -210,8 +192,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
             df_data_to_write=get_gmail_history_details(
                 get_gmail_service(data_config),
                 user_id,
-                str(start_id),
-                is_end2end_test()
+                str(start_id)
             )
         )
     except errors.HttpError:
@@ -229,8 +210,7 @@ def gmail_history_details_to_temp_table_etl(**kwargs):
             df_data_to_write=get_gmail_history_details(
                 get_gmail_service(data_config),
                 user_id,
-                str(start_id),
-                is_end2end_test()
+                str(start_id)
             )
         )
 
