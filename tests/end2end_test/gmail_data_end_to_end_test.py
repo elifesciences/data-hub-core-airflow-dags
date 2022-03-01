@@ -1,63 +1,62 @@
-import logging
-import time
+import os
 
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
+from data_pipeline.gmail_data.get_gmail_data_config import (
+    MultiGmailDataConfig, GmailDataConfig
+)
+from dags.gmail_data_import_controller import (
+    DAG_ID,
+    TARGET_DAG_ID,
+    GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME
+)
+from dags.gmail_data_import_pipeline import (
+    DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV
+)
+
+from tests.end2end_test import (
+    trigger_run_test_pipeline,
+    DataPipelineCloudResource
+)
 from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI,
-    simple_query
+    AirflowAPI
 )
 
 
-LOGGER = logging.getLogger(__name__)
-
-AIRFLW_API = AirflowAPI()
-
-DATASET = "ci"
-TABLE = "gmail_e2e_test_thread_details"
-PROJECT = "elife-data-pipeline"
-
-
-# pylint: disable=broad-except
 def test_dag_runs_data_imported():
-    try:
-        simple_query(
-            query=TestQueryTemplate.CLEAN_TABLE_QUERY,
-            project=PROJECT,
-            table=TABLE,
-            dataset=DATASET,
-        )
-    except Exception:
-        LOGGER.info("table not cleaned, maybe it does not exist")
+    airflow_api = AirflowAPI()
 
-    dag_id_gmail = "Gmail_Data_Import_Pipeline"
-    AIRFLW_API.unpause_dag(dag_id_gmail)
-
-    config = {
-        "dataset": DATASET,
-        "table": TABLE
-    }
-    execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id_gmail, conf=config)
-    is_running = True
-    while is_running:
-        is_running = AIRFLW_API.is_dag_running(dag_id_gmail, execution_date)
-        time.sleep(5)
-        LOGGER.info("etl in progress")
-    assert not is_running
-    assert AIRFLW_API.get_dag_status(dag_id_gmail, execution_date) == "success"
-
-    query_response = simple_query(
-        query=TestQueryTemplate.READ_COUNT_TABLE_QUERY,
-        project=PROJECT,
-        table=TABLE,
-        dataset=DATASET,
+    data_pipeline_cloud_resource = (
+        get_data_pipeline_cloud_resource()
     )
-    assert query_response[0].get("count") > 0
+    trigger_run_test_pipeline(
+        airflow_api=airflow_api,
+        dag_id=DAG_ID,
+        target_dag=TARGET_DAG_ID,
+        pipeline_cloud_resource=data_pipeline_cloud_resource
+    )
 
 
-# pylint: disable=too-few-public-methods, missing-class-docstring
-class TestQueryTemplate:
-    CLEAN_TABLE_QUERY = """
-    Delete from `{project}.{dataset}.{table}` where true
-    """
-    READ_COUNT_TABLE_QUERY = """
-    Select Count(*) AS count from `{project}.{dataset}.{table}`
-    """
+def get_data_pipeline_cloud_resource():
+    conf_file_path = os.getenv(
+        GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME
+    )
+    data_config_dict = get_yaml_file_as_dict(conf_file_path)
+    dep_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV
+    )
+    multi_data_config = MultiGmailDataConfig(data_config_dict)
+    single_gmail_config_dict = list(
+        multi_data_config.gmail_data_config.values()
+    )[0]
+    single_gmail_config = GmailDataConfig(
+        data_config=single_gmail_config_dict,
+        deployment_env=dep_env
+    )
+
+    return DataPipelineCloudResource(
+        project_name=single_gmail_config.project_name,
+        dataset_name=single_gmail_config.dataset_name,
+        table_name=single_gmail_config.table_name_thread_ids,
+        state_file_bucket_name=None,
+        state_file_object_name=None
+    )
