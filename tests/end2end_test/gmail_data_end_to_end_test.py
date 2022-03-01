@@ -24,7 +24,6 @@ from tests.end2end_test.end_to_end_test_helper import (
 
 def test_dag_runs_data_imported():
     airflow_api = AirflowAPI()
-
     data_pipeline_cloud_resource = (
         get_data_pipeline_cloud_resource()
     )
