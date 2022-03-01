@@ -36,7 +36,7 @@ def trigger_gmail_data_import_pipeline_dag(**context):
         )
 
 
-WEB_API_CONTROLLER_DAG = create_dag(
+GMAIL_CONTROLLER_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=os.getenv(
         GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
@@ -44,7 +44,7 @@ WEB_API_CONTROLLER_DAG = create_dag(
 )
 
 TRIGGER_GMAIL_ETL_DAG_TASK = create_python_task(
-    WEB_API_CONTROLLER_DAG,
+    GMAIL_CONTROLLER_DAG,
     "trigger_gmail_etl_dag",
     trigger_gmail_data_import_pipeline_dag,
 )
