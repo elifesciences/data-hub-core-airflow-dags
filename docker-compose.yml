@@ -21,7 +21,6 @@ x-airflow-env:
     - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
     - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
     - GMAIL_DATA_USER_ID=gmail-end2end-data-test@elifesciences.org
-    - IS_GMAIL_END2END_TEST=True
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100

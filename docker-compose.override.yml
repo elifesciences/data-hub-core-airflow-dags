@@ -6,7 +6,6 @@ x-airflow-env:
     - CIVICRM_SITE_KEY_FILE_PATH=/home/airflow/secrets/civi-key/civi_site_key.txt
     - PATH_TO_TOGGL_API_TOKEN_FILE=/home/airflow/secrets/toggl.txt
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
-    - IS_GMAIL_END2END_TEST=True
     - SURVEYMONKEY_SECRET_FILE=/home/airflow/secrets/surveymonkey_credentials.json
 
 x-airflow-volumes:

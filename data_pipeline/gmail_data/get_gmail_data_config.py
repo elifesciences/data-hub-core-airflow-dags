@@ -1,65 +1,110 @@
+import logging
 from data_pipeline.utils.pipeline_config import (
+    ConfigKeys,
     update_deployment_env_placeholder
 )
 
+LOGGER = logging.getLogger(__name__)
+
+
+def get_gmail_config_id(gmail_config_props: dict) -> str:
+    return gmail_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
+
+
+# pylint: disable=too-many-instance-attributes,too-many-arguments
+# pylint: disable=too-many-locals, too-few-public-methods
+class MultiGmailDataConfig:
+    def __init__(
+            self,
+            multi_gmail_data_config: dict,
+    ):
+        self.project_name = multi_gmail_data_config.get("projectName")
+        self.dataset_name = multi_gmail_data_config.get("datasetName")
+        self.gmail_data_config = {
+            ind: {
+                **gmail,
+                ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_gmail_config_id(gmail),
+                "projectName": self.project_name,
+                "datasetName": self.dataset_name
+            }
+            for ind, gmail in enumerate(
+                multi_gmail_data_config.get("gmailData")
+            )
+        }
+
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
-class GmailGetDataConfig:
-
-    def __init__(self, data_config: dict,
-                 deployment_env: str,
-                 env_placeholder: str = "{ENV}"
-                 ):
-        self.data_config = update_deployment_env_placeholder(
+class GmailDataConfig:
+    def __init__(
+        self,
+        data_config: dict,
+        projectName: str = None,
+        datasetName: str = None,
+        deployment_env: str = None,
+        env_placeholder: str = "{ENV}"
+    ):
+        LOGGER.info("deployment_env: %s", deployment_env)
+        LOGGER.info("env_placeholder: %s", env_placeholder)
+        gmail_data_config = update_deployment_env_placeholder(
             data_config,
             deployment_env,
             env_placeholder
-        )
-        self.project_name = self.data_config.get("projectName")
-        self.dataset_name = self.data_config.get("datasetName")
+        ) if deployment_env else data_config
+
+        LOGGER.info("gmail_data_config: %s", gmail_data_config)
+
+        self.project_name = gmail_data_config.get("projectName", projectName)
+        self.dataset_name = gmail_data_config.get("datasetName", datasetName)
+
+        self.data_pipeline_id = gmail_data_config.get("dataPipelineId")
 
         # label list
         self.table_name_labels = (
-            self.data_config.get("gmailLabelData").get("table")
+            gmail_data_config.get("gmailLabelData").get("table")
         )
         self.temp_table_name_labels = (
-            self.data_config.get("gmailLabelData").get("tempTable")
+            gmail_data_config.get("gmailLabelData").get("tempTable")
         )
         self.unique_id_column_labels = (
-            self.data_config.get("gmailLabelData").get("uniqueIdColumn")
+            gmail_data_config.get("gmailLabelData").get("uniqueIdColumn")
         )
 
         # message-thread ids list
         self.table_name_thread_ids = (
-            self.data_config.get("gmailLinkIdsData").get("table")
+            gmail_data_config.get("gmailLinkIdsData").get("table")
         )
         self.temp_table_name_thread_ids = (
-            self.data_config.get("gmailLinkIdsData").get("tempTable")
+            gmail_data_config.get("gmailLinkIdsData").get("tempTable")
         )
         self.unique_id_column_thread_ids = (
-            self.data_config.get("gmailLinkIdsData").get("uniqueIdColumn")
+            gmail_data_config.get("gmailLinkIdsData").get("uniqueIdColumn")
         )
 
         # history details
         self.temp_table_name_history_details = (
-            self.data_config.get("gmailHistoryData").get("tempTable")
+            gmail_data_config.get("gmailHistoryData").get("tempTable")
         )
 
         # thread details
         self.table_name_thread_details = (
-            self.data_config.get("gmailThreadData").get("table")
+            gmail_data_config.get("gmailThreadData").get("table")
         )
         self.column_name_input = (
-            self.data_config.get("gmailThreadData").get("inputColumn")
+            gmail_data_config.get("gmailThreadData").get("inputColumn")
         )
         self.column_name_history_check = (
-            self.data_config.get("gmailThreadData").get("historyCheckColumn")
+            gmail_data_config.get("gmailThreadData").get("historyCheckColumn")
         )
         self.array_name_in_thread_details = (
-            self.data_config.get("gmailThreadData").get("array_name_in_table")
+            gmail_data_config.get("gmailThreadData").get("array_name_in_table")
         )
         self.array_column_name = (
-            self.data_config.get("gmailThreadData").get("array_column_name")
+            gmail_data_config.get("gmailThreadData").get("array_column_name")
+        )
+
+        # secret
+        self.gmail_secret_file_env_name = (
+            gmail_data_config.get("gmailSecretFileEnvName")
         )
 
     def __repr__(self):

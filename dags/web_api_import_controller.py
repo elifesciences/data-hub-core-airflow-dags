@@ -47,7 +47,7 @@ WEB_API_CONTROLLER_DAG = create_dag(
     )
 )
 
-TRIGGER_S3_CSV_ETL_DAG_TASK = create_python_task(
+TRIGGER_WEB_API_ETL_DAG_TASK = create_python_task(
     WEB_API_CONTROLLER_DAG, "trigger_web_api_etl_dag",
     trigger_web_api_data_import_pipeline_dag,
 )
