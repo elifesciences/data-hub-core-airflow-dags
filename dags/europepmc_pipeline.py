@@ -2,6 +2,7 @@
 
 import os
 import logging
+from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
@@ -25,13 +26,15 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
-def get_pipeline_config():
+def get_pipeline_config() -> 'EuropePmcConfig':
     conf_file_path = os.getenv(
         EuropePmcPipelineEnvironmentVariables.CONFIG_FILE_PATH
     )
     pipeline_config_dict = get_yaml_file_as_dict(conf_file_path)
     LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
-    return pipeline_config_dict
+    pipeline_config = EuropePmcConfig.from_dict(pipeline_config_dict)
+    LOGGER.info('pipeline_config: %s', pipeline_config)
+    return pipeline_config
 
 
 def europepmc_dummy_task(**_kwargs):
