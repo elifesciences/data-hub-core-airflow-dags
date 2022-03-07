@@ -18,6 +18,7 @@ RUN pip install --disable-pip-version-check -r requirements.build.txt
 COPY requirements.monitoring.txt ./
 RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
 
+# Note: install requirements together with previous requirements file to make conflicts visible
 COPY requirements.txt ./
 RUN pip install --disable-pip-version-check \
   -r requirements.monitoring.txt \
