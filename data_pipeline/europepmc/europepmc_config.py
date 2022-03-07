@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Sequence
 
 
 class EuropePmcSearchConfig(NamedTuple):
@@ -13,13 +13,15 @@ class EuropePmcSearchConfig(NamedTuple):
 
 class EuropePmcSourceConfig(NamedTuple):
     search: EuropePmcSearchConfig
+    fields_to_return: Sequence[str]
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'EuropePmcSourceConfig':
         return EuropePmcSourceConfig(
             search=EuropePmcSearchConfig.from_dict(
                 source_config_dict['search']
-            )
+            ),
+            fields_to_return=source_config_dict['fieldsToReturn']
         )
 
 
