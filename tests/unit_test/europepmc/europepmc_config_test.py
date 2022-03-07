@@ -11,20 +11,40 @@ FIELDS_TO_RETURN_1 = ['title', 'doi']
 
 TABLE_NAME_1 = 'table1'
 
-CONFIG_DICT_1 = {
+TARGET_1 = {
+    'tableName': TABLE_NAME_1
+}
+
+SOURCE_WITHOUT_FIELDS_TO_RETURN_1 = {
+    'apiUrl': API_URL_1,
+    'search': {
+        'query': SEARCH_QUERY_1
+    }
+}
+
+SOURCE_WITH_FIELDS_TO_RETURN_1 = {
+    **SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+    'fieldsToReturn': FIELDS_TO_RETURN_1
+}
+
+
+CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1 = {
     'europePmc': [{
-        'source': {
-            'apiUrl': API_URL_1,
-            'search': {
-                'query': SEARCH_QUERY_1
-            },
-            'fieldsToReturn': FIELDS_TO_RETURN_1
-        },
-        'target': {
-            'tableName': TABLE_NAME_1
-        }
+        'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+        'target': TARGET_1
     }]
 }
+
+
+CONFIG_DICT_WITH_FIELDS_TO_RETURN_1 = {
+    'europePmc': [{
+        'source': SOURCE_WITH_FIELDS_TO_RETURN_1,
+        'target': TARGET_1
+    }]
+}
+
+
+CONFIG_DICT_1 = CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1
 
 
 class TestEuropePmcConfig:
@@ -38,8 +58,12 @@ class TestEuropePmcConfig:
         assert config.source.search.query == SEARCH_QUERY_1
 
     def test_should_read_fields_to_return(self):
-        config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
+        config = EuropePmcConfig.from_dict(CONFIG_DICT_WITH_FIELDS_TO_RETURN_1)
         assert config.source.fields_to_return == FIELDS_TO_RETURN_1
+
+    def test_should_allow_fields_to_return_not_be_specified(self):
+        config = EuropePmcConfig.from_dict(CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1)
+        assert config.source.fields_to_return is None
 
     def test_should_read_target_table_name(self):
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)

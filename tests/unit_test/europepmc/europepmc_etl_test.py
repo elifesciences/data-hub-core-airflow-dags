@@ -112,7 +112,7 @@ class TestIterArticleData:
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(SOURCE_CONFIG_1)
 
-    def test_should_filter_returned_fields(
+    def test_should_filter_returned_response_fields(
         self,
         get_article_response_json_from_api_mock: MagicMock
     ):
@@ -128,3 +128,19 @@ class TestIterArticleData:
         assert result == [{
             'doi': DOI_1
         }]
+
+    def test_should_not_filter_returned_response_fields_if_fields_to_return_is_none(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        item_response_1 = {
+            'doi': DOI_1,
+            'other': 'other1'
+        }
+        get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
+            item_response_1
+        ])
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1._replace(fields_to_return=None)
+        ))
+        assert result == [item_response_1]

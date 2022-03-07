@@ -1,6 +1,6 @@
 import logging
 from json.decoder import JSONDecodeError
-from typing import Iterable, Sequence
+from typing import Iterable, Optional, Sequence
 
 import requests
 
@@ -44,7 +44,9 @@ def get_article_response_json_from_api(
     return get_valid_json_from_response(response)
 
 
-def get_filtered_article_data(data: dict, fields_to_return: Sequence[str]) -> dict:
+def get_filtered_article_data(data: dict, fields_to_return: Optional[Sequence[str]]) -> dict:
+    if not fields_to_return:
+        return data
     return {key: value for key, value in data.items() if key in fields_to_return}
 
 
