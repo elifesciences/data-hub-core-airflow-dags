@@ -26,18 +26,22 @@ def get_request_params_for_source_config(
     }
 
 
-def get_article_response_json_from_api(
-    source_config: EuropePmcSourceConfig
-) -> dict:
-    url = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
-    params = get_request_params_for_source_config(source_config)
-    response = requests.get(url, params=params)
+def get_valid_json_from_response(response: requests.Response) -> dict:
     try:
         response.raise_for_status()
         return response.json()
     except JSONDecodeError:
-        LOGGER.warning('failed to decode: %r', response.text)
+        LOGGER.warning('failed to decode json: %r', response.text)
         raise
+
+
+def get_article_response_json_from_api(
+    source_config: EuropePmcSourceConfig
+) -> dict:
+    url = source_config.api_url
+    params = get_request_params_for_source_config(source_config)
+    response = requests.get(url, params=params)
+    return get_valid_json_from_response(response)
 
 
 def iter_article_data(

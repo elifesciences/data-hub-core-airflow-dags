@@ -5,6 +5,7 @@ from data_pipeline.europepmc.europepmc_config import EuropePmcSearchConfig, Euro
 
 import data_pipeline.europepmc.europepmc_etl as europepmc_etl_module
 from data_pipeline.europepmc.europepmc_etl import (
+    get_article_response_json_from_api,
     get_request_params_for_source_config,
     iter_article_data,
     iter_article_data_from_response_json
@@ -24,7 +25,11 @@ SINGLE_ITEM_RESPONSE_JSON_1 = {
 }
 
 
+API_URL_1 = 'https://api1'
+
+
 SOURCE_CONFIG_1 = EuropePmcSourceConfig(
+    api_url=API_URL_1,
     search=EuropePmcSearchConfig(
         query='query1'
     ),
@@ -35,6 +40,12 @@ SOURCE_CONFIG_1 = EuropePmcSourceConfig(
 @pytest.fixture(name='get_article_response_json_from_api_mock')
 def _get_article_response_json_from_api_mock():
     with patch.object(europepmc_etl_module, 'get_article_response_json_from_api') as mock:
+        yield mock
+
+
+@pytest.fixture(name='requests_mock')
+def _requests_mock():
+    with patch.object(europepmc_etl_module, 'requests') as mock:
         yield mock
 
 
@@ -56,6 +67,27 @@ class TestGetRequestParamsForSourceConfig:
     def test_should_specify_result_type_core(self):
         params = get_request_params_for_source_config(SOURCE_CONFIG_1)
         assert params['resultType'] == 'core'
+
+
+class TestGetArticleResponseJsonFromApi:
+    def test_should_pass_url_and_params_to_requests_get(
+        self,
+        requests_mock: MagicMock
+    ):
+        get_article_response_json_from_api(SOURCE_CONFIG_1)
+        requests_mock.get.assert_called_with(
+            API_URL_1,
+            params=get_request_params_for_source_config(SOURCE_CONFIG_1)
+        )
+
+    def test_should_return_response_json(
+        self,
+        requests_mock: MagicMock
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        actual_response_json = get_article_response_json_from_api(SOURCE_CONFIG_1)
+        assert actual_response_json == SINGLE_ITEM_RESPONSE_JSON_1
 
 
 class TestIterArticleData:
