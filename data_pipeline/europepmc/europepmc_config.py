@@ -25,14 +25,28 @@ class EuropePmcSourceConfig(NamedTuple):
         )
 
 
+class BigQueryTargetConfig(NamedTuple):
+    table_name: str
+
+    @staticmethod
+    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
+        return BigQueryTargetConfig(
+            table_name=target_config_dict['tableName']
+        )
+
+
 class EuropePmcConfig(NamedTuple):
     source: EuropePmcSourceConfig
+    target: BigQueryTargetConfig
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'EuropePmcConfig':
         return EuropePmcConfig(
             source=EuropePmcSourceConfig.from_dict(
                 item_config_dict['source']
+            ),
+            target=BigQueryTargetConfig.from_dict(
+                item_config_dict['target']
             )
         )
 
