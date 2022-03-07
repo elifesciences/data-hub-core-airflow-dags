@@ -12,12 +12,14 @@ class EuropePmcSearchConfig(NamedTuple):
 
 
 class EuropePmcSourceConfig(NamedTuple):
+    api_url: str
     search: EuropePmcSearchConfig
     fields_to_return: Sequence[str]
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'EuropePmcSourceConfig':
         return EuropePmcSourceConfig(
+            api_url=source_config_dict['apiUrl'],
             search=EuropePmcSearchConfig.from_dict(
                 source_config_dict['search']
             ),
