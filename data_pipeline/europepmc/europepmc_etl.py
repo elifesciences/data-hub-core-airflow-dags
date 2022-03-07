@@ -16,10 +16,9 @@ def iter_article_data_from_response_json(
     return response_json['resultList']['result']
 
 
-def iter_article_data(
+def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig
-) -> Iterable[dict]:
-    LOGGER.info('source_config: %r', source_config)
+) -> dict:
     url = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
     response = requests.get(url, params={
         'query': source_config.search.query,
@@ -28,10 +27,18 @@ def iter_article_data(
     })
     try:
         response.raise_for_status()
-        yield from iter_article_data_from_response_json(response.json())
+        return response.json()
     except JSONDecodeError:
         LOGGER.warning('failed to decode: %r', response.text)
         raise
+
+
+def iter_article_data(
+    source_config: EuropePmcSourceConfig
+) -> Iterable[dict]:
+    LOGGER.info('source_config: %r', source_config)
+    response_json = get_article_response_json_from_api(source_config)
+    yield from iter_article_data_from_response_json(response_json)
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
