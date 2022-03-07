@@ -16,15 +16,22 @@ def iter_article_data_from_response_json(
     return response_json['resultList']['result']
 
 
+def get_request_params_for_source_config(
+    source_config: EuropePmcSourceConfig
+) -> dict:
+    return {
+        'query': source_config.search.query,
+        'format': 'json',
+        'resultType': 'core'
+    }
+
+
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig
 ) -> dict:
     url = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
-    response = requests.get(url, params={
-        'query': source_config.search.query,
-        'format': 'json',
-        'resultType': 'core'
-    })
+    params = get_request_params_for_source_config(source_config)
+    response = requests.get(url, params=params)
     try:
         response.raise_for_status()
         return response.json()

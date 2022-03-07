@@ -5,6 +5,7 @@ from data_pipeline.europepmc.europepmc_config import EuropePmcSearchConfig, Euro
 
 import data_pipeline.europepmc.europepmc_etl as europepmc_etl_module
 from data_pipeline.europepmc.europepmc_etl import (
+    get_request_params_for_source_config,
     iter_article_data,
     iter_article_data_from_response_json
 )
@@ -41,6 +42,20 @@ class TestIterArticleDataFromResponseJson:
     def test_should_return_single_item_from_response(self):
         result = list(iter_article_data_from_response_json(SINGLE_ITEM_RESPONSE_JSON_1))
         assert result == [ITEM_RESPONSE_JSON_1]
+
+
+class TestGetRequestParamsForSourceConfig:
+    def test_should_include_query_from_config(self):
+        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
+        assert params['query'] == SOURCE_CONFIG_1.search.query
+
+    def test_should_specify_format_json(self):
+        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
+        assert params['format'] == 'json'
+
+    def test_should_specify_result_type_core(self):
+        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
+        assert params['resultType'] == 'core'
 
 
 class TestIterArticleData:
