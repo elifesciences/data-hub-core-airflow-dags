@@ -1,0 +1,19 @@
+projectName: 'elife-data-pipeline'
+datasetName: '{ENV}'
+europePmc:
+  - dataPipelineId: europepmc_datapeline_1
+    source:
+      search:
+        query: 'DOI:10.1101/2021.07.05.451181 OR DOI:10.1101/2021.08.10.455713'
+        hasTextMinedTerms: 'Y'
+      fieldsToReturn:
+        - title
+        - doi
+    target:
+      tableName: test_europepmc_responses_v1
+    state:
+      initialState:
+        startDate: '2020-01-01'
+      stateFile:
+        bucketName: '{ENV}-elife-data-pipeline'
+        objectName: 'airflow-config/europepmc/{ENV}-state.json'
