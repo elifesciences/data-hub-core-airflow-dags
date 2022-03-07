@@ -52,7 +52,6 @@ class TestEuropePmcConfig:
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
         assert config.source.api_url == API_URL_1
 
-
     def test_should_read_search_query(self):
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
         assert config.source.search.query == SEARCH_QUERY_1
