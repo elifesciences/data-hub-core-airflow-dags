@@ -10,6 +10,12 @@ from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcS
 LOGGER = logging.getLogger(__name__)
 
 
+def iter_article_data_from_response_json(
+    response_json: dict
+) -> Iterable[dict]:
+    return response_json['resultList']['result']
+
+
 def iter_article_data(
     source_config: EuropePmcSourceConfig
 ) -> Iterable[dict]:
@@ -22,7 +28,7 @@ def iter_article_data(
     })
     try:
         response.raise_for_status()
-        return [response.json()]
+        yield from iter_article_data_from_response_json(response.json())
     except JSONDecodeError:
         LOGGER.warning('failed to decode: %r', response.text)
         raise
