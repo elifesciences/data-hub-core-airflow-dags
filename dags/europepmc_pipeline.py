@@ -3,6 +3,9 @@
 import os
 import logging
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
+from data_pipeline.europepmc.europepmc_etl import (
+    fetch_article_data_from_europepmc_and_load_into_bigquery
+)
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
@@ -37,8 +40,10 @@ def get_pipeline_config() -> 'EuropePmcConfig':
     return pipeline_config
 
 
-def europepmc_dummy_task(**_kwargs):
-    get_pipeline_config()
+def fetch_article_data_from_europepmc_and_load_into_bigquery_task(**_kwargs):
+    fetch_article_data_from_europepmc_and_load_into_bigquery(
+        get_pipeline_config()
+    )
 
 
 EUROPEPMC_DAG = create_dag(
@@ -46,9 +51,9 @@ EUROPEPMC_DAG = create_dag(
     schedule_interval=None
 )
 
-dummy_task = create_python_task(
+create_python_task(
     EUROPEPMC_DAG,
-    "europepmc_dummy_task",
-    europepmc_dummy_task,
+    "fetch_article_data_from_europepmc_and_load_into_bigquery_task",
+    fetch_article_data_from_europepmc_and_load_into_bigquery_task,
     retries=5
 )
