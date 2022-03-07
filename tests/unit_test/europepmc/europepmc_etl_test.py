@@ -1,3 +1,4 @@
+from typing import Sequence
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,8 +13,11 @@ from data_pipeline.europepmc.europepmc_etl import (
 )
 
 
+DOI_1 = 'doi1'
+
+
 ITEM_RESPONSE_JSON_1 = {
-    'doi': 'doi1'
+    'doi': DOI_1
 }
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
@@ -47,6 +51,14 @@ def _get_article_response_json_from_api_mock():
 def _requests_mock():
     with patch.object(europepmc_etl_module, 'requests') as mock:
         yield mock
+
+
+def get_response_json_for_items(items: Sequence[str]) -> dict:
+    return {
+        'resultList': {
+            'result': items
+        }
+    }
 
 
 class TestIterArticleDataFromResponseJson:
@@ -99,3 +111,20 @@ class TestIterArticleData:
         result = list(iter_article_data(SOURCE_CONFIG_1))
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(SOURCE_CONFIG_1)
+
+    def test_should_filter_returned_fields(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
+            {
+                'doi': DOI_1,
+                'other': 'other1'
+            }
+        ])
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1._replace(fields_to_return=['doi'])
+        ))
+        assert result == [{
+            'doi': DOI_1
+        }]

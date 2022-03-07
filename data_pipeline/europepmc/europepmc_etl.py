@@ -1,6 +1,6 @@
 import logging
 from json.decoder import JSONDecodeError
-from typing import Iterable
+from typing import Iterable, Sequence
 
 import requests
 
@@ -44,12 +44,19 @@ def get_article_response_json_from_api(
     return get_valid_json_from_response(response)
 
 
+def get_filtered_article_data(data: dict, fields_to_return: Sequence[str]) -> dict:
+    return {key: value for key, value in data.items() if key in fields_to_return}
+
+
 def iter_article_data(
     source_config: EuropePmcSourceConfig
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
     response_json = get_article_response_json_from_api(source_config)
-    yield from iter_article_data_from_response_json(response_json)
+    return (
+        get_filtered_article_data(data, source_config.fields_to_return)
+        for data in iter_article_data_from_response_json(response_json)
+    )
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
