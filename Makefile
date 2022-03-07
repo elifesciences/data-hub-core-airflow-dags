@@ -31,8 +31,10 @@ venv-activate:
 dev-install:
 	$(PIP) install --disable-pip-version-check -r requirements.build.txt
 	SLUGIFY_USES_TEXT_UNIDECODE=yes \
-	$(PIP) install --disable-pip-version-check -r requirements.txt
-	$(PIP) install --disable-pip-version-check -r requirements.dev.txt
+	$(PIP) install --disable-pip-version-check \
+		-r requirements.monitoring.txt \
+		-r requirements.txt \
+		-r requirements.dev.txt
 	$(PIP) install --disable-pip-version-check -e . --no-deps
 
 
