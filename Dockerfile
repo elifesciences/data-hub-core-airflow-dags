@@ -18,12 +18,20 @@ RUN pip install --disable-pip-version-check -r requirements.build.txt
 COPY requirements.monitoring.txt ./
 RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
 
+# Note: install requirements together with previous requirements file to make conflicts visible
 COPY requirements.txt ./
-RUN pip install --disable-pip-version-check -r requirements.txt
+RUN pip install --disable-pip-version-check \
+  -r requirements.monitoring.txt \
+  -r requirements.txt
 
 ARG install_dev=n
 COPY --chown=airflow:airflow requirements.dev.txt ./
-RUN if [ "${install_dev}" = "y" ]; then pip install --user --disable-pip-version-check -r requirements.dev.txt; fi
+RUN if [ "${install_dev}" = "y" ]; then \
+    pip install --user --disable-pip-version-check \
+      -r requirements.monitoring.txt \
+      -r requirements.txt \
+      -r requirements.dev.txt; \
+  fi
 
 ENV PATH /home/airflow/.local/bin:$PATH
 
