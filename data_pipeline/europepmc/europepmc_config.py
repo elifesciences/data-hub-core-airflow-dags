@@ -28,13 +28,15 @@ class EuropePmcSourceConfig(NamedTuple):
 
 
 class BigQueryTargetConfig(NamedTuple):
+    project_name: str
+    dataset_name: str
     table_name: str
-    project_name: Optional[str] = None
-    dataset_name: Optional[str] = None
 
     @staticmethod
     def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
         return BigQueryTargetConfig(
+            project_name=target_config_dict['projectName'],
+            dataset_name=target_config_dict['datasetName'],
             table_name=target_config_dict['tableName']
         )
 

@@ -9,9 +9,13 @@ SEARCH_QUERY_1 = 'query 1'
 
 FIELDS_TO_RETURN_1 = ['title', 'doi']
 
+PROJECT_NAME_1 = 'project1'
+DATASET_NAME_1 = 'dataset1'
 TABLE_NAME_1 = 'table1'
 
 TARGET_1 = {
+    'projectName': PROJECT_NAME_1,
+    'datasetName': DATASET_NAME_1,
     'tableName': TABLE_NAME_1
 }
 
@@ -64,6 +68,8 @@ class TestEuropePmcConfig:
         config = EuropePmcConfig.from_dict(CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1)
         assert config.source.fields_to_return is None
 
-    def test_should_read_target_table_name(self):
+    def test_should_read_target_project_dataset_and_table_name(self):
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
+        assert config.target.project_name == PROJECT_NAME_1
+        assert config.target.dataset_name == DATASET_NAME_1
         assert config.target.table_name == TABLE_NAME_1
