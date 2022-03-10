@@ -3,7 +3,7 @@
 import os
 import logging
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
-from data_pipeline.europepmc.europepmc_etl import (
+from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery
 )
 

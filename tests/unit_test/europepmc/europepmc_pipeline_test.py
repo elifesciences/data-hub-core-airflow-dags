@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from data_pipeline.europepmc.europepmc_config import EuropePmcSearchConfig, EuropePmcSourceConfig
 
-import data_pipeline.europepmc.europepmc_etl as europepmc_etl_module
-from data_pipeline.europepmc.europepmc_etl import (
+import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
+from data_pipeline.europepmc.europepmc_pipeline import (
     get_article_response_json_from_api,
     get_request_params_for_source_config,
     iter_article_data,
@@ -43,13 +43,13 @@ SOURCE_CONFIG_1 = EuropePmcSourceConfig(
 
 @pytest.fixture(name='get_article_response_json_from_api_mock')
 def _get_article_response_json_from_api_mock():
-    with patch.object(europepmc_etl_module, 'get_article_response_json_from_api') as mock:
+    with patch.object(europepmc_pipeline_module, 'get_article_response_json_from_api') as mock:
         yield mock
 
 
 @pytest.fixture(name='requests_mock')
 def _requests_mock():
-    with patch.object(europepmc_etl_module, 'requests') as mock:
+    with patch.object(europepmc_pipeline_module, 'requests') as mock:
         yield mock
 
 
