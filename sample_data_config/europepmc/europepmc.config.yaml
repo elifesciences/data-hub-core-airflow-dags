@@ -1,5 +1,3 @@
-projectName: 'elife-data-pipeline'
-datasetName: '{ENV}'
 europePmc:
   - dataPipelineId: europepmc_datapeline_1
     source:
@@ -11,6 +9,8 @@ europePmc:
         - title
         - doi
     target:
+      projectName: 'elife-data-pipeline'
+      datasetName: '{ENV}'
       tableName: test_europepmc_responses_v1
     state:
       initialState:
