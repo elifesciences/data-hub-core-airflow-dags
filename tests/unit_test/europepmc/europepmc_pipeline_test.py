@@ -1,11 +1,17 @@
 from typing import Sequence
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-from data_pipeline.europepmc.europepmc_config import EuropePmcSearchConfig, EuropePmcSourceConfig
+from data_pipeline.europepmc.europepmc_config import (
+    BigQueryTargetConfig,
+    EuropePmcConfig,
+    EuropePmcSearchConfig,
+    EuropePmcSourceConfig
+)
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
 from data_pipeline.europepmc.europepmc_pipeline import (
+    fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
     get_request_params_for_source_config,
     iter_article_data,
@@ -40,6 +46,17 @@ SOURCE_CONFIG_1 = EuropePmcSourceConfig(
     fields_to_return=['title', 'doi']
 )
 
+TARGET_CONFIG_1 = BigQueryTargetConfig(
+    project_name='project1',
+    dataset_name='dataset1',
+    table_name='table1'
+)
+
+CONFIG_1 = EuropePmcConfig(
+    source=SOURCE_CONFIG_1,
+    target=TARGET_CONFIG_1
+)
+
 
 @pytest.fixture(name='get_article_response_json_from_api_mock')
 def _get_article_response_json_from_api_mock():
@@ -47,9 +64,18 @@ def _get_article_response_json_from_api_mock():
         yield mock
 
 
-@pytest.fixture(name='requests_mock')
+@pytest.fixture(name='requests_mock', autouse=True)
 def _requests_mock():
     with patch.object(europepmc_pipeline_module, 'requests') as mock:
+        yield mock
+
+
+@pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
+def _load_given_json_list_data_from_tempdir_to_bq_mock():
+    with patch.object(
+        europepmc_pipeline_module,
+        'load_given_json_list_data_from_tempdir_to_bq'
+    ) as mock:
         yield mock
 
 
@@ -144,3 +170,20 @@ class TestIterArticleData:
             SOURCE_CONFIG_1._replace(fields_to_return=None)
         ))
         assert result == [item_response_1]
+
+
+class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
+    def test_should_call_load_given_json_list_data_from_tempdir_to_bq(
+        self,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=TARGET_CONFIG_1.project_name,
+            dataset_name=TARGET_CONFIG_1.dataset_name,
+            table_name=TARGET_CONFIG_1.table_name,
+            json_list=ANY
+        )
