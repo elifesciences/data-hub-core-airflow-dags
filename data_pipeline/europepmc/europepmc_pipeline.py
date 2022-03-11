@@ -9,6 +9,7 @@ from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
+from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
 
 
 LOGGER = logging.getLogger(__name__)
@@ -84,7 +85,11 @@ def iter_article_data(
 def save_state_for_config(
     state_config: EuropePmcStateConfig
 ):
-    pass
+    upload_s3_object(
+        bucket=state_config.state_file.bucket_name,
+        object_key=state_config.state_file.object_name,
+        data_object='',
+    )
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
