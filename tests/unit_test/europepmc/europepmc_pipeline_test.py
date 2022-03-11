@@ -20,10 +20,15 @@ from data_pipeline.europepmc.europepmc_pipeline import (
 
 
 DOI_1 = 'doi1'
+DOI_2 = 'doi2'
 
 
 ITEM_RESPONSE_JSON_1 = {
     'doi': DOI_1
+}
+
+ITEM_RESPONSE_JSON_2 = {
+    'doi': DOI_2
 }
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
@@ -70,12 +75,18 @@ def _requests_mock():
         yield mock
 
 
+
 @pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         europepmc_pipeline_module,
         'load_given_json_list_data_from_tempdir_to_bq'
     ) as mock:
+        yield mock
+
+@pytest.fixture(name='iter_article_data_mock')
+def _iter_article_data_mock():
+    with patch.object(europepmc_pipeline_module, 'iter_article_data') as mock:
         yield mock
 
 
@@ -173,7 +184,7 @@ class TestIterArticleData:
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
-    def test_should_call_load_given_json_list_data_from_tempdir_to_bq(
+    def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
     ):
@@ -186,4 +197,25 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             dataset_name=TARGET_CONFIG_1.dataset_name,
             table_name=TARGET_CONFIG_1.table_name,
             json_list=ANY
+        )
+
+    def test_should_pass_project_dataset_and_table_to_bq_load_method(
+        self,
+        iter_article_data_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        json_list = [
+            ITEM_RESPONSE_JSON_1,
+            ITEM_RESPONSE_JSON_2
+        ]
+        iter_article_data_mock.return_value = json_list
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=ANY,
+            dataset_name=ANY,
+            table_name=ANY,
+            json_list=json_list
         )
