@@ -5,6 +5,7 @@ from typing import Iterable, Optional, Sequence
 import requests
 
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcSourceConfig
+from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -65,14 +66,16 @@ def iter_article_data(
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
-    config: EuropePmcConfig
+    config: EuropePmcConfig,
+    batch_size: int = 1000
 ):
-    data_iterable = list(iter_article_data(config.source))
-    for data in data_iterable:
-        LOGGER.info('data: %r', data)
-    load_given_json_list_data_from_tempdir_to_bq(
-        project_name=config.target.project_name,
-        dataset_name=config.target.dataset_name,
-        table_name=config.target.table_name,
-        json_list=data_iterable
-    )
+    data_iterable = iter_article_data(config.source)
+    for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
+        batch_data_list = list(batch_data_iterable)
+        LOGGER.info('batch_data_list: %r', batch_data_list)
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=config.target.project_name,
+            dataset_name=config.target.dataset_name,
+            table_name=config.target.table_name,
+            json_list=batch_data_list
+        )

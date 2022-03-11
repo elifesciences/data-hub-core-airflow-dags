@@ -1,5 +1,5 @@
 from typing import Sequence
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
 from data_pipeline.europepmc.europepmc_config import (
@@ -219,3 +219,33 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             table_name=ANY,
             json_list=json_list
         )
+
+    def test_should_pass_project_dataset_and_table_to_bq_load_method(
+        self,
+        iter_article_data_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        json_list = [
+            ITEM_RESPONSE_JSON_1,
+            ITEM_RESPONSE_JSON_2
+        ]
+        iter_article_data_mock.return_value = json_list
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1,
+            batch_size=1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([
+            call(
+                project_name=ANY,
+                dataset_name=ANY,
+                table_name=ANY,
+                json_list=[json_list[0]]
+            ),
+            call(
+                project_name=ANY,
+                dataset_name=ANY,
+                table_name=ANY,
+                json_list=[json_list[1]]
+            )
+        ])
