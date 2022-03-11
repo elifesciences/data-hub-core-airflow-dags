@@ -231,8 +231,7 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         ]
         iter_article_data_mock.return_value = json_list
         fetch_article_data_from_europepmc_and_load_into_bigquery(
-            CONFIG_1,
-            batch_size=1
+            CONFIG_1._replace(batch_size=1)
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([

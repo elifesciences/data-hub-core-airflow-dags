@@ -66,9 +66,9 @@ def iter_article_data(
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
-    config: EuropePmcConfig,
-    batch_size: int = 1000
+    config: EuropePmcConfig
 ):
+    batch_size = config.batch_size
     data_iterable = iter_article_data(config.source)
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
