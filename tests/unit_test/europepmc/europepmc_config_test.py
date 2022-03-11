@@ -33,9 +33,19 @@ SOURCE_WITH_FIELDS_TO_RETURN_1 = {
 }
 
 
+INITIAL_START_DATE_STR_1 = '2020-01-01'
+
+STATE_CONFIG_DICT_1 = {
+    'initialState': {
+        'startDate': INITIAL_START_DATE_STR_1
+    }
+}
+
+
 ITEM_CONFIG_DICT_1 = {
     'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
-    'target': TARGET_1
+    'target': TARGET_1,
+    'state': STATE_CONFIG_DICT_1
 }
 
 
@@ -88,3 +98,9 @@ class TestEuropePmcConfig:
             ITEM_CONFIG_DICT_1
         ))
         assert config.batch_size == DEFAULT_BATCH_SIZE
+
+    def test_should_read_initial_state_start_date(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict(
+            ITEM_CONFIG_DICT_1
+        ))
+        assert config.state.initial_state.start_date_str == INITIAL_START_DATE_STR_1

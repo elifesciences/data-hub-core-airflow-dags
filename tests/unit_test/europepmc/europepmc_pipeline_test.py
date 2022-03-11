@@ -5,8 +5,10 @@ import pytest
 from data_pipeline.europepmc.europepmc_config import (
     BigQueryTargetConfig,
     EuropePmcConfig,
+    EuropePmcInitialStateConfig,
     EuropePmcSearchConfig,
-    EuropePmcSourceConfig
+    EuropePmcSourceConfig,
+    EuropePmcStateConfig
 )
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
@@ -57,9 +59,16 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     table_name='table1'
 )
 
+STATE_CONFIG_1 = EuropePmcStateConfig(
+    initial_state=EuropePmcInitialStateConfig(
+        start_date_str='2020-01-02'
+    )
+)
+
 CONFIG_1 = EuropePmcConfig(
     source=SOURCE_CONFIG_1,
-    target=TARGET_CONFIG_1
+    target=TARGET_CONFIG_1,
+    state=STATE_CONFIG_1
 )
 
 

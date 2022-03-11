@@ -44,9 +44,32 @@ class BigQueryTargetConfig(NamedTuple):
         )
 
 
+class EuropePmcInitialStateConfig(NamedTuple):
+    start_date_str: str
+
+    @staticmethod
+    def from_dict(initial_state_config_dict: dict) -> 'EuropePmcInitialStateConfig':
+        return EuropePmcInitialStateConfig(
+            start_date_str=initial_state_config_dict['startDate']
+        )
+
+
+class EuropePmcStateConfig(NamedTuple):
+    initial_state: str
+
+    @staticmethod
+    def from_dict(state_config_dict: dict) -> 'EuropePmcStateConfig':
+        return EuropePmcStateConfig(
+            initial_state=EuropePmcInitialStateConfig.from_dict(
+                state_config_dict['initialState']
+            )
+        )
+
+
 class EuropePmcConfig(NamedTuple):
     source: EuropePmcSourceConfig
     target: BigQueryTargetConfig
+    state: EuropePmcStateConfig
     batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
@@ -57,6 +80,9 @@ class EuropePmcConfig(NamedTuple):
             ),
             target=BigQueryTargetConfig.from_dict(
                 item_config_dict['target']
+            ),
+            state=EuropePmcStateConfig.from_dict(
+                item_config_dict['state']
             ),
             batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE
         )
