@@ -4,7 +4,7 @@ from typing import Iterable, Optional, Sequence
 
 import requests
 
-from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcSourceConfig
+from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcInitialStateConfig, EuropePmcSourceConfig
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -20,11 +20,23 @@ def iter_article_data_from_response_json(
     return response_json['resultList']['result']
 
 
+def get_request_query_for_source_config_and_initial_state(
+    source_config: EuropePmcSourceConfig,
+    initial_state_config: EuropePmcInitialStateConfig
+) -> str:
+    query = f"(FIRST_IDATE:'{initial_state_config.start_date_str}') " + source_config.search.query
+    return query
+
+
 def get_request_params_for_source_config(
-    source_config: EuropePmcSourceConfig
+    source_config: EuropePmcSourceConfig,
+    initial_state_config: EuropePmcInitialStateConfig
 ) -> dict:
     return {
-        'query': source_config.search.query,
+        'query': get_request_query_for_source_config_and_initial_state(
+            source_config,
+            initial_state_config
+        ),
         'format': 'json',
         'resultType': 'core'
     }
@@ -40,10 +52,14 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 
 
 def get_article_response_json_from_api(
-    source_config: EuropePmcSourceConfig
+    source_config: EuropePmcSourceConfig,
+    initial_state_config: EuropePmcInitialStateConfig
 ) -> dict:
     url = source_config.api_url
-    params = get_request_params_for_source_config(source_config)
+    params = get_request_params_for_source_config(
+        source_config,
+        initial_state_config
+    )
     response = requests.get(url, params=params)
     return get_valid_json_from_response(response)
 

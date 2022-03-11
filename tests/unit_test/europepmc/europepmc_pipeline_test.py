@@ -16,6 +16,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
     get_request_params_for_source_config,
+    get_request_query_for_source_config_and_initial_state,
     iter_article_data,
     iter_article_data_from_response_json
 )
@@ -59,10 +60,12 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     table_name='table1'
 )
 
+INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
+    start_date_str='2020-01-02'
+)
+
 STATE_CONFIG_1 = EuropePmcStateConfig(
-    initial_state=EuropePmcInitialStateConfig(
-        start_date_str='2020-01-02'
-    )
+    initial_state=INITIAL_STATE_CONFIG_1
 )
 
 CONFIG_1 = EuropePmcConfig(
@@ -113,17 +116,38 @@ class TestIterArticleDataFromResponseJson:
         assert result == [ITEM_RESPONSE_JSON_1]
 
 
+class TestGetRequestQueryForSourceConfigAndInitialState:
+    def test_should_add_first_idate(self):
+        original_query = SOURCE_CONFIG_1.search.query
+        query = get_request_query_for_source_config_and_initial_state(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
+        assert query == (
+            f"(FIRST_IDATE:'{INITIAL_STATE_CONFIG_1.start_date_str}') {original_query}"
+        )
+
+
 class TestGetRequestParamsForSourceConfig:
     def test_should_include_query_from_config(self):
-        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
-        assert params['query'] == SOURCE_CONFIG_1.search.query
+        params = get_request_params_for_source_config(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
+        assert params['query'].endswith(SOURCE_CONFIG_1.search.query)
 
     def test_should_specify_format_json(self):
-        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
+        params = get_request_params_for_source_config(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
         assert params['format'] == 'json'
 
     def test_should_specify_result_type_core(self):
-        params = get_request_params_for_source_config(SOURCE_CONFIG_1)
+        params = get_request_params_for_source_config(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
         assert params['resultType'] == 'core'
 
 
@@ -132,10 +156,16 @@ class TestGetArticleResponseJsonFromApi:
         self,
         requests_mock: MagicMock
     ):
-        get_article_response_json_from_api(SOURCE_CONFIG_1)
+        get_article_response_json_from_api(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
         requests_mock.get.assert_called_with(
             API_URL_1,
-            params=get_request_params_for_source_config(SOURCE_CONFIG_1)
+            params=get_request_params_for_source_config(
+                SOURCE_CONFIG_1,
+                INITIAL_STATE_CONFIG_1
+            )
         )
 
     def test_should_return_response_json(
@@ -144,7 +174,10 @@ class TestGetArticleResponseJsonFromApi:
     ):
         response_mock = requests_mock.get.return_value
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        actual_response_json = get_article_response_json_from_api(SOURCE_CONFIG_1)
+        actual_response_json = get_article_response_json_from_api(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
         assert actual_response_json == SINGLE_ITEM_RESPONSE_JSON_1
 
 
