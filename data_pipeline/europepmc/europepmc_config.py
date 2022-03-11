@@ -54,14 +54,30 @@ class EuropePmcInitialStateConfig(NamedTuple):
         )
 
 
+class StateFileConfig(NamedTuple):
+    bucket_name: str
+    object_name: str
+
+    @staticmethod
+    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
+        return StateFileConfig(
+            bucket_name=state_file_config_dict['bucketName'],
+            object_name=state_file_config_dict['objectName']
+        )
+
+
 class EuropePmcStateConfig(NamedTuple):
     initial_state: str
+    state_file: StateFileConfig
 
     @staticmethod
     def from_dict(state_config_dict: dict) -> 'EuropePmcStateConfig':
         return EuropePmcStateConfig(
             initial_state=EuropePmcInitialStateConfig.from_dict(
                 state_config_dict['initialState']
+            ),
+            state_file=StateFileConfig.from_dict(
+                state_config_dict['stateFile']
             )
         )
 

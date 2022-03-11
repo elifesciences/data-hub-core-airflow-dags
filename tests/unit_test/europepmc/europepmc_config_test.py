@@ -35,9 +35,16 @@ SOURCE_WITH_FIELDS_TO_RETURN_1 = {
 
 INITIAL_START_DATE_STR_1 = '2020-01-01'
 
+BUCKET_NAME_1 = 'bucket1'
+OBJECT_NAME_1 = 'object1'
+
 STATE_CONFIG_DICT_1 = {
     'initialState': {
         'startDate': INITIAL_START_DATE_STR_1
+    },
+    'stateFile': {
+        'bucketName': BUCKET_NAME_1,
+        'objectName': OBJECT_NAME_1
     }
 }
 
@@ -104,3 +111,10 @@ class TestEuropePmcConfig:
             ITEM_CONFIG_DICT_1
         ))
         assert config.state.initial_state.start_date_str == INITIAL_START_DATE_STR_1
+
+    def test_should_read_state_file_config(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict(
+            ITEM_CONFIG_DICT_1
+        ))
+        assert config.state.state_file.bucket_name == BUCKET_NAME_1
+        assert config.state.state_file.object_name == OBJECT_NAME_1

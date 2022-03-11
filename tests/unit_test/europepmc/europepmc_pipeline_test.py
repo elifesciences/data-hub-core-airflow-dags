@@ -8,7 +8,8 @@ from data_pipeline.europepmc.europepmc_config import (
     EuropePmcInitialStateConfig,
     EuropePmcSearchConfig,
     EuropePmcSourceConfig,
-    EuropePmcStateConfig
+    EuropePmcStateConfig,
+    StateFileConfig
 )
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
@@ -65,7 +66,11 @@ INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
 )
 
 STATE_CONFIG_1 = EuropePmcStateConfig(
-    initial_state=INITIAL_STATE_CONFIG_1
+    initial_state=INITIAL_STATE_CONFIG_1,
+    state_file=StateFileConfig(
+        bucket_name='bucket1',
+        object_name='object1'
+    )
 )
 
 CONFIG_1 = EuropePmcConfig(
