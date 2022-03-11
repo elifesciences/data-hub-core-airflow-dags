@@ -39,27 +39,11 @@ ITEM_CONFIG_DICT_1 = {
 }
 
 
-CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1 = {
-    'europePmc': [{
-        'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
-        'target': TARGET_1
-    }]
-}
-
-
-CONFIG_DICT_WITH_FIELDS_TO_RETURN_1 = {
-    'europePmc': [{
-        'source': SOURCE_WITH_FIELDS_TO_RETURN_1,
-        'target': TARGET_1
-    }]
-}
-
-
-CONFIG_DICT_1 = CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1
-
-
 def get_config_for_item_config_dict(item_dict: dict) -> dict:
     return {'europePmc': [item_dict]}
+
+
+CONFIG_DICT_1 = get_config_for_item_config_dict(ITEM_CONFIG_DICT_1)
 
 
 class TestEuropePmcConfig:
@@ -72,11 +56,17 @@ class TestEuropePmcConfig:
         assert config.source.search.query == SEARCH_QUERY_1
 
     def test_should_read_fields_to_return(self):
-        config = EuropePmcConfig.from_dict(CONFIG_DICT_WITH_FIELDS_TO_RETURN_1)
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'source': SOURCE_WITH_FIELDS_TO_RETURN_1
+        }))
         assert config.source.fields_to_return == FIELDS_TO_RETURN_1
 
     def test_should_allow_fields_to_return_not_be_specified(self):
-        config = EuropePmcConfig.from_dict(CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1)
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1
+        }))
         assert config.source.fields_to_return is None
 
     def test_should_read_target_project_dataset_and_table_name(self):
