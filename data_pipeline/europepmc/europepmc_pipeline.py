@@ -1,4 +1,5 @@
 import logging
+from datetime import date, timedelta
 from json.decoder import JSONDecodeError
 from typing import Iterable, Optional, Sequence
 
@@ -85,10 +86,12 @@ def iter_article_data(
 def save_state_for_config(
     state_config: EuropePmcStateConfig
 ):
+    parsed_date = date.fromisoformat(state_config.initial_state.start_date_str)
+    next_day_date = parsed_date + timedelta(days=1)
     upload_s3_object(
         bucket=state_config.state_file.bucket_name,
         object_key=state_config.state_file.object_name,
-        data_object=state_config.initial_state.start_date_str
+        data_object=next_day_date.isoformat()
     )
 
 

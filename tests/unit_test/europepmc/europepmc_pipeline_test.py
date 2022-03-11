@@ -259,17 +259,21 @@ class TestSaveStateForConfig:
             data_object=ANY
         )
 
-    def test_should_pass_date_str_to_upload_s3_object(
+    def test_should_pass_day_after_start_date_str_to_upload_s3_object(
         self,
         upload_s3_object_mock: MagicMock
     ):
         save_state_for_config(
-            STATE_CONFIG_1
+            STATE_CONFIG_1._replace(
+                initial_state=EuropePmcInitialStateConfig(
+                    start_date_str='2020-01-02'
+                )
+            )
         )
         upload_s3_object_mock.assert_called_with(
             bucket=ANY,
             object_key=ANY,
-            data_object=STATE_CONFIG_1.initial_state.start_date_str
+            data_object='2020-01-03'
         )
 
 
