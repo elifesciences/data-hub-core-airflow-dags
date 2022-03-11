@@ -83,7 +83,7 @@ def iter_article_data(
     )
 
 
-def save_state_for_config(
+def save_state_to_s3_for_config(
     state_config: EuropePmcStateConfig
 ):
     parsed_date = date.fromisoformat(state_config.initial_state.start_date_str)
@@ -109,4 +109,4 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
-    save_state_for_config(config.state)
+    save_state_to_s3_for_config(config.state)

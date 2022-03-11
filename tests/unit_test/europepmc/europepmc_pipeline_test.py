@@ -21,7 +21,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     get_request_query_for_source_config_and_initial_state,
     iter_article_data,
     iter_article_data_from_response_json,
-    save_state_for_config
+    save_state_to_s3_for_config
 )
 
 
@@ -116,9 +116,9 @@ def _iter_article_data_mock():
         yield mock
 
 
-@pytest.fixture(name='save_state_for_config_mock')
-def _save_state_for_config_mock():
-    with patch.object(europepmc_pipeline_module, 'save_state_for_config') as mock:
+@pytest.fixture(name='save_state_to_s3_for_config_mock')
+def _save_state_to_s3_for_config_mock():
+    with patch.object(europepmc_pipeline_module, 'save_state_to_s3_for_config') as mock:
         yield mock
 
 
@@ -245,12 +245,12 @@ class TestIterArticleData:
         assert result == [item_response_1]
 
 
-class TestSaveStateForConfig:
+class TestSaveStateToS3ForConfig:
     def test_should_pass_bucket_and_object_to_upload_s3_object(
         self,
         upload_s3_object_mock: MagicMock
     ):
-        save_state_for_config(
+        save_state_to_s3_for_config(
             STATE_CONFIG_1
         )
         upload_s3_object_mock.assert_called_with(
@@ -263,7 +263,7 @@ class TestSaveStateForConfig:
         self,
         upload_s3_object_mock: MagicMock
     ):
-        save_state_for_config(
+        save_state_to_s3_for_config(
             STATE_CONFIG_1._replace(
                 initial_state=EuropePmcInitialStateConfig(
                     start_date_str='2020-01-02'
@@ -346,12 +346,12 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
     def test_should_call_save_state_for_config(
         self,
         iter_article_data_mock: MagicMock,
-        save_state_for_config_mock: MagicMock
+        save_state_to_s3_for_config_mock: MagicMock
     ):
         iter_article_data_mock.return_value = [ITEM_RESPONSE_JSON_1]
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
-        save_state_for_config_mock.assert_called_with(
+        save_state_to_s3_for_config_mock.assert_called_with(
             CONFIG_1.state
         )
