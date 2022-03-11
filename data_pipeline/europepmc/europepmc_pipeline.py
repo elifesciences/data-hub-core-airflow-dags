@@ -4,7 +4,7 @@ from typing import Iterable, Optional, Sequence
 
 import requests
 
-from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcInitialStateConfig, EuropePmcSourceConfig
+from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcInitialStateConfig, EuropePmcSourceConfig, EuropePmcStateConfig
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -81,6 +81,12 @@ def iter_article_data(
     )
 
 
+def save_state_for_config(
+    state_config: EuropePmcStateConfig
+):
+    pass
+
+
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
     config: EuropePmcConfig
 ):
@@ -95,3 +101,4 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
+    save_state_for_config(config.state)

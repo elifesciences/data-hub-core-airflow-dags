@@ -96,9 +96,16 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
     ) as mock:
         yield mock
 
+
 @pytest.fixture(name='iter_article_data_mock')
 def _iter_article_data_mock():
     with patch.object(europepmc_pipeline_module, 'iter_article_data') as mock:
+        yield mock
+
+
+@pytest.fixture(name='save_state_for_config_mock')
+def _save_state_for_config_mock():
+    with patch.object(europepmc_pipeline_module, 'save_state_for_config') as mock:
         yield mock
 
 
@@ -290,3 +297,16 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
                 json_list=[json_list[1]]
             )
         ])
+
+    def test_should_call_save_state_for_config(
+        self,
+        iter_article_data_mock: MagicMock,
+        save_state_for_config_mock: MagicMock
+    ):
+        iter_article_data_mock.return_value = [ITEM_RESPONSE_JSON_1]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        save_state_for_config_mock.assert_called_with(
+            CONFIG_1.state
+        )
