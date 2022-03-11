@@ -259,6 +259,19 @@ class TestSaveStateForConfig:
             data_object=ANY
         )
 
+    def test_should_pass_date_str_to_upload_s3_object(
+        self,
+        upload_s3_object_mock: MagicMock
+    ):
+        save_state_for_config(
+            STATE_CONFIG_1
+        )
+        upload_s3_object_mock.assert_called_with(
+            bucket=ANY,
+            object_key=ANY,
+            data_object=STATE_CONFIG_1.initial_state.start_date_str
+        )
+
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
     def test_should_pass_project_dataset_and_table_to_bq_load_method(

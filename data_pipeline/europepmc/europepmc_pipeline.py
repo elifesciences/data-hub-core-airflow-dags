@@ -88,7 +88,7 @@ def save_state_for_config(
     upload_s3_object(
         bucket=state_config.state_file.bucket_name,
         object_key=state_config.state_file.object_name,
-        data_object='',
+        data_object=state_config.initial_state.start_date_str
     )
 
 

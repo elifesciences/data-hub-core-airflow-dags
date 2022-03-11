@@ -67,7 +67,7 @@ class StateFileConfig(NamedTuple):
 
 
 class EuropePmcStateConfig(NamedTuple):
-    initial_state: str
+    initial_state: EuropePmcInitialStateConfig
     state_file: StateFileConfig
 
     @staticmethod
