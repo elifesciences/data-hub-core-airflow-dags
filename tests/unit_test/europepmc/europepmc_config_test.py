@@ -1,4 +1,5 @@
 from data_pipeline.europepmc.europepmc_config import (
+    DEFAULT_BATCH_SIZE,
     EuropePmcConfig
 )
 
@@ -32,6 +33,12 @@ SOURCE_WITH_FIELDS_TO_RETURN_1 = {
 }
 
 
+ITEM_CONFIG_DICT_1 = {
+    'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+    'target': TARGET_1
+}
+
+
 CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1 = {
     'europePmc': [{
         'source': SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
@@ -49,6 +56,10 @@ CONFIG_DICT_WITH_FIELDS_TO_RETURN_1 = {
 
 
 CONFIG_DICT_1 = CONFIG_DICT_WITHOUT_FIELDS_TO_RETURN_1
+
+
+def get_config_for_item_config_dict(item_dict: dict) -> dict:
+    return {'europePmc': [item_dict]}
 
 
 class TestEuropePmcConfig:
@@ -73,3 +84,17 @@ class TestEuropePmcConfig:
         assert config.target.project_name == PROJECT_NAME_1
         assert config.target.dataset_name == DATASET_NAME_1
         assert config.target.table_name == TABLE_NAME_1
+
+    def test_should_read_batch_size(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'batchSize': 123
+        }))
+        assert config.batch_size == 123
+
+    def test_should_use_default_batch_size(self):
+        assert 'batchSize' not in ITEM_CONFIG_DICT_1
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict(
+            ITEM_CONFIG_DICT_1
+        ))
+        assert config.batch_size == DEFAULT_BATCH_SIZE

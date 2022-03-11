@@ -18,3 +18,4 @@ europePmc:
       stateFile:
         bucketName: '{ENV}-elife-data-pipeline'
         objectName: 'airflow-config/europepmc/{ENV}-state.json'
+    batchSize: 1000
