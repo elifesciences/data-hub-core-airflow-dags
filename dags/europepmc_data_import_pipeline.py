@@ -2,11 +2,15 @@
 
 import os
 import logging
+
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
 from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery
 )
-from data_pipeline.utils.pipeline_config import update_deployment_env_placeholder
+from data_pipeline.utils.pipeline_config import (
+    get_env_var_or_use_default,
+    update_deployment_env_placeholder
+)
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
@@ -28,10 +32,6 @@ DEFAULT_DEPLOYMENT_ENV = "ci"
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_env_var_or_use_default(env_var_name, default_value=None):
-    return os.getenv(env_var_name, default_value)
 
 
 def get_deployment_env() -> str:
