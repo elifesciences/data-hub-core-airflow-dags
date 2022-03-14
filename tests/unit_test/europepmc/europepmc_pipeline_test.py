@@ -207,7 +207,10 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         result = list(iter_article_data(SOURCE_CONFIG_1, INITIAL_STATE_CONFIG_1))
         assert result == [ITEM_RESPONSE_JSON_1]
-        get_article_response_json_from_api_mock.assert_called_with(SOURCE_CONFIG_1)
+        get_article_response_json_from_api_mock.assert_called_with(
+            SOURCE_CONFIG_1,
+            INITIAL_STATE_CONFIG_1
+        )
 
     def test_should_filter_returned_response_fields(
         self,
@@ -280,8 +283,11 @@ class TestSaveStateToS3ForConfig:
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
+        iter_article_data_mock: MagicMock,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
     ):
+        json_list = [ITEM_RESPONSE_JSON_1]
+        iter_article_data_mock.return_value = json_list
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
