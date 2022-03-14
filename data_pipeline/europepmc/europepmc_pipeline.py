@@ -27,6 +27,9 @@ class EuropePmcSearchContext(NamedTuple):
     start_date_str: str
     end_date_str: str
 
+    def is_empty_period(self):
+        return date.fromisoformat(self.end_date_str) < date.fromisoformat(self.start_date_str)
+
 
 def iter_article_data_from_response_json(
     response_json: dict
@@ -168,6 +171,9 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         max_days=config.source.max_days
     )
     LOGGER.debug('search_context: %r', search_context)
+    if search_context.is_empty_period():
+        LOGGER.info('empty period, skip processing')
+        return
     batch_size = config.batch_size
     data_iterable = iter_article_data(
         config.source,

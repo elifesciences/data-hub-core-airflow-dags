@@ -509,3 +509,16 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             CONFIG_1.state,
             expected_next_start_date_str
         )
+
+    def test_should_not_call_api_if_start_date_is_today(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            MOCK_TODAY_STR
+        )
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        iter_article_data_mock.assert_not_called()
