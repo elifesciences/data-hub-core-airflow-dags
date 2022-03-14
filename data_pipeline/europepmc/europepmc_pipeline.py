@@ -127,12 +127,17 @@ def get_next_start_date_str_for_end_date_str(
 
 def get_search_context_for_start_date_str(
     start_date_str: str,
-    max_days: Optional[int] = None
+    max_days: Optional[int] = None,
+    today: Optional[date] = None
 ) -> EuropePmcSearchContext:
+    if not today:
+        today = date.today()
     if not max_days:
         end_date_str = start_date_str
     else:
         end_date = date.fromisoformat(start_date_str) + timedelta(days=max_days - 1)
+        if end_date >= today:
+            end_date = today - timedelta(days=1)
         end_date_str = end_date.isoformat()
     return EuropePmcSearchContext(
         start_date_str=start_date_str,

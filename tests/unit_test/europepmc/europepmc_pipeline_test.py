@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
@@ -376,6 +377,14 @@ class TestGetSearchContextForStartDateStr:
             max_days=10
         )
         assert result.end_date_str == '2001-02-12'
+
+    def test_should_use_yesterday_as_end_date_if_max_days_beyond_yesterday(self):
+        result = get_search_context_for_start_date_str(
+            '2001-02-03',
+            max_days=10,
+            today=date(2001, 2, 8)
+        )
+        assert result.end_date_str == '2001-02-07'
 
 
 class TestGetNextStartDateStrForEndDateStr:
