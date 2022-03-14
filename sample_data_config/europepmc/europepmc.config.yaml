@@ -1,7 +1,8 @@
 europePmc:
   - dataPipelineId: europepmc_datapeline_1
     source:
-      apiUrl: 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
+      # apiUrl: 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
+      apiUrl: 'https://www.ebi.ac.uk/europepmc/webservices/test/rest/search'
       search:
         query: 'DOI:10.1101/2021.07.05.451181 OR DOI:10.1101/2021.08.10.455713'
         hasTextMinedTerms: 'Y'
