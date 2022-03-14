@@ -115,6 +115,14 @@ def save_state_to_s3_for_config(
     )
 
 
+def get_search_context_for_start_date_str(
+    start_date_str: str
+) -> EuropePmcSearchContext:
+    return EuropePmcSearchContext(
+        start_date_str=start_date_str
+    )
+
+
 def load_state_from_s3_for_config(
     state_config: EuropePmcStateConfig
 ) -> str:
@@ -134,8 +142,8 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
     start_date_str = load_state_from_s3_for_config(
         config.state
     )
-    search_context = EuropePmcSearchContext(
-        start_date_str=start_date_str
+    search_context = get_search_context_for_start_date_str(
+        start_date_str
     )
     batch_size = config.batch_size
     data_iterable = iter_article_data(
