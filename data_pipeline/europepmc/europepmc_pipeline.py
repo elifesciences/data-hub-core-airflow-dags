@@ -38,8 +38,11 @@ def get_request_query_for_source_config_and_start_date_str(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext
 ) -> str:
+    date_period_str = (
+        f"['{search_context.start_date_str}' TO '{search_context.end_date_str}']"
+    )
     query = (
-        f"(FIRST_IDATE:'{search_context.start_date_str}') "
+        f"(FIRST_IDATE:{date_period_str}) "
         + (source_config.search.query or '')
     ).strip()
     return query

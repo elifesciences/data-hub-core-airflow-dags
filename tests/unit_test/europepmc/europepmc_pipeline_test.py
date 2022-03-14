@@ -160,8 +160,12 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1
         )
+        date_period_str = (
+            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+        )
         assert query == (
-            f"(FIRST_IDATE:'{SEARCH_CONTEXT_1.start_date_str}') {original_query}"
+            f"(FIRST_IDATE:{date_period_str})"
+            + f' {original_query}'
         )
 
     def test_should_return_first_idate_for_none_query(self):
@@ -173,8 +177,11 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             ),
             SEARCH_CONTEXT_1
         )
+        date_period_str = (
+            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+        )
         assert query == (
-            f"(FIRST_IDATE:'{SEARCH_CONTEXT_1.start_date_str}')"
+            f"(FIRST_IDATE:{date_period_str})"
         )
 
 
