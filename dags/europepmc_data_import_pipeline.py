@@ -6,6 +6,7 @@ from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
 from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery
 )
+from data_pipeline.utils.pipeline_config import update_deployment_env_placeholder
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
@@ -22,6 +23,10 @@ class EuropePmcPipelineEnvironmentVariables:
 DAG_ID = "EuropePmc_Pipeline"
 
 
+DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
+DEFAULT_DEPLOYMENT_ENV = "ci"
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -34,6 +39,17 @@ def get_pipeline_config() -> 'EuropePmcConfig':
         EuropePmcPipelineEnvironmentVariables.CONFIG_FILE_PATH
     )
     pipeline_config_dict = get_yaml_file_as_dict(conf_file_path)
+    deployment_env = get_env_var_or_use_default(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
+    LOGGER.info("deployment_env: %s", deployment_env)
+    if deployment_env:
+        pipeline_config_dict = update_deployment_env_placeholder(
+            pipeline_config_dict,
+            deployment_env,
+            environment_placeholder="{ENV}"
+        )
     LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
     pipeline_config = EuropePmcConfig.from_dict(pipeline_config_dict)
     LOGGER.info('pipeline_config: %s', pipeline_config)
