@@ -16,7 +16,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
 from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_object_as_string,
+    download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
 
@@ -110,10 +110,14 @@ def save_state_to_s3_for_config(
 def load_state_from_s3_for_config(
     state_config: EuropePmcStateConfig
 ) -> str:
-    return download_s3_object_as_string(
-        bucket=state_config.state_file.bucket_name,
-        object_key=state_config.state_file.object_name
-    )
+    try:
+        return download_s3_object_as_string_or_file_not_found_error(
+            bucket=state_config.state_file.bucket_name,
+            object_key=state_config.state_file.object_name
+        )
+    except FileNotFoundError:
+        LOGGER.info('state file not found, returning initial state')
+        return state_config.initial_state.start_date_str
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(

@@ -95,9 +95,12 @@ def _upload_s3_object_mock():
         yield mock
 
 
-@pytest.fixture(name='download_s3_object_as_string_mock', autouse=True)
-def _download_s3_object_as_string_mock():
-    with patch.object(europepmc_pipeline_module, 'download_s3_object_as_string') as mock:
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock', autouse=True)
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        europepmc_pipeline_module,
+        'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
         yield mock
 
 
@@ -291,15 +294,32 @@ class TestSaveStateToS3ForConfig:
 class TestLoadStateFromS3ForConfig:
     def test_should_call_download_s3_object_as_string(
         self,
-        download_s3_object_as_string_mock: MagicMock
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
     ):
-        load_state_from_s3_for_config(
+        result = load_state_from_s3_for_config(
             STATE_CONFIG_1
         )
-        download_s3_object_as_string_mock.assert_called_with(
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
             bucket=BUCKET_NAME_1,
             object_key=OBJECT_NAME_1
         )
+        assert result == download_s3_object_as_string_or_file_not_found_error_mock.return_value
+
+    def test_should_return_initial_state_if_file_does_not_exist(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
+            FileNotFoundError()
+        )
+        result = load_state_from_s3_for_config(
+            STATE_CONFIG_1
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket=BUCKET_NAME_1,
+            object_key=OBJECT_NAME_1
+        )
+        assert result == INITIAL_STATE_CONFIG_1.start_date_str
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
