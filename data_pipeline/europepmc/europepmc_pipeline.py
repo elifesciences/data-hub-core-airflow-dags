@@ -15,7 +15,10 @@ from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
-from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string,
+    upload_s3_object
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -101,6 +104,15 @@ def save_state_to_s3_for_config(
         bucket=state_config.state_file.bucket_name,
         object_key=state_config.state_file.object_name,
         data_object=next_day_date.isoformat()
+    )
+
+
+def load_state_from_s3_for_config(
+    state_config: EuropePmcStateConfig
+) -> str:
+    return download_s3_object_as_string(
+        bucket=state_config.state_file.bucket_name,
+        object_key=state_config.state_file.object_name
     )
 
 

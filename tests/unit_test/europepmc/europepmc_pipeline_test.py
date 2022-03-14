@@ -20,8 +20,10 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     get_request_query_for_source_config_and_initial_state,
     iter_article_data,
     iter_article_data_from_response_json,
+    load_state_from_s3_for_config,
     save_state_to_s3_for_config
 )
+from tests.unit_test.europepmc.europepmc_config_test import BUCKET_NAME_1, OBJECT_NAME_1
 
 
 DOI_1 = 'doi1'
@@ -90,6 +92,12 @@ def _get_article_response_json_from_api_mock():
 @pytest.fixture(name='upload_s3_object_mock', autouse=True)
 def _upload_s3_object_mock():
     with patch.object(europepmc_pipeline_module, 'upload_s3_object') as mock:
+        yield mock
+
+
+@pytest.fixture(name='download_s3_object_as_string_mock', autouse=True)
+def _download_s3_object_as_string_mock():
+    with patch.object(europepmc_pipeline_module, 'download_s3_object_as_string') as mock:
         yield mock
 
 
@@ -277,6 +285,20 @@ class TestSaveStateToS3ForConfig:
             bucket=ANY,
             object_key=ANY,
             data_object='2020-01-03'
+        )
+
+
+class TestLoadStateFromS3ForConfig:
+    def test_should_call_download_s3_object_as_string(
+        self,
+        download_s3_object_as_string_mock: MagicMock
+    ):
+        load_state_from_s3_for_config(
+            STATE_CONFIG_1
+        )
+        download_s3_object_as_string_mock.assert_called_with(
+            bucket=BUCKET_NAME_1,
+            object_key=OBJECT_NAME_1
         )
 
 
