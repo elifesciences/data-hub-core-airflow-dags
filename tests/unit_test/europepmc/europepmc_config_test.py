@@ -110,6 +110,22 @@ class TestEuropePmcConfig:
         }))
         assert config.source.fields_to_return is None
 
+    def test_should_source_max_days(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'source': {
+                **SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+                'maxDays': 123
+            }
+        }))
+        assert config.source.max_days == 123
+
+    def test_should_default_max_days_to_none(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1
+        }))
+        assert config.source.max_days is None
+
     def test_should_read_target_project_dataset_and_table_name(self):
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
         assert config.target.project_name == PROJECT_NAME_1

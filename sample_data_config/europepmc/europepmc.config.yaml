@@ -8,6 +8,7 @@ europePmc:
       fieldsToReturn:
         - title
         - doi
+      maxDays: 1000  # limit the number of days to process from start date
     target:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'

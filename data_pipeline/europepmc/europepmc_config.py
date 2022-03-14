@@ -24,6 +24,7 @@ class EuropePmcSourceConfig(NamedTuple):
     api_url: str
     search: EuropePmcSearchConfig
     fields_to_return: Optional[Sequence[str]] = None
+    max_days: Optional[int] = None
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'EuropePmcSourceConfig':
@@ -32,7 +33,8 @@ class EuropePmcSourceConfig(NamedTuple):
             search=EuropePmcSearchConfig.from_dict(
                 source_config_dict['search']
             ),
-            fields_to_return=source_config_dict.get('fieldsToReturn')
+            fields_to_return=source_config_dict.get('fieldsToReturn'),
+            max_days=source_config_dict.get('maxDays')
         )
 
 
