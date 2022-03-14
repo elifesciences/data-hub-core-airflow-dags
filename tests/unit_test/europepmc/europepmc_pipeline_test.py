@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
@@ -67,6 +67,9 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     dataset_name='dataset1',
     table_name='table1'
 )
+
+MOCK_TODAY_STR = '2021-01-02'
+MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
 
 INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
     start_date_str='2020-01-02'
@@ -139,6 +142,15 @@ def _iter_article_data_mock():
 @pytest.fixture(name='save_state_to_s3_for_config_mock')
 def _save_state_to_s3_for_config_mock():
     with patch.object(europepmc_pipeline_module, 'save_state_to_s3_for_config') as mock:
+        yield mock
+
+
+@pytest.fixture(name='date_mock', autouse=True)
+def _date_mock():
+    with patch.object(europepmc_pipeline_module, 'date') as mock:
+        mock.today.return_value = date.fromisoformat(MOCK_TODAY_STR)
+        mock.fromisoformat.side_effect = date.fromisoformat
+        mock.side_effect = date
         yield mock
 
 
@@ -378,11 +390,25 @@ class TestGetSearchContextForStartDateStr:
         )
         assert result.end_date_str == '2001-02-12'
 
-    def test_should_use_yesterday_as_end_date_if_max_days_beyond_yesterday(self):
+    def test_should_use_yesterday_as_end_date_if_max_days_beyond_yesterday(
+        self,
+        date_mock: MagicMock
+    ):
+        date_mock.today.return_value = date(2001, 2, 8)
         result = get_search_context_for_start_date_str(
             '2001-02-03',
-            max_days=10,
-            today=date(2001, 2, 8)
+            max_days=10
+        )
+        assert result.end_date_str == '2001-02-07'
+
+    def test_should_use_yesterday_as_end_date_if_max_days_not_specified(
+        self,
+        date_mock: MagicMock
+    ):
+        date_mock.today.return_value = date(2001, 2, 8)
+        result = get_search_context_for_start_date_str(
+            '2001-02-03',
+            max_days=None
         )
         assert result.end_date_str == '2001-02-07'
 
@@ -477,7 +503,7 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             CONFIG_1
         )
         expected_next_start_date_str = get_next_start_date_str_for_end_date_str(
-            STATE_CONFIG_1.initial_state.start_date_str
+            MOCK_YESTERDAY_STR
         )
         save_state_to_s3_for_config_mock.assert_called_with(
             CONFIG_1.state,
