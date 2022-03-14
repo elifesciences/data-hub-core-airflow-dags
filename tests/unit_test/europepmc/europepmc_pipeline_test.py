@@ -318,7 +318,7 @@ class TestSaveStateToS3ForConfig:
             data_object=ANY
         )
 
-    def test_should_pass_day_after_start_date_str_to_upload_s3_object(
+    def test_should_passed_in_start_date_str_to_upload_s3_object(
         self,
         upload_s3_object_mock: MagicMock
     ):
@@ -329,7 +329,7 @@ class TestSaveStateToS3ForConfig:
         upload_s3_object_mock.assert_called_with(
             bucket=ANY,
             object_key=ANY,
-            data_object='2020-01-03'
+            data_object='2020-01-02'
         )
 
 
@@ -453,7 +453,10 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
+        expected_next_start_date_str = get_next_start_date_str_for_end_date_str(
+            STATE_CONFIG_1.initial_state.start_date_str
+        )
         save_state_to_s3_for_config_mock.assert_called_with(
             CONFIG_1.state,
-            STATE_CONFIG_1.initial_state.start_date_str
+            expected_next_start_date_str
         )

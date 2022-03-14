@@ -113,9 +113,7 @@ def save_state_to_s3_for_config(
     upload_s3_object(
         bucket=state_config.state_file.bucket_name,
         object_key=state_config.state_file.object_name,
-        data_object=get_next_start_date_str_for_end_date_str(
-            start_date_str
-        )
+        data_object=start_date_str
     )
 
 
@@ -172,4 +170,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
-    save_state_to_s3_for_config(config.state, start_date_str)
+    next_start_date_str = get_next_start_date_str_for_end_date_str(
+        search_context.end_date_str
+    )
+    save_state_to_s3_for_config(config.state, next_start_date_str)
