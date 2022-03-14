@@ -2,6 +2,7 @@ import pytest
 
 from data_pipeline.utils.pipeline_config import (
     BigQueryTargetConfig,
+    StateFileConfig,
     str_to_bool,
     get_environment_variable_value
 )
@@ -17,6 +18,16 @@ class TestBigQueryTargetConfig:
         assert config.project_name == 'project1'
         assert config.dataset_name == 'dataset1'
         assert config.table_name == 'table1'
+
+
+class TestStateFileConfig:
+    def test_should_read_bucket_and_object(self):
+        config = StateFileConfig.from_dict({
+            'bucketName': 'bucket1',
+            'objectName': 'object1'
+        })
+        assert config.bucket_name == 'bucket1'
+        assert config.object_name == 'object1'
 
 
 class TestStrToBool:

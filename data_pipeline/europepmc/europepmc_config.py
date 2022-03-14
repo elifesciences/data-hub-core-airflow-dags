@@ -1,6 +1,6 @@
 from typing import Mapping, NamedTuple, Optional, Sequence
 
-from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, StateFileConfig
 
 
 DEFAULT_BATCH_SIZE = 1000
@@ -47,18 +47,6 @@ class EuropePmcInitialStateConfig(NamedTuple):
     def from_dict(initial_state_config_dict: dict) -> 'EuropePmcInitialStateConfig':
         return EuropePmcInitialStateConfig(
             start_date_str=initial_state_config_dict['startDate']
-        )
-
-
-class StateFileConfig(NamedTuple):
-    bucket_name: str
-    object_name: str
-
-    @staticmethod
-    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
-        return StateFileConfig(
-            bucket_name=state_file_config_dict['bucketName'],
-            object_name=state_file_config_dict['objectName']
         )
 
 

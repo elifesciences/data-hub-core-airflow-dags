@@ -29,6 +29,18 @@ class BigQueryTargetConfig(NamedTuple):
         )
 
 
+class StateFileConfig(NamedTuple):
+    bucket_name: str
+    object_name: str
+
+    @staticmethod
+    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
+        return StateFileConfig(
+            bucket_name=state_file_config_dict['bucketName'],
+            object_name=state_file_config_dict['objectName']
+        )
+
+
 def update_deployment_env_placeholder(
         original_dict: dict,
         deployment_env: str,

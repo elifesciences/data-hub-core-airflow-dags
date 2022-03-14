@@ -3,14 +3,18 @@ from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
-from data_pipeline.europepmc.europepmc_config import (
+
+from data_pipeline.utils.pipeline_config import (
     BigQueryTargetConfig,
+    StateFileConfig
+)
+
+from data_pipeline.europepmc.europepmc_config import (
     EuropePmcConfig,
     EuropePmcInitialStateConfig,
     EuropePmcSearchConfig,
     EuropePmcSourceConfig,
-    EuropePmcStateConfig,
-    StateFileConfig
+    EuropePmcStateConfig
 )
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
