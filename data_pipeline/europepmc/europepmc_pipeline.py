@@ -33,7 +33,10 @@ def get_request_query_for_source_config_and_start_date_str(
     source_config: EuropePmcSourceConfig,
     start_date_str: str
 ) -> str:
-    query = f"(FIRST_IDATE:'{start_date_str}') " + source_config.search.query
+    query = (
+        f"(FIRST_IDATE:'{start_date_str}') "
+        + (source_config.search.query or '')
+    ).strip()
     return query
 
 

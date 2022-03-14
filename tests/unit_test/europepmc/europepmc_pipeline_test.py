@@ -156,6 +156,19 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             f"(FIRST_IDATE:'{STATE_CONFIG_1.initial_state.start_date_str}') {original_query}"
         )
 
+    def test_should_return_first_idate_for_none_query(self):
+        query = get_request_query_for_source_config_and_start_date_str(
+            SOURCE_CONFIG_1._replace(
+                search=EuropePmcSearchConfig(
+                    query=None
+                )
+            ),
+            STATE_CONFIG_1.initial_state.start_date_str
+        )
+        assert query == (
+            f"(FIRST_IDATE:'{STATE_CONFIG_1.initial_state.start_date_str}')"
+        )
+
 
 class TestGetRequestParamsForSourceConfig:
     def test_should_include_query_from_config(self):

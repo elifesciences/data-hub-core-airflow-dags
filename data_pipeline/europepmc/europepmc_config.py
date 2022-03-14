@@ -5,12 +5,12 @@ DEFAULT_BATCH_SIZE = 1000
 
 
 class EuropePmcSearchConfig(NamedTuple):
-    query: str
+    query: Optional[str] = None
 
     @staticmethod
     def from_dict(search_config_dict: dict) -> 'EuropePmcSearchConfig':
         return EuropePmcSearchConfig(
-            query=search_config_dict['query']
+            query=search_config_dict.get('query')
         )
 
 
