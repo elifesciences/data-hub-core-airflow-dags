@@ -312,7 +312,7 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             json_list=json_list
         )
 
-    def test_should_pass_project_dataset_and_table_to_bq_load_method(
+    def test_should_pass_batched_json_list_to_bq_load_method(
         self,
         iter_article_data_mock: MagicMock,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
