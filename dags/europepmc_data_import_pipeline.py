@@ -8,7 +8,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery
 )
 from data_pipeline.utils.pipeline_config import (
-    get_env_var_or_use_default,
+    get_deployment_env,
     update_deployment_env_placeholder
 )
 
@@ -27,18 +27,7 @@ class EuropePmcPipelineEnvironmentVariables:
 DAG_ID = "EuropePmc_Pipeline"
 
 
-DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV = "ci"
-
-
 LOGGER = logging.getLogger(__name__)
-
-
-def get_deployment_env() -> str:
-    return get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV
-    )
 
 
 def get_pipeline_config() -> 'EuropePmcConfig':
