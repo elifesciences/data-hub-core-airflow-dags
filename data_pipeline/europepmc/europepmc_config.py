@@ -1,5 +1,7 @@
 from typing import Mapping, NamedTuple, Optional, Sequence
 
+from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+
 
 DEFAULT_BATCH_SIZE = 1000
 
@@ -35,20 +37,6 @@ class EuropePmcSourceConfig(NamedTuple):
             ),
             fields_to_return=source_config_dict.get('fieldsToReturn'),
             max_days=source_config_dict.get('maxDays')
-        )
-
-
-class BigQueryTargetConfig(NamedTuple):
-    project_name: str
-    dataset_name: str
-    table_name: str
-
-    @staticmethod
-    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
-        return BigQueryTargetConfig(
-            project_name=target_config_dict['projectName'],
-            dataset_name=target_config_dict['datasetName'],
-            table_name=target_config_dict['tableName']
         )
 
 

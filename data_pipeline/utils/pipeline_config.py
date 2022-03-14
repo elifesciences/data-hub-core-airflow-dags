@@ -1,5 +1,5 @@
 import os
-from typing import Callable, T
+from typing import Callable, T, NamedTuple
 
 
 class ConfigKeys:
@@ -13,6 +13,20 @@ class PipelineEnvironmentVariables:
 DEFAULT_DEPLOYMENT_ENV = 'ci'
 
 DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
+
+
+class BigQueryTargetConfig(NamedTuple):
+    project_name: str
+    dataset_name: str
+    table_name: str
+
+    @staticmethod
+    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
+        return BigQueryTargetConfig(
+            project_name=target_config_dict['projectName'],
+            dataset_name=target_config_dict['datasetName'],
+            table_name=target_config_dict['tableName']
+        )
 
 
 def update_deployment_env_placeholder(
