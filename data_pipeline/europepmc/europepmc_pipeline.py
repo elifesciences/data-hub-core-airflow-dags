@@ -25,6 +25,7 @@ LOGGER = logging.getLogger(__name__)
 
 class EuropePmcSearchContext(NamedTuple):
     start_date_str: str
+    end_date_str: str
 
 
 def iter_article_data_from_response_json(
@@ -119,7 +120,8 @@ def get_search_context_for_start_date_str(
     start_date_str: str
 ) -> EuropePmcSearchContext:
     return EuropePmcSearchContext(
-        start_date_str=start_date_str
+        start_date_str=start_date_str,
+        end_date_str=start_date_str
     )
 
 

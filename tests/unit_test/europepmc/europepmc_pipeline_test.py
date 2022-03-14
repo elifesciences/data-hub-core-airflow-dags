@@ -85,7 +85,8 @@ CONFIG_1 = EuropePmcConfig(
 
 
 SEARCH_CONTEXT_1 = EuropePmcSearchContext(
-    start_date_str=INITIAL_START_DATE_STR_1
+    start_date_str=INITIAL_START_DATE_STR_1,
+    end_date_str=INITIAL_START_DATE_STR_1
 )
 
 
