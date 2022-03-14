@@ -34,15 +34,19 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
 
 
+def get_deployment_env() -> str:
+    return get_env_var_or_use_default(
+        DEPLOYMENT_ENV_ENV_NAME,
+        DEFAULT_DEPLOYMENT_ENV
+    )
+
+
 def get_pipeline_config() -> 'EuropePmcConfig':
     conf_file_path = os.getenv(
         EuropePmcPipelineEnvironmentVariables.CONFIG_FILE_PATH
     )
     pipeline_config_dict = get_yaml_file_as_dict(conf_file_path)
-    deployment_env = get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV
-    )
+    deployment_env = get_deployment_env()
     LOGGER.info("deployment_env: %s", deployment_env)
     if deployment_env:
         pipeline_config_dict = update_deployment_env_placeholder(
