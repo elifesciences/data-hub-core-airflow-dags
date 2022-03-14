@@ -17,6 +17,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     EuropePmcSearchContext,
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
+    get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
     get_request_query_for_source_config_and_start_date_str,
     iter_article_data,
@@ -361,6 +362,13 @@ class TestLoadStateFromS3ForConfig:
             object_key=STATE_CONFIG_1.state_file.object_name
         )
         assert result == INITIAL_STATE_CONFIG_1.start_date_str
+
+
+class TestGetNextStartDateStrForEndDateStr:
+    def test_should_add_one_day(self):
+        assert get_next_start_date_str_for_end_date_str(
+            '2001-02-03'
+        ) == '2001-02-04'
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:

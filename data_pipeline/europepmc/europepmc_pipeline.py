@@ -110,13 +110,21 @@ def save_state_to_s3_for_config(
     state_config: EuropePmcStateConfig,
     start_date_str: str
 ):
-    parsed_date = date.fromisoformat(start_date_str)
-    next_day_date = parsed_date + timedelta(days=1)
     upload_s3_object(
         bucket=state_config.state_file.bucket_name,
         object_key=state_config.state_file.object_name,
-        data_object=next_day_date.isoformat()
+        data_object=get_next_start_date_str_for_end_date_str(
+            start_date_str
+        )
     )
+
+
+def get_next_start_date_str_for_end_date_str(
+    end_date_str: str
+):
+    end_date = date.fromisoformat(end_date_str)
+    next_start_date = end_date + timedelta(days=1)
+    return next_start_date.isoformat()
 
 
 def get_search_context_for_start_date_str(
