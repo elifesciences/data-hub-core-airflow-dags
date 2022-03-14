@@ -12,11 +12,13 @@ class PipelineEnvironmentVariables:
 
 DEFAULT_DEPLOYMENT_ENV = 'ci'
 
+DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
+
 
 def update_deployment_env_placeholder(
         original_dict: dict,
         deployment_env: str,
-        environment_placeholder: str,
+        environment_placeholder: str = DEFAULT_ENVIRONMENT_PLACEHOLDER
 ):
     new_dict = dict()
     for key, val in original_dict.items():

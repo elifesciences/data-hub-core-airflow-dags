@@ -40,8 +40,7 @@ def get_pipeline_config() -> 'EuropePmcConfig':
     if deployment_env:
         pipeline_config_dict = update_deployment_env_placeholder(
             pipeline_config_dict,
-            deployment_env,
-            environment_placeholder="{ENV}"
+            deployment_env
         )
     LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
     pipeline_config = EuropePmcConfig.from_dict(pipeline_config_dict)
