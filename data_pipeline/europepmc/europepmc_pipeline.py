@@ -45,6 +45,7 @@ def get_request_params_for_source_config(
     start_date_str: str
 ) -> dict:
     return {
+        **(source_config.search.extra_params or {}),
         'query': get_request_query_for_source_config_and_start_date_str(
             source_config,
             start_date_str

@@ -192,6 +192,18 @@ class TestGetRequestParamsForSourceConfig:
         )
         assert params['resultType'] == 'core'
 
+    def test_should_include_extra_params(self):
+        params = get_request_params_for_source_config(
+            SOURCE_CONFIG_1._replace(
+                search=EuropePmcSearchConfig(
+                    query='query1',
+                    extra_params={'hasXyz': 'Y'}
+                )
+            ),
+            INITIAL_STATE_CONFIG_1
+        )
+        assert params['hasXyz'] == 'Y'
+
 
 class TestGetArticleResponseJsonFromApi:
     def test_should_pass_url_and_params_to_requests_get(
