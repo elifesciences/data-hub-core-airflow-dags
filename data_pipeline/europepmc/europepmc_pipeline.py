@@ -5,7 +5,12 @@ from typing import Iterable, Optional, Sequence
 
 import requests
 
-from data_pipeline.europepmc.europepmc_config import EuropePmcConfig, EuropePmcInitialStateConfig, EuropePmcSourceConfig, EuropePmcStateConfig
+from data_pipeline.europepmc.europepmc_config import (
+    EuropePmcConfig,
+    EuropePmcInitialStateConfig,
+    EuropePmcSourceConfig,
+    EuropePmcStateConfig
+)
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
