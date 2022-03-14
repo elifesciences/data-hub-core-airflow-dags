@@ -126,11 +126,17 @@ def get_next_start_date_str_for_end_date_str(
 
 
 def get_search_context_for_start_date_str(
-    start_date_str: str
+    start_date_str: str,
+    max_days: Optional[int] = None
 ) -> EuropePmcSearchContext:
+    if not max_days:
+        end_date_str = start_date_str
+    else:
+        end_date = date.fromisoformat(start_date_str) + timedelta(days=max_days - 1)
+        end_date_str = end_date.isoformat()
     return EuropePmcSearchContext(
         start_date_str=start_date_str,
-        end_date_str=start_date_str
+        end_date_str=end_date_str
     )
 
 
@@ -154,7 +160,8 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         config.state
     )
     search_context = get_search_context_for_start_date_str(
-        start_date_str
+        start_date_str,
+        max_days=config.source.max_days
     )
     batch_size = config.batch_size
     data_iterable = iter_article_data(

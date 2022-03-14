@@ -20,6 +20,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
     get_request_query_for_source_config_and_start_date_str,
+    get_search_context_for_start_date_str,
     iter_article_data,
     iter_article_data_from_response_json,
     load_state_from_s3_for_config,
@@ -362,6 +363,19 @@ class TestLoadStateFromS3ForConfig:
             object_key=STATE_CONFIG_1.state_file.object_name
         )
         assert result == INITIAL_STATE_CONFIG_1.start_date_str
+
+
+class TestGetSearchContextForStartDateStr:
+    def test_should_set_given_start_date(self):
+        result = get_search_context_for_start_date_str('2001-02-03')
+        assert result.start_date_str == '2001-02-03'
+
+    def test_should_set_end_date_to_max_days_ahead(self):
+        result = get_search_context_for_start_date_str(
+            '2001-02-03',
+            max_days=10
+        )
+        assert result.end_date_str == '2001-02-12'
 
 
 class TestGetNextStartDateStrForEndDateStr:
