@@ -1,7 +1,7 @@
 import logging
 from datetime import date, timedelta
 from json.decoder import JSONDecodeError
-from typing import Iterable, Optional, Sequence
+from typing import Iterable, NamedTuple, Optional, Sequence
 
 import requests
 
@@ -23,6 +23,10 @@ from data_pipeline.utils.data_store.s3_data_service import (
 LOGGER = logging.getLogger(__name__)
 
 
+class EuropePmcSearchContext(NamedTuple):
+    start_date_str: str
+
+
 def iter_article_data_from_response_json(
     response_json: dict
 ) -> Iterable[dict]:
@@ -31,10 +35,10 @@ def iter_article_data_from_response_json(
 
 def get_request_query_for_source_config_and_start_date_str(
     source_config: EuropePmcSourceConfig,
-    start_date_str: str
+    search_context: EuropePmcSearchContext
 ) -> str:
     query = (
-        f"(FIRST_IDATE:'{start_date_str}') "
+        f"(FIRST_IDATE:'{search_context.start_date_str}') "
         + (source_config.search.query or '')
     ).strip()
     return query
@@ -42,13 +46,13 @@ def get_request_query_for_source_config_and_start_date_str(
 
 def get_request_params_for_source_config(
     source_config: EuropePmcSourceConfig,
-    start_date_str: str
+    search_context: EuropePmcSearchContext
 ) -> dict:
     return {
         **(source_config.search.extra_params or {}),
         'query': get_request_query_for_source_config_and_start_date_str(
             source_config,
-            start_date_str
+            search_context
         ),
         'format': 'json',
         'resultType': 'core'
@@ -66,12 +70,12 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
-    start_date_str: str
+    search_context: EuropePmcSearchContext
 ) -> dict:
     url = source_config.api_url
     params = get_request_params_for_source_config(
         source_config,
-        start_date_str
+        search_context
     )
     response = requests.get(url, params=params)
     return get_valid_json_from_response(response)
@@ -85,12 +89,12 @@ def get_filtered_article_data(data: dict, fields_to_return: Optional[Sequence[st
 
 def iter_article_data(
     source_config: EuropePmcSourceConfig,
-    start_date_str: str
+    search_context: EuropePmcSearchContext
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
     response_json = get_article_response_json_from_api(
         source_config,
-        start_date_str
+        search_context
     )
     return (
         get_filtered_article_data(data, source_config.fields_to_return)
@@ -130,10 +134,13 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
     start_date_str = load_state_from_s3_for_config(
         config.state
     )
+    search_context = EuropePmcSearchContext(
+        start_date_str=start_date_str
+    )
     batch_size = config.batch_size
     data_iterable = iter_article_data(
         config.source,
-        start_date_str
+        search_context
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)

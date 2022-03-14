@@ -14,6 +14,7 @@ from data_pipeline.europepmc.europepmc_config import (
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
 from data_pipeline.europepmc.europepmc_pipeline import (
+    EuropePmcSearchContext,
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
     get_request_params_for_source_config,
@@ -23,6 +24,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     load_state_from_s3_for_config,
     save_state_to_s3_for_config
 )
+from tests.unit_test.europepmc.europepmc_config_test import INITIAL_START_DATE_STR_1
 
 
 DOI_1 = 'doi1'
@@ -79,6 +81,11 @@ CONFIG_1 = EuropePmcConfig(
     source=SOURCE_CONFIG_1,
     target=TARGET_CONFIG_1,
     state=STATE_CONFIG_1
+)
+
+
+SEARCH_CONTEXT_1 = EuropePmcSearchContext(
+    start_date_str=INITIAL_START_DATE_STR_1
 )
 
 
@@ -150,10 +157,10 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
         original_query = SOURCE_CONFIG_1.search.query
         query = get_request_query_for_source_config_and_start_date_str(
             SOURCE_CONFIG_1,
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         )
         assert query == (
-            f"(FIRST_IDATE:'{STATE_CONFIG_1.initial_state.start_date_str}') {original_query}"
+            f"(FIRST_IDATE:'{SEARCH_CONTEXT_1.start_date_str}') {original_query}"
         )
 
     def test_should_return_first_idate_for_none_query(self):
@@ -163,10 +170,10 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
                     query=None
                 )
             ),
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         )
         assert query == (
-            f"(FIRST_IDATE:'{STATE_CONFIG_1.initial_state.start_date_str}')"
+            f"(FIRST_IDATE:'{SEARCH_CONTEXT_1.start_date_str}')"
         )
 
 
@@ -174,21 +181,21 @@ class TestGetRequestParamsForSourceConfig:
     def test_should_include_query_from_config(self):
         params = get_request_params_for_source_config(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         assert params['query'].endswith(SOURCE_CONFIG_1.search.query)
 
     def test_should_specify_format_json(self):
         params = get_request_params_for_source_config(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         assert params['format'] == 'json'
 
     def test_should_specify_result_type_core(self):
         params = get_request_params_for_source_config(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         assert params['resultType'] == 'core'
 
@@ -200,7 +207,7 @@ class TestGetRequestParamsForSourceConfig:
                     extra_params={'hasXyz': 'Y'}
                 )
             ),
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         assert params['hasXyz'] == 'Y'
 
@@ -212,13 +219,13 @@ class TestGetArticleResponseJsonFromApi:
     ):
         get_article_response_json_from_api(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         requests_mock.get.assert_called_with(
             API_URL_1,
             params=get_request_params_for_source_config(
                 SOURCE_CONFIG_1,
-                INITIAL_STATE_CONFIG_1
+                SEARCH_CONTEXT_1
             )
         )
 
@@ -230,7 +237,7 @@ class TestGetArticleResponseJsonFromApi:
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         actual_response_json = get_article_response_json_from_api(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            SEARCH_CONTEXT_1
         )
         assert actual_response_json == SINGLE_ITEM_RESPONSE_JSON_1
 
@@ -243,12 +250,12 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         result = list(iter_article_data(
             SOURCE_CONFIG_1,
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         ))
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1,
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         )
 
     def test_should_filter_returned_response_fields(
@@ -263,7 +270,7 @@ class TestIterArticleData:
         ])
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         ))
         assert result == [{
             'doi': DOI_1
@@ -282,7 +289,7 @@ class TestIterArticleData:
         ])
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=None),
-            STATE_CONFIG_1.initial_state.start_date_str
+            SEARCH_CONTEXT_1
         ))
         assert result == [item_response_1]
 
