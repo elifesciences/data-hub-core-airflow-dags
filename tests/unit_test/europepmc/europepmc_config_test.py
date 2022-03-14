@@ -82,6 +82,20 @@ class TestEuropePmcConfig:
         }))
         assert config.source.search.query is None
 
+    def test_should_read_extra_params(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'source': {
+                **SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+                'search': {
+                    'query': 'query1',
+                    'hasXyz': 'Y'
+                }
+            }
+        }))
+        assert config.source.search.query == 'query1'
+        assert config.source.search.extra_params == {'hasXyz': 'Y'}
+
     def test_should_read_fields_to_return(self):
         config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT_1,

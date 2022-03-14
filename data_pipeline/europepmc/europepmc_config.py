@@ -1,4 +1,4 @@
-from typing import NamedTuple, Optional, Sequence
+from typing import Mapping, NamedTuple, Optional, Sequence
 
 
 DEFAULT_BATCH_SIZE = 1000
@@ -6,11 +6,17 @@ DEFAULT_BATCH_SIZE = 1000
 
 class EuropePmcSearchConfig(NamedTuple):
     query: Optional[str] = None
+    extra_params: Optional[Mapping[str, str]] = None
 
     @staticmethod
     def from_dict(search_config_dict: dict) -> 'EuropePmcSearchConfig':
         return EuropePmcSearchConfig(
-            query=search_config_dict.get('query')
+            query=search_config_dict.get('query'),
+            extra_params={
+                key: value
+                for key, value in search_config_dict.items()
+                if key != 'query'
+            }
         )
 
 
