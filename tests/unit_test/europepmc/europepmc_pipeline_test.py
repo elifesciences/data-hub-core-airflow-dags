@@ -1,4 +1,3 @@
-from enum import auto
 from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
@@ -98,7 +97,6 @@ def _upload_s3_object_mock():
 def _requests_mock():
     with patch.object(europepmc_pipeline_module, 'requests') as mock:
         yield mock
-
 
 
 @pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
