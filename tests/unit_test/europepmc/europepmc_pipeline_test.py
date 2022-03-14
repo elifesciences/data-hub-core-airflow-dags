@@ -17,13 +17,12 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
     get_request_params_for_source_config,
-    get_request_query_for_source_config_and_initial_state,
+    get_request_query_for_source_config_and_start_date_str,
     iter_article_data,
     iter_article_data_from_response_json,
     load_state_from_s3_for_config,
     save_state_to_s3_for_config
 )
-from tests.unit_test.europepmc.europepmc_config_test import BUCKET_NAME_1, OBJECT_NAME_1
 
 
 DOI_1 = 'doi1'
@@ -101,6 +100,7 @@ def _download_s3_object_as_string_or_file_not_found_error_mock():
         europepmc_pipeline_module,
         'download_s3_object_as_string_or_file_not_found_error'
     ) as mock:
+        mock.return_value = STATE_CONFIG_1.initial_state.start_date_str
         yield mock
 
 
@@ -148,12 +148,12 @@ class TestIterArticleDataFromResponseJson:
 class TestGetRequestQueryForSourceConfigAndInitialState:
     def test_should_add_first_idate(self):
         original_query = SOURCE_CONFIG_1.search.query
-        query = get_request_query_for_source_config_and_initial_state(
+        query = get_request_query_for_source_config_and_start_date_str(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            STATE_CONFIG_1.initial_state.start_date_str
         )
         assert query == (
-            f"(FIRST_IDATE:'{INITIAL_STATE_CONFIG_1.start_date_str}') {original_query}"
+            f"(FIRST_IDATE:'{STATE_CONFIG_1.initial_state.start_date_str}') {original_query}"
         )
 
 
@@ -216,11 +216,14 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock: MagicMock
     ):
         get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        result = list(iter_article_data(SOURCE_CONFIG_1, INITIAL_STATE_CONFIG_1))
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1,
+            STATE_CONFIG_1.initial_state.start_date_str
+        ))
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1,
-            INITIAL_STATE_CONFIG_1
+            STATE_CONFIG_1.initial_state.start_date_str
         )
 
     def test_should_filter_returned_response_fields(
@@ -235,7 +238,7 @@ class TestIterArticleData:
         ])
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
-            INITIAL_STATE_CONFIG_1
+            STATE_CONFIG_1.initial_state.start_date_str
         ))
         assert result == [{
             'doi': DOI_1
@@ -254,7 +257,7 @@ class TestIterArticleData:
         ])
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=None),
-            INITIAL_STATE_CONFIG_1
+            STATE_CONFIG_1.initial_state.start_date_str
         ))
         assert result == [item_response_1]
 
@@ -265,7 +268,8 @@ class TestSaveStateToS3ForConfig:
         upload_s3_object_mock: MagicMock
     ):
         save_state_to_s3_for_config(
-            STATE_CONFIG_1
+            STATE_CONFIG_1,
+            STATE_CONFIG_1.initial_state.start_date_str
         )
         upload_s3_object_mock.assert_called_with(
             bucket=STATE_CONFIG_1.state_file.bucket_name,
@@ -278,11 +282,8 @@ class TestSaveStateToS3ForConfig:
         upload_s3_object_mock: MagicMock
     ):
         save_state_to_s3_for_config(
-            STATE_CONFIG_1._replace(
-                initial_state=EuropePmcInitialStateConfig(
-                    start_date_str='2020-01-02'
-                )
-            )
+            STATE_CONFIG_1,
+            '2020-01-02'
         )
         upload_s3_object_mock.assert_called_with(
             bucket=ANY,
@@ -300,8 +301,8 @@ class TestLoadStateFromS3ForConfig:
             STATE_CONFIG_1
         )
         download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
-            bucket=BUCKET_NAME_1,
-            object_key=OBJECT_NAME_1
+            bucket=STATE_CONFIG_1.state_file.bucket_name,
+            object_key=STATE_CONFIG_1.state_file.object_name
         )
         assert result == download_s3_object_as_string_or_file_not_found_error_mock.return_value
 
@@ -316,8 +317,8 @@ class TestLoadStateFromS3ForConfig:
             STATE_CONFIG_1
         )
         download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
-            bucket=BUCKET_NAME_1,
-            object_key=OBJECT_NAME_1
+            bucket=STATE_CONFIG_1.state_file.bucket_name,
+            object_key=STATE_CONFIG_1.state_file.object_name
         )
         assert result == INITIAL_STATE_CONFIG_1.start_date_str
 
@@ -393,13 +394,18 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
 
     def test_should_call_save_state_for_config(
         self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
         iter_article_data_mock: MagicMock,
         save_state_to_s3_for_config_mock: MagicMock
     ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            STATE_CONFIG_1.initial_state.start_date_str
+        )
         iter_article_data_mock.return_value = [ITEM_RESPONSE_JSON_1]
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
         save_state_to_s3_for_config_mock.assert_called_with(
-            CONFIG_1.state
+            CONFIG_1.state,
+            STATE_CONFIG_1.initial_state.start_date_str
         )

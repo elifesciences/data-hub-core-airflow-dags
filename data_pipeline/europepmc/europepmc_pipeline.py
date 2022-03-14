@@ -7,7 +7,6 @@ import requests
 
 from data_pipeline.europepmc.europepmc_config import (
     EuropePmcConfig,
-    EuropePmcInitialStateConfig,
     EuropePmcSourceConfig,
     EuropePmcStateConfig
 )
@@ -30,22 +29,22 @@ def iter_article_data_from_response_json(
     return response_json['resultList']['result']
 
 
-def get_request_query_for_source_config_and_initial_state(
+def get_request_query_for_source_config_and_start_date_str(
     source_config: EuropePmcSourceConfig,
-    initial_state_config: EuropePmcInitialStateConfig
+    start_date_str: str
 ) -> str:
-    query = f"(FIRST_IDATE:'{initial_state_config.start_date_str}') " + source_config.search.query
+    query = f"(FIRST_IDATE:'{start_date_str}') " + source_config.search.query
     return query
 
 
 def get_request_params_for_source_config(
     source_config: EuropePmcSourceConfig,
-    initial_state_config: EuropePmcInitialStateConfig
+    start_date_str: str
 ) -> dict:
     return {
-        'query': get_request_query_for_source_config_and_initial_state(
+        'query': get_request_query_for_source_config_and_start_date_str(
             source_config,
-            initial_state_config
+            start_date_str
         ),
         'format': 'json',
         'resultType': 'core'
@@ -63,12 +62,12 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
-    initial_state_config: EuropePmcInitialStateConfig
+    start_date_str: str
 ) -> dict:
     url = source_config.api_url
     params = get_request_params_for_source_config(
         source_config,
-        initial_state_config
+        start_date_str
     )
     response = requests.get(url, params=params)
     return get_valid_json_from_response(response)
@@ -82,12 +81,12 @@ def get_filtered_article_data(data: dict, fields_to_return: Optional[Sequence[st
 
 def iter_article_data(
     source_config: EuropePmcSourceConfig,
-    initial_state_config: EuropePmcInitialStateConfig
+    start_date_str: str
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
     response_json = get_article_response_json_from_api(
         source_config,
-        initial_state_config
+        start_date_str
     )
     return (
         get_filtered_article_data(data, source_config.fields_to_return)
@@ -96,9 +95,10 @@ def iter_article_data(
 
 
 def save_state_to_s3_for_config(
-    state_config: EuropePmcStateConfig
+    state_config: EuropePmcStateConfig,
+    start_date_str: str
 ):
-    parsed_date = date.fromisoformat(state_config.initial_state.start_date_str)
+    parsed_date = date.fromisoformat(start_date_str)
     next_day_date = parsed_date + timedelta(days=1)
     upload_s3_object(
         bucket=state_config.state_file.bucket_name,
@@ -123,10 +123,13 @@ def load_state_from_s3_for_config(
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
     config: EuropePmcConfig
 ):
+    start_date_str = load_state_from_s3_for_config(
+        config.state
+    )
     batch_size = config.batch_size
     data_iterable = iter_article_data(
         config.source,
-        config.state.initial_state
+        start_date_str
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
@@ -137,4 +140,4 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
-    save_state_to_s3_for_config(config.state)
+    save_state_to_s3_for_config(config.state, start_date_str)
