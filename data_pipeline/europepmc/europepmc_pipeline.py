@@ -78,10 +78,14 @@ def get_filtered_article_data(data: dict, fields_to_return: Optional[Sequence[st
 
 
 def iter_article_data(
-    source_config: EuropePmcSourceConfig
+    source_config: EuropePmcSourceConfig,
+    initial_state_config: EuropePmcInitialStateConfig
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
-    response_json = get_article_response_json_from_api(source_config)
+    response_json = get_article_response_json_from_api(
+        source_config,
+        initial_state_config
+    )
     return (
         get_filtered_article_data(data, source_config.fields_to_return)
         for data in iter_article_data_from_response_json(response_json)
@@ -104,7 +108,10 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
     config: EuropePmcConfig
 ):
     batch_size = config.batch_size
-    data_iterable = iter_article_data(config.source)
+    data_iterable = iter_article_data(
+        config.source,
+        config.state.initial_state
+    )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.info('batch_data_list: %r', batch_data_list)

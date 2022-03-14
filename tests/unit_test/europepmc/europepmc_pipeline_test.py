@@ -205,7 +205,7 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock: MagicMock
     ):
         get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        result = list(iter_article_data(SOURCE_CONFIG_1))
+        result = list(iter_article_data(SOURCE_CONFIG_1, INITIAL_STATE_CONFIG_1))
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(SOURCE_CONFIG_1)
 
@@ -220,7 +220,8 @@ class TestIterArticleData:
             }
         ])
         result = list(iter_article_data(
-            SOURCE_CONFIG_1._replace(fields_to_return=['doi'])
+            SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
+            INITIAL_STATE_CONFIG_1
         ))
         assert result == [{
             'doi': DOI_1
@@ -238,7 +239,8 @@ class TestIterArticleData:
             item_response_1
         ])
         result = list(iter_article_data(
-            SOURCE_CONFIG_1._replace(fields_to_return=None)
+            SOURCE_CONFIG_1._replace(fields_to_return=None),
+            INITIAL_STATE_CONFIG_1
         ))
         assert result == [item_response_1]
 
