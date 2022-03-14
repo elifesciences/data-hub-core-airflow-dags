@@ -6,8 +6,11 @@ class ConfigKeys:
     DATA_PIPELINE_CONFIG_ID = 'dataPipelineId'
 
 
-DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV = "ci"
+class PipelineEnvironmentVariables:
+    DEPLOYMENT_ENV = 'DEPLOYMENT_ENV'
+
+
+DEFAULT_DEPLOYMENT_ENV = 'ci'
 
 
 def update_deployment_env_placeholder(
@@ -105,6 +108,6 @@ def get_env_var_or_use_default(env_var_name, default_value=None):
 
 def get_deployment_env() -> str:
     return get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME,
+        PipelineEnvironmentVariables.DEPLOYMENT_ENV,
         DEFAULT_DEPLOYMENT_ENV
     )
