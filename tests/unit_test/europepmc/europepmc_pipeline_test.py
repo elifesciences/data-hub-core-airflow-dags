@@ -303,7 +303,8 @@ class TestGetArticleResponseJsonFromApi:
             SEARCH_CONTEXT_1
         )
         provenance_json = actual_response_json['provenance']
-        assert provenance_json['url'] == SOURCE_CONFIG_1.api_url
+        assert provenance_json['api_url'] == SOURCE_CONFIG_1.api_url
+        assert provenance_json['request_url'] == response_mock.url
         assert provenance_json['http_status'] == 200
 
     def test_should_extend_provenance(
@@ -319,7 +320,7 @@ class TestGetArticleResponseJsonFromApi:
             provenance=passed_in_provenance
         )
         provenance_json = actual_response_json['provenance']
-        assert provenance_json['url'] == SOURCE_CONFIG_1.api_url
+        assert provenance_json['api_url'] == SOURCE_CONFIG_1.api_url
         assert provenance_json['imported_timestamp'] == MOCK_UTC_NOW_STR
 
 

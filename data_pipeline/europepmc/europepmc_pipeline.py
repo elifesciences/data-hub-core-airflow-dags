@@ -97,7 +97,8 @@ def get_article_response_json_from_api(
     response_timestamp = datetime.utcnow()
     request_provenance = {
         **(provenance or {}),
-        'url': url,
+        'api_url': url,
+        'request_url': response.url,
         'request_params': [{'name': key, 'value': value} for key, value in params.items()],
         'http_status': response.status_code,
         'request_timestamp': request_timestamp.isoformat(),
