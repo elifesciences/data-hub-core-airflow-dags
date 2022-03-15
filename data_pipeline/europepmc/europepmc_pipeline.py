@@ -77,7 +77,8 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
-    search_context: EuropePmcSearchContext
+    search_context: EuropePmcSearchContext,
+    provenance: Optional[dict] = None
 ) -> dict:
     url = source_config.api_url
     params = get_request_params_for_source_config(
@@ -87,7 +88,8 @@ def get_article_response_json_from_api(
     request_timestamp = datetime.utcnow()
     response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
-    provenance = {
+    request_provenance = {
+        **(provenance or {}),
         'url': url,
         'http_status': response.status_code,
         'request_timestamp': request_timestamp.isoformat(),
@@ -95,7 +97,7 @@ def get_article_response_json_from_api(
     }
     return {
         **get_valid_json_from_response(response),
-        'provenance': provenance
+        'provenance': request_provenance
     }
 
 
@@ -111,12 +113,14 @@ def get_requested_fields_of_the_article_data(
 
 def iter_article_data(
     source_config: EuropePmcSourceConfig,
-    search_context: EuropePmcSearchContext
+    search_context: EuropePmcSearchContext,
+    provenance: Optional[dict] = None
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
     response_json = get_article_response_json_from_api(
         source_config,
-        search_context
+        search_context,
+        provenance=provenance
     )
     return (
         get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
@@ -190,9 +194,11 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         LOGGER.info('empty period, skip processing')
         return
     batch_size = config.batch_size
+    provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     data_iterable = iter_article_data(
         config.source,
-        search_context
+        search_context,
+        provenance=provenance
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)

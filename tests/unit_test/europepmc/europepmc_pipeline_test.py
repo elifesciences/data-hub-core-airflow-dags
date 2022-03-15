@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
@@ -75,6 +75,9 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
 MOCK_TODAY_STR = '2021-01-02'
 MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
 
+MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
+
+
 INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
     start_date_str='2020-01-02'
 )
@@ -98,6 +101,9 @@ SEARCH_CONTEXT_1 = EuropePmcSearchContext(
     start_date_str=INITIAL_START_DATE_STR_1,
     end_date_str=INITIAL_START_DATE_STR_1
 )
+
+
+PROVENANCE_1 = {'url': SOURCE_CONFIG_1.api_url}
 
 
 @pytest.fixture(name='get_article_response_json_from_api_mock')
@@ -155,6 +161,13 @@ def _date_mock():
         mock.today.return_value = date.fromisoformat(MOCK_TODAY_STR)
         mock.fromisoformat.side_effect = date.fromisoformat
         mock.side_effect = date
+        yield mock
+
+
+@pytest.fixture(name='datetime_mock', autouse=True)
+def _datetime_mock():
+    with patch.object(europepmc_pipeline_module, 'datetime') as mock:
+        mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
         yield mock
 
 
@@ -288,6 +301,22 @@ class TestGetArticleResponseJsonFromApi:
         assert provenance_json['url'] == SOURCE_CONFIG_1.api_url
         assert provenance_json['http_status'] == 200
 
+    def test_should_extend_provenance(
+        self,
+        requests_mock: MagicMock
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        passed_in_provenance = {'imported_timestamp': MOCK_UTC_NOW_STR}
+        actual_response_json = get_article_response_json_from_api(
+            SOURCE_CONFIG_1,
+            SEARCH_CONTEXT_1,
+            provenance=passed_in_provenance
+        )
+        provenance_json = actual_response_json['provenance']
+        assert provenance_json['url'] == SOURCE_CONFIG_1.api_url
+        assert provenance_json['imported_timestamp'] == MOCK_UTC_NOW_STR
+
 
 class TestIterArticleData:
     def test_should_call_api_and_return_articles_from_response(
@@ -297,12 +326,14 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         result = list(iter_article_data(
             SOURCE_CONFIG_1,
-            SEARCH_CONTEXT_1
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
         ))
         assert result == [ITEM_RESPONSE_JSON_1]
         get_article_response_json_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1,
-            SEARCH_CONTEXT_1
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
         )
 
     def test_should_filter_returned_response_fields(
@@ -327,12 +358,11 @@ class TestIterArticleData:
         self,
         get_article_response_json_from_api_mock: MagicMock
     ):
-        provenance = {'url': SOURCE_CONFIG_1.api_url}
         get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
             {
                 'doi': DOI_1,
                 'other': 'other1',
-                'provenance': provenance
+                'provenance': PROVENANCE_1
             }
         ])
         result = list(iter_article_data(
@@ -341,7 +371,7 @@ class TestIterArticleData:
         ))
         assert result == [{
             'doi': DOI_1,
-            'provenance': provenance
+            'provenance': PROVENANCE_1
         }]
 
     def test_should_not_filter_returned_response_fields_if_fields_to_return_is_none(
@@ -466,6 +496,21 @@ class TestGetNextStartDateStrForEndDateStr:
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
+    def test_should_pass_provenance_to_iter_article_data(
+        self,
+        iter_article_data_mock: MagicMock
+    ):
+        json_list = [ITEM_RESPONSE_JSON_1]
+        iter_article_data_mock.return_value = json_list
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        iter_article_data_mock.assert_called_with(
+            ANY,
+            ANY,
+            provenance={'imported_timestamp': MOCK_UTC_NOW_STR}
+        )
+
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
         iter_article_data_mock: MagicMock,
