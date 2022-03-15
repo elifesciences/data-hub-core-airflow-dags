@@ -9,6 +9,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
 )
 from data_pipeline.utils.pipeline_config import (
     get_deployment_env,
+    get_environment_variable_value,
     update_deployment_env_placeholder
 )
 
@@ -55,8 +56,9 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_task(**_kwargs):
 
 EUROPEPMC_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
-        EuropePmcPipelineEnvironmentVariables.SCHEDULE_INTERVAL
+    schedule_interval=get_environment_variable_value(
+        EuropePmcPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
+        default_value=None
     )
 )
 
