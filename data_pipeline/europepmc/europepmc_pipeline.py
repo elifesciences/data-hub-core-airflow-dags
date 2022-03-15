@@ -1,5 +1,5 @@
 import logging
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from json.decoder import JSONDecodeError
 from typing import Iterable, NamedTuple, Optional, Sequence
 
@@ -84,8 +84,19 @@ def get_article_response_json_from_api(
         source_config,
         search_context
     )
+    request_timestamp = datetime.utcnow()
     response = requests.get(url, params=params)
-    return get_valid_json_from_response(response)
+    response_timestamp = datetime.utcnow()
+    provenance = {
+        'url': url,
+        'http_status': response.status_code,
+        'request_timestamp': request_timestamp.isoformat(),
+        'response_timestamp': response_timestamp.isoformat()
+    }
+    return {
+        **get_valid_json_from_response(response),
+        'provenance': provenance
+    }
 
 
 def get_requested_fields_of_the_article_data(

@@ -266,7 +266,27 @@ class TestGetArticleResponseJsonFromApi:
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1
         )
-        assert actual_response_json == SINGLE_ITEM_RESPONSE_JSON_1
+        actual_response_without_provenance_json = {
+            key: value
+            for key, value in actual_response_json.items()
+            if key != 'provenance'
+        }
+        assert actual_response_without_provenance_json == SINGLE_ITEM_RESPONSE_JSON_1
+
+    def test_should_include_provenance(
+        self,
+        requests_mock: MagicMock
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        response_mock.status_code = 200
+        actual_response_json = get_article_response_json_from_api(
+            SOURCE_CONFIG_1,
+            SEARCH_CONTEXT_1
+        )
+        provenance_json = actual_response_json['provenance']
+        assert provenance_json['url'] == SOURCE_CONFIG_1.api_url
+        assert provenance_json['http_status'] == 200
 
 
 class TestIterArticleData:
