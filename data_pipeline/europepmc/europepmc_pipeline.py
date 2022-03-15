@@ -212,7 +212,8 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
-        LOGGER.info('batch_data_list: %r', batch_data_list)
+        LOGGER.debug('batch_data_list: %r', batch_data_list)
+        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
