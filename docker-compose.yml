@@ -24,6 +24,7 @@ x-airflow-env:
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
+    - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
     - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
     - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml

@@ -21,10 +21,11 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 
 
 class EuropePmcPipelineEnvironmentVariables:
-    CONFIG_FILE_PATH = "EUROPEPMC_CONFIG_FILE_PATH"
+    CONFIG_FILE_PATH = 'EUROPEPMC_CONFIG_FILE_PATH'
+    SCHEDULE_INTERVAL = 'EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL'
 
 
-DAG_ID = "EuropePmc_Pipeline"
+DAG_ID = 'EuropePmc_Pipeline'
 
 
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +55,9 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_task(**_kwargs):
 
 EUROPEPMC_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=None
+    schedule_interval=os.getenv(
+        EuropePmcPipelineEnvironmentVariables.SCHEDULE_INTERVAL
+    )
 )
 
 create_python_task(
