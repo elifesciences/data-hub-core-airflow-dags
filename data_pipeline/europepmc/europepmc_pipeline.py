@@ -88,7 +88,10 @@ def get_article_response_json_from_api(
     return get_valid_json_from_response(response)
 
 
-def get_filtered_article_data(data: dict, fields_to_return: Optional[Sequence[str]]) -> dict:
+def get_requested_fields_of_the_article_data(
+    data: dict,
+    fields_to_return: Optional[Sequence[str]]
+) -> dict:
     if not fields_to_return:
         return data
     return {key: value for key, value in data.items() if key in fields_to_return}
@@ -104,7 +107,7 @@ def iter_article_data(
         search_context
     )
     return (
-        get_filtered_article_data(data, source_config.fields_to_return)
+        get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
         for data in iter_article_data_from_response_json(response_json)
     )
 
