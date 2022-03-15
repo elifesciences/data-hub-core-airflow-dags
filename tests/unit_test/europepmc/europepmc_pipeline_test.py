@@ -323,6 +323,27 @@ class TestIterArticleData:
             'doi': DOI_1
         }]
 
+    def test_should_not_remove_provenance(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        provenance = {'url': SOURCE_CONFIG_1.api_url}
+        get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
+            {
+                'doi': DOI_1,
+                'other': 'other1',
+                'provenance': provenance
+            }
+        ])
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
+            SEARCH_CONTEXT_1
+        ))
+        assert result == [{
+            'doi': DOI_1,
+            'provenance': provenance
+        }]
+
     def test_should_not_filter_returned_response_fields_if_fields_to_return_is_none(
         self,
         get_article_response_json_from_api_mock: MagicMock

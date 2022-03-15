@@ -105,7 +105,8 @@ def get_requested_fields_of_the_article_data(
 ) -> dict:
     if not fields_to_return:
         return data
-    return {key: value for key, value in data.items() if key in fields_to_return}
+    fields_to_return_set = set(fields_to_return).union({'provenance'})
+    return {key: value for key, value in data.items() if key in fields_to_return_set}
 
 
 def iter_article_data(
