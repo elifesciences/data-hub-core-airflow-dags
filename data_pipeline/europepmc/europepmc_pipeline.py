@@ -34,7 +34,14 @@ class EuropePmcSearchContext(NamedTuple):
 def iter_article_data_from_response_json(
     response_json: dict
 ) -> Iterable[dict]:
-    return response_json['resultList']['result']
+    provenance = response_json.get('provenance', {})
+    return (
+        {
+            **item,
+            'provenance': provenance
+        }
+        for item in response_json['resultList']['result']
+    )
 
 
 def get_request_query_for_source_config_and_start_date_str(
@@ -108,6 +115,8 @@ def get_requested_fields_of_the_article_data(
     if not fields_to_return:
         return data
     fields_to_return_set = set(fields_to_return).union({'provenance'})
+    LOGGER.debug('fields_to_return_set: %r', fields_to_return_set)
+    LOGGER.debug('data.keys: %r', data.keys())
     return {key: value for key, value in data.items() if key in fields_to_return_set}
 
 
@@ -122,6 +131,7 @@ def iter_article_data(
         search_context,
         provenance=provenance
     )
+    LOGGER.debug('response_json: %r', response_json)
     return (
         get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
         for data in iter_article_data_from_response_json(response_json)

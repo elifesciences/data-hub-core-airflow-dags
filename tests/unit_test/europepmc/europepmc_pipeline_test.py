@@ -46,6 +46,8 @@ ITEM_RESPONSE_JSON_2 = {
     'doi': DOI_2
 }
 
+PROVENANCE_1 = {'provenance_key': 'provenance_value'}
+
 SINGLE_ITEM_RESPONSE_JSON_1 = {
     'resultList': {
         'result': [
@@ -101,9 +103,6 @@ SEARCH_CONTEXT_1 = EuropePmcSearchContext(
     start_date_str=INITIAL_START_DATE_STR_1,
     end_date_str=INITIAL_START_DATE_STR_1
 )
-
-
-PROVENANCE_1 = {'url': SOURCE_CONFIG_1.api_url}
 
 
 @pytest.fixture(name='get_article_response_json_from_api_mock')
@@ -171,8 +170,9 @@ def _datetime_mock():
         yield mock
 
 
-def get_response_json_for_items(items: Sequence[str]) -> dict:
+def get_response_json_for_items(items: Sequence[str], **kwargs) -> dict:
     return {
+        **kwargs,
         'resultList': {
             'result': items
         }
@@ -181,8 +181,13 @@ def get_response_json_for_items(items: Sequence[str]) -> dict:
 
 class TestIterArticleDataFromResponseJson:
     def test_should_return_single_item_from_response(self):
-        result = list(iter_article_data_from_response_json(SINGLE_ITEM_RESPONSE_JSON_1))
-        assert result == [ITEM_RESPONSE_JSON_1]
+        result = list(iter_article_data_from_response_json(
+            get_response_json_for_items(
+                [ITEM_RESPONSE_JSON_1],
+                provenance=PROVENANCE_1
+            )
+        ))
+        assert result == [{**ITEM_RESPONSE_JSON_1, 'provenance': PROVENANCE_1}]
 
 
 class TestGetRequestQueryForSourceConfigAndInitialState:
@@ -323,13 +328,15 @@ class TestIterArticleData:
         self,
         get_article_response_json_from_api_mock: MagicMock
     ):
-        get_article_response_json_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
+            ITEM_RESPONSE_JSON_1
+        ], provenance=PROVENANCE_1)
         result = list(iter_article_data(
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1,
             provenance=PROVENANCE_1
         ))
-        assert result == [ITEM_RESPONSE_JSON_1]
+        assert result == [{**ITEM_RESPONSE_JSON_1, 'provenance': PROVENANCE_1}]
         get_article_response_json_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1,
@@ -345,26 +352,27 @@ class TestIterArticleData:
                 'doi': DOI_1,
                 'other': 'other1'
             }
-        ])
+        ], provenance=PROVENANCE_1)
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
             SEARCH_CONTEXT_1
         ))
         assert result == [{
-            'doi': DOI_1
+            'doi': DOI_1,
+            'provenance': PROVENANCE_1
         }]
 
     def test_should_not_remove_provenance(
         self,
         get_article_response_json_from_api_mock: MagicMock
     ):
-        get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
-            {
+        get_article_response_json_from_api_mock.return_value = {
+            **get_response_json_for_items([{
                 'doi': DOI_1,
                 'other': 'other1',
-                'provenance': PROVENANCE_1
-            }
-        ])
+            }]),
+            'provenance': PROVENANCE_1
+        }
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=['doi']),
             SEARCH_CONTEXT_1
@@ -384,12 +392,12 @@ class TestIterArticleData:
         }
         get_article_response_json_from_api_mock.return_value = get_response_json_for_items([
             item_response_1
-        ])
+        ], provenance=PROVENANCE_1)
         result = list(iter_article_data(
             SOURCE_CONFIG_1._replace(fields_to_return=None),
             SEARCH_CONTEXT_1
         ))
-        assert result == [item_response_1]
+        assert result == [{**item_response_1, 'provenance': PROVENANCE_1}]
 
 
 class TestSaveStateToS3ForConfig:
