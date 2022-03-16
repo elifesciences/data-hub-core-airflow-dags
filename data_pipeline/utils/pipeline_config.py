@@ -1,5 +1,7 @@
 import os
-from typing import Callable, T, NamedTuple
+from typing import Callable, T, NamedTuple, Sequence
+
+from data_pipeline.utils.pipeline_file_io import read_file_content
 
 
 class ConfigKeys:
@@ -139,3 +141,19 @@ def get_deployment_env() -> str:
         PipelineEnvironmentVariables.DEPLOYMENT_ENV,
         DEFAULT_DEPLOYMENT_ENV
     )
+
+
+def get_resolved_parameter_values_from_file_path_env_name(
+    parameters_from_file: Sequence[dict]
+) -> dict:
+    params = {
+        param.get("parameterName"):
+            read_file_content(
+                os.getenv(
+                    param.get("filePathEnvName")
+                )
+            )
+        for param in parameters_from_file
+        if os.getenv(param.get("filePathEnvName"))
+    }
+    return params
