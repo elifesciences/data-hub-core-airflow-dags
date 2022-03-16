@@ -1,5 +1,5 @@
 europePmc:
-  - dataPipelineId: europepmc_datapeline_1
+  - dataPipelineId: europepmc_data_pipeline_1
     source:
       # apiUrl: 'https://www.ebi.ac.uk/europepmc/webservices/rest/search'
       apiUrl: 'https://www.ebi.ac.uk/europepmc/webservices/test/rest/search'
