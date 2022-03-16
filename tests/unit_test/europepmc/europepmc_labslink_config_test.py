@@ -20,8 +20,10 @@ SOURCE_CONFIG_DICT_1 = {
 }
 
 PASSWORD_1 = 'password1'
+DIRECTORY_NAME_1 = 'directory name1'
 
 FTP_PASSWORD_FILE_PATH_ENV_VAR = 'FTP_PASSWORD_FILE_PATH_ENV_VAR'
+FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR = 'FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR'
 
 FTP_TARGET_CONFIG_DICT_1 = {
     'host': 'host1',
@@ -29,6 +31,9 @@ FTP_TARGET_CONFIG_DICT_1 = {
     'parametersFromFile': [{
         'parameterName': 'password',
         'filePathEnvName': FTP_PASSWORD_FILE_PATH_ENV_VAR
+    }, {
+        'parameterName': 'directoryName',
+        'filePathEnvName': FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR
     }]
 }
 
@@ -63,6 +68,14 @@ def _password_file_path(env_mock: dict, tmp_path: Path) -> str:
     return str(file_path)
 
 
+@pytest.fixture(name='directory_name_file_path', autouse=True)
+def _directory_name_file_path(env_mock: dict, tmp_path: Path) -> str:
+    file_path = tmp_path / 'directory_name'
+    file_path.write_text(DIRECTORY_NAME_1)
+    env_mock[FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR] = str(file_path)
+    return str(file_path)
+
+
 class TestEuropeLabsLinkPmcConfig:
     def test_should_read_bigquery_sql_query(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
@@ -73,11 +86,12 @@ class TestEuropeLabsLinkPmcConfig:
         assert config.target.ftp.host == FTP_TARGET_CONFIG_DICT_1['host']
         assert config.target.ftp.username == FTP_TARGET_CONFIG_DICT_1['username']
 
-    def test_should_read_target_ftp_password_from_file_path_env_name(
+    def test_should_read_target_ftp_password_and_directory_name_from_file_path_env_name(
         self
     ):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         assert config.target.ftp.password == PASSWORD_1
+        assert config.target.ftp.directory_name == DIRECTORY_NAME_1
 
     def test_should_not_include_secrets_in_repr_or_str_output(
         self
@@ -85,3 +99,4 @@ class TestEuropeLabsLinkPmcConfig:
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         text = f'repr={repr(config)}, str={str(config)}'
         assert PASSWORD_1 not in text
+        assert DIRECTORY_NAME_1 not in text

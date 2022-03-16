@@ -33,6 +33,7 @@ class FtpTargetConfig:
     host: str
     username: str
     password: str = field(repr=False)
+    directory_name: str = field(repr=False)
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
@@ -42,7 +43,8 @@ class FtpTargetConfig:
         return FtpTargetConfig(
             host=ftp_target_config_dict['host'],
             username=ftp_target_config_dict['username'],
-            password=secrets['password']
+            password=secrets['password'],
+            directory_name=secrets['directoryName']
         )
 
 
