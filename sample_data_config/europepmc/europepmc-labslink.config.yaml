@@ -9,7 +9,7 @@ europePmcLabsLink:
               AND article_doi IS NOT NULL
     target:
       ftp:
-        host: 'labslink.ebi.ac.uk'
+        host: 'labslink.ebi.ac.uk:21'
         username: 'elinks'
         parametersFromFile:
           - parameterName: password

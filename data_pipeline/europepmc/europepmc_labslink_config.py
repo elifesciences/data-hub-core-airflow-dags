@@ -23,14 +23,42 @@ class EuropePmcLabsLinkSourceConfig(NamedTuple):
         )
 
 
+class FtpTargetConfig(NamedTuple):
+    host: str
+    username: str
+
+    @staticmethod
+    def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
+        return FtpTargetConfig(
+            host=ftp_target_config_dict['host'],
+            username=ftp_target_config_dict['username']
+        )
+
+
+class EuropePmcLabsLinkTargetConfig(NamedTuple):
+    ftp: FtpTargetConfig
+
+    @staticmethod
+    def from_dict(target_config_dict: dict) -> 'EuropePmcLabsLinkTargetConfig':
+        return EuropePmcLabsLinkTargetConfig(
+            ftp=FtpTargetConfig.from_dict(
+                target_config_dict['ftp']
+            )
+        )
+
+
 class EuropePmcLabsLinkConfig(NamedTuple):
     source: EuropePmcLabsLinkSourceConfig
+    target: EuropePmcLabsLinkTargetConfig
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'EuropePmcLabsLinkConfig':
         return EuropePmcLabsLinkConfig(
             source=EuropePmcLabsLinkSourceConfig.from_dict(
                 item_config_dict['source']
+            ),
+            target=EuropePmcLabsLinkTargetConfig.from_dict(
+                item_config_dict['target']
             )
         )
 
