@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from data_pipeline.generic_web_api.url_builder import (
@@ -27,10 +28,11 @@ class EuropePmcLabsLinkSourceConfig(NamedTuple):
         )
 
 
-class FtpTargetConfig(NamedTuple):
+@dataclass(frozen=True)
+class FtpTargetConfig:
     host: str
     username: str
-    password: str
+    password: str = field(repr=False)
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':

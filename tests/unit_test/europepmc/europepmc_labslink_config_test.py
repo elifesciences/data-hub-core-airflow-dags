@@ -78,3 +78,10 @@ class TestEuropeLabsLinkPmcConfig:
     ):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         assert config.target.ftp.password == PASSWORD_1
+
+    def test_should_not_include_secrets_in_repr_or_str_output(
+        self
+    ):
+        config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        text = f'repr={repr(config)}, str={str(config)}'
+        assert PASSWORD_1 not in text
