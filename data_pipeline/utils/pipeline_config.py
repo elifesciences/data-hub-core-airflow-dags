@@ -1,15 +1,50 @@
 import os
-from typing import Callable, T
+from typing import Callable, T, NamedTuple
 
 
 class ConfigKeys:
     DATA_PIPELINE_CONFIG_ID = 'dataPipelineId'
 
 
+class PipelineEnvironmentVariables:
+    DEPLOYMENT_ENV = 'DEPLOYMENT_ENV'
+
+
+DEFAULT_DEPLOYMENT_ENV = 'ci'
+
+DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
+
+
+class BigQueryTargetConfig(NamedTuple):
+    project_name: str
+    dataset_name: str
+    table_name: str
+
+    @staticmethod
+    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
+        return BigQueryTargetConfig(
+            project_name=target_config_dict['projectName'],
+            dataset_name=target_config_dict['datasetName'],
+            table_name=target_config_dict['tableName']
+        )
+
+
+class StateFileConfig(NamedTuple):
+    bucket_name: str
+    object_name: str
+
+    @staticmethod
+    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
+        return StateFileConfig(
+            bucket_name=state_file_config_dict['bucketName'],
+            object_name=state_file_config_dict['objectName']
+        )
+
+
 def update_deployment_env_placeholder(
         original_dict: dict,
         deployment_env: str,
-        environment_placeholder: str,
+        environment_placeholder: str = DEFAULT_ENVIRONMENT_PLACEHOLDER
 ):
     new_dict = dict()
     for key, val in original_dict.items():
@@ -97,3 +132,10 @@ def get_environment_variable_value(
 
 def get_env_var_or_use_default(env_var_name, default_value=None):
     return os.getenv(env_var_name, default_value)
+
+
+def get_deployment_env() -> str:
+    return get_env_var_or_use_default(
+        PipelineEnvironmentVariables.DEPLOYMENT_ENV,
+        DEFAULT_DEPLOYMENT_ENV
+    )

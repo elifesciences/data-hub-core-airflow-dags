@@ -1,7 +1,9 @@
 import json
 from contextlib import contextmanager
+
 import yaml
 import boto3
+from botocore.exceptions import ClientError
 
 
 @contextmanager
@@ -37,6 +39,17 @@ def download_s3_object_as_string(
     ) as streaming_body:
         file_content = streaming_body.read()
         return file_content.decode("utf-8")
+
+
+def download_s3_object_as_string_or_file_not_found_error(
+    bucket: str, object_key: str
+) -> str:
+    try:
+        return download_s3_object_as_string(bucket, object_key)
+    except ClientError as ex:
+        if ex.response['Error']['Code'] == 'NoSuchKey':
+            raise FileNotFoundError(str(ex)) from ex
+        raise
 
 
 def upload_s3_object(bucket: str, object_key: str, data_object) -> bool:

@@ -24,6 +24,8 @@ x-airflow-env:
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
+    - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
+    - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
     - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
     - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - S3_CSV_CONFIG_FILE_PATH=/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
@@ -46,6 +48,7 @@ x-airflow-env:
 x-airflow-volumes:
   &airflow-volumes
     - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
     - ./sample_data_config/gmail-data/gmail-data-pipeline.config.yaml:/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
     - ./sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml:/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
     - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
