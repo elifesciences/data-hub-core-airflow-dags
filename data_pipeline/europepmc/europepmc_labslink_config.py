@@ -1,5 +1,9 @@
 from typing import NamedTuple
 
+from data_pipeline.generic_web_api.url_builder import (
+    compose_url_param_from_param_vals_filepath_in_env_var
+)
+
 
 class BigQuerySourceConfig(NamedTuple):
     sql_query: str
@@ -26,12 +30,17 @@ class EuropePmcLabsLinkSourceConfig(NamedTuple):
 class FtpTargetConfig(NamedTuple):
     host: str
     username: str
+    password: str
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
+        secrets = compose_url_param_from_param_vals_filepath_in_env_var(
+            ftp_target_config_dict['parametersFromFile']
+        )
         return FtpTargetConfig(
             host=ftp_target_config_dict['host'],
-            username=ftp_target_config_dict['username']
+            username=ftp_target_config_dict['username'],
+            password=secrets['password']
         )
 
 
