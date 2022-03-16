@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -54,25 +53,19 @@ def get_config_for_item_config_dict(item_dict: dict) -> dict:
 CONFIG_DICT_1 = get_config_for_item_config_dict(ITEM_CONFIG_DICT_1)
 
 
-@pytest.fixture(name='env_mock')
-def _env_mock() -> dict:
-    with patch('os.environ', {}) as env_mock:
-        yield env_mock
-
-
 @pytest.fixture(name='password_file_path', autouse=True)
-def _password_file_path(env_mock: dict, tmp_path: Path) -> str:
+def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
     file_path = tmp_path / 'password'
     file_path.write_text(PASSWORD_1)
-    env_mock[FTP_PASSWORD_FILE_PATH_ENV_VAR] = str(file_path)
+    mock_env[FTP_PASSWORD_FILE_PATH_ENV_VAR] = str(file_path)
     return str(file_path)
 
 
 @pytest.fixture(name='directory_name_file_path', autouse=True)
-def _directory_name_file_path(env_mock: dict, tmp_path: Path) -> str:
+def _directory_name_file_path(mock_env: dict, tmp_path: Path) -> str:
     file_path = tmp_path / 'directory_name'
     file_path.write_text(DIRECTORY_NAME_1)
-    env_mock[FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR] = str(file_path)
+    mock_env[FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR] = str(file_path)
     return str(file_path)
 
 
