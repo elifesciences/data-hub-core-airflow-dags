@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
@@ -13,7 +13,7 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
-    fetch_article_dois_from_bigquery
+    fetch_article_dois_from_bigquery,
 )
 
 
@@ -66,6 +66,15 @@ def _fetch_article_dois_from_bigquery_mock() -> MagicMock:
         yield mock
 
 
+@pytest.fixture(name='generate_labslink_links_xml_to_file_from_doi_list_mock')
+def _generate_labslink_links_xml_to_file_from_doi_list_mock() -> MagicMock:
+    with patch.object(
+        europepmc_labslink_pipeline_module,
+        'generate_labslink_links_xml_to_file_from_doi_list'
+    ) as mock:
+        yield mock
+
+
 class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
     def test_should_call_fetch_article_dois_from_bigquery(
         self,
@@ -76,6 +85,20 @@ class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
         )
         fetch_article_dois_from_bigquery_mock.assert_called_with(
             BIGQUERY_SOURCE_CONFIG_1
+        )
+
+    def test_should_pass_doi_list_to_generate_labslink_links_xml_to_file_from_doi_list(
+        self,
+        generate_labslink_links_xml_to_file_from_doi_list_mock: MagicMock,
+        fetch_article_dois_from_bigquery_mock: MagicMock
+    ):
+        fetch_article_dois_from_bigquery_mock.return_value = DOI_LIST
+        fetch_article_dois_from_bigquery_and_update_labslink_ftp(
+            CONFIG_1
+        )
+        generate_labslink_links_xml_to_file_from_doi_list_mock.assert_called_with(
+            file_path=ANY,
+            doi_list=DOI_LIST
         )
 
 

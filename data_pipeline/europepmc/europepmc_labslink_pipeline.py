@@ -26,9 +26,22 @@ def fetch_article_dois_from_bigquery(
     return doi_list
 
 
+def generate_labslink_links_xml_to_file_from_doi_list(
+    file_path: str,
+    doi_list: Sequence[str]
+):
+    LOGGER.info("file_path: %r", file_path)
+    LOGGER.debug("doi_list: %r", doi_list)
+
+
 def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
     config: EuropePmcLabsLinkConfig
 ):
     LOGGER.debug('config: %r', config)
     article_dois = fetch_article_dois_from_bigquery(config.source.bigquery)
     LOGGER.debug('article_dois: %r', article_dois)
+
+    generate_labslink_links_xml_to_file_from_doi_list(
+        file_path='TODO',
+        doi_list=article_dois
+    )
