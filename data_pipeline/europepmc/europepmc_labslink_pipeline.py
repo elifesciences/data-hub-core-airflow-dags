@@ -1,5 +1,6 @@
 import logging
 import os
+from ftplib import FTP
 from tempfile import TemporaryDirectory
 from typing import Sequence
 
@@ -77,6 +78,16 @@ def update_labslink_ftp(
 ):
     LOGGER.info("source_xml_file_path: %r", source_xml_file_path)
     LOGGER.debug("ftp_target_config: %r", ftp_target_config)
+    LOGGER.info('creating FTP connection')
+    ftp = FTP(
+        host=ftp_target_config.host,
+        user=ftp_target_config.username,
+        passwd=ftp_target_config.password
+    )
+    LOGGER.info('changing directory')
+    ftp.cwd(ftp_target_config.directory_name)
+    with open(source_xml_file_path, 'rb') as xml_fp:
+        ftp.storbinary(cmd='STOR links.xml', fp=xml_fp)
 
 
 def fetch_article_dois_from_bigquery_and_update_labslink_ftp(

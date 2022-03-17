@@ -18,6 +18,7 @@ from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
     fetch_article_dois_from_bigquery,
     generate_labslink_links_xml_to_file_from_doi_list,
+    update_labslink_ftp,
 )
 
 
@@ -56,6 +57,17 @@ CONFIG_1 = EuropePmcLabsLinkConfig(
 )
 
 DOI_LIST = ['doi1', 'doi2']
+
+
+@pytest.fixture(name='ftp_class_mock', autouse=True)
+def _ftp_class_mock() -> MagicMock:
+    with patch.object(europepmc_labslink_pipeline_module, 'FTP') as mock:
+        yield mock
+
+
+@pytest.fixture(name='ftp_mock')
+def _ftp_mock(ftp_class_mock: MagicMock) -> MagicMock:
+    return ftp_class_mock.return_value
 
 
 @pytest.fixture(name='get_single_column_value_list_from_bq_query_mock', autouse=True)
@@ -134,6 +146,32 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
         ]
 
 
+class TestUpdateLabsLinkFtp:
+    def test_should_upload_links_xml_file(
+        self,
+        tmp_path: Path,
+        ftp_class_mock: MagicMock,
+        ftp_mock: MagicMock
+    ):
+        xml_path = tmp_path / 'links.xml'
+        xml_path.write_bytes(b'XML content 1')
+        update_labslink_ftp(
+            source_xml_file_path=str(xml_path),
+            ftp_target_config=FTP_TARGET_CONFIG_1
+        )
+        ftp_class_mock.assert_called_with(
+            host=FTP_TARGET_CONFIG_1.host,
+            user=FTP_TARGET_CONFIG_1.username,
+            passwd=FTP_TARGET_CONFIG_1.password
+        )
+        ftp_mock.cwd.assert_called_with(FTP_TARGET_CONFIG_1.directory_name)
+        ftp_mock.storbinary.assert_called_with(
+            cmd='STOR links.xml',
+            fp=ANY
+        )
+
+
+@pytest.mark.usefixtures('update_labslink_ftp_mock')
 class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
     def test_should_call_fetch_article_dois_from_bigquery(
         self,
