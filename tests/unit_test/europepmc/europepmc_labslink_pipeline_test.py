@@ -48,7 +48,7 @@ CONFIG_1 = EuropePmcLabsLinkConfig(
 DOI_LIST = ['doi1', 'doi2']
 
 
-@pytest.fixture(name='get_single_column_value_list_from_bq_query_mock')
+@pytest.fixture(name='get_single_column_value_list_from_bq_query_mock', autouse=True)
 def _get_single_column_value_list_from_bq_query_mock() -> MagicMock:
     with patch.object(
         europepmc_labslink_pipeline_module,
@@ -71,6 +71,15 @@ def _generate_labslink_links_xml_to_file_from_doi_list_mock() -> MagicMock:
     with patch.object(
         europepmc_labslink_pipeline_module,
         'generate_labslink_links_xml_to_file_from_doi_list'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='update_labslink_ftp_mock')
+def _update_labslink_ftp_mock() -> MagicMock:
+    with patch.object(
+        europepmc_labslink_pipeline_module,
+        'update_labslink_ftp'
     ) as mock:
         yield mock
 
@@ -99,6 +108,21 @@ class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
         generate_labslink_links_xml_to_file_from_doi_list_mock.assert_called_with(
             file_path=ANY,
             doi_list=DOI_LIST
+        )
+
+    def test_should_pass_source_xml_file_path_and_config_to_update_labslink_ftp(
+        self,
+        update_labslink_ftp_mock: MagicMock,
+        generate_labslink_links_xml_to_file_from_doi_list_mock: MagicMock
+    ):
+        fetch_article_dois_from_bigquery_and_update_labslink_ftp(
+            CONFIG_1
+        )
+        _args, kwargs = generate_labslink_links_xml_to_file_from_doi_list_mock.call_args
+        expected_file_path = kwargs['file_path']
+        update_labslink_ftp_mock.assert_called_with(
+            source_xml_file_path=expected_file_path,
+            ftp_target_config=FTP_TARGET_CONFIG_1
         )
 
 
