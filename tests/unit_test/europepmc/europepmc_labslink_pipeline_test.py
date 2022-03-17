@@ -17,6 +17,7 @@ from data_pipeline.europepmc.europepmc_labslink_pipeline import (
 
 
 BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
+    project_name='project1',
     sql_query='query1'
 )
 

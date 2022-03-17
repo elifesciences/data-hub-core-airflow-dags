@@ -8,9 +8,11 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 
 
 SQL_QUERY_1 = 'query 1'
+PROJECT_NAME_1 = 'project name1'
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': PROJECT_NAME_1,
     'sqlQuery': SQL_QUERY_1
 }
 
@@ -73,6 +75,10 @@ class TestEuropeLabsLinkPmcConfig:
     def test_should_read_bigquery_sql_query(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         assert config.source.bigquery.sql_query == SQL_QUERY_1
+
+    def test_should_read_bigquery_project_name(self):
+        config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        assert config.source.bigquery.project_name == PROJECT_NAME_1
 
     def test_should_read_target_ftp_host_and_username(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
