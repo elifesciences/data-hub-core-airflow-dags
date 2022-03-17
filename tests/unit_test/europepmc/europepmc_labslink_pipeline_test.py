@@ -119,7 +119,8 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
         xml_path = tmp_path / 'links.xml'
         generate_labslink_links_xml_to_file_from_doi_list(
             file_path=str(xml_path),
-            doi_list=DOI_LIST
+            doi_list=DOI_LIST,
+            xml_config=XML_CONFIG_1
         )
         xml_root = etree.parse(xml_path).getroot()
         assert xml_root.tag == 'links'
@@ -149,7 +150,8 @@ class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
         )
         generate_labslink_links_xml_to_file_from_doi_list_mock.assert_called_with(
             file_path=ANY,
-            doi_list=DOI_LIST
+            doi_list=DOI_LIST,
+            xml_config=XML_CONFIG_1
         )
 
     def test_should_pass_source_xml_file_path_and_config_to_update_labslink_ftp(

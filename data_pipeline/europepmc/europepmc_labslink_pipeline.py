@@ -9,6 +9,7 @@ from lxml.builder import E
 from data_pipeline.europepmc.europepmc_labslink_config import (
     BigQuerySourceConfig,
     EuropePmcLabsLinkConfig,
+    EuropePmcLabsLinkXmlConfig,
     FtpTargetConfig
 )
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -46,10 +47,12 @@ def create_labslink_link_xml_node_for_doi(doi: str) -> etree.ElementBase:
 
 def generate_labslink_links_xml_to_file_from_doi_list(
     file_path: str,
-    doi_list: Sequence[str]
+    doi_list: Sequence[str],
+    xml_config: EuropePmcLabsLinkXmlConfig
 ):
     LOGGER.info("file_path: %r", file_path)
     LOGGER.debug("doi_list: %r", doi_list)
+    LOGGER.info('xml_config: %r', xml_config)
     xml_root = LabsLinkElementMakers.LINKS(*[
         create_labslink_link_xml_node_for_doi(doi)
         for doi in doi_list
@@ -78,7 +81,8 @@ def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
 
         generate_labslink_links_xml_to_file_from_doi_list(
             file_path=temp_file_path,
-            doi_list=article_dois
+            doi_list=article_dois,
+            xml_config=config.xml
         )
 
         update_labslink_ftp(
