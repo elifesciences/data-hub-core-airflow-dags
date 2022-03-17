@@ -30,6 +30,16 @@ class EuropePmcLabsLinkSourceConfig(NamedTuple):
         )
 
 
+class EuropePmcLabsLinkXmlConfig(NamedTuple):
+    link_prefix: str
+
+    @staticmethod
+    def from_dict(xml_config_dict: dict) -> 'EuropePmcLabsLinkXmlConfig':
+        return EuropePmcLabsLinkXmlConfig(
+            link_prefix=xml_config_dict['linkPrefix']
+        )
+
+
 @dataclass(frozen=True)
 class FtpTargetConfig:
     host: str
@@ -64,6 +74,7 @@ class EuropePmcLabsLinkTargetConfig(NamedTuple):
 
 class EuropePmcLabsLinkConfig(NamedTuple):
     source: EuropePmcLabsLinkSourceConfig
+    xml: EuropePmcLabsLinkXmlConfig
     target: EuropePmcLabsLinkTargetConfig
 
     @staticmethod
@@ -71,6 +82,9 @@ class EuropePmcLabsLinkConfig(NamedTuple):
         return EuropePmcLabsLinkConfig(
             source=EuropePmcLabsLinkSourceConfig.from_dict(
                 item_config_dict['source']
+            ),
+            xml=EuropePmcLabsLinkXmlConfig.from_dict(
+                item_config_dict['xml']
             ),
             target=EuropePmcLabsLinkTargetConfig.from_dict(
                 item_config_dict['target']

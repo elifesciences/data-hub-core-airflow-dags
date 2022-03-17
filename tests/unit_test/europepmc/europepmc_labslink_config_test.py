@@ -26,6 +26,12 @@ DIRECTORY_NAME_1 = 'directory name1'
 FTP_PASSWORD_FILE_PATH_ENV_VAR = 'FTP_PASSWORD_FILE_PATH_ENV_VAR'
 FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR = 'FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR'
 
+LINK_PREFIX_1 = 'https://link-prefix/'
+
+XML_CONFIG_DICT_1 = {
+    'linkPrefix': LINK_PREFIX_1
+}
+
 FTP_TARGET_CONFIG_DICT_1 = {
     'host': 'host1',
     'username': 'username1',
@@ -44,6 +50,7 @@ TARGET_CONFIG_DICT_1 = {
 
 ITEM_CONFIG_DICT_1 = {
     'source': SOURCE_CONFIG_DICT_1,
+    'xml': XML_CONFIG_DICT_1,
     'target': TARGET_CONFIG_DICT_1
 }
 
@@ -79,6 +86,10 @@ class TestEuropeLabsLinkPmcConfig:
     def test_should_read_bigquery_project_name(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         assert config.source.bigquery.project_name == PROJECT_NAME_1
+
+    def test_should_read_xml_link_prefix(self):
+        config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        assert config.xml.link_prefix == LINK_PREFIX_1
 
     def test_should_read_target_ftp_host_and_username(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)

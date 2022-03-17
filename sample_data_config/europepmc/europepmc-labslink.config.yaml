@@ -8,6 +8,8 @@ europePmcLabsLink:
           FROM `elife-data-pipeline.de_proto.v_sciety_event` AS event
           WHERE event_name = 'EvaluationRecorded'
               AND article_doi IS NOT NULL
+    xml:
+      linkPrefix: 'https://sciety.org/articles/activity/'
     target:
       ftp:
         host: 'labslink.ebi.ac.uk:21'

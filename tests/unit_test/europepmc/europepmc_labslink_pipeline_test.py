@@ -10,6 +10,7 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
     EuropePmcLabsLinkConfig,
     EuropePmcLabsLinkSourceConfig,
     EuropePmcLabsLinkTargetConfig,
+    EuropePmcLabsLinkXmlConfig,
     FtpTargetConfig
 )
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
@@ -32,6 +33,10 @@ SOURCE_CONFIG_1 = EuropePmcLabsLinkSourceConfig(
     bigquery=BIGQUERY_SOURCE_CONFIG_1
 )
 
+XML_CONFIG_1 = EuropePmcLabsLinkXmlConfig(
+    link_prefix='linkPrefix1'
+)
+
 FTP_TARGET_CONFIG_1 = FtpTargetConfig(
     host='host1:234',
     username='user1',
@@ -45,6 +50,7 @@ TARGET_CONFIG_1 = EuropePmcLabsLinkTargetConfig(
 
 CONFIG_1 = EuropePmcLabsLinkConfig(
     source=SOURCE_CONFIG_1,
+    xml=XML_CONFIG_1,
     target=TARGET_CONFIG_1
 )
 
