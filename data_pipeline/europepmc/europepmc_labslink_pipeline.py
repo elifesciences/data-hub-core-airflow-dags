@@ -24,6 +24,8 @@ class LabsLinkElementMakers:
     LINKS = E.links
     LINK = E.link
     DOI = E.doi
+    RESOURCE = E.resource
+    TITLE = E.title
 
 
 def fetch_article_dois_from_bigquery(
@@ -39,8 +41,14 @@ def fetch_article_dois_from_bigquery(
     return doi_list
 
 
-def create_labslink_link_xml_node_for_doi(doi: str) -> etree.ElementBase:
+def create_labslink_link_xml_node_for_doi(
+    doi: str,
+    xml_config: EuropePmcLabsLinkXmlConfig
+) -> etree.ElementBase:
     return LabsLinkElementMakers.LINK(
+        LabsLinkElementMakers.RESOURCE(
+            LabsLinkElementMakers.TITLE(xml_config.link_title)
+        ),
         LabsLinkElementMakers.DOI(doi)
     )
 
@@ -54,7 +62,7 @@ def generate_labslink_links_xml_to_file_from_doi_list(
     LOGGER.debug("doi_list: %r", doi_list)
     LOGGER.info('xml_config: %r', xml_config)
     xml_root = LabsLinkElementMakers.LINKS(*[
-        create_labslink_link_xml_node_for_doi(doi)
+        create_labslink_link_xml_node_for_doi(doi, xml_config=xml_config)
         for doi in doi_list
     ])
     with open(file_path, 'wb') as xml_fp:
