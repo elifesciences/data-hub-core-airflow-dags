@@ -5,6 +5,9 @@ import logging
 from data_pipeline.europepmc.europepmc_labslink_config import (
     EuropePmcLabsLinkConfig
 )
+from data_pipeline.europepmc.europepmc_labslink_pipeline import (
+    fetch_article_dois_from_bigquery_and_update_labslink_ftp
+)
 from data_pipeline.utils.pipeline_config import (
     get_environment_variable_value,
     get_pipeline_config_for_env_name_and_config_parser
@@ -35,7 +38,9 @@ def get_pipeline_config() -> 'EuropePmcLabsLinkConfig':
 
 
 def dummy_task(**_kwargs):
-    get_pipeline_config()
+    fetch_article_dois_from_bigquery_and_update_labslink_ftp(
+        get_pipeline_config()
+    )
 
 
 EUROPEPMC_DAG = create_dag(
