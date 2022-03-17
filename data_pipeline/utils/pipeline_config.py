@@ -1,7 +1,11 @@
 import os
+import logging
 from typing import Callable, T, NamedTuple, Sequence
 
-from data_pipeline.utils.pipeline_file_io import read_file_content
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ConfigKeys:
@@ -157,3 +161,22 @@ def get_resolved_parameter_values_from_file_path_env_name(
         if os.getenv(param.get("filePathEnvName"))
     }
     return params
+
+
+def get_pipeline_config_for_env_name_and_config_parser(
+    config_file_path_env_name: str,
+    config_parser_fn: Callable[[dict], T]
+) -> T:
+    deployment_env = get_deployment_env()
+    LOGGER.info('deployment_env: %s', deployment_env)
+    conf_file_path = os.getenv(
+        config_file_path_env_name
+    )
+    pipeline_config_dict = update_deployment_env_placeholder(
+        get_yaml_file_as_dict(conf_file_path),
+        deployment_env=deployment_env
+    )
+    LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
+    pipeline_config = config_parser_fn(pipeline_config_dict)
+    LOGGER.info('pipeline_config: %s', pipeline_config)
+    return pipeline_config
