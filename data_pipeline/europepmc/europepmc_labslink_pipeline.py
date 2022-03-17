@@ -22,6 +22,7 @@ def fetch_article_dois_from_bigquery(
         query=bigquery_source_config.sql_query
     )
     LOGGER.debug('doi_list: %r', doi_list)
+    LOGGER.info('length of doi_list: %r', len(doi_list))
     return doi_list
 
 

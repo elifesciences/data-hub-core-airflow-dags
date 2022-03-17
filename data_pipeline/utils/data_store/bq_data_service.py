@@ -377,7 +377,7 @@ def get_single_column_value_list_from_bq_query(
     client = get_bq_client(project=project_name)
     query_job = client.query(query)  # Make an API request.
     results = query_job.result()  # Waits for query to finish
-    return [row.column for row in results]
+    return [row[0] for row in results]
 
 
 def get_distinct_values_from_bq(
