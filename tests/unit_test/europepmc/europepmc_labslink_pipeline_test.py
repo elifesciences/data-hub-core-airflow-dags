@@ -1,7 +1,9 @@
+from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
+from lxml import etree
 
 from data_pipeline.europepmc.europepmc_labslink_config import (
     BigQuerySourceConfig,
@@ -14,6 +16,7 @@ import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
     fetch_article_dois_from_bigquery,
+    generate_labslink_links_xml_to_file_from_doi_list,
 )
 
 
@@ -102,6 +105,18 @@ class TestFetchArticleDoisFromBigQuery:
         get_single_column_value_list_from_bq_query_mock.return_value = DOI_LIST
         actual_doi_list = fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
         assert actual_doi_list == DOI_LIST
+
+
+class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
+    def test_should_generate_xml_with_multiple_links(self, tmp_path: Path):
+        xml_path = tmp_path / 'links.xml'
+        generate_labslink_links_xml_to_file_from_doi_list(
+            file_path=str(xml_path),
+            doi_list=DOI_LIST
+        )
+        xml_root = etree.parse(xml_path).getroot()
+        assert xml_root.tag == 'links'
+        assert xml_root.xpath('link/doi/text()') == DOI_LIST
 
 
 class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:

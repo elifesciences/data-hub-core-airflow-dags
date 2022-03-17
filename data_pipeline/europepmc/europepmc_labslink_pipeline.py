@@ -3,6 +3,9 @@ import os
 from tempfile import TemporaryDirectory
 from typing import Sequence
 
+from lxml import etree
+from lxml.builder import E
+
 from data_pipeline.europepmc.europepmc_labslink_config import (
     BigQuerySourceConfig,
     EuropePmcLabsLinkConfig,
@@ -14,6 +17,12 @@ from data_pipeline.utils.data_store.bq_data_service import (
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+class LabsLinkElementMakers:
+    LINKS = E.links
+    LINK = E.link
+    DOI = E.doi
 
 
 def fetch_article_dois_from_bigquery(
@@ -29,12 +38,24 @@ def fetch_article_dois_from_bigquery(
     return doi_list
 
 
+def create_labslink_link_xml_node_for_doi(doi: str) -> etree.ElementBase:
+    return LabsLinkElementMakers.LINK(
+        LabsLinkElementMakers.DOI(doi)
+    )
+
+
 def generate_labslink_links_xml_to_file_from_doi_list(
     file_path: str,
     doi_list: Sequence[str]
 ):
     LOGGER.info("file_path: %r", file_path)
     LOGGER.debug("doi_list: %r", doi_list)
+    xml_root = LabsLinkElementMakers.LINKS(*[
+        create_labslink_link_xml_node_for_doi(doi)
+        for doi in doi_list
+    ])
+    with open(file_path, 'wb') as xml_fp:
+        xml_fp.write(etree.tostring(xml_root))
 
 
 def update_labslink_ftp(
