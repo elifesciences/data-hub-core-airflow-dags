@@ -1,4 +1,6 @@
 import logging
+import os
+from tempfile import TemporaryDirectory
 from typing import Sequence
 
 from data_pipeline.europepmc.europepmc_labslink_config import (
@@ -41,7 +43,10 @@ def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
     article_dois = fetch_article_dois_from_bigquery(config.source.bigquery)
     LOGGER.debug('article_dois: %r', article_dois)
 
-    generate_labslink_links_xml_to_file_from_doi_list(
-        file_path='TODO',
-        doi_list=article_dois
-    )
+    with TemporaryDirectory() as tmp_dir:
+        temp_file_path = os.path.join(tmp_dir, 'links.xml')
+
+        generate_labslink_links_xml_to_file_from_doi_list(
+            file_path=temp_file_path,
+            doi_list=article_dois
+        )
