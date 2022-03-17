@@ -1,7 +1,7 @@
 import logging
 import os
 from math import ceil
-from typing import Any, Iterable, List
+from typing import Any, Iterable, List, Sequence
 from tempfile import TemporaryDirectory
 import pandas as pd
 from jinjasql import JinjaSql
@@ -368,6 +368,16 @@ def load_from_temp_table_to_actual_table(
     query_job.result()  # Wait for the job to complete.
 
     LOGGER.info("Loaded table %s", table_id)
+
+
+def get_single_column_value_list_from_bq_query(
+    project_name: str,
+    query: str 
+) -> Sequence[str]:
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query)  # Make an API request.
+    results = query_job.result()  # Waits for query to finish
+    return [row.column for row in results]
 
 
 def get_distinct_values_from_bq(
