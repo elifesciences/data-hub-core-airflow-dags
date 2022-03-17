@@ -37,7 +37,7 @@ def get_pipeline_config() -> 'EuropePmcLabsLinkConfig':
     )
 
 
-def dummy_task(**_kwargs):
+def fetch_article_dois_from_bigquery_and_update_labslink_ftp_task(**_kwargs):
     fetch_article_dois_from_bigquery_and_update_labslink_ftp(
         get_pipeline_config()
     )
@@ -53,7 +53,7 @@ EUROPEPMC_DAG = create_dag(
 
 create_python_task(
     EUROPEPMC_DAG,
-    "dummy_task",
-    dummy_task,
+    "fetch_article_dois_from_bigquery_and_update_labslink_ftp_task",
+    fetch_article_dois_from_bigquery_and_update_labslink_ftp_task,
     retries=5
 )
