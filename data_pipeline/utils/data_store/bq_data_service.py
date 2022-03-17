@@ -372,7 +372,7 @@ def load_from_temp_table_to_actual_table(
 
 def get_single_column_value_list_from_bq_query(
     project_name: str,
-    query: str 
+    query: str
 ) -> Sequence[str]:
     client = get_bq_client(project=project_name)
     query_job = client.query(query)  # Make an API request.

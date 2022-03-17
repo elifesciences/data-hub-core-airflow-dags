@@ -5,16 +5,24 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
     BigQuerySourceConfig,
     EuropePmcLabsLinkConfig
 )
+from data_pipeline.utils.data_store.bq_data_service import (
+    get_single_column_value_list_from_bq_query
+)
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 def fetch_article_dois_from_bigquery(
-    bigquery_source: BigQuerySourceConfig
+    bigquery_source_config: BigQuerySourceConfig
 ) -> Sequence[str]:
-    LOGGER.debug('bigquery_source: %r', bigquery_source)
-    return []
+    LOGGER.debug('bigquery_source: %r', bigquery_source_config)
+    doi_list = get_single_column_value_list_from_bq_query(
+        project_name=bigquery_source_config.project_name,
+        query=bigquery_source_config.sql_query
+    )
+    LOGGER.debug('doi_list: %r', doi_list)
+    return doi_list
 
 
 def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
