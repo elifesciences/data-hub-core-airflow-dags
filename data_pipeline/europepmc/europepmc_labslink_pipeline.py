@@ -26,6 +26,7 @@ class LabsLinkElementMakers:
     DOI = E.doi
     RESOURCE = E.resource
     TITLE = E.title
+    URL = E.url
 
 
 def fetch_article_dois_from_bigquery(
@@ -47,7 +48,8 @@ def create_labslink_link_xml_node_for_doi(
 ) -> etree.ElementBase:
     return LabsLinkElementMakers.LINK(
         LabsLinkElementMakers.RESOURCE(
-            LabsLinkElementMakers.TITLE(xml_config.link_title)
+            LabsLinkElementMakers.TITLE(xml_config.link_title),
+            LabsLinkElementMakers.URL(xml_config.link_prefix + doi)
         ),
         LabsLinkElementMakers.DOI(doi)
     )

@@ -128,6 +128,10 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
         assert xml_root.xpath('link/resource/title/text()') == (
             [XML_CONFIG_1.link_title] * len(DOI_LIST)
         )
+        assert xml_root.xpath('link/resource/url/text()') == [
+            XML_CONFIG_1.link_prefix + doi
+            for doi in DOI_LIST
+        ]
 
 
 class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
