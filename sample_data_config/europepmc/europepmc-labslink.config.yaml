@@ -9,6 +9,7 @@ europePmcLabsLink:
           WHERE event_name = 'EvaluationRecorded'
               AND article_doi IS NOT NULL
     xml:
+      linkTitle: 'Read the evaluations of this preprint'
       linkPrefix: 'https://sciety.org/articles/activity/'
     target:
       ftp:
