@@ -26,10 +26,12 @@ DIRECTORY_NAME_1 = 'directory name1'
 FTP_PASSWORD_FILE_PATH_ENV_VAR = 'FTP_PASSWORD_FILE_PATH_ENV_VAR'
 FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR = 'FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR'
 
+PROVIDER_ID_1 = '1234'
 LINK_TITLE_1 = 'Link Title 1'
 LINK_PREFIX_1 = 'https://link-prefix/'
 
 XML_CONFIG_DICT_1 = {
+    'providerId': PROVIDER_ID_1,
     'linkTitle': LINK_TITLE_1,
     'linkPrefix': LINK_PREFIX_1
 }
@@ -89,8 +91,9 @@ class TestEuropeLabsLinkPmcConfig:
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
         assert config.source.bigquery.project_name == PROJECT_NAME_1
 
-    def test_should_read_xml_link_title_and_prefix(self):
+    def test_should_read_xml_provider_id_link_title_and_prefix(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        assert config.xml.provider_id == PROVIDER_ID_1
         assert config.xml.link_title == LINK_TITLE_1
         assert config.xml.link_prefix == LINK_PREFIX_1
 

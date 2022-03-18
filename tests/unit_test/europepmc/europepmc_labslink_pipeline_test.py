@@ -35,6 +35,7 @@ SOURCE_CONFIG_1 = EuropePmcLabsLinkSourceConfig(
 )
 
 XML_CONFIG_1 = EuropePmcLabsLinkXmlConfig(
+    provider_id='1234',
     link_title='Link Title 1',
     link_prefix='linkPrefix1'
 )

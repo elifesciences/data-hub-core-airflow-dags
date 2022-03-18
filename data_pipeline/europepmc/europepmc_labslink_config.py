@@ -31,12 +31,14 @@ class EuropePmcLabsLinkSourceConfig(NamedTuple):
 
 
 class EuropePmcLabsLinkXmlConfig(NamedTuple):
+    provider_id: str
     link_title: str
     link_prefix: str
 
     @staticmethod
     def from_dict(xml_config_dict: dict) -> 'EuropePmcLabsLinkXmlConfig':
         return EuropePmcLabsLinkXmlConfig(
+            provider_id=xml_config_dict['providerId'],
             link_title=xml_config_dict['linkTitle'],
             link_prefix=xml_config_dict['linkPrefix']
         )
