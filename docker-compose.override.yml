@@ -38,3 +38,7 @@ services:
     test-client:
         volumes: *airflow-volumes
         environment: *airflow-env
+
+    test-ftpserver:
+        ports:
+            - "8021:21"
