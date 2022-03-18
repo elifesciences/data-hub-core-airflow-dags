@@ -164,8 +164,12 @@ class TestUpdateLabsLinkFtp:
             source_xml_file_path=str(xml_path),
             ftp_target_config=FTP_TARGET_CONFIG_1
         )
-        ftp_class_mock.assert_called_with(
+        ftp_class_mock.assert_called()
+        ftp_mock.connect.assert_called_with(
             host=FTP_TARGET_CONFIG_1.hostname,
+            port=FTP_TARGET_CONFIG_1.port
+        )
+        ftp_mock.login.assert_called_with(
             user=FTP_TARGET_CONFIG_1.username,
             passwd=FTP_TARGET_CONFIG_1.password
         )

@@ -80,8 +80,12 @@ def update_labslink_ftp(
     LOGGER.info("source_xml_file_path: %r", source_xml_file_path)
     LOGGER.debug("ftp_target_config: %r", ftp_target_config)
     LOGGER.info('creating FTP connection')
-    ftp = FTP(
+    ftp = FTP()
+    ftp.connect(
         host=ftp_target_config.hostname,
+        port=ftp_target_config.port
+    )
+    ftp.login(
         user=ftp_target_config.username,
         passwd=ftp_target_config.password
     )
