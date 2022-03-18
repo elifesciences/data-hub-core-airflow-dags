@@ -14,7 +14,7 @@ europePmcLabsLink:
       linkPrefix: 'https://sciety.org/articles/activity/'
     target:
       ftp:
-        hostname: 'labslink.ebi.ac.uk'
+        hostname: 'test-ftpserver'
         port: 21
         username: 'elinks'
         parametersFromFile:
