@@ -41,7 +41,8 @@ XML_CONFIG_1 = EuropePmcLabsLinkXmlConfig(
 )
 
 FTP_TARGET_CONFIG_1 = FtpTargetConfig(
-    host='host1:234',
+    hostname='host1',
+    port=123,
     username='user1',
     password='password1',
     directory_name='dir1'
@@ -164,7 +165,7 @@ class TestUpdateLabsLinkFtp:
             ftp_target_config=FTP_TARGET_CONFIG_1
         )
         ftp_class_mock.assert_called_with(
-            host=FTP_TARGET_CONFIG_1.host,
+            host=FTP_TARGET_CONFIG_1.hostname,
             user=FTP_TARGET_CONFIG_1.username,
             passwd=FTP_TARGET_CONFIG_1.password
         )

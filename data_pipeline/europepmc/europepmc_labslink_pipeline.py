@@ -81,7 +81,7 @@ def update_labslink_ftp(
     LOGGER.debug("ftp_target_config: %r", ftp_target_config)
     LOGGER.info('creating FTP connection')
     ftp = FTP(
-        host=ftp_target_config.host,
+        host=ftp_target_config.hostname,
         user=ftp_target_config.username,
         passwd=ftp_target_config.password
     )

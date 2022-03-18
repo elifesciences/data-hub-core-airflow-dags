@@ -46,7 +46,8 @@ class EuropePmcLabsLinkXmlConfig(NamedTuple):
 
 @dataclass(frozen=True)
 class FtpTargetConfig:
-    host: str
+    hostname: str
+    port: int
     username: str
     password: str = field(repr=False)
     directory_name: str = field(repr=False)
@@ -57,7 +58,8 @@ class FtpTargetConfig:
             ftp_target_config_dict['parametersFromFile']
         )
         return FtpTargetConfig(
-            host=ftp_target_config_dict['host'],
+            hostname=ftp_target_config_dict['hostname'],
+            port=ftp_target_config_dict['port'],
             username=ftp_target_config_dict['username'],
             password=secrets['password'],
             directory_name=secrets['directoryName']

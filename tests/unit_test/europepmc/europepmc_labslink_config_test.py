@@ -37,7 +37,8 @@ XML_CONFIG_DICT_1 = {
 }
 
 FTP_TARGET_CONFIG_DICT_1 = {
-    'host': 'host1',
+    'hostname': 'hostname1',
+    'port': 123,
     'username': 'username1',
     'parametersFromFile': [{
         'parameterName': 'password',
@@ -97,9 +98,10 @@ class TestEuropeLabsLinkPmcConfig:
         assert config.xml.link_title == LINK_TITLE_1
         assert config.xml.link_prefix == LINK_PREFIX_1
 
-    def test_should_read_target_ftp_host_and_username(self):
+    def test_should_read_target_ftp_hostname_port_and_username(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
-        assert config.target.ftp.host == FTP_TARGET_CONFIG_DICT_1['host']
+        assert config.target.ftp.hostname == FTP_TARGET_CONFIG_DICT_1['hostname']
+        assert config.target.ftp.port == FTP_TARGET_CONFIG_DICT_1['port']
         assert config.target.ftp.username == FTP_TARGET_CONFIG_DICT_1['username']
 
     def test_should_read_target_ftp_password_and_directory_name_from_file_path_env_name(
