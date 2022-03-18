@@ -70,7 +70,7 @@ def generate_labslink_links_xml_to_file_from_doi_list(
         for doi in doi_list
     ])
     with open(file_path, 'wb') as xml_fp:
-        xml_fp.write(etree.tostring(xml_root))
+        xml_fp.write(etree.tostring(xml_root, pretty_print=True))
 
 
 def update_labslink_ftp(
