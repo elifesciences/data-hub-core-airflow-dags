@@ -48,6 +48,7 @@ def create_labslink_link_xml_node_for_doi(
     xml_config: EuropePmcLabsLinkXmlConfig
 ) -> etree.ElementBase:
     return LabsLinkElementMakers.LINK(
+        {'providerId': xml_config.provider_id},
         LabsLinkElementMakers.RESOURCE(
             LabsLinkElementMakers.TITLE(xml_config.link_title),
             LabsLinkElementMakers.URL(xml_config.link_prefix + doi)

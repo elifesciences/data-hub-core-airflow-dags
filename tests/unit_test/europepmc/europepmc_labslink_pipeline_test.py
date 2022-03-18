@@ -138,6 +138,9 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
         xml_root = etree.parse(xml_path).getroot()
         assert xml_root.tag == 'links'
         assert xml_root.xpath('link/doi/text()') == DOI_LIST
+        assert xml_root.xpath('link/@providerId') == (
+            [XML_CONFIG_1.provider_id] * len(DOI_LIST)
+        )
         assert xml_root.xpath('link/resource/title/text()') == (
             [XML_CONFIG_1.link_title] * len(DOI_LIST)
         )
