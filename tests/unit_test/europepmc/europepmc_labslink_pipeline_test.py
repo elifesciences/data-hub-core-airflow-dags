@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 
@@ -20,6 +21,9 @@ from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     generate_labslink_links_xml_to_file_from_doi_list,
     update_labslink_ftp,
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 PROJECT_NAME_1 = 'project1'
@@ -149,6 +153,20 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
             XML_CONFIG_1.link_prefix + doi
             for doi in DOI_LIST
         ]
+
+    def test_should_have_xml_declaration(self, tmp_path: Path):
+        xml_path = tmp_path / 'links.xml'
+        generate_labslink_links_xml_to_file_from_doi_list(
+            file_path=str(xml_path),
+            doi_list=DOI_LIST,
+            xml_config=XML_CONFIG_1
+        )
+        xml_str = xml_path.read_text()
+        LOGGER.debug('xml_str: %r', xml_str)
+        first_line = xml_str.splitlines()[0]
+        assert first_line.startswith('<?xml')
+        assert "encoding='UTF-8'" in first_line
+        assert "standalone='yes'" in first_line
 
 
 class TestUpdateLabsLinkFtp:
