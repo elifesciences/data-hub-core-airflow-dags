@@ -96,6 +96,22 @@ def get_connected_ftp_client(
     return ftp
 
 
+def change_or_create_ftp_directory(
+    ftp: FTP,
+    directory_name: str,
+    create_directory: bool
+) -> FTP:
+    LOGGER.info('changing directory')
+    try:
+        ftp.cwd(directory_name)
+    except ftplib.error_perm:
+        if not create_directory:
+            raise
+        LOGGER.info("failed to change directory, attempting to create it")
+        ftp.mkd(directory_name)
+        ftp.cwd(directory_name)
+
+
 def update_labslink_ftp(
     source_xml_file_path: str,
     ftp_target_config: FtpTargetConfig
@@ -104,15 +120,11 @@ def update_labslink_ftp(
     LOGGER.debug("ftp_target_config: %r", ftp_target_config)
     LOGGER.info('creating FTP connection')
     ftp = get_connected_ftp_client(ftp_target_config)
-    LOGGER.info('changing directory')
-    try:
-        ftp.cwd(ftp_target_config.directory_name)
-    except ftplib.error_perm:
-        if not ftp_target_config.create_directory:
-            raise
-        LOGGER.info("failed to change directory, attempting to create it")
-        ftp.mkd(ftp_target_config.directory_name)
-        ftp.cwd(ftp_target_config.directory_name)
+    change_or_create_ftp_directory(
+        ftp,
+        directory_name=ftp_target_config.directory_name,
+        create_directory=ftp_target_config.create_directory
+    )
     LOGGER.info('uploading file')
     with open(source_xml_file_path, 'rb') as xml_fp:
         ftp.storbinary(cmd='STOR links.xml', fp=xml_fp)
