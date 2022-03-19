@@ -1,3 +1,4 @@
+import ftplib
 import logging
 import os
 from ftplib import FTP
@@ -96,7 +97,15 @@ def update_labslink_ftp(
         passwd=ftp_target_config.password
     )
     LOGGER.info('changing directory')
-    ftp.cwd(ftp_target_config.directory_name)
+    try:
+        ftp.cwd(ftp_target_config.directory_name)
+    except ftplib.error_perm:
+        if not ftp_target_config.create_directory:
+            raise
+        LOGGER.info("failed to change directory, attempting to create it")
+        ftp.mkd(ftp_target_config.directory_name)
+        ftp.cwd(ftp_target_config.directory_name)
+    LOGGER.info('uploading file')
     with open(source_xml_file_path, 'rb') as xml_fp:
         ftp.storbinary(cmd='STOR links.xml', fp=xml_fp)
 

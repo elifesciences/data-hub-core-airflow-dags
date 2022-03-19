@@ -1,3 +1,4 @@
+import dataclasses
 import logging
 from dataclasses import dataclass, field
 from typing import NamedTuple
@@ -70,6 +71,10 @@ class FtpTargetConfig:
             directory_name=secrets['directoryName'],
             create_directory=ftp_target_config_dict.get('createDirectory', False)
         )
+
+    def _replace(self, **changes) -> 'FtpTargetConfig':
+        """_replace provides same functionality of NamedTuple._replace"""
+        return dataclasses.replace(self, **changes)
 
 
 class EuropePmcLabsLinkTargetConfig(NamedTuple):

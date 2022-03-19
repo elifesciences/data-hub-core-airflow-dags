@@ -1,3 +1,4 @@
+import ftplib
 import logging
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
@@ -196,6 +197,43 @@ class TestUpdateLabsLinkFtp:
             cmd='STOR links.xml',
             fp=ANY
         )
+
+    def test_should_not_create_directory_when_permission_error_raised_if_not_enabled(
+        self,
+        tmp_path: Path,
+        ftp_mock: MagicMock
+    ):
+        xml_path = tmp_path / 'links.xml'
+        xml_path.write_bytes(b'XML content 1')
+        ftp_mock.cwd.side_effect = ftplib.error_perm()
+        with pytest.raises(ftplib.error_perm):
+            update_labslink_ftp(
+                source_xml_file_path=str(xml_path),
+                ftp_target_config=FTP_TARGET_CONFIG_1._replace(
+                    create_directory=False
+                )
+            )
+        ftp_mock.mkd.assert_not_called()
+
+    def test_should_create_directory_when_permission_error_raised_if_enabled(
+        self,
+        tmp_path: Path,
+        ftp_mock: MagicMock
+    ):
+        xml_path = tmp_path / 'links.xml'
+        xml_path.write_bytes(b'XML content 1')
+        ftp_mock.cwd.side_effect = [
+            ftplib.error_perm(),  # first cwd call should fail
+            None  # second cwd call will succeed (no return value)
+        ]
+        update_labslink_ftp(
+            source_xml_file_path=str(xml_path),
+            ftp_target_config=FTP_TARGET_CONFIG_1._replace(
+                create_directory=True
+            )
+        )
+        ftp_mock.mkd.assert_called_with(FTP_TARGET_CONFIG_1.directory_name)
+        assert ftp_mock.cwd.call_count == 2
 
 
 @pytest.mark.usefixtures('update_labslink_ftp_mock')
