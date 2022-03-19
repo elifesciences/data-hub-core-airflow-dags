@@ -105,7 +105,7 @@ watch:
 		python -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
 airflow-start:
-	$(DOCKER_COMPOSE) up --scale dask-worker=1 scheduler
+	$(DOCKER_COMPOSE) up --scale dask-worker=1 scheduler test-ftpserver
 
 
 airflow-stop:
