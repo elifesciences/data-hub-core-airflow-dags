@@ -104,6 +104,20 @@ class TestEuropeLabsLinkPmcConfig:
         assert config.target.ftp.port == FTP_TARGET_CONFIG_DICT_1['port']
         assert config.target.ftp.username == FTP_TARGET_CONFIG_DICT_1['username']
 
+    def test_should_set_target_ftp_create_target_directory_to_false_by_default(self):
+        config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        assert config.target.ftp.create_directory is False
+
+    def test_should_be_able_to_set_target_ftp_create_target_directory_to_true(self):
+        config = EuropePmcLabsLinkConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'target': {'ftp': {
+                **FTP_TARGET_CONFIG_DICT_1,
+                'createDirectory': True
+            }}
+        }))
+        assert config.target.ftp.create_directory is True
+
     def test_should_read_target_ftp_password_and_directory_name_from_file_path_env_name(
         self
     ):

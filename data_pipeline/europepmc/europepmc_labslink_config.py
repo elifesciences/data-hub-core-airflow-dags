@@ -1,9 +1,13 @@
+import logging
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_param_vals_filepath_in_env_var
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class BigQuerySourceConfig(NamedTuple):
@@ -51,6 +55,7 @@ class FtpTargetConfig:
     username: str
     password: str = field(repr=False)
     directory_name: str = field(repr=False)
+    create_directory: bool = False
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
@@ -62,7 +67,8 @@ class FtpTargetConfig:
             port=ftp_target_config_dict['port'],
             username=ftp_target_config_dict['username'],
             password=secrets['password'],
-            directory_name=secrets['directoryName']
+            directory_name=secrets['directoryName'],
+            create_directory=ftp_target_config_dict.get('createDirectory', False)
         )
 
 
@@ -99,6 +105,7 @@ class EuropePmcLabsLinkConfig(NamedTuple):
 
     @staticmethod
     def from_dict(config_dict: dict) -> 'EuropePmcLabsLinkConfig':
+        LOGGER.debug('config_dict: %r', config_dict)
         item_config_list = config_dict['europePmcLabsLink']
         return EuropePmcLabsLinkConfig._from_item_dict(
             item_config_list[0]
