@@ -17,6 +17,7 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 )
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
+    LINKS_XML_FTP_FILENAME,
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
     fetch_article_dois_from_bigquery,
     generate_labslink_links_xml_to_file_from_doi_list,
@@ -194,7 +195,7 @@ class TestUpdateLabsLinkFtp:
         )
         ftp_mock.cwd.assert_called_with(FTP_TARGET_CONFIG_1.directory_name)
         ftp_mock.storbinary.assert_called_with(
-            cmd='STOR links.xml',
+            cmd=f'STOR {LINKS_XML_FTP_FILENAME}',
             fp=ANY
         )
 

@@ -9,6 +9,7 @@ from dags.europepmc_labslink_data_export_pipeline import (
     get_pipeline_config
 )
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
+    LINKS_XML_FTP_FILENAME,
     change_or_create_ftp_directory,
     get_connected_ftp_client
 )
@@ -38,10 +39,10 @@ def test_dag_runs_and_uploads_file():
         directory_name=ftp_target_config.directory_name,
         create_directory=ftp_target_config.create_directory
     )
-    filename = 'links.xml'
+    filename = LINKS_XML_FTP_FILENAME
     try:
         LOGGER.info('deleting %r, if it exists', filename)
-        ftp.delete('links.xml')
+        ftp.delete(filename)
     except ftplib.error_perm:
         LOGGER.info('failed to delete %r, it may not not exist yet', filename)
     enable_and_trigger_dag_and_wait_for_success(
@@ -50,7 +51,7 @@ def test_dag_runs_and_uploads_file():
     )
     LOGGER.info('checking ftp file %r', filename)
     data = BytesIO()
-    ftp.retrbinary('RETR %s' % filename, callback=data.write)
+    ftp.retrbinary(f'RETR {filename}', callback=data.write)
     xml_str = data.getvalue()
     LOGGER.info('checking valid xml: %d bytes', len(xml_str))
     assert_valid_xml_str(xml_str)

@@ -22,6 +22,9 @@ from data_pipeline.utils.data_store.bq_data_service import (
 LOGGER = logging.getLogger(__name__)
 
 
+LINKS_XML_FTP_FILENAME = 'links.xml'
+
+
 class LabsLinkElementMakers:
     LINKS = E.links
     LINK = E.link
@@ -127,7 +130,7 @@ def update_labslink_ftp(
     )
     LOGGER.info('uploading file')
     with open(source_xml_file_path, 'rb') as xml_fp:
-        ftp.storbinary(cmd='STOR links.xml', fp=xml_fp)
+        ftp.storbinary(cmd=f'STOR {LINKS_XML_FTP_FILENAME}', fp=xml_fp)
 
 
 def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
