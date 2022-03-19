@@ -80,12 +80,9 @@ def generate_labslink_links_xml_to_file_from_doi_list(
         ))
 
 
-def update_labslink_ftp(
-    source_xml_file_path: str,
+def get_connected_ftp_client(
     ftp_target_config: FtpTargetConfig
-):
-    LOGGER.info("source_xml_file_path: %r", source_xml_file_path)
-    LOGGER.debug("ftp_target_config: %r", ftp_target_config)
+) -> FTP:
     LOGGER.info('creating FTP connection')
     ftp = FTP()
     ftp.connect(
@@ -96,6 +93,17 @@ def update_labslink_ftp(
         user=ftp_target_config.username,
         passwd=ftp_target_config.password
     )
+    return ftp
+
+
+def update_labslink_ftp(
+    source_xml_file_path: str,
+    ftp_target_config: FtpTargetConfig
+):
+    LOGGER.info("source_xml_file_path: %r", source_xml_file_path)
+    LOGGER.debug("ftp_target_config: %r", ftp_target_config)
+    LOGGER.info('creating FTP connection')
+    ftp = get_connected_ftp_client(ftp_target_config)
     LOGGER.info('changing directory')
     try:
         ftp.cwd(ftp_target_config.directory_name)
