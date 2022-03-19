@@ -3,8 +3,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import NamedTuple
 
-from data_pipeline.generic_web_api.url_builder import (
-    compose_url_param_from_param_vals_filepath_in_env_var
+from data_pipeline.utils.pipeline_config import (
+    get_resolved_parameter_values_from_file_path_env_name
 )
 
 
@@ -60,7 +60,7 @@ class FtpTargetConfig:
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
-        secrets = compose_url_param_from_param_vals_filepath_in_env_var(
+        secrets = get_resolved_parameter_values_from_file_path_env_name(
             ftp_target_config_dict['parametersFromFile']
         )
         return FtpTargetConfig(
