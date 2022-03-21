@@ -66,6 +66,23 @@ def get_table_row_count(
     return query_response[0].get("count")
 
 
+def enable_and_trigger_dag_and_wait_for_success(
+    airflow_api,
+    dag_id: str,
+    target_dag=None,
+    dag_trigger_conf: dict = None
+):
+    airflow_api.unpause_dag(target_dag)
+    execution_date = airflow_api.trigger_dag(
+        dag_id=dag_id, conf=dag_trigger_conf
+    )
+    is_dag_running = wait_till_all_dag_run_ends(
+        airflow_api, execution_date, dag_id, target_dag,
+    )
+    assert not is_dag_running
+    assert airflow_api.get_dag_status(dag_id, execution_date) == "success"
+
+
 # pylint: disable=too-many-arguments
 def trigger_run_test_pipeline(
         airflow_api,
@@ -83,15 +100,12 @@ def trigger_run_test_pipeline(
         pipeline_cloud_resource.state_file_bucket_name,
         pipeline_cloud_resource.state_file_object_name
     )
-    airflow_api.unpause_dag(target_dag)
-    execution_date = airflow_api.trigger_dag(
-        dag_id=dag_id, conf=dag_trigger_conf
+    enable_and_trigger_dag_and_wait_for_success(
+        airflow_api=airflow_api,
+        dag_id=dag_id,
+        target_dag=target_dag,
+        dag_trigger_conf=dag_trigger_conf
     )
-    is_dag_running = wait_till_all_dag_run_ends(
-        airflow_api, execution_date, dag_id, target_dag,
-    )
-    assert not is_dag_running
-    assert airflow_api.get_dag_status(dag_id, execution_date) == "success"
     loaded_table_row_count = get_table_row_count(
         pipeline_cloud_resource.project_name,
         pipeline_cloud_resource.dataset_name,

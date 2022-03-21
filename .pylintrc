@@ -1,6 +1,8 @@
-[MESSAGES CONTROL]
+[MASTER]
+extension-pkg-whitelist=
+    lxml
 
-min-similarity-lines=5
+[MESSAGES CONTROL]
 disable=
     missing-docstring,
     too-few-public-methods,
@@ -9,3 +11,9 @@ disable=
 [IMPORTS]
 known-third-party=
     airflow
+
+[SIMILARITIES]
+min-similarity-lines=5
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes

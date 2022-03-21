@@ -1,8 +1,10 @@
+from pathlib import Path
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
     BigQueryTargetConfig,
     StateFileConfig,
+    get_resolved_parameter_values_from_file_path_env_name,
     str_to_bool,
     get_environment_variable_value
 )
@@ -47,6 +49,20 @@ class TestStrToBool:
     def test_should_raise_error_for_invalid_value(self):
         with pytest.raises(ValueError):
             str_to_bool('invalid')
+
+
+class TestGetResolvedParameterValuesFromFilePathEnvName:
+    def test_should_read_value_from_file(self, mock_env: dict, tmp_path: Path):
+        file_path = tmp_path / 'file'
+        file_path.write_text('value1')
+        mock_env['env1'] = str(file_path)
+        params = get_resolved_parameter_values_from_file_path_env_name([{
+            'parameterName': 'param1',
+            'filePathEnvName': 'env1'
+        }])
+        assert params == {
+            'param1': 'value1'
+        }
 
 
 class TestGetEnvironmentVariableValue:

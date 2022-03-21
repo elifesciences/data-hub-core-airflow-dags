@@ -4,7 +4,9 @@ from datetime import datetime
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
-from data_pipeline.utils.pipeline_file_io import read_file_content
+from data_pipeline.utils.pipeline_config import (
+    get_resolved_parameter_values_from_file_path_env_name
+)
 
 
 def compose_url_param_from_parameter_values_in_env_var(
@@ -19,17 +21,9 @@ def compose_url_param_from_parameter_values_in_env_var(
 
 def compose_url_param_from_param_vals_filepath_in_env_var(
         compose_able_static_parameters: list):
-    params = {
-        param.get("parameterName"):
-            read_file_content(
-                os.getenv(
-                    param.get("filePathEnvName")
-                )
-            )
-        for param in compose_able_static_parameters
-        if os.getenv(param.get("filePathEnvName"))
-    }
-    return params
+    return get_resolved_parameter_values_from_file_path_env_name(
+        compose_able_static_parameters
+    )
 
 
 class UrlComposeParam:
