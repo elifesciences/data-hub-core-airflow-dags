@@ -10,7 +10,7 @@ cloudpickle==1.4.1
 dateparser==1.1.0
 dask[complete]<=2021.2.0, >=2.17.0
 distributed<=2021.2.0, >=2.17.0
-fsspec==2021.11.1
+fsspec==2022.2.0
 lxml<4.9.0, >=4.8.0
 google-api-python-client==2.36.0
 google-cloud-bigquery>=1.27.2
