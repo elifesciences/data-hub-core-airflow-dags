@@ -2,7 +2,7 @@ apache-airflow[crypto,celery,postgres,jdbc,ssh]==1.10.15
 backoff==1.10.0
 bigquery-schema-generator==1.5
 bigquery-views-manager>=1.0.3
-boto3==1.19.8
+boto3==1.21.22
 aiobotocore==2.0.1
 botocore<1.23.0, >=1.22.0
 cattrs==1.10.0
@@ -11,6 +11,7 @@ dateparser==1.1.0
 dask[complete]<=2021.2.0, >=2.17.0
 distributed<=2021.2.0, >=2.17.0
 fsspec==2021.11.1
+lxml<4.9.0, >=4.8.0
 google-api-python-client==2.36.0
 google-cloud-bigquery>=1.27.2
 google-oauth==1.0.1
