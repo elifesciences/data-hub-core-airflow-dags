@@ -19,6 +19,7 @@ from data_pipeline.europepmc.europepmc_config import (
 
 import data_pipeline.europepmc.europepmc_pipeline as europepmc_pipeline_module
 from data_pipeline.europepmc.europepmc_pipeline import (
+    DEFAULT_CURSOR,
     EuropePmcSearchContext,
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     get_article_response_json_from_api,
@@ -38,6 +39,10 @@ DOI_1 = 'doi1'
 DOI_2 = 'doi2'
 
 
+CURSOR_1 = 'cursor1'
+CURSOR_2 = 'cursor2'
+
+
 ITEM_RESPONSE_JSON_1 = {
     'doi': DOI_1
 }
@@ -46,7 +51,8 @@ ITEM_RESPONSE_JSON_2 = {
     'doi': DOI_2
 }
 
-PROVENANCE_1 = {'provenance_key': 'provenance_value'}
+PROVENANCE_1 = {'provenance_key': 'provenance1'}
+PROVENANCE_2 = {'provenance_key': 'provenance2'}
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
     'resultList': {
@@ -256,6 +262,14 @@ class TestGetRequestParamsForSourceConfig:
         )
         assert params['hasXyz'] == 'Y'
 
+    def test_should_include_cursor_mark(self):
+        params = get_request_params_for_source_config(
+            SOURCE_CONFIG_1,
+            SEARCH_CONTEXT_1,
+            cursor=CURSOR_1
+        )
+        assert params['cursorMark'] == CURSOR_1
+
 
 class TestGetArticleResponseJsonFromApi:
     def test_should_pass_url_and_params_to_requests_get(
@@ -341,6 +355,7 @@ class TestIterArticleData:
         get_article_response_json_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1,
+            cursor=DEFAULT_CURSOR,
             provenance=PROVENANCE_1
         )
 
@@ -399,6 +414,42 @@ class TestIterArticleData:
             SEARCH_CONTEXT_1
         ))
         assert result == [{**item_response_1, 'provenance': PROVENANCE_1}]
+
+    def test_should_call_api_with_next_cursor_api_and_return_articles_from_responses(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        get_article_response_json_from_api_mock.side_effect = [
+            get_response_json_for_items([
+                ITEM_RESPONSE_JSON_1
+            ], provenance=PROVENANCE_1, nextCursorMark=CURSOR_1),
+            get_response_json_for_items([
+                ITEM_RESPONSE_JSON_2
+            ], provenance=PROVENANCE_2)
+        ]
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1,
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
+        ))
+        assert result == [
+            {**ITEM_RESPONSE_JSON_1, 'provenance': PROVENANCE_1},
+            {**ITEM_RESPONSE_JSON_2, 'provenance': PROVENANCE_2}
+        ]
+        get_article_response_json_from_api_mock.assert_has_calls([
+            call(
+                SOURCE_CONFIG_1,
+                SEARCH_CONTEXT_1,
+                cursor=DEFAULT_CURSOR,
+                provenance=PROVENANCE_1
+            ),
+            call(
+                SOURCE_CONFIG_1,
+                SEARCH_CONTEXT_1,
+                cursor=CURSOR_1,
+                provenance=PROVENANCE_1
+            )
+        ])
 
 
 class TestSaveStateToS3ForConfig:
