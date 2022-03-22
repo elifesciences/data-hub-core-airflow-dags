@@ -23,6 +23,9 @@ from data_pipeline.utils.data_store.s3_data_service import (
 LOGGER = logging.getLogger(__name__)
 
 
+DEFAULT_CURSOR = '*'
+
+
 class EuropePmcSearchContext(NamedTuple):
     start_date_str: str
     end_date_str: str
@@ -60,7 +63,8 @@ def get_request_query_for_source_config_and_start_date_str(
 
 def get_request_params_for_source_config(
     source_config: EuropePmcSourceConfig,
-    search_context: EuropePmcSearchContext
+    search_context: EuropePmcSearchContext,
+    cursor: str = DEFAULT_CURSOR
 ) -> dict:
     return {
         **(source_config.search.extra_params or {}),
@@ -68,6 +72,7 @@ def get_request_params_for_source_config(
             source_config,
             search_context
         ),
+        'cursorMark': cursor,
         'format': 'json',
         'resultType': 'core'
     }
@@ -85,12 +90,14 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext,
+    cursor: str = DEFAULT_CURSOR,
     provenance: Optional[dict] = None
 ) -> dict:
     url = source_config.api_url
     params = get_request_params_for_source_config(
         source_config,
-        search_context
+        search_context,
+        cursor=cursor
     )
     request_timestamp = datetime.utcnow()
     response = requests.get(url, params=params)
@@ -122,22 +129,28 @@ def get_requested_fields_of_the_article_data(
     return {key: value for key, value in data.items() if key in fields_to_return_set}
 
 
+def get_next_cursor_from_response_json(response_json: dict) -> Optional[str]:
+    return response_json.get('nextCursorMark')
+
+
 def iter_article_data(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext,
     provenance: Optional[dict] = None
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
-    response_json = get_article_response_json_from_api(
-        source_config,
-        search_context,
-        provenance=provenance
-    )
-    LOGGER.debug('response_json: %r', response_json)
-    return (
-        get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
-        for data in iter_article_data_from_response_json(response_json)
-    )
+    cursor = DEFAULT_CURSOR
+    while cursor:
+        response_json = get_article_response_json_from_api(
+            source_config,
+            search_context,
+            cursor=cursor,
+            provenance=provenance
+        )
+        cursor = get_next_cursor_from_response_json(response_json)
+        LOGGER.debug('response_json (next cursor: %r): %r', cursor, response_json)
+        for data in iter_article_data_from_response_json(response_json):
+            yield get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
 
 
 def save_state_to_s3_for_config(
