@@ -52,7 +52,6 @@ ITEM_RESPONSE_JSON_2 = {
 }
 
 PROVENANCE_1 = {'provenance_key': 'provenance1'}
-PROVENANCE_2 = {'provenance_key': 'provenance2'}
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
     'resultList': {
@@ -425,7 +424,7 @@ class TestIterArticleData:
             ], provenance=PROVENANCE_1, nextCursorMark=CURSOR_1),
             get_response_json_for_items([
                 ITEM_RESPONSE_JSON_2
-            ], provenance=PROVENANCE_2)
+            ], provenance=PROVENANCE_1)
         ]
         result = list(iter_article_data(
             SOURCE_CONFIG_1,
@@ -434,7 +433,7 @@ class TestIterArticleData:
         ))
         assert result == [
             {**ITEM_RESPONSE_JSON_1, 'provenance': PROVENANCE_1},
-            {**ITEM_RESPONSE_JSON_2, 'provenance': PROVENANCE_2}
+            {**ITEM_RESPONSE_JSON_2, 'provenance': PROVENANCE_1}
         ]
         get_article_response_json_from_api_mock.assert_has_calls([
             call(
