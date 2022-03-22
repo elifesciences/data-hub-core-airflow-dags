@@ -15,6 +15,7 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
+    - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=60
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=ci
