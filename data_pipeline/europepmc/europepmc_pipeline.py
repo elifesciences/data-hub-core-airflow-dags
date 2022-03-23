@@ -238,7 +238,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             start_date_str,
             max_days=config.source.max_days
         )
-        LOGGER.debug('search_context: %r', search_context)
+        LOGGER.info('search_context: %r', search_context)
         if search_context.is_empty_period():
             LOGGER.info('empty period, skip processing')
             return
