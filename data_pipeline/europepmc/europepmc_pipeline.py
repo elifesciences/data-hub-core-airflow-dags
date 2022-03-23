@@ -204,20 +204,10 @@ def load_state_from_s3_for_config(
         return state_config.initial_state.start_date_str
 
 
-def fetch_article_data_from_europepmc_and_load_into_bigquery(
-    config: EuropePmcConfig
+def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+    config: EuropePmcConfig,
+    search_context: EuropePmcSearchContext
 ):
-    start_date_str = load_state_from_s3_for_config(
-        config.state
-    )
-    search_context = get_search_context_for_start_date_str(
-        start_date_str,
-        max_days=config.source.max_days
-    )
-    LOGGER.debug('search_context: %r', search_context)
-    if search_context.is_empty_period():
-        LOGGER.info('empty period, skip processing')
-        return
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     data_iterable = iter_article_data(
@@ -235,7 +225,29 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
-    next_start_date_str = get_next_start_date_str_for_end_date_str(
-        search_context.end_date_str
+
+
+def fetch_article_data_from_europepmc_and_load_into_bigquery(
+    config: EuropePmcConfig
+):
+    start_date_str = load_state_from_s3_for_config(
+        config.state
     )
-    save_state_to_s3_for_config(config.state, next_start_date_str)
+    while True:
+        search_context = get_search_context_for_start_date_str(
+            start_date_str,
+            max_days=config.source.max_days
+        )
+        LOGGER.info('search_context: %r', search_context)
+        if search_context.is_empty_period():
+            LOGGER.info('empty period, skip processing')
+            return
+        fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+            config,
+            search_context=search_context
+        )
+        next_start_date_str = get_next_start_date_str_for_end_date_str(
+            search_context.end_date_str
+        )
+        save_state_to_s3_for_config(config.state, next_start_date_str)
+        start_date_str = next_start_date_str
