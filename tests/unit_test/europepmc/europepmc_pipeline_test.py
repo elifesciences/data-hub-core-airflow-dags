@@ -671,3 +671,28 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             CONFIG_1
         )
         iter_article_data_mock.assert_not_called()
+
+    def test_should_load_data_in_batches_until_yesterday(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=2)).isoformat()
+        )
+        iter_article_data_mock.side_effect = [
+            [ITEM_RESPONSE_JSON_1],
+            [ITEM_RESPONSE_JSON_2]
+        ]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1._replace(
+                source=SOURCE_CONFIG_1._replace(
+                    max_days=1
+                )
+            )
+        )
+        save_state_to_s3_for_config_mock.assert_has_calls([
+            call(CONFIG_1.state, MOCK_YESTERDAY_STR),
+            call(CONFIG_1.state, MOCK_TODAY_STR)
+        ])
