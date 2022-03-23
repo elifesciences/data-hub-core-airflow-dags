@@ -204,6 +204,29 @@ def load_state_from_s3_for_config(
         return state_config.initial_state.start_date_str
 
 
+def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+    config: EuropePmcConfig,
+    search_context: EuropePmcSearchContext
+):
+    batch_size = config.batch_size
+    provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
+    data_iterable = iter_article_data(
+        config.source,
+        search_context,
+        provenance=provenance
+    )
+    for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
+        batch_data_list = list(batch_data_iterable)
+        LOGGER.debug('batch_data_list: %r', batch_data_list)
+        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=config.target.project_name,
+            dataset_name=config.target.dataset_name,
+            table_name=config.target.table_name,
+            json_list=batch_data_list
+        )
+
+
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
     config: EuropePmcConfig
 ):
@@ -219,23 +242,10 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         if search_context.is_empty_period():
             LOGGER.info('empty period, skip processing')
             return
-        batch_size = config.batch_size
-        provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
-        data_iterable = iter_article_data(
-            config.source,
-            search_context,
-            provenance=provenance
+        fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+            config,
+            search_context=search_context
         )
-        for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
-            batch_data_list = list(batch_data_iterable)
-            LOGGER.debug('batch_data_list: %r', batch_data_list)
-            LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
-            load_given_json_list_data_from_tempdir_to_bq(
-                project_name=config.target.project_name,
-                dataset_name=config.target.dataset_name,
-                table_name=config.target.table_name,
-                json_list=batch_data_list
-            )
         next_start_date_str = get_next_start_date_str_for_end_date_str(
             search_context.end_date_str
         )
