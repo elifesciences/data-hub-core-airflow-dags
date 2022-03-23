@@ -203,7 +203,7 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             SEARCH_CONTEXT_1
         )
         date_period_str = (
-            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+            f"[{SEARCH_CONTEXT_1.start_date_str} TO {SEARCH_CONTEXT_1.end_date_str}]"
         )
         assert query == (
             f"(FIRST_IDATE:{date_period_str})"
@@ -220,7 +220,7 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             SEARCH_CONTEXT_1
         )
         date_period_str = (
-            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+            f"[{SEARCH_CONTEXT_1.start_date_str} TO {SEARCH_CONTEXT_1.end_date_str}]"
         )
         assert query == (
             f"(FIRST_IDATE:{date_period_str})"
