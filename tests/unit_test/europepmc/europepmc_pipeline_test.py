@@ -203,11 +203,11 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             SEARCH_CONTEXT_1
         )
         date_period_str = (
-            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+            f"[{SEARCH_CONTEXT_1.start_date_str} TO {SEARCH_CONTEXT_1.end_date_str}]"
         )
         assert query == (
             f"(FIRST_IDATE:{date_period_str})"
-            + f' {original_query}'
+            + f' ({original_query})'
         )
 
     def test_should_return_first_idate_for_none_query(self):
@@ -220,7 +220,7 @@ class TestGetRequestQueryForSourceConfigAndInitialState:
             SEARCH_CONTEXT_1
         )
         date_period_str = (
-            f"['{SEARCH_CONTEXT_1.start_date_str}' TO '{SEARCH_CONTEXT_1.end_date_str}']"
+            f"[{SEARCH_CONTEXT_1.start_date_str} TO {SEARCH_CONTEXT_1.end_date_str}]"
         )
         assert query == (
             f"(FIRST_IDATE:{date_period_str})"
@@ -233,7 +233,7 @@ class TestGetRequestParamsForSourceConfig:
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1
         )
-        assert params['query'].endswith(SOURCE_CONFIG_1.search.query)
+        assert SOURCE_CONFIG_1.search.query in params['query']
 
     def test_should_specify_format_json(self):
         params = get_request_params_for_source_config(
