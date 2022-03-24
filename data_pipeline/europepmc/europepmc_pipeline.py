@@ -98,9 +98,12 @@ def get_article_response_json_from_api(
         search_context,
         cursor=cursor
     )
+    LOGGER.info('requesting url: %r (%r)', url, params)
     request_timestamp = datetime.utcnow()
     response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
+    response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
+    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
     request_provenance = {
         **(provenance or {}),
         'api_url': url,
@@ -146,10 +149,14 @@ def iter_article_data(
             cursor=cursor,
             provenance=provenance
         )
-        cursor = get_next_cursor_from_response_json(response_json)
-        LOGGER.debug('response_json (next cursor: %r): %r', cursor, response_json)
+        next_cursor = get_next_cursor_from_response_json(response_json)
+        LOGGER.debug('response_json (next cursor: %r): %r', next_cursor, response_json)
         for data in iter_article_data_from_response_json(response_json):
             yield get_requested_fields_of_the_article_data(data, source_config.fields_to_return)
+        if next_cursor == cursor:
+            LOGGER.warning('ignoring next cursor, same as previous cursor: %r', next_cursor)
+            break
+        cursor = next_cursor
 
 
 def save_state_to_s3_for_config(

@@ -450,6 +450,42 @@ class TestIterArticleData:
             )
         ])
 
+    def test_should_ignore_next_cursor_if_same_as_previous_cursor(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        get_article_response_json_from_api_mock.side_effect = [
+            get_response_json_for_items([
+                ITEM_RESPONSE_JSON_1
+            ], provenance=PROVENANCE_1, nextCursorMark=CURSOR_1),
+            get_response_json_for_items([
+                ITEM_RESPONSE_JSON_2
+            ], provenance=PROVENANCE_1, nextCursorMark=CURSOR_1)
+        ]
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1,
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
+        ))
+        assert result == [
+            {**ITEM_RESPONSE_JSON_1, 'provenance': PROVENANCE_1},
+            {**ITEM_RESPONSE_JSON_2, 'provenance': PROVENANCE_1}
+        ]
+        get_article_response_json_from_api_mock.assert_has_calls([
+            call(
+                SOURCE_CONFIG_1,
+                SEARCH_CONTEXT_1,
+                cursor=DEFAULT_CURSOR,
+                provenance=PROVENANCE_1
+            ),
+            call(
+                SOURCE_CONFIG_1,
+                SEARCH_CONTEXT_1,
+                cursor=CURSOR_1,
+                provenance=PROVENANCE_1
+            )
+        ])
+
 
 class TestSaveStateToS3ForConfig:
     def test_should_pass_bucket_and_object_to_upload_s3_object(
