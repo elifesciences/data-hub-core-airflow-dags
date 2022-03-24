@@ -98,9 +98,12 @@ def get_article_response_json_from_api(
         search_context,
         cursor=cursor
     )
+    LOGGER.info('requesting url: %r (%r)', url, params)
     request_timestamp = datetime.utcnow()
     response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
+    response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
+    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
     request_provenance = {
         **(provenance or {}),
         'api_url': url,
