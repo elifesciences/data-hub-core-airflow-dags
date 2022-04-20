@@ -1,5 +1,6 @@
 import ftplib
 import logging
+import gzip
 import os
 from ftplib import FTP
 from tempfile import TemporaryDirectory
@@ -20,9 +21,6 @@ from data_pipeline.utils.data_store.bq_data_service import (
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-LINKS_XML_FTP_FILENAME = 'links.xml'
 
 
 class LabsLinkElementMakers:
@@ -61,6 +59,10 @@ def create_labslink_link_xml_node_for_doi(
     )
 
 
+def is_gzip_file_path(file_path: str) -> bool:
+    return file_path.endswith('.gz')
+
+
 def generate_labslink_links_xml_to_file_from_doi_list(
     file_path: str,
     doi_list: Sequence[str],
@@ -74,13 +76,16 @@ def generate_labslink_links_xml_to_file_from_doi_list(
         for doi in doi_list
     ])
     with open(file_path, 'wb') as xml_fp:
-        xml_fp.write(etree.tostring(
+        data = etree.tostring(
             xml_root,
             pretty_print=True,
             xml_declaration=True,
             encoding='UTF-8',
             standalone=True
-        ))
+        )
+        if is_gzip_file_path(file_path):
+            data = gzip.compress(data)
+        xml_fp.write(data)
 
 
 def get_connected_ftp_client(
@@ -130,7 +135,7 @@ def update_labslink_ftp(
     )
     LOGGER.info('uploading file')
     with open(source_xml_file_path, 'rb') as xml_fp:
-        ftp.storbinary(cmd=f'STOR {LINKS_XML_FTP_FILENAME}', fp=xml_fp)
+        ftp.storbinary(cmd=f'STOR {ftp_target_config.links_xml_filename}', fp=xml_fp)
 
 
 def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
@@ -141,7 +146,7 @@ def fetch_article_dois_from_bigquery_and_update_labslink_ftp(
     LOGGER.debug('article_dois: %r', article_dois)
 
     with TemporaryDirectory() as tmp_dir:
-        temp_file_path = os.path.join(tmp_dir, 'links.xml')
+        temp_file_path = os.path.join(tmp_dir, config.target.ftp.links_xml_filename)
 
         generate_labslink_links_xml_to_file_from_doi_list(
             file_path=temp_file_path,

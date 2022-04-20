@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from data_pipeline.europepmc.europepmc_labslink_config import (
+    DEFAULT_LINKS_XML_FTP_FILENAME,
     EuropePmcLabsLinkConfig
 )
 
@@ -22,6 +23,7 @@ SOURCE_CONFIG_DICT_1 = {
 
 PASSWORD_1 = 'password1'
 DIRECTORY_NAME_1 = 'directory name1'
+LINKS_XML_FILENAME_1 = 'links1.xml'
 
 FTP_PASSWORD_FILE_PATH_ENV_VAR = 'FTP_PASSWORD_FILE_PATH_ENV_VAR'
 FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR = 'FTP_DIRECTORY_NAME_FILE_PATH_ENV_VAR'
@@ -103,6 +105,20 @@ class TestEuropeLabsLinkPmcConfig:
         assert config.target.ftp.hostname == FTP_TARGET_CONFIG_DICT_1['hostname']
         assert config.target.ftp.port == FTP_TARGET_CONFIG_DICT_1['port']
         assert config.target.ftp.username == FTP_TARGET_CONFIG_DICT_1['username']
+
+    def test_should_use_default_ftp_links_xml_filename(self):
+        config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)
+        assert config.target.ftp.links_xml_filename == DEFAULT_LINKS_XML_FTP_FILENAME
+
+    def test_should_read_target_ftp_links_xml_filename(self):
+        config = EuropePmcLabsLinkConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'target': {'ftp': {
+                **FTP_TARGET_CONFIG_DICT_1,
+                'linksXmlFilename': LINKS_XML_FILENAME_1
+            }}
+        }))
+        assert config.target.ftp.links_xml_filename == LINKS_XML_FILENAME_1
 
     def test_should_set_target_ftp_create_target_directory_to_false_by_default(self):
         config = EuropePmcLabsLinkConfig.from_dict(CONFIG_DICT_1)

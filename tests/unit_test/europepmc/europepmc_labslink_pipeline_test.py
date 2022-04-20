@@ -1,5 +1,6 @@
 import ftplib
 import logging
+import gzip
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 
@@ -17,7 +18,6 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 )
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
-    LINKS_XML_FTP_FILENAME,
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
     fetch_article_dois_from_bigquery,
     generate_labslink_links_xml_to_file_from_doi_list,
@@ -51,7 +51,8 @@ FTP_TARGET_CONFIG_1 = FtpTargetConfig(
     port=123,
     username='user1',
     password='password1',
-    directory_name='dir1'
+    directory_name='dir1',
+    links_xml_filename='links1.xml'
 )
 
 TARGET_CONFIG_1 = EuropePmcLabsLinkTargetConfig(
@@ -114,6 +115,10 @@ def _update_labslink_ftp_mock() -> MagicMock:
         yield mock
 
 
+def _check_valid_xml_str(xml_str: bytes):
+    etree.fromstring(xml_str)
+
+
 class TestFetchArticleDoisFromBigQuery:
     def test_should_call_get_single_column_value_list_from_bq_query(
         self,
@@ -170,6 +175,15 @@ class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
         assert "encoding='UTF-8'" in first_line
         assert "standalone='yes'" in first_line
 
+    def test_should_gzip_compress_for_filenames_with_gz_extension(self, tmp_path: Path):
+        xml_path = tmp_path / 'links.xml.gz'
+        generate_labslink_links_xml_to_file_from_doi_list(
+            file_path=str(xml_path),
+            doi_list=DOI_LIST,
+            xml_config=XML_CONFIG_1
+        )
+        _check_valid_xml_str(gzip.decompress(xml_path.read_bytes()))
+
 
 class TestUpdateLabsLinkFtp:
     def test_should_upload_links_xml_file(
@@ -195,7 +209,7 @@ class TestUpdateLabsLinkFtp:
         )
         ftp_mock.cwd.assert_called_with(FTP_TARGET_CONFIG_1.directory_name)
         ftp_mock.storbinary.assert_called_with(
-            cmd=f'STOR {LINKS_XML_FTP_FILENAME}',
+            cmd=f'STOR {FTP_TARGET_CONFIG_1.links_xml_filename}',
             fp=ANY
         )
 
@@ -279,3 +293,14 @@ class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
             source_xml_file_path=expected_file_path,
             ftp_target_config=FTP_TARGET_CONFIG_1
         )
+
+    def test_should_pass_configured_links_xml_filename_to_generate_function(
+        self,
+        generate_labslink_links_xml_to_file_from_doi_list_mock: MagicMock
+    ):
+        fetch_article_dois_from_bigquery_and_update_labslink_ftp(
+            CONFIG_1
+        )
+        _args, kwargs = generate_labslink_links_xml_to_file_from_doi_list_mock.call_args
+        links_xml_file_path = kwargs['file_path']
+        assert links_xml_file_path.endswith(CONFIG_1.target.ftp.links_xml_filename)
