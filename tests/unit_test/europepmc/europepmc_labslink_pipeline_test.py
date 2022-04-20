@@ -17,7 +17,6 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 )
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
-    LINKS_XML_FTP_FILENAME,
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
     fetch_article_dois_from_bigquery,
     generate_labslink_links_xml_to_file_from_doi_list,
@@ -51,7 +50,8 @@ FTP_TARGET_CONFIG_1 = FtpTargetConfig(
     port=123,
     username='user1',
     password='password1',
-    directory_name='dir1'
+    directory_name='dir1',
+    links_xml_filename='links1.xml'
 )
 
 TARGET_CONFIG_1 = EuropePmcLabsLinkTargetConfig(
@@ -195,7 +195,7 @@ class TestUpdateLabsLinkFtp:
         )
         ftp_mock.cwd.assert_called_with(FTP_TARGET_CONFIG_1.directory_name)
         ftp_mock.storbinary.assert_called_with(
-            cmd=f'STOR {LINKS_XML_FTP_FILENAME}',
+            cmd=f'STOR {FTP_TARGET_CONFIG_1.links_xml_filename}',
             fp=ANY
         )
 

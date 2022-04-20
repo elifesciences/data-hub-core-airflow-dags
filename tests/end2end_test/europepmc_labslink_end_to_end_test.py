@@ -9,7 +9,6 @@ from dags.europepmc_labslink_data_export_pipeline import (
     get_pipeline_config
 )
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
-    LINKS_XML_FTP_FILENAME,
     change_or_create_ftp_directory,
     get_connected_ftp_client
 )
@@ -39,7 +38,7 @@ def test_dag_runs_and_uploads_file():
         directory_name=ftp_target_config.directory_name,
         create_directory=ftp_target_config.create_directory
     )
-    filename = LINKS_XML_FTP_FILENAME
+    filename = ftp_target_config.links_xml_filename
     try:
         LOGGER.info('deleting %r, if it exists', filename)
         ftp.delete(filename)
