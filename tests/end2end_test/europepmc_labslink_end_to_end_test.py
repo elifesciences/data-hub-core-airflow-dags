@@ -1,5 +1,6 @@
 import ftplib
 import logging
+import gzip
 from io import BytesIO
 
 from lxml import etree
@@ -10,7 +11,8 @@ from dags.europepmc_labslink_data_export_pipeline import (
 )
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     change_or_create_ftp_directory,
-    get_connected_ftp_client
+    get_connected_ftp_client,
+    is_gzip_file_path
 )
 
 from tests.end2end_test import (
@@ -52,6 +54,9 @@ def test_dag_runs_and_uploads_file():
     data = BytesIO()
     ftp.retrbinary(f'RETR {filename}', callback=data.write)
     xml_str = data.getvalue()
+    if is_gzip_file_path(filename):
+        LOGGER.info('gzip decompressing file: %d bytes', len(xml_str))
+        xml_str = gzip.decompress(xml_str)
     LOGGER.info('checking valid xml: %d bytes', len(xml_str))
     assert_valid_xml_str(xml_str)
     LOGGER.info('done')
