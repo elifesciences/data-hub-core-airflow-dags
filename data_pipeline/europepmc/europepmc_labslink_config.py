@@ -11,6 +11,9 @@ from data_pipeline.utils.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
+DEFAULT_LINKS_XML_FTP_FILENAME = 'links.xml'
+
+
 class BigQuerySourceConfig(NamedTuple):
     project_name: str
     sql_query: str
@@ -57,6 +60,7 @@ class FtpTargetConfig:
     password: str = field(repr=False)
     directory_name: str = field(repr=False)
     create_directory: bool = False
+    links_xml_filename: str = DEFAULT_LINKS_XML_FTP_FILENAME
 
     @staticmethod
     def from_dict(ftp_target_config_dict: dict) -> 'FtpTargetConfig':
@@ -69,7 +73,11 @@ class FtpTargetConfig:
             username=ftp_target_config_dict['username'],
             password=secrets['password'],
             directory_name=secrets['directoryName'],
-            create_directory=ftp_target_config_dict.get('createDirectory', False)
+            create_directory=ftp_target_config_dict.get('createDirectory', False),
+            links_xml_filename=ftp_target_config_dict.get(
+                'linksXmlFilename',
+                DEFAULT_LINKS_XML_FTP_FILENAME
+            )
         )
 
     def _replace(self, **changes) -> 'FtpTargetConfig':
