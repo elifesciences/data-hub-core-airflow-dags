@@ -4,9 +4,17 @@ from data_pipeline.semantic_scholar.semantic_scholar_config import (
 )
 
 
+API_URL_1 = 'https://api1'
+
+
 PROJECT_NAME_1 = 'project1'
 DATASET_NAME_1 = 'dataset1'
 TABLE_NAME_1 = 'table1'
+
+
+SOURCE_1 = {
+    'apiUrl': API_URL_1
+}
 
 
 TARGET_1 = {
@@ -17,6 +25,7 @@ TARGET_1 = {
 
 
 ITEM_CONFIG_DICT_1 = {
+    'source': SOURCE_1,
     'target': TARGET_1
 }
 
@@ -29,6 +38,10 @@ CONFIG_DICT_1 = get_config_for_item_config_dict(ITEM_CONFIG_DICT_1)
 
 
 class TestSemanticScholarConfig:
+    def test_should_read_api_url(self):
+        config = SemanticScholarConfig.from_dict(CONFIG_DICT_1)
+        assert config.source.api_url == API_URL_1
+
     def test_should_read_batch_size(self):
         config = SemanticScholarConfig.from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT_1,

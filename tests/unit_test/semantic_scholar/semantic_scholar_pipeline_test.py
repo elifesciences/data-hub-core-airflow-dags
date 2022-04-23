@@ -4,7 +4,10 @@ import pytest
 
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
 
-from data_pipeline.semantic_scholar.semantic_scholar_config import SemanticScholarConfig
+from data_pipeline.semantic_scholar.semantic_scholar_config import (
+    SemanticScholarConfig,
+    SemanticScholarSourceConfig
+)
 
 from data_pipeline.semantic_scholar import (
     semantic_scholar_pipeline as semantic_scholar_pipeline_module
@@ -23,6 +26,11 @@ ITEM_RESPONSE_JSON_1 = {
 }
 
 
+SOURCE_CONFIG_1 = SemanticScholarSourceConfig(
+    api_url='api1'
+)
+
+
 TARGET_CONFIG_1 = BigQueryTargetConfig(
     project_name='project1',
     dataset_name='dataset1',
@@ -31,6 +39,7 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
 
 
 CONFIG_1 = SemanticScholarConfig(
+    source=SOURCE_CONFIG_1,
     target=TARGET_CONFIG_1
 )
 
