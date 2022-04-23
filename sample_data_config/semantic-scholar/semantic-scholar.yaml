@@ -1,6 +1,6 @@
 semanticScholar:
   - dataPipelineId: semantic_scholar_data_pipeline_1
-    variables:
+    matrix:  # similar to ci matrix, currently supporting a single variable only
       doi:
         include:
           bigQuery:
