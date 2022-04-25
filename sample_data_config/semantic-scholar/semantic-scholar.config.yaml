@@ -5,6 +5,7 @@ semanticScholar:
         include:
           bigQuery:
             projectName: 'elife-data-pipeline'
+            # using "staging" dataset for end-to-end test as it will contain some data 
             sqlQuery: |-
               SELECT DISTINCT doi
               FROM `elife-data-pipeline.staging.europepmc_biorxiv_medrxiv_responses` AS response
