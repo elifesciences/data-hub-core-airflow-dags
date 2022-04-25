@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import google.cloud.exceptions
+
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import (
     fetch_single_column_value_list_for_bigquery_source_config,
@@ -73,6 +75,34 @@ class TestFetchSingleColumnValueListForBigQuerySourceConfig:
             BIGQUERY_SOURCE_CONFIG_1
         )
         assert actual_doi_list == get_single_column_value_list_from_bq_query_mock.return_value
+
+    def test_should_fail_if_not_found_exception_and_not_ignored(
+        self,
+        get_single_column_value_list_from_bq_query_mock: MagicMock
+    ):
+        get_single_column_value_list_from_bq_query_mock.side_effect = (
+            google.cloud.exceptions.NotFound('not found')
+        )
+        with pytest.raises(google.cloud.exceptions.NotFound):
+            fetch_single_column_value_list_for_bigquery_source_config(
+                BIGQUERY_SOURCE_CONFIG_1._replace(
+                    ignore_not_found=False
+                )
+            )
+
+    def test_should_return_empty_list_if_not_found_exception_and_ignored(
+        self,
+        get_single_column_value_list_from_bq_query_mock: MagicMock
+    ):
+        get_single_column_value_list_from_bq_query_mock.side_effect = (
+            google.cloud.exceptions.NotFound('not found')
+        )
+        result = fetch_single_column_value_list_for_bigquery_source_config(
+            BIGQUERY_SOURCE_CONFIG_1._replace(
+                ignore_not_found=True
+            )
+        )
+        assert result == []
 
 
 class TestGetResponseJsonWithProvenanceFromApi:

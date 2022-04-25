@@ -24,6 +24,7 @@ DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
 class BigQuerySourceConfig(NamedTuple):
     project_name: str
     sql_query: str
+    ignore_not_found: bool = False
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
