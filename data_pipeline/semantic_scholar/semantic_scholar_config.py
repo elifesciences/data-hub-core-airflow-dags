@@ -19,7 +19,7 @@ class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
 
 
 class SemanticScholarMatrixVariableConfig(NamedTuple):
-    include: BigQuerySourceConfig
+    include: SemanticScholarMatrixVariableSourceConfig
 
     @staticmethod
     def from_dict(matrix_variable_config_dict: dict) -> 'SemanticScholarMatrixVariableConfig':

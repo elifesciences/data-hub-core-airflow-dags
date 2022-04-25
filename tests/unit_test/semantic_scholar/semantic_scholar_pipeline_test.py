@@ -18,12 +18,16 @@ from data_pipeline.semantic_scholar import (
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
     fetch_article_by_doi,
     fetch_article_data_from_semantic_scholar_and_load_into_bigquery,
-    iter_article_data
+    fetch_article_dois_from_bigquery,
+    iter_article_data,
+    iter_doi_for_matrix_config
 )
 
 
 DOI_1 = 'doi1'
 DOI_2 = 'doi2'
+
+DOI_LIST = [DOI_1, DOI_2]
 
 ITEM_RESPONSE_JSON_1 = {
     'externalIds': {
@@ -32,16 +36,22 @@ ITEM_RESPONSE_JSON_1 = {
 }
 
 
+BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
+    project_name='project1',
+    sql_query='query1'
+)
+
+
+DOI_MATRIX_VARIABLE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
+    include=SemanticScholarMatrixVariableSourceConfig(
+        bigquery=BIGQUERY_SOURCE_CONFIG_1
+    )
+)
+
+
 MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
     variables={
-        'doi': SemanticScholarMatrixVariableConfig(
-            include=SemanticScholarMatrixVariableSourceConfig(
-                bigquery=BigQuerySourceConfig(
-                    project_name='project1',
-                    sql_query='query1'
-                )
-            )
-        )
+        'doi': DOI_MATRIX_VARIABLE_CONFIG_1
     }
 )
 
@@ -65,12 +75,27 @@ CONFIG_1 = SemanticScholarConfig(
 )
 
 
+@pytest.fixture(name='get_single_column_value_list_from_bq_query_mock', autouse=True)
+def _get_single_column_value_list_from_bq_query_mock():
+    with patch.object(
+        semantic_scholar_pipeline_module,
+        'get_single_column_value_list_from_bq_query'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         semantic_scholar_pipeline_module,
         'load_given_json_list_data_from_tempdir_to_bq'
     ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='fetch_article_dois_from_bigquery_mock')
+def _fetch_article_dois_from_bigquery_mock():
+    with patch.object(semantic_scholar_pipeline_module, 'fetch_article_dois_from_bigquery') as mock:
         yield mock
 
 
@@ -84,6 +109,37 @@ def _iter_doi_for_matrix_config_mock():
 def _iter_article_data_mock():
     with patch.object(semantic_scholar_pipeline_module, 'iter_article_data') as mock:
         yield mock
+
+
+class TestFetchArticleDoisFromBigQuery:
+    def test_should_call_get_single_column_value_list_from_bq_query(
+        self,
+        get_single_column_value_list_from_bq_query_mock: MagicMock
+    ):
+        fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
+        get_single_column_value_list_from_bq_query_mock.assert_called_with(
+            project_name=BIGQUERY_SOURCE_CONFIG_1.project_name,
+            query=BIGQUERY_SOURCE_CONFIG_1.sql_query
+        )
+
+    def test_should_return_doi_list_from_bq_query(
+        self,
+        get_single_column_value_list_from_bq_query_mock: MagicMock
+    ):
+        get_single_column_value_list_from_bq_query_mock.return_value = DOI_LIST
+        actual_doi_list = fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
+        assert actual_doi_list == DOI_LIST
+
+
+class TestIterDoiForMatrixConfig:
+    def test_should_call_get_single_column_value_list_from_bq_query(
+        self,
+        fetch_article_dois_from_bigquery_mock: MagicMock
+    ):
+        iter_doi_for_matrix_config(MATRIX_CONFIG_1)
+        fetch_article_dois_from_bigquery_mock.assert_called_with(
+            DOI_MATRIX_VARIABLE_CONFIG_1.include.bigquery
+        )
 
 
 class TestIterArticleData:
@@ -104,6 +160,9 @@ class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
         iter_article_data_mock.return_value = json_list
         fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
             CONFIG_1
+        )
+        iter_doi_for_matrix_config_mock.assert_called_with(
+            MATRIX_CONFIG_1
         )
         doi_iterable = iter_doi_for_matrix_config_mock.return_value
         iter_article_data_mock.assert_called_with(doi_iterable)
