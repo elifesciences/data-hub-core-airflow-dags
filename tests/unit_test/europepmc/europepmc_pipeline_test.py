@@ -132,9 +132,12 @@ def _download_s3_object_as_string_or_file_not_found_error_mock():
         yield mock
 
 
-@pytest.fixture(name='requests_mock', autouse=True)
-def _requests_mock():
-    with patch.object(europepmc_pipeline_module, 'requests') as mock:
+@pytest.fixture(name='get_response_json_with_provenance_from_api_mock', autouse=True)
+def _get_response_json_with_provenance_from_api_mock():
+    with patch.object(
+        europepmc_pipeline_module,
+        'get_response_json_with_provenance_from_api'
+    ) as mock:
         yield mock
 
 
@@ -273,68 +276,32 @@ class TestGetRequestParamsForSourceConfig:
 class TestGetArticleResponseJsonFromApi:
     def test_should_pass_url_and_params_to_requests_get(
         self,
-        requests_mock: MagicMock
+        get_response_json_with_provenance_from_api_mock: MagicMock
     ):
         get_article_response_json_from_api(
             SOURCE_CONFIG_1,
-            SEARCH_CONTEXT_1
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
         )
-        requests_mock.get.assert_called_with(
+        get_response_json_with_provenance_from_api_mock.assert_called_with(
             API_URL_1,
             params=get_request_params_for_source_config(
                 SOURCE_CONFIG_1,
                 SEARCH_CONTEXT_1
-            )
+            ),
+            provenance=PROVENANCE_1
         )
 
     def test_should_return_response_json(
         self,
-        requests_mock: MagicMock
+        get_response_json_with_provenance_from_api_mock: MagicMock
     ):
-        response_mock = requests_mock.get.return_value
-        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        get_response_json_with_provenance_from_api_mock.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         actual_response_json = get_article_response_json_from_api(
             SOURCE_CONFIG_1,
             SEARCH_CONTEXT_1
         )
-        actual_response_without_provenance_json = {
-            key: value
-            for key, value in actual_response_json.items()
-            if key != 'provenance'
-        }
-        assert actual_response_without_provenance_json == SINGLE_ITEM_RESPONSE_JSON_1
-
-    def test_should_include_provenance(
-        self,
-        requests_mock: MagicMock
-    ):
-        response_mock = requests_mock.get.return_value
-        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        response_mock.status_code = 200
-        actual_response_json = get_article_response_json_from_api(
-            SOURCE_CONFIG_1,
-            SEARCH_CONTEXT_1
-        )
-        provenance_json = actual_response_json['provenance']
-        assert provenance_json['api_url'] == SOURCE_CONFIG_1.api_url
-        assert provenance_json['request_url'] == response_mock.url
-        assert provenance_json['http_status'] == 200
-
-    def test_should_extend_provenance(
-        self,
-        requests_mock: MagicMock
-    ):
-        response_mock = requests_mock.get.return_value
-        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        passed_in_provenance = {'imported_timestamp': MOCK_UTC_NOW_STR}
-        actual_response_json = get_article_response_json_from_api(
-            SOURCE_CONFIG_1,
-            SEARCH_CONTEXT_1,
-            provenance=passed_in_provenance
-        )
-        provenance_json = actual_response_json['provenance']
-        assert provenance_json['api_url'] == SOURCE_CONFIG_1.api_url
-        assert provenance_json['imported_timestamp'] == MOCK_UTC_NOW_STR
+        assert actual_response_json == SINGLE_ITEM_RESPONSE_JSON_1
 
 
 class TestIterArticleData:

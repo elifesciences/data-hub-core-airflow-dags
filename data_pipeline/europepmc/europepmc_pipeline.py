@@ -1,9 +1,6 @@
 import logging
 from datetime import date, datetime, timedelta
-from json.decoder import JSONDecodeError
 from typing import Iterable, NamedTuple, Optional, Sequence
-
-import requests
 
 from data_pipeline.europepmc.europepmc_config import (
     EuropePmcConfig,
@@ -18,6 +15,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
+from data_pipeline.utils.pipeline_utils import get_response_json_with_provenance_from_api
 
 
 LOGGER = logging.getLogger(__name__)
@@ -77,15 +75,6 @@ def get_request_params_for_source_config(
     }
 
 
-def get_valid_json_from_response(response: requests.Response) -> dict:
-    try:
-        response.raise_for_status()
-        return response.json()
-    except JSONDecodeError:
-        LOGGER.warning('failed to decode json: %r', response.text)
-        raise
-
-
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext,
@@ -98,25 +87,11 @@ def get_article_response_json_from_api(
         search_context,
         cursor=cursor
     )
-    LOGGER.info('requesting url: %r (%r)', url, params)
-    request_timestamp = datetime.utcnow()
-    response = requests.get(url, params=params)
-    response_timestamp = datetime.utcnow()
-    response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
-    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
-    request_provenance = {
-        **(provenance or {}),
-        'api_url': url,
-        'request_url': response.url,
-        'request_params': [{'name': key, 'value': value} for key, value in params.items()],
-        'http_status': response.status_code,
-        'request_timestamp': request_timestamp.isoformat(),
-        'response_timestamp': response_timestamp.isoformat()
-    }
-    return {
-        **get_valid_json_from_response(response),
-        'provenance': request_provenance
-    }
+    return get_response_json_with_provenance_from_api(
+        url,
+        params=params,
+        provenance=provenance
+    )
 
 
 def get_requested_fields_of_the_article_data(
