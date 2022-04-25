@@ -11,8 +11,12 @@ from data_pipeline.utils.data_store.bq_data_service import (
 LOGGER = logging.getLogger(__name__)
 
 
-def iter_article_data() -> Iterable[dict]:
-    return []
+def fetch_article_by_doi(doi: str) -> dict:
+    return {'doi': doi}
+
+
+def iter_article_data(doi_iterable: Iterable[str]) -> Iterable[dict]:
+    return map(fetch_article_by_doi, doi_iterable)
 
 
 def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
@@ -20,7 +24,8 @@ def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
 ):
     LOGGER.info('config: %r', config)
     batch_size = config.batch_size
-    data_iterable = iter_article_data()
+    doi_iterable = []
+    data_iterable = iter_article_data(doi_iterable)
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)

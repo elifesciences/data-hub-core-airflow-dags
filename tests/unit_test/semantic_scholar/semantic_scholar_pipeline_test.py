@@ -13,11 +13,14 @@ from data_pipeline.semantic_scholar import (
     semantic_scholar_pipeline as semantic_scholar_pipeline_module
 )
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
-    fetch_article_data_from_semantic_scholar_and_load_into_bigquery
+    fetch_article_by_doi,
+    fetch_article_data_from_semantic_scholar_and_load_into_bigquery,
+    iter_article_data
 )
 
 
 DOI_1 = 'doi1'
+DOI_2 = 'doi2'
 
 ITEM_RESPONSE_JSON_1 = {
     'externalIds': {
@@ -57,6 +60,14 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
 def _iter_article_data_mock():
     with patch.object(semantic_scholar_pipeline_module, 'iter_article_data') as mock:
         yield mock
+
+
+class TestIterArticleData:
+    def test_should_call_fetch_article_by_doi_with_doi(
+        self
+    ):
+        result = list(iter_article_data([DOI_1, DOI_2]))
+        assert result == [fetch_article_by_doi(DOI_1), fetch_article_by_doi(DOI_2)]
 
 
 class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
