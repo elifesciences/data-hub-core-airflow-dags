@@ -19,7 +19,6 @@ from data_pipeline.europepmc.europepmc_labslink_config import (
 import data_pipeline.europepmc.europepmc_labslink_pipeline as europepmc_labslink_pipeline_module
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     fetch_article_dois_from_bigquery_and_update_labslink_ftp,
-    fetch_article_dois_from_bigquery,
     generate_labslink_links_xml_to_file_from_doi_list,
     update_labslink_ftp,
 )
@@ -79,20 +78,11 @@ def _ftp_mock(ftp_class_mock: MagicMock) -> MagicMock:
     return ftp_class_mock.return_value
 
 
-@pytest.fixture(name='get_single_column_value_list_from_bq_query_mock', autouse=True)
-def _get_single_column_value_list_from_bq_query_mock() -> MagicMock:
+@pytest.fixture(name='fetch_single_column_value_list_for_bigquery_source_config_mock', autouse=True)
+def _fetch_single_column_value_list_for_bigquery_source_config_mock() -> MagicMock:
     with patch.object(
         europepmc_labslink_pipeline_module,
-        'get_single_column_value_list_from_bq_query'
-    ) as mock:
-        yield mock
-
-
-@pytest.fixture(name='fetch_article_dois_from_bigquery_mock')
-def _fetch_article_dois_from_bigquery_mock() -> MagicMock:
-    with patch.object(
-        europepmc_labslink_pipeline_module,
-        'fetch_article_dois_from_bigquery'
+        'fetch_single_column_value_list_for_bigquery_source_config'
     ) as mock:
         yield mock
 
@@ -117,26 +107,6 @@ def _update_labslink_ftp_mock() -> MagicMock:
 
 def _check_valid_xml_str(xml_str: bytes):
     etree.fromstring(xml_str)
-
-
-class TestFetchArticleDoisFromBigQuery:
-    def test_should_call_get_single_column_value_list_from_bq_query(
-        self,
-        get_single_column_value_list_from_bq_query_mock: MagicMock
-    ):
-        fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
-        get_single_column_value_list_from_bq_query_mock.assert_called_with(
-            project_name=PROJECT_NAME_1,
-            query=SQL_QUERY_1
-        )
-
-    def test_should_return_doi_list_from_bq_query(
-        self,
-        get_single_column_value_list_from_bq_query_mock: MagicMock
-    ):
-        get_single_column_value_list_from_bq_query_mock.return_value = DOI_LIST
-        actual_doi_list = fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
-        assert actual_doi_list == DOI_LIST
 
 
 class TestGenerateLabsLinkLinksXmlToFileFromDoiList:
@@ -255,21 +225,21 @@ class TestUpdateLabsLinkFtp:
 class TestFetchArticleDoisFromBigQueryAndUpdateLabsLinkFtp:
     def test_should_call_fetch_article_dois_from_bigquery(
         self,
-        fetch_article_dois_from_bigquery_mock: MagicMock
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
     ):
         fetch_article_dois_from_bigquery_and_update_labslink_ftp(
             CONFIG_1
         )
-        fetch_article_dois_from_bigquery_mock.assert_called_with(
+        fetch_single_column_value_list_for_bigquery_source_config_mock.assert_called_with(
             BIGQUERY_SOURCE_CONFIG_1
         )
 
     def test_should_pass_doi_list_to_generate_labslink_links_xml_to_file_from_doi_list(
         self,
         generate_labslink_links_xml_to_file_from_doi_list_mock: MagicMock,
-        fetch_article_dois_from_bigquery_mock: MagicMock
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
     ):
-        fetch_article_dois_from_bigquery_mock.return_value = DOI_LIST
+        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = DOI_LIST
         fetch_article_dois_from_bigquery_and_update_labslink_ftp(
             CONFIG_1
         )
