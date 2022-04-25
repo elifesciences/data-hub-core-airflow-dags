@@ -1,9 +1,60 @@
-from typing import NamedTuple
+from typing import Mapping, NamedTuple
 
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
 
 
 DEFAULT_BATCH_SIZE = 1000
+
+
+class BigQuerySourceConfig(NamedTuple):
+    project_name: str
+    sql_query: str
+
+    @staticmethod
+    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
+        return BigQuerySourceConfig(
+            project_name=source_config_dict['projectName'],
+            sql_query=source_config_dict['sqlQuery']
+        )
+
+
+class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
+    bigquery: BigQuerySourceConfig
+
+    @staticmethod
+    def from_dict(source_config_dict: dict) -> 'SemanticScholarMatrixVariableSourceConfig':
+        return SemanticScholarMatrixVariableSourceConfig(
+            bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict['bigQuery']
+            )
+        )
+
+
+class SemanticScholarMatrixVariableConfig(NamedTuple):
+    include: BigQuerySourceConfig
+
+    @staticmethod
+    def from_dict(matrix_variable_config_dict: dict) -> 'SemanticScholarMatrixVariableConfig':
+        return SemanticScholarMatrixVariableConfig(
+            include=SemanticScholarMatrixVariableSourceConfig.from_dict(
+                matrix_variable_config_dict['include']
+            )
+        )
+
+
+class SemanticScholarMatrixConfig(NamedTuple):
+    variables: Mapping[str, SemanticScholarMatrixVariableConfig]
+
+    @staticmethod
+    def from_dict(matrix_config_dict: dict) -> 'SemanticScholarMatrixConfig':
+        return SemanticScholarMatrixConfig(
+            variables={
+                name: SemanticScholarMatrixVariableConfig.from_dict(
+                    matrix_variable_config_dict
+                )
+                for name, matrix_variable_config_dict in matrix_config_dict.items()
+            }
+        )
 
 
 class SemanticScholarSourceConfig(NamedTuple):
@@ -17,6 +68,7 @@ class SemanticScholarSourceConfig(NamedTuple):
 
 
 class SemanticScholarConfig(NamedTuple):
+    matrix: SemanticScholarMatrixConfig
     source: SemanticScholarSourceConfig
     target: BigQueryTargetConfig
     batch_size: int = DEFAULT_BATCH_SIZE
@@ -24,6 +76,9 @@ class SemanticScholarConfig(NamedTuple):
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'SemanticScholarConfig':
         return SemanticScholarConfig(
+            matrix=SemanticScholarMatrixConfig.from_dict(
+                item_config_dict['matrix']
+            ),
             source=SemanticScholarSourceConfig.from_dict(
                 item_config_dict['source']
             ),

@@ -12,6 +12,18 @@ DATASET_NAME_1 = 'dataset1'
 TABLE_NAME_1 = 'table1'
 
 
+MATRIX_1 = {
+    'doi': {
+        'include': {
+            'bigQuery': {
+                'projectName': PROJECT_NAME_1,
+                'sqlQuery': 'query1'
+            }
+        }
+    }
+}
+
+
 SOURCE_1 = {
     'apiUrl': API_URL_1
 }
@@ -25,6 +37,7 @@ TARGET_1 = {
 
 
 ITEM_CONFIG_DICT_1 = {
+    'matrix': MATRIX_1,
     'source': SOURCE_1,
     'target': TARGET_1
 }
@@ -61,3 +74,12 @@ class TestSemanticScholarConfig:
         assert config.target.project_name == PROJECT_NAME_1
         assert config.target.dataset_name == DATASET_NAME_1
         assert config.target.table_name == TABLE_NAME_1
+
+    def test_should_read_matrix_variables(self):
+        config = SemanticScholarConfig.from_dict(CONFIG_DICT_1)
+        assert config.matrix.variables.keys() == {'doi'}
+        variable_config = list(config.matrix.variables.values())[0]
+        assert variable_config.include.bigquery.project_name == PROJECT_NAME_1
+        assert variable_config.include.bigquery.sql_query == (
+            MATRIX_1['doi']['include']['bigQuery']['sqlQuery']
+        )
