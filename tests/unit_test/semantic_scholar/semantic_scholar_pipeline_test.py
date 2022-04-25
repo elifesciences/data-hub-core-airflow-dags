@@ -16,8 +16,9 @@ from data_pipeline.semantic_scholar import (
     semantic_scholar_pipeline as semantic_scholar_pipeline_module
 )
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
-    fetch_article_by_doi,
+    get_article_response_json_from_api,
     fetch_article_data_from_semantic_scholar_and_load_into_bigquery,
+    get_resolved_api_url,
     iter_article_data,
     iter_doi_for_matrix_config
 )
@@ -56,7 +57,7 @@ MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
 
 
 SOURCE_CONFIG_1 = SemanticScholarSourceConfig(
-    api_url='api1'
+    api_url='/api1/{doi}'
 )
 
 
@@ -92,9 +93,27 @@ def _fetch_single_column_value_list_for_bigquery_source_config_mock():
         yield mock
 
 
+@pytest.fixture(name='get_response_json_with_provenance_from_api_mock', autouse=True)
+def _get_response_json_with_provenance_from_api_mock():
+    with patch.object(
+        semantic_scholar_pipeline_module,
+        'get_response_json_with_provenance_from_api'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_doi_for_matrix_config_mock')
 def _iter_doi_for_matrix_config_mock():
     with patch.object(semantic_scholar_pipeline_module, 'iter_doi_for_matrix_config') as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_article_response_json_from_api_mock')
+def _get_article_response_json_from_api_mock():
+    with patch.object(
+        semantic_scholar_pipeline_module,
+        'get_article_response_json_from_api'
+    ) as mock:
         yield mock
 
 
@@ -115,12 +134,41 @@ class TestIterDoiForMatrixConfig:
         )
 
 
+class TestGetResolvedApiUrl:
+    def test_should_replace_doi_placeholder(self):
+        assert get_resolved_api_url('/api/{doi}', doi=DOI_1) == f'/api/{DOI_1}'
+
+
+class TestGetArticleResponseJsonFromApi:
+    def test_should_pass_resolved_api_url_to_get_response_json_with_provenance_from_api(
+        self,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        get_article_response_json_from_api(
+            DOI_1,
+            source_config=SOURCE_CONFIG_1,
+            provenance=None
+        )
+        get_response_json_with_provenance_from_api_mock.assert_called_with(
+            get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
+            provenance=None
+        )
+
+
 class TestIterArticleData:
     def test_should_call_fetch_article_by_doi_with_doi(
-        self
+        self,
+        get_article_response_json_from_api_mock: MagicMock
     ):
-        result = list(iter_article_data([DOI_1, DOI_2]))
-        assert result == [fetch_article_by_doi(DOI_1), fetch_article_by_doi(DOI_2)]
+        result = list(iter_article_data(
+            [DOI_1],
+            source_config=SOURCE_CONFIG_1
+        ))
+        assert result == [get_article_response_json_from_api_mock.return_value]
+        get_article_response_json_from_api_mock.assert_called_with(
+            DOI_1,
+            source_config=SOURCE_CONFIG_1
+        )
 
 
 class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
@@ -138,7 +186,10 @@ class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
             MATRIX_CONFIG_1
         )
         doi_iterable = iter_doi_for_matrix_config_mock.return_value
-        iter_article_data_mock.assert_called_with(doi_iterable)
+        iter_article_data_mock.assert_called_with(
+            doi_iterable,
+            source_config=SOURCE_CONFIG_1
+        )
 
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,

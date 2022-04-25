@@ -1,5 +1,9 @@
 import logging
-from typing import Sequence
+from datetime import datetime
+from json.decoder import JSONDecodeError
+from typing import Mapping, Optional, Sequence
+
+import requests
 
 from data_pipeline.utils.data_store.bq_data_service import (
     get_single_column_value_list_from_bq_query
@@ -23,3 +27,41 @@ def fetch_single_column_value_list_for_bigquery_source_config(
     LOGGER.debug('doi_list: %r', doi_list)
     LOGGER.info('length of doi_list: %r', len(doi_list))
     return doi_list
+
+
+def get_valid_json_from_response(response: requests.Response) -> dict:
+    try:
+        response.raise_for_status()
+        return response.json()
+    except JSONDecodeError:
+        LOGGER.warning('failed to decode json: %r', response.text)
+        raise
+
+
+def get_response_json_with_provenance_from_api(
+    url: str,
+    params: Mapping[str, str] = None,
+    provenance: Optional[dict] = None
+) -> dict:
+    LOGGER.info('requesting url: %r (%r)', url, params)
+    request_timestamp = datetime.utcnow()
+    response = requests.get(url, params=params)
+    response_timestamp = datetime.utcnow()
+    response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
+    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
+    request_provenance = {
+        **(provenance or {}),
+        'api_url': url,
+        'request_url': response.url,
+        'http_status': response.status_code,
+        'request_timestamp': request_timestamp.isoformat(),
+        'response_timestamp': response_timestamp.isoformat()
+    }
+    if params:
+        request_provenance['request_params'] = [
+            {'name': key, 'value': value} for key, value in params.items()
+        ]
+    return {
+        **get_valid_json_from_response(response),
+        'provenance': request_provenance
+    }
