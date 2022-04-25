@@ -22,9 +22,28 @@ LOGGER = logging.getLogger(__name__)
 
 
 def iter_doi_for_matrix_config(matrix_config: SemanticScholarMatrixConfig) -> Iterable[str]:
-    return fetch_single_column_value_list_for_bigquery_source_config(
-        matrix_config.variables['doi'].include.bigquery
+    variable_config = matrix_config.variables['doi']
+    include_list = fetch_single_column_value_list_for_bigquery_source_config(
+        variable_config.include.bigquery
     )
+    if not include_list:
+        LOGGER.info('empty include list')
+        return include_list
+    if not variable_config.exclude:
+        LOGGER.info('found %d include item (no exclude config)', len(include_list))
+        return include_list
+    exclude_list = fetch_single_column_value_list_for_bigquery_source_config(
+        variable_config.exclude.bigquery
+    )
+    if not exclude_list:
+        LOGGER.info('found %d include item (empty exclude list)', len(include_list))
+        return include_list
+    result = sorted(set(include_list) - set(exclude_list))
+    LOGGER.info(
+        'found %d items (include:%d, exclude:%d)',
+        len(result), len(include_list), len(exclude_list)
+    )
+    return result
 
 
 def get_resolved_api_url(api_url: str, **kwargs) -> str:

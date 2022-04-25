@@ -45,9 +45,25 @@ BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
 )
 
 
+BIGQUERY_SOURCE_CONFIG_2 = BigQuerySourceConfig(
+    project_name='project2',
+    sql_query='query2'
+)
+
+
 DOI_MATRIX_VARIABLE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
     include=SemanticScholarMatrixVariableSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_1
+    )
+)
+
+
+DOI_MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
+    include=SemanticScholarMatrixVariableSourceConfig(
+        bigquery=BIGQUERY_SOURCE_CONFIG_1
+    ),
+    exclude=SemanticScholarMatrixVariableSourceConfig(
+        bigquery=BIGQUERY_SOURCE_CONFIG_2
     )
 )
 
@@ -146,6 +162,29 @@ class TestIterDoiForMatrixConfig:
         fetch_single_column_value_list_for_bigquery_source_config_mock.assert_called_with(
             DOI_MATRIX_VARIABLE_CONFIG_1.include.bigquery
         )
+
+    def test_should_return_include_list(
+        self,
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
+    ):
+        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = DOI_LIST
+        result = list(iter_doi_for_matrix_config(MATRIX_CONFIG_1))
+        assert result == DOI_LIST
+
+    def test_should_remove_excluded_values_from_list(
+        self,
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
+    ):
+        fetch_single_column_value_list_for_bigquery_source_config_mock.side_effect = [
+            [DOI_1, DOI_2],  # include
+            [DOI_1]  # exclude
+        ]
+        result = iter_doi_for_matrix_config(MATRIX_CONFIG_1._replace(
+            variables={
+                'doi': DOI_MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1
+            }
+        ))
+        assert result == [DOI_2]
 
 
 class TestGetResolvedApiUrl:

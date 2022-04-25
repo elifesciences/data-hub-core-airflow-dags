@@ -1,4 +1,4 @@
-from typing import Mapping, NamedTuple
+from typing import Mapping, NamedTuple, Optional
 
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, BigQueryTargetConfig
 
@@ -20,13 +20,20 @@ class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
 
 class SemanticScholarMatrixVariableConfig(NamedTuple):
     include: SemanticScholarMatrixVariableSourceConfig
+    exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
 
     @staticmethod
     def from_dict(matrix_variable_config_dict: dict) -> 'SemanticScholarMatrixVariableConfig':
+        exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
+        if matrix_variable_config_dict.get('exclude'):
+            exclude = SemanticScholarMatrixVariableSourceConfig.from_dict(
+                matrix_variable_config_dict['exclude']
+            )
         return SemanticScholarMatrixVariableConfig(
             include=SemanticScholarMatrixVariableSourceConfig.from_dict(
                 matrix_variable_config_dict['include']
-            )
+            ),
+            exclude=exclude
         )
 
 

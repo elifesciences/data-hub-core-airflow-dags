@@ -86,11 +86,49 @@ class TestSemanticScholarConfig:
         assert config.target.dataset_name == DATASET_NAME_1
         assert config.target.table_name == TABLE_NAME_1
 
-    def test_should_read_matrix_variables(self):
+    def test_should_read_matrix_variables_without_exclude(self):
         config = SemanticScholarConfig.from_dict(CONFIG_DICT_1)
         assert config.matrix.variables.keys() == {'doi'}
         variable_config = list(config.matrix.variables.values())[0]
         assert variable_config.include.bigquery.project_name == PROJECT_NAME_1
         assert variable_config.include.bigquery.sql_query == (
             MATRIX_1['doi']['include']['bigQuery']['sqlQuery']
+        )
+        assert not variable_config.exclude
+
+    def test_should_read_matrix_variables_with_exclude(self):
+        matrix_config_dict = {
+            'doi': {
+                'include': MATRIX_1['doi']['include'],
+                'exclude': {
+                    'bigQuery': {
+                        'projectName': PROJECT_NAME_1,
+                        'sqlQuery': 'query2'
+                    }
+                }
+            }
+        }
+        config = SemanticScholarConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'matrix': {
+                'doi': {
+                    'include': MATRIX_1['doi']['include'],
+                    'exclude': {
+                        'bigQuery': {
+                            'projectName': PROJECT_NAME_1,
+                            'sqlQuery': 'query2'
+                        }
+                    }
+                }
+            }
+        }))
+        assert config.matrix.variables.keys() == {'doi'}
+        variable_config = list(config.matrix.variables.values())[0]
+        assert variable_config.include.bigquery.project_name == PROJECT_NAME_1
+        assert variable_config.include.bigquery.sql_query == (
+            matrix_config_dict['doi']['include']['bigQuery']['sqlQuery']
+        )
+        assert variable_config.exclude.bigquery.project_name == PROJECT_NAME_1
+        assert variable_config.exclude.bigquery.sql_query == (
+            matrix_config_dict['doi']['exclude']['bigQuery']['sqlQuery']
         )
