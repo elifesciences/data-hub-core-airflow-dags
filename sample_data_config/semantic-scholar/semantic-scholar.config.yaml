@@ -18,6 +18,7 @@ semanticScholar:
               SELECT externalIds.DOI
               FROM `elife-data-pipeline.{ENV}.test_semantic_scholar_responses_v1` AS response
               WHERE externalIds.DOI IS NOT NULL
+                  AND provenance.http_status = 200
     source:
       apiUrl: 'https://api.semanticscholar.org/graph/v1/paper/{doi}'
       params:
