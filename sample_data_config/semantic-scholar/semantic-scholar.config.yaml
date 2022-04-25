@@ -9,7 +9,7 @@ semanticScholar:
               SELECT DISTINCT doi
               FROM `elife-data-pipeline.staging.europepmc_biorxiv_medrxiv_responses` AS response
               WHERE doi IS NOT NULL
-              LIMIT 10
+              LIMIT 3
         exclude:
           bigQuery:
             ignoreNotFound: true
