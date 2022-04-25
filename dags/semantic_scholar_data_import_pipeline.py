@@ -46,7 +46,9 @@ SEMANTIC_SCHOLAR_DAG = create_dag(
     schedule_interval=get_environment_variable_value(
         SemanticScholarPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
-    )
+    ),
+    concurrency=1,
+    max_active_runs=1
 )
 
 create_python_task(
