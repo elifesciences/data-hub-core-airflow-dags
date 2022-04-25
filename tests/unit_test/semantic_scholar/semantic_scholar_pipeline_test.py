@@ -74,6 +74,12 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
+@pytest.fixture(name='iter_doi_for_matrix_config_mock')
+def _iter_doi_for_matrix_config_mock():
+    with patch.object(semantic_scholar_pipeline_module, 'iter_doi_for_matrix_config') as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_article_data_mock')
 def _iter_article_data_mock():
     with patch.object(semantic_scholar_pipeline_module, 'iter_article_data') as mock:
@@ -89,6 +95,19 @@ class TestIterArticleData:
 
 
 class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
+    def test_should_pass_iter_doi_result_to_iter_article_data(
+        self,
+        iter_doi_for_matrix_config_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        json_list = [ITEM_RESPONSE_JSON_1]
+        iter_article_data_mock.return_value = json_list
+        fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
+            CONFIG_1
+        )
+        doi_iterable = iter_doi_for_matrix_config_mock.return_value
+        iter_article_data_mock.assert_called_with(doi_iterable)
+
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
         iter_article_data_mock: MagicMock,
