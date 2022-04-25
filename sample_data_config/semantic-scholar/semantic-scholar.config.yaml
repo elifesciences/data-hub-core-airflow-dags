@@ -14,7 +14,7 @@ semanticScholar:
           bigQuery:
             ignoreNotFound: true
             projectName: 'elife-data-pipeline'
-            sqlQueryTemplate: |-
+            sqlQuery: |-
               SELECT externalIds.DOI
               FROM `elife-data-pipeline.{ENV}.test_semantic_scholar_responses_v1` AS response
               WHERE externalIds.DOI IS NOT NULL
