@@ -30,7 +30,8 @@ class BigQuerySourceConfig(NamedTuple):
     def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
         return BigQuerySourceConfig(
             project_name=source_config_dict['projectName'],
-            sql_query=source_config_dict['sqlQuery']
+            sql_query=source_config_dict['sqlQuery'],
+            ignore_not_found=source_config_dict.get('ignoreNotFound', False)
         )
 
 
