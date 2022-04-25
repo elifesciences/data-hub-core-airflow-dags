@@ -1,6 +1,7 @@
 import logging
+from datetime import datetime
 from functools import partial
-from typing import Iterable, Optional
+from typing import Iterable, Mapping, Optional
 
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -39,7 +40,7 @@ def get_request_params_for_source_config(
 def get_article_response_json_from_api(
     doi: str,
     source_config: SemanticScholarSourceConfig,
-    provenance: Optional[dict] = None
+    provenance: Optional[Mapping[str, str]] = None
 ) -> dict:
     url = get_resolved_api_url(
         source_config.api_url,
@@ -56,11 +57,13 @@ def get_article_response_json_from_api(
 
 def iter_article_data(
     doi_iterable: Iterable[str],
-    source_config: SemanticScholarSourceConfig
+    source_config: SemanticScholarSourceConfig,
+    provenance: Optional[Mapping[str, str]] = None
 ) -> Iterable[dict]:
     fetch_article_by_doi = partial(
         get_article_response_json_from_api,
-        source_config=source_config
+        source_config=source_config,
+        provenance=provenance
     )
     return map(fetch_article_by_doi, doi_iterable)
 
@@ -70,10 +73,12 @@ def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
 ):
     LOGGER.info('config: %r', config)
     batch_size = config.batch_size
+    provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     doi_iterable = iter_doi_for_matrix_config(config.matrix)
     data_iterable = iter_article_data(
         doi_iterable,
-        source_config=config.source
+        source_config=config.source,
+        provenance=provenance
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)

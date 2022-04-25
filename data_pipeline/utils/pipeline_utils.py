@@ -41,7 +41,7 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 def get_response_json_with_provenance_from_api(
     url: str,
     params: Mapping[str, str] = None,
-    provenance: Optional[dict] = None
+    provenance: Optional[Mapping[str, str]] = None
 ) -> dict:
     LOGGER.info('requesting url: %r (%r)', url, params)
     request_timestamp = datetime.utcnow()

@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
@@ -34,6 +35,8 @@ ITEM_RESPONSE_JSON_1 = {
         'DOI': DOI_1
     }
 }
+
+PROVENANCE_1 = {'provenance1': 'value1'}
 
 
 BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
@@ -74,6 +77,16 @@ CONFIG_1 = SemanticScholarConfig(
     source=SOURCE_CONFIG_1,
     target=TARGET_CONFIG_1
 )
+
+
+MOCK_UTC_NOW_STR = '2021-01-02T12:34:56'
+
+
+@pytest.fixture(name='datetime_mock', autouse=True)
+def _datetime_mock():
+    with patch.object(semantic_scholar_pipeline_module, 'datetime') as mock:
+        mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
+        yield mock
 
 
 @pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
@@ -164,16 +177,33 @@ class TestIterArticleData:
     ):
         result = list(iter_article_data(
             [DOI_1],
-            source_config=SOURCE_CONFIG_1
+            source_config=SOURCE_CONFIG_1,
+            provenance=PROVENANCE_1
         ))
         assert result == [get_article_response_json_from_api_mock.return_value]
         get_article_response_json_from_api_mock.assert_called_with(
             DOI_1,
-            source_config=SOURCE_CONFIG_1
+            source_config=SOURCE_CONFIG_1,
+            provenance=PROVENANCE_1
         )
 
 
 class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
+    def test_should_pass_provenance_to_iter_article_data(
+        self,
+        iter_article_data_mock: MagicMock
+    ):
+        json_list = [ITEM_RESPONSE_JSON_1]
+        iter_article_data_mock.return_value = json_list
+        fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
+            CONFIG_1
+        )
+        iter_article_data_mock.assert_called_with(
+            ANY,
+            source_config=ANY,
+            provenance={'imported_timestamp': MOCK_UTC_NOW_STR}
+        )
+
     def test_should_pass_iter_doi_result_to_iter_article_data(
         self,
         iter_doi_for_matrix_config_mock: MagicMock,
@@ -190,7 +220,8 @@ class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
         doi_iterable = iter_doi_for_matrix_config_mock.return_value
         iter_article_data_mock.assert_called_with(
             doi_iterable,
-            source_config=SOURCE_CONFIG_1
+            source_config=SOURCE_CONFIG_1,
+            provenance=ANY
         )
 
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
