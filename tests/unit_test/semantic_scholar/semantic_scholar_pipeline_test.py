@@ -2,10 +2,9 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, BigQueryTargetConfig
 
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
-    BigQuerySourceConfig,
     SemanticScholarConfig,
     SemanticScholarMatrixConfig,
     SemanticScholarMatrixVariableConfig,

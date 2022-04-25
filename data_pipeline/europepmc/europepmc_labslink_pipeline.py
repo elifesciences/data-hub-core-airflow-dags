@@ -9,8 +9,8 @@ from typing import Sequence
 from lxml import etree
 from lxml.builder import E
 
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.europepmc.europepmc_labslink_config import (
-    BigQuerySourceConfig,
     EuropePmcLabsLinkConfig,
     EuropePmcLabsLinkXmlConfig,
     FtpTargetConfig

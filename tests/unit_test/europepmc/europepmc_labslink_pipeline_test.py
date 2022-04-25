@@ -8,8 +8,8 @@ import pytest
 
 from lxml import etree
 
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.europepmc.europepmc_labslink_config import (
-    BigQuerySourceConfig,
     EuropePmcLabsLinkConfig,
     EuropePmcLabsLinkSourceConfig,
     EuropePmcLabsLinkTargetConfig,

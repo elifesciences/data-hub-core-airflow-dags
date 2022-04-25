@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import NamedTuple
 
 from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
     get_resolved_parameter_values_from_file_path_env_name
 )
 
@@ -12,18 +13,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 DEFAULT_LINKS_XML_FTP_FILENAME = 'links.xml'
-
-
-class BigQuerySourceConfig(NamedTuple):
-    project_name: str
-    sql_query: str
-
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
-        return BigQuerySourceConfig(
-            project_name=source_config_dict['projectName'],
-            sql_query=source_config_dict['sqlQuery']
-        )
 
 
 class EuropePmcLabsLinkSourceConfig(NamedTuple):

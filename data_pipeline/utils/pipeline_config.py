@@ -21,6 +21,18 @@ DEFAULT_DEPLOYMENT_ENV = 'ci'
 DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
 
 
+class BigQuerySourceConfig(NamedTuple):
+    project_name: str
+    sql_query: str
+
+    @staticmethod
+    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
+        return BigQuerySourceConfig(
+            project_name=source_config_dict['projectName'],
+            sql_query=source_config_dict['sqlQuery']
+        )
+
+
 class BigQueryTargetConfig(NamedTuple):
     project_name: str
     dataset_name: str

@@ -1,21 +1,9 @@
 from typing import Mapping, NamedTuple
 
-from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, BigQueryTargetConfig
 
 
 DEFAULT_BATCH_SIZE = 1000
-
-
-class BigQuerySourceConfig(NamedTuple):
-    project_name: str
-    sql_query: str
-
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
-        return BigQuerySourceConfig(
-            project_name=source_config_dict['projectName'],
-            sql_query=source_config_dict['sqlQuery']
-        )
 
 
 class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
