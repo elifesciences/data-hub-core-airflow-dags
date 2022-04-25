@@ -1,12 +1,13 @@
 import logging
-from typing import Iterable, Sequence
+from typing import Iterable
 
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
-    get_single_column_value_list_from_bq_query,
     load_given_json_list_data_from_tempdir_to_bq
 )
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
+from data_pipeline.utils.pipeline_utils import (
+    fetch_single_column_value_list_for_bigquery_source_config
+)
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarConfig,
     SemanticScholarMatrixConfig
@@ -14,19 +15,6 @@ from data_pipeline.semantic_scholar.semantic_scholar_config import (
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def fetch_single_column_value_list_for_bigquery_source_config(
-    bigquery_source_config: BigQuerySourceConfig
-) -> Sequence[str]:
-    LOGGER.debug('bigquery_source: %r', bigquery_source_config)
-    doi_list = get_single_column_value_list_from_bq_query(
-        project_name=bigquery_source_config.project_name,
-        query=bigquery_source_config.sql_query
-    )
-    LOGGER.debug('doi_list: %r', doi_list)
-    LOGGER.info('length of doi_list: %r', len(doi_list))
-    return doi_list
 
 
 def iter_doi_for_matrix_config(matrix_config: SemanticScholarMatrixConfig) -> Iterable[str]:
