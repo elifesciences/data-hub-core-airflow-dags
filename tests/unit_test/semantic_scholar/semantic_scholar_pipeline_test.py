@@ -18,7 +18,7 @@ from data_pipeline.semantic_scholar import (
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
     fetch_article_by_doi,
     fetch_article_data_from_semantic_scholar_and_load_into_bigquery,
-    fetch_article_dois_from_bigquery,
+    fetch_single_column_value_list_for_bigquery_source_config,
     iter_article_data,
     iter_doi_for_matrix_config
 )
@@ -93,9 +93,12 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
-@pytest.fixture(name='fetch_article_dois_from_bigquery_mock')
-def _fetch_article_dois_from_bigquery_mock():
-    with patch.object(semantic_scholar_pipeline_module, 'fetch_article_dois_from_bigquery') as mock:
+@pytest.fixture(name='fetch_single_column_value_list_for_bigquery_source_config_mock')
+def _fetch_single_column_value_list_for_bigquery_source_config_mock():
+    with patch.object(
+        semantic_scholar_pipeline_module,
+        'fetch_single_column_value_list_for_bigquery_source_config'
+    ) as mock:
         yield mock
 
 
@@ -111,12 +114,12 @@ def _iter_article_data_mock():
         yield mock
 
 
-class TestFetchArticleDoisFromBigQuery:
+class TestFetchSingleColumnValueListForBigQuerySourceConfig:
     def test_should_call_get_single_column_value_list_from_bq_query(
         self,
         get_single_column_value_list_from_bq_query_mock: MagicMock
     ):
-        fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
+        fetch_single_column_value_list_for_bigquery_source_config(BIGQUERY_SOURCE_CONFIG_1)
         get_single_column_value_list_from_bq_query_mock.assert_called_with(
             project_name=BIGQUERY_SOURCE_CONFIG_1.project_name,
             query=BIGQUERY_SOURCE_CONFIG_1.sql_query
@@ -127,17 +130,19 @@ class TestFetchArticleDoisFromBigQuery:
         get_single_column_value_list_from_bq_query_mock: MagicMock
     ):
         get_single_column_value_list_from_bq_query_mock.return_value = DOI_LIST
-        actual_doi_list = fetch_article_dois_from_bigquery(BIGQUERY_SOURCE_CONFIG_1)
+        actual_doi_list = fetch_single_column_value_list_for_bigquery_source_config(
+            BIGQUERY_SOURCE_CONFIG_1
+        )
         assert actual_doi_list == DOI_LIST
 
 
 class TestIterDoiForMatrixConfig:
     def test_should_call_get_single_column_value_list_from_bq_query(
         self,
-        fetch_article_dois_from_bigquery_mock: MagicMock
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
     ):
         iter_doi_for_matrix_config(MATRIX_CONFIG_1)
-        fetch_article_dois_from_bigquery_mock.assert_called_with(
+        fetch_single_column_value_list_for_bigquery_source_config_mock.assert_called_with(
             DOI_MATRIX_VARIABLE_CONFIG_1.include.bigquery
         )
 

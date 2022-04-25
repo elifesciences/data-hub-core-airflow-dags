@@ -16,7 +16,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_config import (
 LOGGER = logging.getLogger(__name__)
 
 
-def fetch_article_dois_from_bigquery(
+def fetch_single_column_value_list_for_bigquery_source_config(
     bigquery_source_config: BigQuerySourceConfig
 ) -> Sequence[str]:
     LOGGER.debug('bigquery_source: %r', bigquery_source_config)
@@ -30,7 +30,7 @@ def fetch_article_dois_from_bigquery(
 
 
 def iter_doi_for_matrix_config(matrix_config: SemanticScholarMatrixConfig) -> Iterable[str]:
-    return fetch_article_dois_from_bigquery(
+    return fetch_single_column_value_list_for_bigquery_source_config(
         matrix_config.variables['doi'].include.bigquery
     )
 
