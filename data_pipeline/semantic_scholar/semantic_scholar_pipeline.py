@@ -30,6 +30,12 @@ def get_resolved_api_url(api_url: str, **kwargs) -> str:
     return api_url.format(**kwargs)
 
 
+def get_request_params_for_source_config(
+    source_config: SemanticScholarSourceConfig
+) -> dict:
+    return source_config.params
+
+
 def get_article_response_json_from_api(
     doi: str,
     source_config: SemanticScholarSourceConfig,
@@ -39,9 +45,11 @@ def get_article_response_json_from_api(
         source_config.api_url,
         doi=doi
     )
-    LOGGER.debug('resolved url: %r', url)
+    params = get_request_params_for_source_config(source_config)
+    LOGGER.debug('resolved url: %r (%r)', url, params)
     return get_response_json_with_provenance_from_api(
         url,
+        params=params,
         provenance=provenance
     )
 

@@ -57,7 +57,8 @@ MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
 
 
 SOURCE_CONFIG_1 = SemanticScholarSourceConfig(
-    api_url='/api1/{doi}'
+    api_url='/api1/{doi}',
+    params={'param1': 'value1'}
 )
 
 
@@ -140,7 +141,7 @@ class TestGetResolvedApiUrl:
 
 
 class TestGetArticleResponseJsonFromApi:
-    def test_should_pass_resolved_api_url_to_get_response_json_with_provenance_from_api(
+    def test_should_pass_resolved_api_url_and_params(
         self,
         get_response_json_with_provenance_from_api_mock: MagicMock
     ):
@@ -151,6 +152,7 @@ class TestGetArticleResponseJsonFromApi:
         )
         get_response_json_with_provenance_from_api_mock.assert_called_with(
             get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
+            params=SOURCE_CONFIG_1.params,
             provenance=None
         )
 

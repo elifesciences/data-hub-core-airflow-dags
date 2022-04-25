@@ -47,11 +47,13 @@ class SemanticScholarMatrixConfig(NamedTuple):
 
 class SemanticScholarSourceConfig(NamedTuple):
     api_url: str
+    params: Mapping[str, str]
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'SemanticScholarSourceConfig':
         return SemanticScholarSourceConfig(
-            api_url=source_config_dict['apiUrl']
+            api_url=source_config_dict['apiUrl'],
+            params=source_config_dict.get('params', {})
         )
 
 
