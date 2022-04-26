@@ -1,5 +1,6 @@
 import time
 import logging
+from typing import NamedTuple, Optional
 from tests.end2end_test.end_to_end_test_helper import (
     simple_query
 )
@@ -9,17 +10,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 # pylint: disable=too-few-public-methods, missing-class-docstring
-class DataPipelineCloudResource:
-    # pylint: disable=too-many-arguments
-    def __init__(
-            self, project_name, dataset_name, table_name,
-            state_file_bucket_name, state_file_object_name
-    ):
-        self.project_name = project_name
-        self.dataset_name = dataset_name
-        self.table_name = table_name
-        self.state_file_bucket_name = state_file_bucket_name
-        self.state_file_object_name = state_file_object_name
+class DataPipelineCloudResource(NamedTuple):
+    project_name: str
+    dataset_name: str
+    table_name: str
+    state_file_bucket_name: Optional[str] = None
+    state_file_object_name: Optional[str] = None
 
 
 # pylint: disable=broad-except
@@ -96,10 +92,14 @@ def trigger_run_test_pipeline(
         pipeline_cloud_resource.dataset_name,
         pipeline_cloud_resource.table_name,
     )
-    delete_statefile_if_exist(
-        pipeline_cloud_resource.state_file_bucket_name,
-        pipeline_cloud_resource.state_file_object_name
-    )
+    if (
+        pipeline_cloud_resource.state_file_bucket_name
+        and pipeline_cloud_resource.state_file_object_name
+    ):
+        delete_statefile_if_exist(
+            pipeline_cloud_resource.state_file_bucket_name,
+            pipeline_cloud_resource.state_file_object_name
+        )
     enable_and_trigger_dag_and_wait_for_success(
         airflow_api=airflow_api,
         dag_id=dag_id,

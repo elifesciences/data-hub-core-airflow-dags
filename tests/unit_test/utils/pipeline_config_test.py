@@ -2,12 +2,37 @@ from pathlib import Path
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
     BigQueryTargetConfig,
     StateFileConfig,
     get_resolved_parameter_values_from_file_path_env_name,
     str_to_bool,
     get_environment_variable_value
 )
+
+
+BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': 'project1',
+    'sqlQuery': 'query1'
+}
+
+
+class TestBigQuerySourceConfig:
+    def test_should_read_project_and_sql_query(self):
+        config = BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+        assert config.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
+        assert config.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
+
+    def test_should_default_ignore_not_found_to_false(self):
+        config = BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+        assert config.ignore_not_found is False
+
+    def test_should_allow_to_set_ignore_not_found_to_true(self):
+        config = BigQuerySourceConfig.from_dict({
+            **BIGQUERY_SOURCE_CONFIG_DICT_1,
+            'ignoreNotFound': True
+        })
+        assert config.ignore_not_found is True
 
 
 class TestBigQueryTargetConfig:
