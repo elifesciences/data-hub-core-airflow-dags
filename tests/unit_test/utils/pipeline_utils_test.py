@@ -119,6 +119,20 @@ class TestGetResponseJsonWithProvenanceFromApi:
             params=API_PARAMS_1
         )
 
+    def test_should_pass_url_and_params_to_session_get_if_provided(
+        self
+    ):
+        session_mock = MagicMock(name='session')
+        get_response_json_with_provenance_from_api(
+            API_URL_1,
+            params=API_PARAMS_1,
+            session=session_mock
+        )
+        session_mock.get.assert_called_with(
+            API_URL_1,
+            params=API_PARAMS_1
+        )
+
     def test_should_return_response_json(
         self,
         requests_mock: MagicMock

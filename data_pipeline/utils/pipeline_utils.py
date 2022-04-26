@@ -49,11 +49,15 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 def get_response_json_with_provenance_from_api(
     url: str,
     params: Mapping[str, str] = None,
-    provenance: Optional[Mapping[str, str]] = None
+    provenance: Optional[Mapping[str, str]] = None,
+    session: Optional[requests.Session] = None
 ) -> dict:
     LOGGER.info('requesting url: %r (%r)', url, params)
     request_timestamp = datetime.utcnow()
-    response = requests.get(url, params=params)
+    if session:
+        response = session.get(url, params=params)
+    else:
+        response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
     LOGGER.info('request took: %0.3f seconds', response_duration_secs)
