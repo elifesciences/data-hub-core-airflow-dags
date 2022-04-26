@@ -23,7 +23,7 @@ def fetch_single_column_value_list_for_bigquery_source_config(
 ) -> Sequence[str]:
     LOGGER.debug('bigquery_source: %r', bigquery_source_config)
     try:
-        doi_list = get_single_column_value_list_from_bq_query(
+        value_list = get_single_column_value_list_from_bq_query(
             project_name=bigquery_source_config.project_name,
             query=bigquery_source_config.sql_query
         )
@@ -32,9 +32,9 @@ def fetch_single_column_value_list_for_bigquery_source_config(
             LOGGER.info('caught not found, returning empty list')
             return []
         raise
-    LOGGER.debug('doi_list: %r', doi_list)
-    LOGGER.info('length of doi_list: %r', len(doi_list))
-    return doi_list
+    LOGGER.debug('value_list: %r', value_list)
+    LOGGER.info('length of value_list: %r', len(value_list))
+    return value_list
 
 
 def get_valid_json_from_response(response: requests.Response) -> dict:
