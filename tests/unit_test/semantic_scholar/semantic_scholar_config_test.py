@@ -110,17 +110,7 @@ class TestSemanticScholarConfig:
         }
         config = SemanticScholarConfig.from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT_1,
-            'matrix': {
-                'doi': {
-                    'include': MATRIX_1['doi']['include'],
-                    'exclude': {
-                        'bigQuery': {
-                            'projectName': PROJECT_NAME_1,
-                            'sqlQuery': 'query2'
-                        }
-                    }
-                }
-            }
+            'matrix': matrix_config_dict
         }))
         assert config.matrix.variables.keys() == {'doi'}
         variable_config = list(config.matrix.variables.values())[0]
