@@ -23,7 +23,9 @@ semanticScholar:
     source:
       apiUrl: 'https://api.semanticscholar.org/graph/v1/paper/{doi}'
       params:
-        fields: 'externalIds,url,title,abstract,venue,year,referenceCount,citationCount,influentialCitationCount,isOpenAccess,fieldsOfStudy,s2FieldsOfStudy,authors'
+        # See https://api.semanticscholar.org/api-docs/graph#operation/get_graph_get_paper
+        # omitted "citations" and "references"
+        fields: 'externalIds,url,title,abstract,venue,year,referenceCount,citationCount,influentialCitationCount,isOpenAccess,fieldsOfStudy,s2FieldsOfStudy,authors,embedding,tldr'
     target:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'
