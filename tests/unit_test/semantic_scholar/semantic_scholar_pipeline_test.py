@@ -105,6 +105,20 @@ def _datetime_mock():
         yield mock
 
 
+@pytest.fixture(name='requests_retry_session_mock', autouse=True)
+def _requests_retry_session_mock():
+    with patch.object(
+        semantic_scholar_pipeline_module,
+        'requests_retry_session'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='session_mock')
+def _session_mock(requests_retry_session_mock: MagicMock) -> MagicMock:
+    return requests_retry_session_mock.return_value.__enter__.return_value
+
+
 @pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
@@ -195,35 +209,41 @@ class TestGetResolvedApiUrl:
 class TestGetArticleResponseJsonFromApi:
     def test_should_pass_resolved_api_url_and_params(
         self,
+        session_mock: MagicMock,
         get_response_json_with_provenance_from_api_mock: MagicMock
     ):
         get_article_response_json_from_api(
             DOI_1,
             source_config=SOURCE_CONFIG_1,
-            provenance=None
+            provenance=None,
+            session=session_mock
         )
         get_response_json_with_provenance_from_api_mock.assert_called_with(
             get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
             params=SOURCE_CONFIG_1.params,
-            provenance=None
+            provenance=None,
+            session=session_mock
         )
 
 
 class TestIterArticleData:
     def test_should_call_fetch_article_by_doi_with_doi(
         self,
+        session_mock: MagicMock,
         get_article_response_json_from_api_mock: MagicMock
     ):
         result = list(iter_article_data(
             [DOI_1],
             source_config=SOURCE_CONFIG_1,
-            provenance=PROVENANCE_1
+            provenance=PROVENANCE_1,
+            session=session_mock
         ))
         assert result == [get_article_response_json_from_api_mock.return_value]
         get_article_response_json_from_api_mock.assert_called_with(
             DOI_1,
             source_config=SOURCE_CONFIG_1,
-            provenance=PROVENANCE_1
+            provenance=PROVENANCE_1,
+            session=session_mock
         )
 
 
@@ -240,7 +260,8 @@ class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
         iter_article_data_mock.assert_called_with(
             ANY,
             source_config=ANY,
-            provenance={'imported_timestamp': MOCK_UTC_NOW_STR}
+            provenance={'imported_timestamp': MOCK_UTC_NOW_STR},
+            session=ANY
         )
 
     def test_should_pass_iter_doi_result_to_iter_article_data(
@@ -260,7 +281,25 @@ class TestFetchArticleDataFromSemanticScholarAndLoadIntoBigQuery:
         iter_article_data_mock.assert_called_with(
             doi_iterable,
             source_config=SOURCE_CONFIG_1,
-            provenance=ANY
+            provenance=ANY,
+            session=ANY
+        )
+
+    def test_should_pass_retry_session_to_iter_article_data(
+        self,
+        requests_retry_session_mock: MagicMock,
+        session_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
+            CONFIG_1
+        )
+        requests_retry_session_mock.assert_called()
+        iter_article_data_mock.assert_called_with(
+            ANY,
+            source_config=SOURCE_CONFIG_1,
+            provenance=ANY,
+            session=session_mock
         )
 
     def test_should_pass_project_dataset_and_table_to_bq_load_method(

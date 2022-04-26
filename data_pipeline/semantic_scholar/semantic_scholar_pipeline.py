@@ -3,6 +3,8 @@ from datetime import datetime
 from functools import partial
 from typing import Iterable, Mapping, Optional
 
+import requests
+
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -16,6 +18,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarMatrixConfig,
     SemanticScholarSourceConfig
 )
+from data_pipeline.utils.web_api import requests_retry_session
 
 
 LOGGER = logging.getLogger(__name__)
@@ -59,7 +62,8 @@ def get_request_params_for_source_config(
 def get_article_response_json_from_api(
     doi: str,
     source_config: SemanticScholarSourceConfig,
-    provenance: Optional[Mapping[str, str]] = None
+    provenance: Optional[Mapping[str, str]] = None,
+    session: Optional[requests.Session] = None
 ) -> dict:
     url = get_resolved_api_url(
         source_config.api_url,
@@ -70,19 +74,22 @@ def get_article_response_json_from_api(
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
-        provenance=provenance
+        provenance=provenance,
+        session=session
     )
 
 
 def iter_article_data(
     doi_iterable: Iterable[str],
     source_config: SemanticScholarSourceConfig,
-    provenance: Optional[Mapping[str, str]] = None
+    provenance: Optional[Mapping[str, str]] = None,
+    session: Optional[requests.Session] = None
 ) -> Iterable[dict]:
     fetch_article_by_doi = partial(
         get_article_response_json_from_api,
         source_config=source_config,
-        provenance=provenance
+        provenance=provenance,
+        session=session
     )
     return map(fetch_article_by_doi, doi_iterable)
 
@@ -94,11 +101,15 @@ def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     doi_iterable = iter_doi_for_matrix_config(config.matrix)
-    data_iterable = iter_article_data(
-        doi_iterable,
-        source_config=config.source,
-        provenance=provenance
-    )
+    with requests_retry_session(
+        status_forcelist=(500, 502, 503, 504, 429)
+    ) as session:
+        data_iterable = iter_article_data(
+            doi_iterable,
+            source_config=config.source,
+            provenance=provenance,
+            session=session
+        )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)
