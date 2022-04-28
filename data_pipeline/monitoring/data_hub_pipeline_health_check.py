@@ -28,11 +28,7 @@ def get_query(
         project: str,
         dataset: str,
         table: str):
-    return 'SELECT * FROM {project}.{dataset}.{table}'.format(
-        project=project,
-        dataset=dataset,
-        table=table
-    )
+    return f'SELECT * FROM {project}.{dataset}.{table}'
 
 
 def read_dataframe_from_s3_bucket(
@@ -77,9 +73,7 @@ def get_formatted_out_dated_status_slack_message(  # pylint: disable=invalid-nam
         DEFAULT_DEPLOYMENT_ENV
     )
     return f'[{deployment_env}] Data pipeline out dated tables: %s' % '\n '.join([
-        '`%s` is `%s` since `%s`.' % (
-            row['name'], row['status'], row['latest_imported_timestamp']
-        )
+        f"`{row['name']}` is `{row['status']}` since `{row['latest_imported_timestamp']}`."
         for row in out_dated_status_df.to_dict(orient='rows')
     ])
 

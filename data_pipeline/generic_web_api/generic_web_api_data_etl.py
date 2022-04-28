@@ -354,10 +354,13 @@ def get_items_list(page_data, web_config):
         )
     if item_list is None:
         LOGGER.error(
-            f'item list not found in response, key path: {web_config.items_key_path_from_response_root}, page_data={page_data}'
+            'item list not found in response, key path: %s, page_data= %s',
+            web_config.items_key_path_from_response_root,
+            page_data
         )
         raise ValueError(
-            f'item list not found in response, key path: {web_config.items_key_path_from_response_root}'
+            f'item list not found in response, \
+                key path: {web_config.items_key_path_from_response_root}'
         )
     return item_list
 
