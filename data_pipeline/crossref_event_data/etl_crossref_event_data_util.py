@@ -199,7 +199,7 @@ def semi_clean_crossref_record(record, schema):
                 new_dict[new_key] = record_item_val
         return new_dict
     elif isinstance(record, list):
-        new_list = list()
+        new_list = []
         for elem in record:
             if isinstance(elem, (dict, list)):
                 elem = semi_clean_crossref_record(elem, schema)
