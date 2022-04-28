@@ -22,7 +22,7 @@ class GmailCredentials:
         self.user_id = self.data["user"]
 
     def read_credential_file(self):
-        with open(self.filename, "r") as json_file:
+        with open(self.filename, "r", encoding="UTF-8") as json_file:
             return json.load(json_file)
 
 

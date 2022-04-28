@@ -68,7 +68,7 @@ def load_tuple_list_into_bq(
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
 
-    errors = list()
+    errors = []
 
     for indx in range(ceil(len(tuple_list_to_insert) / MAX_ROWS_INSERTABLE)):
         errors.extend(
@@ -253,7 +253,7 @@ def generate_schema_from_file(
         full_file_location: str,
         quoted_values_are_strings: str = True
 ):
-    with open(full_file_location) as file_reader:
+    with open(full_file_location, encoding='UTF-8') as file_reader:
         generator = SchemaGenerator(
             input_format="json",
             quoted_values_are_strings=quoted_values_are_strings
