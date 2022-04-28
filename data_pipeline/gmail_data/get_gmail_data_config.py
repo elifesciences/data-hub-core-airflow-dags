@@ -38,8 +38,8 @@ class GmailDataConfig:
     def __init__(
         self,
         data_config: dict,
-        projectName: str = None,
-        datasetName: str = None,
+        project_name: str = None,
+        dataset_name: str = None,
         deployment_env: str = None,
         env_placeholder: str = "{ENV}"
     ):
@@ -53,8 +53,8 @@ class GmailDataConfig:
 
         LOGGER.info("gmail_data_config: %s", gmail_data_config)
 
-        self.project_name = gmail_data_config.get("projectName", projectName)
-        self.dataset_name = gmail_data_config.get("datasetName", datasetName)
+        self.project_name = gmail_data_config.get("projectName", project_name)
+        self.dataset_name = gmail_data_config.get("datasetName", dataset_name)
 
         self.data_pipeline_id = gmail_data_config.get("dataPipelineId")
 
