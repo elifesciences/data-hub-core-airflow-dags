@@ -37,5 +37,5 @@ def test_are_tasks_around_etl_task_correctly_ordered(dagbag):
             crossref_data_etl_task.downstream_list))
     downstream_task_ids = downstream_task_ids.sort()
     expected_downstream_task_ids = ['log_last_record_date']
-    expected_downstream_task_ids = expected_downstream_task_ids.sort()
+    expected_downstream_task_ids.sort()
     assert downstream_task_ids == expected_downstream_task_ids
