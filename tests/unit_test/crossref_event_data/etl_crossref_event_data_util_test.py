@@ -97,7 +97,7 @@ def test_should_write_result_to_file(mock_open_file):
             )
         )
     )
-    mock_open_file.assert_called_with("tempfileloc", "a")
+    mock_open_file.assert_called_with("tempfileloc", "a", encoding='UTF-8')
 
 
 def test_should_download_crossref_event_data(
@@ -118,7 +118,7 @@ def test_should_download_crossref_event_data(
         schema=test_data.source_data_schema,
     )
     result = json.loads(result)
-    mock_open_file.assert_called_with("temp_file_loc", "a")
+    mock_open_file.assert_called_with("temp_file_loc", "a", encoding='UTF-8')
     assert result == test_data.get_publisher_max_timestamp(publisher_id)
     assert mock_download_crossref.called_with(
         base_crossref_url="base_crossref_url",
