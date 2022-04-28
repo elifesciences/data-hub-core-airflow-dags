@@ -327,7 +327,7 @@ def load_from_temp_table_to_actual_table(
             dataset_name=dataset_name,
             table_name=table_name):
         sql = (
-            """
+            f"""
             SELECT t.* EXCEPT(seqnum)
             FROM (SELECT *,
                     ROW_NUMBER() OVER (PARTITION BY {column_name}
@@ -338,24 +338,14 @@ def load_from_temp_table_to_actual_table(
             WHERE seqnum = 1
             AND {column_name} NOT IN (SELECT DISTINCT {column_name}
                         FROM `{project_name}.{dataset_name}.{table_name}`)
-            """.format(
-                    column_name=column_name,
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    table_name=table_name,
-                    temp_table_name=temp_table_name
-                )
+            """
         )
     else:
         sql = (
-            """
+            f"""
             SELECT *
             FROM `{project_name}.{dataset_name}.{temp_table_name}`
-            """.format(
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    temp_table_name=temp_table_name
-                )
+            """
         )
 
     job_config = bigquery.QueryJobConfig(
