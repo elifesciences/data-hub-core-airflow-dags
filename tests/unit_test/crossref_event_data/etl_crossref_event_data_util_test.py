@@ -416,8 +416,8 @@ class UnitTestData:
         return modified_data
 
     def get_downloaded_crossref_data(self):
-        data_downloaded__with_event_key = dict()
-        data_downloaded = dict()
+        data_downloaded__with_event_key = {}
+        data_downloaded = {}
         data_downloaded__with_event_key[
             self.data_downloaded_event_key
         ] = self.get_data()

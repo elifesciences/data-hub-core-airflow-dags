@@ -81,11 +81,11 @@ class UnitTestData:
         self.source_sample_string = "sample_string"
 
     def get_source_yaml_s3_response(self):
-        response = dict()
+        response = {}
         response["Body"] = self.source_yaml
         return response
 
     def get_source_string_s3_response(self):
-        response = dict()
+        response = {}
         response["Body"] = self.source_sample_string
         return response
