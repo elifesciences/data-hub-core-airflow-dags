@@ -312,7 +312,7 @@ class TestTransformAndLoadData:
     @staticmethod
     def get_csv_config(update_dict: dict = None):
         if update_dict is None:
-            update_dict = dict()
+            update_dict = {}
         config_dict = {
             "dataPipelineId": "data-pipeline-id-1",
             "importedTimestampFieldName": "imported_timestamp",
@@ -363,7 +363,7 @@ class TestProcessData:
     @staticmethod
     def get_csv_config(update_dict: dict = None):
         if update_dict is None:
-            update_dict = dict()
+            update_dict = {}
         config_dict = {
             "dataPipelineId": "data-pipeline-id",
             "headerLineIndex": 0,

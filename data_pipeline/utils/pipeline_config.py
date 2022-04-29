@@ -66,7 +66,7 @@ def update_deployment_env_placeholder(
         deployment_env: str,
         environment_placeholder: str = DEFAULT_ENVIRONMENT_PLACEHOLDER
 ):
-    new_dict = dict()
+    new_dict = {}
     for key, val in original_dict.items():
         if isinstance(val, dict):
             tmp = update_deployment_env_placeholder(
@@ -130,7 +130,7 @@ def str_to_bool(value: str, default_value=None) -> bool:
         return True
     if lower_value in FALSE_VALUES:
         return False
-    raise ValueError('unrecognised boolean value: %r' % value)
+    raise ValueError(f'unrecognised boolean value: {value}')
 
 
 def get_environment_variable_value(
@@ -141,9 +141,7 @@ def get_environment_variable_value(
     value = os.getenv(key)
     if not value:
         if required:
-            raise KeyError('environment variable %s (%s) required' % (
-                key, value_converter
-            ))
+            raise KeyError(f'environment variable {key} ({value_converter}) required')
         return default_value
     if value_converter:
         value = value_converter(value)

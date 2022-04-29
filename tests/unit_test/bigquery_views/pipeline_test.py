@@ -63,8 +63,8 @@ def _views_sample_config_path(temp_dir: Path) -> Path:
         '    materialize: true',
         '    conditions:',
         '    - if:',
-        '        dataset: %s' % MATCHING_DATASET_1,
-        '      materialize_as: %s.%s' % (OUTPUT_DATASET_1, OUTPUT_TABLE_1),
+        f'        dataset: {MATCHING_DATASET_1}',
+        f'      materialize_as: {OUTPUT_DATASET_1}.{OUTPUT_TABLE_1}',
         '- view2'
     ]))
     return sample_config_path

@@ -68,7 +68,7 @@ def load_tuple_list_into_bq(
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
 
-    errors = list()
+    errors = []
 
     for indx in range(ceil(len(tuple_list_to_insert) / MAX_ROWS_INSERTABLE)):
         errors.extend(
@@ -253,7 +253,7 @@ def generate_schema_from_file(
         full_file_location: str,
         quoted_values_are_strings: str = True
 ):
-    with open(full_file_location) as file_reader:
+    with open(full_file_location, encoding='UTF-8') as file_reader:
         generator = SchemaGenerator(
             input_format="json",
             quoted_values_are_strings=quoted_values_are_strings
@@ -327,7 +327,7 @@ def load_from_temp_table_to_actual_table(
             dataset_name=dataset_name,
             table_name=table_name):
         sql = (
-            """
+            f"""
             SELECT t.* EXCEPT(seqnum)
             FROM (SELECT *,
                     ROW_NUMBER() OVER (PARTITION BY {column_name}
@@ -338,24 +338,14 @@ def load_from_temp_table_to_actual_table(
             WHERE seqnum = 1
             AND {column_name} NOT IN (SELECT DISTINCT {column_name}
                         FROM `{project_name}.{dataset_name}.{table_name}`)
-            """.format(
-                    column_name=column_name,
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    table_name=table_name,
-                    temp_table_name=temp_table_name
-                )
+            """
         )
     else:
         sql = (
-            """
+            f"""
             SELECT *
             FROM `{project_name}.{dataset_name}.{temp_table_name}`
-            """.format(
-                    project_name=project_name,
-                    dataset_name=dataset_name,
-                    temp_table_name=temp_table_name
-                )
+            """
         )
 
     job_config = bigquery.QueryJobConfig(

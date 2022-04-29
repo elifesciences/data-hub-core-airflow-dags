@@ -30,5 +30,4 @@ def test_dag_should_contain_no_cycle(dag_file):
 
 def test_should_successfully_import_all_dags(dagbag):
     assert len(dagbag.import_errors) == 0, \
-        "DAG import failures. Errors: {}".format(
-            dagbag.import_errors)
+        f"DAG import failures. Errors: {dagbag.import_errors}"

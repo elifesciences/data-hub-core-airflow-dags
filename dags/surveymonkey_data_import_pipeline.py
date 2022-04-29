@@ -78,7 +78,7 @@ def data_config_from_xcom(context):
 def get_surveymonkey_access_token():
     secret_file = get_env_var_or_use_default(SURVEYMONKEY_SECRET_FILE_ENV_VAR_NAME, "")
     LOGGER.info("surveymonkey secret file name %s", secret_file)
-    with open(secret_file) as file:
+    with open(secret_file, encoding="UTF-8") as file:
         return json.load(file)["access_token"]
 
 

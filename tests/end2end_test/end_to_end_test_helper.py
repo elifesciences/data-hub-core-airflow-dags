@@ -17,7 +17,7 @@ class AirflowAPI:
     def __init__(self):
         airflow_host = os.getenv("AIRFLOW_HOST")
         airflow_port = os.getenv("AIRFLOW_PORT", "8080")
-        self.airflow_url = "http://%s:%s" % (airflow_host, airflow_port)
+        self.airflow_url = f"http://{airflow_host}:{airflow_port}"
 
     # pylint: disable=no-self-use
     def send_request(self, url, method="GET", json_param=None):
@@ -35,9 +35,9 @@ class AirflowAPI:
                 data = resp.json()
             except Exception:  # pylint: disable=broad-except
                 data = {
-                    "error": 'failed to request url=%r, method=%s, status=%s, response: %r' % (
-                        url, method, resp.status_code, resp.text
-                    )
+                    "error": f'failed to request url={url}, \
+                        method={method}, status={resp.status_code}, \
+                        response: {resp.text}'
                 }
             raise OSError(data.get("error", "Server error"))
 
@@ -45,19 +45,17 @@ class AirflowAPI:
 
     def unpause_dag(self, dag_id):
         return requests.get(
-            "%s/api/experimental/dags/%s/paused/false" %
-            (self.airflow_url, dag_id)
+            f"{self.airflow_url}/api/experimental/dags/{dag_id}/paused/false"
         )
 
     def pause_dag(self, dag_id):
         return requests.get(
-            "%s/api/experimental/dags/%s/paused/true" %
-            (self.airflow_url, dag_id)
+            f"{self.airflow_url}/api/experimental/dags/{dag_id}/paused/true"
         )
 
     def trigger_dag(self, dag_id, conf=None):
         self.unpause_dag(dag_id)
-        endpoint = "/api/experimental/dags/{}/dag_runs".format(dag_id)
+        endpoint = f"/api/experimental/dags/{dag_id}/dag_runs"
         url = urljoin(self.airflow_url, endpoint)
         data = self.send_request(url, method="POST",
                                  json_param={"conf": conf, })
@@ -67,14 +65,12 @@ class AirflowAPI:
 
     def dag_state(self, dag_id, execution_date):
         return requests.get(
-            "%s/api/experimental/dags/%s/dag_runs/%s"
-            % (self.airflow_url, dag_id, execution_date)
+            f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs/{execution_date}"
         )
 
     def is_triggered_dag_running(self, dag_id):
         response = requests.get(
-            "%s/api/experimental/dags/%s/dag_runs"
-            % (self.airflow_url, dag_id)
+            f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs"
         )
         dag_runs = json.loads(response.text)
         states = [

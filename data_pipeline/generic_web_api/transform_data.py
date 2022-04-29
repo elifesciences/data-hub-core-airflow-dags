@@ -73,7 +73,7 @@ def standardize_record_keys(record_object):
                 new_dict[new_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
-        new_list = list()
+        new_list = []
         for elem in record_object:
             if isinstance(elem, (dict, list)):
                 elem = standardize_record_keys(
@@ -115,7 +115,7 @@ def filter_record_by_schema(record_object, record_object_schema):
                 new_dict[item_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
-        new_list = list()
+        new_list = []
         for elem in record_object:
             if isinstance(elem, (dict, list)):
                 elem = filter_record_by_schema(
