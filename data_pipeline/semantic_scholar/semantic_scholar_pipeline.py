@@ -102,7 +102,9 @@ def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     doi_iterable = iter_doi_for_matrix_config(config.matrix)
     with requests_retry_session(
-        status_forcelist=(500, 502, 503, 504, 429)
+        status_forcelist=(500, 502, 503, 504, 429),
+        raise_on_redirect=False,  # avoid raising exception, instead we will save response as is
+        raise_on_status=False
     ) as session:
         data_iterable = iter_article_data(
             doi_iterable,
