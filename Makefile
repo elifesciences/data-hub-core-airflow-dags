@@ -105,7 +105,7 @@ watch:
 		python -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
 airflow-start:
-	$(DOCKER_COMPOSE) up --scale dask-worker=1 scheduler test-ftpserver
+	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
 
 
 airflow-stop:
@@ -142,7 +142,7 @@ ci-build-and-end2end-test:
 		end2end-test
 
 ci-end2end-test-logs:
-	$(DOCKER_COMPOSE_CI) exec -T dask-worker bash -c \
+	$(DOCKER_COMPOSE_CI) exec -T worker bash -c \
 		'cat logs/*/*/*/*.log'
 
 ci-clean:
