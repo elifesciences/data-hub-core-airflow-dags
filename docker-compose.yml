@@ -95,7 +95,6 @@ services:
 
     webserver:
         depends_on:
-            - postgres
             - worker
         environment: *airflow-env
         image:  elifesciences/data-hub-core-dags-dev
@@ -112,6 +111,8 @@ services:
         image:  namshi/smtp
 
     scheduler:
+        depends_on:
+            - postgres
         image:  elifesciences/data-hub-core-dags-dev
         environment: *airflow-env
         entrypoint: /entrypoint
@@ -157,7 +158,7 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
             interval: 5s
             timeout: 5s
             retries: 5
