@@ -9,7 +9,6 @@ cattrs==1.10.0
 cloudpickle==1.4.1
 dateparser==1.1.0
 regex==2022.3.2
-# celery==4.4.7
 fsspec==2021.11.1
 lxml<4.9.0, >=4.8.0
 google-api-python-client==2.36.0
