@@ -31,7 +31,7 @@ services:
         environment: *airflow-env
 
 
-    dask-worker:
+    worker:
         volumes: *airflow-volumes
         environment: *airflow-env
 
