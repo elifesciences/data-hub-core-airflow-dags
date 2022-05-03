@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 import pytest
 
@@ -51,6 +52,17 @@ def _get_single_column_value_list_from_bq_query_mock():
         'get_single_column_value_list_from_bq_query'
     ) as mock:
         yield mock
+
+
+@pytest.fixture(name='http_error')
+def _http_error() -> HTTPError:
+    return HTTPError(
+        url='/test',
+        code=404,
+        msg='Test',
+        hdrs=tuple(),
+        fp=None
+    )
 
 
 class TestFetchSingleColumnValueListForBigQuerySourceConfig:
@@ -149,6 +161,37 @@ class TestGetResponseJsonWithProvenanceFromApi:
             if key != 'provenance'
         }
         assert actual_response_without_provenance_json == SINGLE_ITEM_RESPONSE_JSON_1
+
+    def test_should_raise_error_by_default(
+        self,
+        requests_mock: MagicMock,
+        http_error: HTTPError
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.raise_for_status.side_effect = http_error
+        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        with pytest.raises(HTTPError):
+            get_response_json_with_provenance_from_api(
+                API_URL_1,
+                params=API_PARAMS_1
+            )
+
+    def test_should_not_raise_error_if_disabled(
+        self,
+        requests_mock: MagicMock,
+        http_error: HTTPError
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.status_code = http_error.code
+        response_mock.raise_for_status.side_effect = http_error
+        response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
+        actual_response_json = get_response_json_with_provenance_from_api(
+            API_URL_1,
+            params=API_PARAMS_1,
+            raise_on_status=False
+        )
+        assert actual_response_json
+        assert actual_response_json['provenance']['http_status'] == http_error.code
 
     def test_should_include_provenance(
         self,

@@ -222,7 +222,8 @@ class TestGetArticleResponseJsonFromApi:
             get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
             params=SOURCE_CONFIG_1.params,
             provenance=None,
-            session=session_mock
+            session=session_mock,
+            raise_on_status=False
         )
 
 

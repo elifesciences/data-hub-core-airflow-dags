@@ -75,7 +75,8 @@ def get_article_response_json_from_api(
         url,
         params=params,
         provenance=provenance,
-        session=session
+        session=session,
+        raise_on_status=False
     )
 
 

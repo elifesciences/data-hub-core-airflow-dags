@@ -39,7 +39,6 @@ def fetch_single_column_value_list_for_bigquery_source_config(
 
 def get_valid_json_from_response(response: requests.Response) -> dict:
     try:
-        response.raise_for_status()
         return response.json()
     except JSONDecodeError:
         LOGGER.warning('failed to decode json: %r', response.text)
@@ -50,7 +49,8 @@ def get_response_json_with_provenance_from_api(
     url: str,
     params: Mapping[str, str] = None,
     provenance: Optional[Mapping[str, str]] = None,
-    session: Optional[requests.Session] = None
+    session: Optional[requests.Session] = None,
+    raise_on_status: bool = True
 ) -> dict:
     LOGGER.info('requesting url: %r (%r)', url, params)
     request_timestamp = datetime.utcnow()
@@ -59,6 +59,9 @@ def get_response_json_with_provenance_from_api(
     else:
         response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
+    LOGGER.debug('raise_on_status: %r', raise_on_status)
+    if raise_on_status:
+        response.raise_for_status()
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
     LOGGER.info('request took: %0.3f seconds', response_duration_secs)
     request_provenance = {
