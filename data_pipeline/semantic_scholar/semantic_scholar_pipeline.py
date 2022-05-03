@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from functools import partial
 from typing import Iterable, Mapping, Optional
 
 import requests
@@ -63,7 +62,8 @@ def get_article_response_json_from_api(
     doi: str,
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
-    session: Optional[requests.Session] = None
+    session: Optional[requests.Session] = None,
+    progress_message: Optional[str] = None
 ) -> dict:
     url = get_resolved_api_url(
         source_config.api_url,
@@ -76,8 +76,17 @@ def get_article_response_json_from_api(
         params=params,
         provenance=provenance,
         session=session,
-        raise_on_status=False
+        raise_on_status=False,
+        progress_message=progress_message
     )
+
+
+def get_progress_message(index: int, iterable):
+    try:
+        total = len(iterable)
+        return f'{1 + index}/{total}'
+    except TypeError:
+        return f'{1 + index}'
 
 
 def iter_article_data(
@@ -86,13 +95,15 @@ def iter_article_data(
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None
 ) -> Iterable[dict]:
-    fetch_article_by_doi = partial(
-        get_article_response_json_from_api,
-        source_config=source_config,
-        provenance=provenance,
-        session=session
-    )
-    return map(fetch_article_by_doi, doi_iterable)
+    for index, doi in enumerate(doi_iterable):
+        progress_message = get_progress_message(index, doi_iterable)
+        yield get_article_response_json_from_api(
+            doi,
+            source_config=source_config,
+            provenance=provenance,
+            session=session,
+            progress_message=progress_message
+        )
 
 
 def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(

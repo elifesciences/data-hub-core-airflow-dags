@@ -45,14 +45,20 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
         raise
 
 
-def get_response_json_with_provenance_from_api(
+def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
     url: str,
     params: Mapping[str, str] = None,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
-    raise_on_status: bool = True
+    raise_on_status: bool = True,
+    progress_message: Optional[str] = None
 ) -> dict:
-    LOGGER.info('requesting url: %r (%r)', url, params)
+    progress_message_str = (
+        f'({progress_message})'
+        if progress_message
+        else ''
+    )
+    LOGGER.info('requesting url%s: %r (%r)', progress_message_str, url, params)
     request_timestamp = datetime.utcnow()
     if session:
         response = session.get(url, params=params)

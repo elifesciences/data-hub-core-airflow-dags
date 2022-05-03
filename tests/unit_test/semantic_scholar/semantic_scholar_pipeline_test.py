@@ -19,6 +19,7 @@ from data_pipeline.semantic_scholar import (
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
     get_article_response_json_from_api,
     fetch_article_data_from_semantic_scholar_and_load_into_bigquery,
+    get_progress_message,
     get_resolved_api_url,
     iter_article_data,
     iter_doi_for_matrix_config
@@ -216,15 +217,25 @@ class TestGetArticleResponseJsonFromApi:
             DOI_1,
             source_config=SOURCE_CONFIG_1,
             provenance=None,
-            session=session_mock
+            session=session_mock,
+            progress_message='progress1'
         )
         get_response_json_with_provenance_from_api_mock.assert_called_with(
             get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
             params=SOURCE_CONFIG_1.params,
             provenance=None,
             session=session_mock,
-            raise_on_status=False
+            raise_on_status=False,
+            progress_message='progress1'
         )
+
+
+class TestGetProgressMessage:
+    def test_should_return_position_only_if_iterable_has_no_size(self):
+        assert get_progress_message(0, iter([DOI_1])) == '1'
+
+    def test_should_return_position_with_total_if_iterable_has_size(self):
+        assert get_progress_message(0, [DOI_1]) == '1/1'
 
 
 class TestIterArticleData:
@@ -233,8 +244,9 @@ class TestIterArticleData:
         session_mock: MagicMock,
         get_article_response_json_from_api_mock: MagicMock
     ):
+        doi_iterable = iter([DOI_1])
         result = list(iter_article_data(
-            [DOI_1],
+            doi_iterable,
             source_config=SOURCE_CONFIG_1,
             provenance=PROVENANCE_1,
             session=session_mock
@@ -244,7 +256,8 @@ class TestIterArticleData:
             DOI_1,
             source_config=SOURCE_CONFIG_1,
             provenance=PROVENANCE_1,
-            session=session_mock
+            session=session_mock,
+            progress_message=get_progress_message(0, doi_iterable)
         )
 
 
