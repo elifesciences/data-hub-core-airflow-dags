@@ -61,7 +61,10 @@ def get_response_json_with_provenance_from_api(
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
-    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
+    LOGGER.info(
+        'request took: %0.3f seconds (status_code: %r)',
+        response_duration_secs, response.status_code
+    )
     if raise_on_status:
         response.raise_for_status()
     request_provenance = {
