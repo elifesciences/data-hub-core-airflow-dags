@@ -39,28 +39,40 @@ def fetch_single_column_value_list_for_bigquery_source_config(
 
 def get_valid_json_from_response(response: requests.Response) -> dict:
     try:
-        response.raise_for_status()
         return response.json()
     except JSONDecodeError:
         LOGGER.warning('failed to decode json: %r', response.text)
         raise
 
 
-def get_response_json_with_provenance_from_api(
+def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
     url: str,
     params: Mapping[str, str] = None,
     provenance: Optional[Mapping[str, str]] = None,
-    session: Optional[requests.Session] = None
+    session: Optional[requests.Session] = None,
+    raise_on_status: bool = True,
+    progress_message: Optional[str] = None
 ) -> dict:
-    LOGGER.info('requesting url: %r (%r)', url, params)
+    progress_message_str = (
+        f'({progress_message})'
+        if progress_message
+        else ''
+    )
+    LOGGER.info('requesting url%s: %r (%r)', progress_message_str, url, params)
     request_timestamp = datetime.utcnow()
     if session:
         response = session.get(url, params=params)
     else:
         response = requests.get(url, params=params)
     response_timestamp = datetime.utcnow()
+    LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
-    LOGGER.info('request took: %0.3f seconds', response_duration_secs)
+    LOGGER.info(
+        'request took: %0.3f seconds (status_code: %r)',
+        response_duration_secs, response.status_code
+    )
+    if raise_on_status:
+        response.raise_for_status()
     request_provenance = {
         **(provenance or {}),
         'api_url': url,
