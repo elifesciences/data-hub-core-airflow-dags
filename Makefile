@@ -105,7 +105,7 @@ watch:
 		python -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
 airflow-start:
-	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
+	$(DOCKER_COMPOSE) up worker webserver test-ftpserver flower
 
 
 airflow-stop:
