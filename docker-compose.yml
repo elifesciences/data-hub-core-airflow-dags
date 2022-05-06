@@ -6,8 +6,8 @@ x-airflow-env:
     - AIRFLOW_HOST=webserver
     - AIRFLOW_PORT=8080
     - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
-    - CELERY_BROKER_URL=redis://redis:6379/0
-    - CELERY_RESULT_BACKEND=db+postgresql://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/1
+    - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
     - AIRFLOW__SMTP__SMTP_HOST=smtp-server
@@ -97,7 +97,7 @@ services:
         depends_on:
             - worker
         environment: *airflow-env
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  elifesciences/data-hub-core-dags
         entrypoint: /entrypoint
         command: webserver
         healthcheck:
@@ -113,7 +113,7 @@ services:
     scheduler:
         depends_on:
             - postgres
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  elifesciences/data-hub-core-dags
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
@@ -125,13 +125,13 @@ services:
           - redis
           - scheduler
         volumes: *airflow-volumes
-        image: elifesciences/data-hub-core-dags-dev
+        image: elifesciences/data-hub-core-dags
         entrypoint: /entrypoint
         hostname: worker
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
-            && celery worker"
+            && airflow worker"
         
     test-ftpserver:
         image: delfer/alpine-ftp-server
@@ -166,7 +166,13 @@ services:
     redis:
         image: redis:5.0.5
         environment:
-            REDIS_HOST: redis
-            REDIS_PORT: 6379
+            - ALLOW_EMPTY_PASSWORD=yes
+
+    flower:
+        image: elifesciences/data-hub-core-dags
+        depends_on:
+            - redis
+        environment: *airflow-env
         ports:
-            - 6379:6379
+            - "5555:5555"
+        command: celery flower
