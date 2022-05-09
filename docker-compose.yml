@@ -158,7 +158,7 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+            test: ["CMD-SHELL", "pg_isready -U airflow"]
             interval: 5s
             timeout: 5s
             retries: 5
