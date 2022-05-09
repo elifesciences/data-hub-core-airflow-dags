@@ -144,6 +144,7 @@ services:
         depends_on:
             - scheduler
             - test-ftpserver
+            - webserver
         environment: *airflow-env
         volumes: *airflow-volumes
         command: >
