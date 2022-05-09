@@ -97,7 +97,7 @@ services:
         depends_on:
             - worker
         environment: *airflow-env
-        image:  elifesciences/data-hub-core-dags
+        image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
         command: webserver
         healthcheck:
@@ -113,7 +113,7 @@ services:
     scheduler:
         depends_on:
             - postgres
-        image:  elifesciences/data-hub-core-dags
+        image:  elifesciences/data-hub-core-dags-dev
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
@@ -125,7 +125,7 @@ services:
           - redis
           - scheduler
         volumes: *airflow-volumes
-        image: elifesciences/data-hub-core-dags
+        image: elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
         hostname: worker
         command: >
@@ -169,7 +169,7 @@ services:
             - ALLOW_EMPTY_PASSWORD=yes
 
     flower:
-        image: elifesciences/data-hub-core-dags
+        image: elifesciences/data-hub-core-dags-dev
         depends_on:
             - redis
         environment: *airflow-env
