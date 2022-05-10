@@ -29,16 +29,6 @@ updates:
   - dependency-name: fsspec
     versions:
     - 0.9.0
-  - dependency-name: dask[complete]
-    versions:
-    - 2021.3.0
-    - 2021.3.1
-    - 2021.4.0
-  - dependency-name: distributed
-    versions:
-    - 2021.3.0
-    - 2021.3.1
-    - 2021.4.0
   - dependency-name: s3fs
     versions:
     - 0.5.2
