@@ -1,4 +1,4 @@
-FROM apache/airflow:1.10.15-python3.7
+FROM apache/airflow:2.3.0-python3.7
 
 USER root
 
@@ -43,9 +43,6 @@ RUN pip install -e . --user --no-dependencies
 COPY --chown=airflow:airflow .flake8 .pylintrc run_test.sh ./
 COPY --chown=airflow:airflow tests ./tests
 RUN if [ "${install_dev}" = "y" ]; then chmod +x run_test.sh; fi
-
-# COPY --chown=airflow:airflow worker.sh ./
-# RUN chmod +x worker.sh
 
 RUN mkdir -p $AIRFLOW_HOME/serve
 RUN ln -s $AIRFLOW_HOME/logs $AIRFLOW_HOME/serve/log
