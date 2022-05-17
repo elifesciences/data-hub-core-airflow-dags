@@ -125,8 +125,8 @@ def get_max_data_cleanup_configuration_function(**context):
 get_configuration = PythonOperator(
     task_id='get_configuration',
     python_callable=get_max_data_cleanup_configuration_function,
-    provide_context=True,
-    dag=maintenance_dag)
+    dag=maintenance_dag
+)
 
 
 def cleanup_function(**context):
@@ -182,7 +182,6 @@ for db_object in DATABASE_OBJECTS:
         task_id='cleanup_' + str(db_object["airflow_db_model"].__name__),
         python_callable=cleanup_function,
         params=db_object,
-        provide_context=True,
         dag=maintenance_dag
     )
     # pylint: disable=pointless-statement

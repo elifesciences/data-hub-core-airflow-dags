@@ -18,8 +18,7 @@ def get_default_args():
         "start_date": airflow.utils.dates.days_ago(1),
         "retries": 10,
         "retry_delay": timedelta(minutes=1),
-        "retry_exponential_backoff": True,
-        "provide_context": True,
+        "retry_exponential_backoff": True
     }
 
 
