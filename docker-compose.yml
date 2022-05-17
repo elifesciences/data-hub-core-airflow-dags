@@ -131,7 +131,7 @@ services:
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
-            && airflow worker"
+            && airflow celery worker"
         
     test-ftpserver:
         image: delfer/alpine-ftp-server
