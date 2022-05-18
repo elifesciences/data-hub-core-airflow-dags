@@ -169,11 +169,11 @@ services:
         environment:
             - ALLOW_EMPTY_PASSWORD=yes
 
-    flower:
-        image: elifesciences/data-hub-core-dags-dev
-        depends_on:
-            - redis
-        environment: *airflow-env
-        ports:
-            - "5555:5555"
-        command: celery flower
+    # flower:
+    #     image: elifesciences/data-hub-core-dags-dev
+    #     depends_on:
+    #         - redis
+    #     environment: *airflow-env
+    #     ports:
+    #         - "5555:5555"
+    #     command: celery flower
