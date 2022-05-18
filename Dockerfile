@@ -26,7 +26,7 @@ RUN pip install --disable-pip-version-check \
 
 ARG install_dev=n
 COPY requirements.dev.txt ./
-RUN chown -R airflow:airflow file
+RUN chown -R airflow:airflow requirements.dev.txt
 RUN if [ "${install_dev}" = "y" ]; then \
     pip install --user --disable-pip-version-check \
       -r requirements.monitoring.txt \
