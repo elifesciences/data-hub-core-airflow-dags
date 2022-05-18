@@ -15,8 +15,8 @@ export PYTHONOPTIMIZE=
 echo "running unit tests"
 pytest tests/unit_test/ -p no:cacheprovider -s --disable-warnings
 
-echo "running dag validation tests"
-pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
+# echo "running dag validation tests"
+# pytest tests/dag_validation_test/ -p no:cacheprovider -s --disable-warnings
 
 echo "running pylint"
 PYLINTHOME=/tmp/datahub-dags-pylint \
