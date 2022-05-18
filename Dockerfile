@@ -35,13 +35,13 @@ RUN if [ "${install_dev}" = "y" ]; then \
 
 ENV PATH /home/airflow/.local/bin:$PATH
 
-COPY --chown=airflow:airflow data_pipeline ./data_pipeline
-COPY --chown=airflow:airflow dags ./dags
-COPY --chown=airflow:airflow setup.py ./setup.py
+COPY data_pipeline ./data_pipeline
+COPY dags ./dags
+COPY setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
-COPY --chown=airflow:airflow .flake8 .pylintrc run_test.sh ./
-COPY --chown=airflow:airflow tests ./tests
+COPY .flake8 .pylintrc run_test.sh ./
+COPY tests ./tests
 RUN if [ "${install_dev}" = "y" ]; then chmod +x run_test.sh; fi
 
 RUN mkdir -p $AIRFLOW_HOME/serve
