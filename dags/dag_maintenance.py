@@ -16,7 +16,7 @@ from airflow.models import (
     DagModel, Variable
 )
 from airflow.utils import timezone
-from airflow.jobs import BaseJob
+from airflow.jobs.base_job import BaseJob
 from airflow import settings
 from airflow.operators.python_operator import PythonOperator
 from sqlalchemy import func, and_
