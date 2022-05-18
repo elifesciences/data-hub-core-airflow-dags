@@ -105,7 +105,7 @@ watch:
 		python -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
 airflow-start:
-	$(DOCKER_COMPOSE) up worker webserver test-ftpserver flower
+	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
 
 
 airflow-stop:
@@ -119,6 +119,8 @@ test-exclude-e2e: build-dev
 clean:
 	$(DOCKER_COMPOSE) down -v
 
+airflow-db-upgrade:
+	$(DOCKER_COMPOSE) run --rm  webserver db upgrade
 
 airflow-initdb:
 	$(DOCKER_COMPOSE) run --rm  webserver db init
@@ -126,6 +128,7 @@ airflow-initdb:
 
 end2end-test:
 	$(MAKE) clean
+	$(MAKE) airflow-db-upgrade
 	$(MAKE) airflow-initdb
 	$(DOCKER_COMPOSE) run --rm  test-client
 	$(MAKE) clean
