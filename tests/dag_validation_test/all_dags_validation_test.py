@@ -3,7 +3,7 @@ import os
 
 import pytest
 from airflow import models as af_models
-from airflow.utils.dag_cycle_tester import test_cycle
+from airflow.utils.dag_cycle_tester import test_cycle as _test_cycle
 
 from tests.dag_validation_test.conftest import DAG_FILES, DAG_PATH
 
@@ -26,7 +26,7 @@ def test_dag_should_contain_no_cycle(dag_file):
     assert len(dag_objects) > 0
 
     for dag in dag_objects:
-        test_cycle(dag)
+        _test_cycle(dag)
 
 
 def test_should_successfully_import_all_dags(dagbag):
