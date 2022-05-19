@@ -58,7 +58,7 @@ class AirflowAPI:
         endpoint = f"/api/experimental/dags/{dag_id}/dag_runs"
         url = urljoin(self.airflow_url, endpoint)
         data = self.send_request(url, method="POST",
-                                 json_param={"conf": conf, })
+                                 json_param={"conf": conf or {}, })
 
         pattern = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d"
         return re.findall(pattern, data["message"])[0]
