@@ -46,6 +46,7 @@ def get_recommendation_response_json_from_api(
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
+        method='POST',
         provenance=provenance,
         session=session,
         raise_on_status=False,

@@ -185,6 +185,7 @@ class TestGetRecommendationResponseJsonFromApi:
         get_response_json_with_provenance_from_api_mock.assert_called_with(
             SOURCE_CONFIG_1.api_url,
             params=SOURCE_CONFIG_1.params,
+            method='POST',
             provenance=None,
             session=session_mock,
             raise_on_status=False,
