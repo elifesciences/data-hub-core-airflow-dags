@@ -33,6 +33,8 @@ x-airflow-env:
     - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
     - SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL}
     - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
+    - SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL}
+    - SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
     - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
     - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - S3_CSV_CONFIG_FILE_PATH=/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
@@ -61,6 +63,7 @@ x-airflow-volumes:
     - ./sample_data_config/europepmc/test-ftp-directory-name.txt:/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
     - ./sample_data_config/gmail-data/gmail-data-pipeline.config.yaml:/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
     - ./sample_data_config/semantic-scholar/semantic-scholar.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
+    - ./sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
     - ./sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml:/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
     - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
