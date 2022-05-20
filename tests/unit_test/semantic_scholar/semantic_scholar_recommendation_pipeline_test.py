@@ -20,6 +20,7 @@ from data_pipeline.semantic_scholar import (
 )
 from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline import (
     fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
+    get_recommendation_response_json_from_api,
     iter_recommendation_data
 )
 
@@ -80,7 +81,7 @@ MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
 
 
 SOURCE_CONFIG_1 = SemanticScholarSourceConfig(
-    api_url='/api1/{doi}',
+    api_url='/api1/recommendation',
     params={'param1': 'value1'}
 )
 
@@ -132,6 +133,15 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
+@pytest.fixture(name='get_response_json_with_provenance_from_api_mock', autouse=True)
+def _get_response_json_with_provenance_from_api_mock():
+    with patch.object(
+        semantic_scholar_recommendation_pipeline_module,
+        'get_response_json_with_provenance_from_api'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_list_for_matrix_config_mock')
 def _iter_list_for_matrix_config_mock():
     with patch.object(
@@ -157,6 +167,29 @@ def _iter_recommendation_data_mock():
         'iter_recommendation_data'
     ) as mock:
         yield mock
+
+
+class TestGetRecommendationResponseJsonFromApi:
+    def test_should_pass_resolved_api_url_and_params(
+        self,
+        session_mock: MagicMock,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        get_recommendation_response_json_from_api(
+            DOI_1,
+            source_config=SOURCE_CONFIG_1,
+            provenance=None,
+            session=session_mock,
+            progress_message='progress1'
+        )
+        get_response_json_with_provenance_from_api_mock.assert_called_with(
+            SOURCE_CONFIG_1.api_url,
+            params=SOURCE_CONFIG_1.params,
+            provenance=None,
+            session=session_mock,
+            raise_on_status=False,
+            progress_message='progress1'
+        )
 
 
 class TestIterRecommendationData:

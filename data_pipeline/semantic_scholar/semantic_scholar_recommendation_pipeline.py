@@ -3,12 +3,18 @@ from datetime import datetime
 from typing import Iterable, Mapping, Optional
 
 import requests
-from data_pipeline.semantic_scholar.semantic_scholar_pipeline import get_progress_message
 
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
+)
+from data_pipeline.utils.pipeline_utils import (
+    get_response_json_with_provenance_from_api
+)
+from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
+    get_progress_message,
+    get_request_params_for_source_config
 )
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarMatrixConfig,
@@ -35,11 +41,16 @@ def get_recommendation_response_json_from_api(
     progress_message: Optional[str] = None
 ) -> dict:
     LOGGER.debug('list_: %r', list_)
-    LOGGER.debug('source_config: %r', source_config)
-    LOGGER.debug('provenance: %r', provenance)
-    LOGGER.debug('session: %r', session)
-    LOGGER.debug('progress_message: %r', progress_message)
-    return {}
+    url = source_config.api_url
+    params = get_request_params_for_source_config(source_config)
+    return get_response_json_with_provenance_from_api(
+        url,
+        params=params,
+        provenance=provenance,
+        session=session,
+        raise_on_status=False,
+        progress_message=progress_message
+    )
 
 
 def iter_recommendation_data(
