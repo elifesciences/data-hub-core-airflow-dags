@@ -29,6 +29,8 @@ SINGLE_ITEM_RESPONSE_JSON_1 = {
     'data': 'value1'
 }
 
+JSON_DATA_1 = {'json_data': 'value1'}
+
 MOCK_UTC_NOW_STR = '2021-01-02T12:34:56'
 
 
@@ -124,27 +126,33 @@ class TestGetResponseJsonWithProvenanceFromApi:
     ):
         get_response_json_with_provenance_from_api(
             API_URL_1,
-            params=API_PARAMS_1
+            params=API_PARAMS_1,
+            method='POST',
+            json_data=JSON_DATA_1
         )
         requests_mock.request.assert_called_with(
-            'GET',
+            'POST',
             API_URL_1,
-            params=API_PARAMS_1
+            params=API_PARAMS_1,
+            json=JSON_DATA_1
         )
 
-    def test_should_pass_url_and_params_to_session_get_if_provided(
+    def test_should_pass_url_and_params_to_session_request_if_provided(
         self
     ):
         session_mock = MagicMock(name='session')
         get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            method='POST',
+            json_data=JSON_DATA_1,
             session=session_mock
         )
         session_mock.request.assert_called_with(
-            'GET',
+            'POST',
             API_URL_1,
-            params=API_PARAMS_1
+            params=API_PARAMS_1,
+            json=JSON_DATA_1
         )
 
     def test_should_return_response_json(

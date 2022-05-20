@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from json.decoder import JSONDecodeError
-from typing import Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 import requests
 
@@ -49,6 +49,7 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     url: str,
     params: Mapping[str, str] = None,
     method: str = 'GET',
+    json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
     raise_on_status: bool = True,
@@ -62,9 +63,9 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
     request_timestamp = datetime.utcnow()
     if session:
-        response = session.request(method, url, params=params)
+        response = session.request(method, url, params=params, json=json_data)
     else:
-        response = requests.request(method, url, params=params)
+        response = requests.request(method, url, params=params, json=json_data)
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
