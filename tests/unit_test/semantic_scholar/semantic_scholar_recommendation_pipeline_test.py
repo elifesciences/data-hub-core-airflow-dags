@@ -14,11 +14,13 @@ from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarMatrixVariableSourceConfig,
     SemanticScholarSourceConfig
 )
+from data_pipeline.semantic_scholar.semantic_scholar_pipeline import get_progress_message
 from data_pipeline.semantic_scholar import (
     semantic_scholar_recommendation_pipeline as semantic_scholar_recommendation_pipeline_module
 )
 from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline import (
-    fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery
+    fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
+    iter_recommendation_data
 )
 
 
@@ -26,6 +28,10 @@ DOI_1 = 'doi1'
 DOI_2 = 'doi2'
 
 DOI_LIST = [DOI_1, DOI_2]
+
+
+LIST_1 = {'list_key': 'key1'}
+
 
 ITEM_RESPONSE_JSON_1 = {
     'externalIds': {
@@ -135,6 +141,15 @@ def _iter_list_for_matrix_config_mock():
         yield mock
 
 
+@pytest.fixture(name='get_recommendation_response_json_from_api_mock')
+def _get_recommendation_response_json_from_api_mock():
+    with patch.object(
+        semantic_scholar_recommendation_pipeline_module,
+        'get_recommendation_response_json_from_api'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_recommendation_data_mock')
 def _iter_recommendation_data_mock():
     with patch.object(
@@ -144,8 +159,31 @@ def _iter_recommendation_data_mock():
         yield mock
 
 
+class TestIterRecommendationData:
+    def test_should_call_fetch_article_by_doi_with_doi(
+        self,
+        session_mock: MagicMock,
+        get_recommendation_response_json_from_api_mock: MagicMock
+    ):
+        list_iterable = iter([LIST_1])
+        result = list(iter_recommendation_data(
+            list_iterable,
+            source_config=SOURCE_CONFIG_1,
+            provenance=PROVENANCE_1,
+            session=session_mock
+        ))
+        assert result == [get_recommendation_response_json_from_api_mock.return_value]
+        get_recommendation_response_json_from_api_mock.assert_called_with(
+            LIST_1,
+            source_config=SOURCE_CONFIG_1,
+            provenance=PROVENANCE_1,
+            session=session_mock,
+            progress_message=get_progress_message(0, list_iterable)
+        )
+
+
 class TestFetchArticleDataFromSemanticScholarRecommendationAndLoadIntoBigQuery:
-    def test_should_pass_provenance_to_iter_article_data(
+    def test_should_pass_provenance_to_iter_recommendation_data(
         self,
         iter_recommendation_data_mock: MagicMock
     ):
@@ -161,7 +199,7 @@ class TestFetchArticleDataFromSemanticScholarRecommendationAndLoadIntoBigQuery:
             session=ANY
         )
 
-    def test_should_pass_iter_doi_result_to_iter_article_data(
+    def test_should_pass_iter_doi_result_to_iter_recommendation_data(
         self,
         iter_list_for_matrix_config_mock: MagicMock,
         iter_recommendation_data_mock: MagicMock
@@ -174,15 +212,15 @@ class TestFetchArticleDataFromSemanticScholarRecommendationAndLoadIntoBigQuery:
         iter_list_for_matrix_config_mock.assert_called_with(
             MATRIX_CONFIG_1
         )
-        doi_iterable = iter_list_for_matrix_config_mock.return_value
+        list_iterable = iter_list_for_matrix_config_mock.return_value
         iter_recommendation_data_mock.assert_called_with(
-            doi_iterable,
+            list_iterable,
             source_config=SOURCE_CONFIG_1,
             provenance=ANY,
             session=ANY
         )
 
-    def test_should_pass_retry_session_to_iter_article_data(
+    def test_should_pass_retry_session_to_iter_recommendation_data(
         self,
         requests_retry_session_mock: MagicMock,
         session_mock: MagicMock,

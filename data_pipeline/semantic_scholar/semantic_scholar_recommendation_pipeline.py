@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Iterable, Mapping, Optional
 
 import requests
+from data_pipeline.semantic_scholar.semantic_scholar_pipeline import get_progress_message
 
 from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.web_api import requests_retry_session
@@ -26,17 +27,36 @@ def iter_list_for_matrix_config(matrix_config: SemanticScholarMatrixConfig) -> I
     return []
 
 
+def get_recommendation_response_json_from_api(
+    list_: dict,
+    source_config: SemanticScholarSourceConfig,
+    provenance: Optional[Mapping[str, str]] = None,
+    session: Optional[requests.Session] = None,
+    progress_message: Optional[str] = None
+) -> dict:
+    LOGGER.debug('list_: %r', list_)
+    LOGGER.debug('source_config: %r', source_config)
+    LOGGER.debug('provenance: %r', provenance)
+    LOGGER.debug('session: %r', session)
+    LOGGER.debug('progress_message: %r', progress_message)
+    return {}
+
+
 def iter_recommendation_data(
     list_iterable: Iterable[str],
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None
 ) -> Iterable[dict]:
-    LOGGER.debug('list_iterable: %r', list_iterable)
-    LOGGER.debug('source_config: %r', source_config)
-    LOGGER.debug('provenance: %r', provenance)
-    LOGGER.debug('session: %r', session)
-    return []
+    for index, list_ in enumerate(list_iterable):
+        progress_message = get_progress_message(index, list_iterable)
+        yield get_recommendation_response_json_from_api(
+            list_,
+            source_config=source_config,
+            provenance=provenance,
+            session=session,
+            progress_message=progress_message
+        )
 
 
 def fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery(
