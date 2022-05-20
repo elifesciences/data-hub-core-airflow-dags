@@ -118,7 +118,7 @@ class TestFetchSingleColumnValueListForBigQuerySourceConfig:
 
 
 class TestGetResponseJsonWithProvenanceFromApi:
-    def test_should_pass_url_and_params_to_requests_get(
+    def test_should_pass_url_and_params_to_requests_request(
         self,
         requests_mock: MagicMock
     ):
@@ -126,7 +126,8 @@ class TestGetResponseJsonWithProvenanceFromApi:
             API_URL_1,
             params=API_PARAMS_1
         )
-        requests_mock.get.assert_called_with(
+        requests_mock.request.assert_called_with(
+            'GET',
             API_URL_1,
             params=API_PARAMS_1
         )
@@ -140,7 +141,8 @@ class TestGetResponseJsonWithProvenanceFromApi:
             params=API_PARAMS_1,
             session=session_mock
         )
-        session_mock.get.assert_called_with(
+        session_mock.request.assert_called_with(
+            'GET',
             API_URL_1,
             params=API_PARAMS_1
         )
@@ -149,7 +151,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
         self,
         requests_mock: MagicMock
     ):
-        response_mock = requests_mock.get.return_value
+        response_mock = requests_mock.request.return_value
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         actual_response_json = get_response_json_with_provenance_from_api(
             API_URL_1,
@@ -167,7 +169,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
         requests_mock: MagicMock,
         http_error: HTTPError
     ):
-        response_mock = requests_mock.get.return_value
+        response_mock = requests_mock.request.return_value
         response_mock.raise_for_status.side_effect = http_error
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         with pytest.raises(HTTPError):
@@ -181,7 +183,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
         requests_mock: MagicMock,
         http_error: HTTPError
     ):
-        response_mock = requests_mock.get.return_value
+        response_mock = requests_mock.request.return_value
         response_mock.status_code = http_error.code
         response_mock.raise_for_status.side_effect = http_error
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
@@ -197,7 +199,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
         self,
         requests_mock: MagicMock
     ):
-        response_mock = requests_mock.get.return_value
+        response_mock = requests_mock.request.return_value
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         response_mock.status_code = 200
         actual_response_json = get_response_json_with_provenance_from_api(
@@ -213,14 +215,16 @@ class TestGetResponseJsonWithProvenanceFromApi:
         self,
         requests_mock: MagicMock
     ):
-        response_mock = requests_mock.get.return_value
+        response_mock = requests_mock.request.return_value
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         passed_in_provenance = {'imported_timestamp': MOCK_UTC_NOW_STR}
         actual_response_json = get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            method='POST',
             provenance=passed_in_provenance
         )
         provenance_json = actual_response_json['provenance']
+        assert provenance_json['method'] == 'POST'
         assert provenance_json['api_url'] == API_URL_1
         assert provenance_json['imported_timestamp'] == MOCK_UTC_NOW_STR

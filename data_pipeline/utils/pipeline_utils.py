@@ -48,6 +48,7 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
     url: str,
     params: Mapping[str, str] = None,
+    method: str = 'GET',
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
     raise_on_status: bool = True,
@@ -58,12 +59,12 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
         if progress_message
         else ''
     )
-    LOGGER.info('requesting url%s: %r (%r)', progress_message_str, url, params)
+    LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
     request_timestamp = datetime.utcnow()
     if session:
-        response = session.get(url, params=params)
+        response = session.request(method, url, params=params)
     else:
-        response = requests.get(url, params=params)
+        response = requests.request(method, url, params=params)
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
@@ -75,6 +76,7 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
         response.raise_for_status()
     request_provenance = {
         **(provenance or {}),
+        'method': method,
         'api_url': url,
         'request_url': response.url,
         'http_status': response.status_code,
