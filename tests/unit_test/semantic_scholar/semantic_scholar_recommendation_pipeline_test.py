@@ -22,6 +22,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline imp
     ExcludableListItem,
     ExcludableListWithMeta,
     fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
+    get_order_preserving_doi_list_by_events,
     get_recommendation_response_json_from_api,
     iter_recommendation_data
 )
@@ -171,8 +172,37 @@ def _iter_recommendation_data_mock():
         yield mock
 
 
+class TestGetOrderPreservingDoiListByEvents:
+    def test_should_return_included_dois(self):
+        assert get_order_preserving_doi_list_by_events(
+            [
+                ExcludableListItem(DOI_1),
+                ExcludableListItem(DOI_2)
+            ]
+        ) == [DOI_1, DOI_2]
+
+    def test_should_excluded_doi(self):
+        assert get_order_preserving_doi_list_by_events(
+            [
+                ExcludableListItem(DOI_1),
+                ExcludableListItem(DOI_1, is_excluded=True),
+                ExcludableListItem(DOI_2)
+            ]
+        ) == [DOI_2]
+
+    def test_should_return_excluded_dois(self):
+        assert get_order_preserving_doi_list_by_events(
+            [
+                ExcludableListItem(DOI_1),
+                ExcludableListItem(DOI_1, is_excluded=True),
+                ExcludableListItem(DOI_2)
+            ],
+            return_exclude_list=True
+        ) == [DOI_1]
+
+
 class TestGetRecommendationResponseJsonFromApi:
-    def test_should_pass_resolved_api_url_and_params(
+    def test_should_pass_api_url_and_params_to_api(
         self,
         session_mock: MagicMock,
         get_response_json_with_provenance_from_api_mock: MagicMock
@@ -190,12 +220,34 @@ class TestGetRecommendationResponseJsonFromApi:
             SOURCE_CONFIG_1.api_url,
             params=SOURCE_CONFIG_1.params,
             method='POST',
-            json_data={'positivePaperIds': [f'DOI:{DOI_1}']},
+            json_data=ANY,
             provenance=None,
             session=session_mock,
             raise_on_status=False,
             progress_message='progress1'
         )
+
+    def test_should_pass_positive_and_negative_paper_ids_to_api(
+        self,
+        session_mock: MagicMock,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        get_recommendation_response_json_from_api(
+            ExcludableListWithMeta(list_key='key1', item_list=[
+                ExcludableListItem(doi=DOI_1),
+                ExcludableListItem(doi=DOI_1, is_excluded=True),
+                ExcludableListItem(doi=DOI_2)
+            ]),
+            source_config=SOURCE_CONFIG_1,
+            provenance=None,
+            session=session_mock,
+            progress_message='progress1'
+        )
+        _, kwargs = get_response_json_with_provenance_from_api_mock.call_args
+        assert kwargs['json_data'] == {
+            'positivePaperIds': [f'DOI:{DOI_2}'],
+            'negativePaperIds': [f'DOI:{DOI_1}']
+        }
 
 
 class TestIterRecommendationData:

@@ -38,6 +38,26 @@ class ExcludableListWithMeta(NamedTuple):
     item_list: Sequence[ExcludableListItem]
 
 
+def get_order_preserving_doi_list_by_events(
+    item_list: Sequence[ExcludableListItem],
+    return_exclude_list: bool = False
+) -> Sequence[str]:
+    doi_list = []
+    for item in item_list:
+        doi = item.doi
+        if item.is_excluded == return_exclude_list:
+            if doi not in doi_list:
+                doi_list.append(doi)
+        else:
+            if doi in doi_list:
+                doi_list.remove(doi)
+    return doi_list
+
+
+def get_paper_ids_for_dois(doi_list: Iterable[str]) -> Sequence[str]:
+    return [f'DOI:{doi}' for doi in doi_list]
+
+
 def iter_list_for_matrix_config(
     matrix_config: SemanticScholarMatrixConfig
 ) -> Iterable[ExcludableListWithMeta]:
@@ -56,10 +76,18 @@ def get_recommendation_response_json_from_api(
     url = source_config.api_url
     params = get_request_params_for_source_config(source_config)
     json_data = {
-        'positivePaperIds': [
-            f'DOI:{item.doi}'
-            for item in excludable_list_with_meta.item_list
-        ]
+        'positivePaperIds': get_paper_ids_for_dois(
+            get_order_preserving_doi_list_by_events(
+                excludable_list_with_meta.item_list,
+                return_exclude_list=False
+            )
+        ),
+        'negativePaperIds': get_paper_ids_for_dois(
+            get_order_preserving_doi_list_by_events(
+                excludable_list_with_meta.item_list,
+                return_exclude_list=True
+            )
+        )
     }
     return get_response_json_with_provenance_from_api(
         url,
