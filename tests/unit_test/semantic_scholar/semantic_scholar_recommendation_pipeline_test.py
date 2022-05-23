@@ -19,6 +19,8 @@ from data_pipeline.semantic_scholar import (
     semantic_scholar_recommendation_pipeline as semantic_scholar_recommendation_pipeline_module
 )
 from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline import (
+    ExcludableListItem,
+    ExcludableListWithMeta,
     fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
     get_recommendation_response_json_from_api,
     iter_recommendation_data
@@ -176,7 +178,9 @@ class TestGetRecommendationResponseJsonFromApi:
         get_response_json_with_provenance_from_api_mock: MagicMock
     ):
         get_recommendation_response_json_from_api(
-            DOI_1,
+            ExcludableListWithMeta(list_key='key1', item_list=[
+                ExcludableListItem(doi=DOI_1)
+            ]),
             source_config=SOURCE_CONFIG_1,
             provenance=None,
             session=session_mock,
@@ -186,6 +190,7 @@ class TestGetRecommendationResponseJsonFromApi:
             SOURCE_CONFIG_1.api_url,
             params=SOURCE_CONFIG_1.params,
             method='POST',
+            json_data={'positivePaperIds': [f'DOI:{DOI_1}']},
             provenance=None,
             session=session_mock,
             raise_on_status=False,

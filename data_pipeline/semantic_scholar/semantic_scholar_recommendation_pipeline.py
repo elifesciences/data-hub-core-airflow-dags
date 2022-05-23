@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Iterable, Mapping, Optional
+from typing import Iterable, Mapping, NamedTuple, Optional, Sequence
 
 import requests
 
@@ -28,25 +28,44 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config impor
 LOGGER = logging.getLogger(__name__)
 
 
-def iter_list_for_matrix_config(matrix_config: SemanticScholarMatrixConfig) -> Iterable[dict]:
+class ExcludableListItem(NamedTuple):
+    doi: str
+    is_excluded: bool = False
+
+
+class ExcludableListWithMeta(NamedTuple):
+    list_key: str
+    item_list: Sequence[ExcludableListItem]
+
+
+def iter_list_for_matrix_config(
+    matrix_config: SemanticScholarMatrixConfig
+) -> Iterable[ExcludableListWithMeta]:
     LOGGER.debug('matrix_config: %r', matrix_config)
     return []
 
 
 def get_recommendation_response_json_from_api(
-    list_: dict,
+    excludable_list_with_meta: ExcludableListWithMeta,
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
     progress_message: Optional[str] = None
 ) -> dict:
-    LOGGER.debug('list_: %r', list_)
+    LOGGER.debug('list_: %r', excludable_list_with_meta)
     url = source_config.api_url
     params = get_request_params_for_source_config(source_config)
+    json_data = {
+        'positivePaperIds': [
+            f'DOI:{item.doi}'
+            for item in excludable_list_with_meta.item_list
+        ]
+    }
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
         method='POST',
+        json_data=json_data,
         provenance=provenance,
         session=session,
         raise_on_status=False,
