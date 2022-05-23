@@ -66,7 +66,7 @@ def iter_dict_for_bigquery_source_config_with_exclusion(
         if exclude_bigquery_source_config and not exclude_bigquery_source_config.ignore_not_found:
             raise
     try:
-        LOGGER.info('caught not found, returning empty list')
+        LOGGER.info('caught not found, attempting query without exclusion')
         yield from iter_dict_from_bq_query(
             project_name=bigquery_source_config.project_name,
             query=bigquery_source_config.sql_query
