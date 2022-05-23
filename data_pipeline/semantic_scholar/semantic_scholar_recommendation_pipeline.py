@@ -10,7 +10,8 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
 from data_pipeline.utils.pipeline_utils import (
-    get_response_json_with_provenance_from_api
+    get_response_json_with_provenance_from_api,
+    iter_dict_for_bigquery_source_config_with_exclusion
 )
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
     get_progress_message,
@@ -58,11 +59,36 @@ def get_paper_ids_for_dois(doi_list: Iterable[str]) -> Sequence[str]:
     return [f'DOI:{doi}' for doi in doi_list]
 
 
+def get_list_item_for_dict(list_item_dict: dict) -> ExcludableListItem:
+    return ExcludableListItem(
+        doi=list_item_dict['doi'],
+        is_excluded=list_item_dict['is_excluded']
+    )
+
+
+def get_list_with_meta_for_dict(list_dict: dict) -> ExcludableListWithMeta:
+    return ExcludableListWithMeta(
+        list_key=list_dict['list_key'],
+        item_list=[
+            get_list_item_for_dict(list_item_dict)
+            for list_item_dict in list_dict['list']
+        ]
+    )
+
+
 def iter_list_for_matrix_config(
     matrix_config: SemanticScholarMatrixConfig
 ) -> Iterable[ExcludableListWithMeta]:
     LOGGER.debug('matrix_config: %r', matrix_config)
-    return []
+    variable_config = matrix_config.variables['list']
+    iterable = iter_dict_for_bigquery_source_config_with_exclusion(
+        variable_config.include.bigquery,
+        key_field_name='list_key',
+        exclude_bigquery_source_config=(
+            variable_config.exclude.bigquery if variable_config.exclude else None
+        )
+    )
+    return map(get_list_with_meta_for_dict, iterable)
 
 
 def get_recommendation_response_json_from_api(

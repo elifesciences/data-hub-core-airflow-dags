@@ -24,6 +24,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline imp
     fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
     get_order_preserving_doi_list_by_events,
     get_recommendation_response_json_from_api,
+    iter_list_for_matrix_config,
     iter_recommendation_data
 )
 
@@ -83,6 +84,13 @@ MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
 )
 
 
+MATRIX_WITH_EXCLUDE_CONFIG_1 = SemanticScholarMatrixConfig(
+    variables={
+        'list': MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1
+    }
+)
+
+
 SOURCE_CONFIG_1 = SemanticScholarSourceConfig(
     api_url='/api1/recommendation',
     params={'param1': 'value1'}
@@ -136,6 +144,15 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
+@pytest.fixture(name='iter_dict_for_bigquery_source_config_with_exclusion_mock', autouse=True)
+def _iter_dict_for_bigquery_source_config_with_exclusion_mock():
+    with patch.object(
+        semantic_scholar_recommendation_pipeline_module,
+        'iter_dict_for_bigquery_source_config_with_exclusion'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='get_response_json_with_provenance_from_api_mock', autouse=True)
 def _get_response_json_with_provenance_from_api_mock():
     with patch.object(
@@ -170,6 +187,52 @@ def _iter_recommendation_data_mock():
         'iter_recommendation_data'
     ) as mock:
         yield mock
+
+
+class TestIterListForMatrixConfig:
+    def test_should_call_iter_dict_from_bq_query_without_exclusion(
+        self,
+        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
+    ):
+        iter_list_for_matrix_config(MATRIX_CONFIG_1)
+        iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
+            MATRIX_VARIABLE_CONFIG_1.include.bigquery,
+            key_field_name='list_key',
+            exclude_bigquery_source_config=None
+        )
+
+    def test_should_call_iter_dict_from_bq_query_with_exclusion(
+        self,
+        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
+    ):
+        iter_list_for_matrix_config(MATRIX_WITH_EXCLUDE_CONFIG_1)
+        iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
+            MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.include.bigquery,
+            key_field_name='list_key',
+            exclude_bigquery_source_config=MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.exclude.bigquery
+        )
+
+    def test_should_return_parsed_include_list(
+        self,
+        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
+    ):
+        iter_dict_for_bigquery_source_config_with_exclusion_mock.return_value = [
+            {'list_key': 'list1', 'list': [{
+                'doi': DOI_1, 'is_excluded': False
+            }]}
+        ]
+        result = list(iter_list_for_matrix_config(MATRIX_CONFIG_1))
+        assert result == [
+            ExcludableListWithMeta(
+                list_key='list1',
+                item_list=[
+                    ExcludableListItem(
+                        doi=DOI_1,
+                        is_excluded=False
+                    )
+                ]
+            )
+        ]
 
 
 class TestGetOrderPreservingDoiListByEvents:
