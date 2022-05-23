@@ -1,7 +1,7 @@
 import logging
 import os
 from math import ceil
-from typing import Any, Iterable, List, Sequence
+from typing import Any, Iterable, List, Optional, Sequence
 from tempfile import TemporaryDirectory
 import pandas as pd
 from jinjasql import JinjaSql
@@ -370,6 +370,16 @@ def get_bq_result_from_bq_query(
     bq_result = query_job.result()  # Waits for query to finish
     LOGGER.debug('bq_result: %r', bq_result)
     return bq_result
+
+
+def get_query_with_exclusion(
+    query: str,
+    key_field_name: str,
+    exclude_query: Optional[str] = None
+) -> str:
+    if not exclude_query:
+        return query
+    return f'SELECT * FROM (\n{query}\n)\nWHERE {key_field_name} IN (\n{exclude_query}\n)'
 
 
 def iter_dict_from_bq_query(

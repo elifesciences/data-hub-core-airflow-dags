@@ -8,6 +8,7 @@ from google.cloud.bigquery.table import Row
 import data_pipeline.utils.data_store.bq_data_service \
     as bq_data_service_module
 from data_pipeline.utils.data_store.bq_data_service import (
+    get_query_with_exclusion,
     iter_dict_from_bq_query,
     load_file_into_bq,
     load_tuple_list_into_bq,
@@ -45,6 +46,21 @@ def _getsize():
         mock.return_value.getsize = 1
         mock.return_value.isfile = True
         yield mock
+
+
+class TestGetQueryWithExclusion:
+    def test_should_return_regular_query_without_exclusion(self):
+        assert get_query_with_exclusion(
+            'query1',
+            key_field_name='key1'
+        ) == 'query1'
+
+    def test_should_wrap_query_and_add_where_clause(self):
+        assert get_query_with_exclusion(
+            'SELECT "key1" AS key',
+            key_field_name='key',
+            exclude_query='SELECT "key1" AS key'
+        ) == 'SELECT * FROM (\nSELECT "key1" AS key\n)\nWHERE key IN (\nSELECT "key1" AS key\n)'
 
 
 class TestIterDictFromBqQuery:
