@@ -134,10 +134,13 @@ services:
             && airflow worker"
         
     test-ftpserver:
-        image: delfer/alpine-ftp-server
+        image: garethflowers/ftp-server
+        # environment:
+        #     - USERS=elinks|password1
+        #     - ADDRESS=test-ftpserver
         environment:
-            - USERS=elinks|password1
-            - ADDRESS=test-ftpserver
+            - FTP_PASS=password1
+            - FTP_USER=elinks
 
     test-client:
         image:  elifesciences/data-hub-core-dags-dev
