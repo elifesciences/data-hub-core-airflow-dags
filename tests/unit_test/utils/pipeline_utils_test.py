@@ -9,7 +9,8 @@ import google.cloud.exceptions
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import (
     fetch_single_column_value_list_for_bigquery_source_config,
-    get_response_json_with_provenance_from_api
+    get_response_json_with_provenance_from_api,
+    iter_dict_for_bigquery_source_config_with_exclusion
 )
 from data_pipeline.utils import (
     pipeline_utils as pipeline_utils_module
@@ -20,6 +21,8 @@ BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
     project_name='project1',
     sql_query='query1'
 )
+
+BIGQUERY_SOURCE_CONFIG_2 = BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='query2')
 
 
 API_URL_1 = '/api1'
@@ -53,6 +56,12 @@ def _get_single_column_value_list_from_bq_query_mock():
         pipeline_utils_module,
         'get_single_column_value_list_from_bq_query'
     ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='iter_dict_from_bq_query_mock', autouse=True)
+def _iter_dict_from_bq_query_mock():
+    with patch.object(pipeline_utils_module, 'iter_dict_from_bq_query') as mock:
         yield mock
 
 
@@ -117,6 +126,81 @@ class TestFetchSingleColumnValueListForBigQuerySourceConfig:
             )
         )
         assert result == []
+
+
+class TestIterDictForBigQuerySourceConfigWithExclusion:
+    def test_should_call_iter_dict_for_bigquery_source_config(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        list(iter_dict_for_bigquery_source_config_with_exclusion(
+            BIGQUERY_SOURCE_CONFIG_1,
+            key_field_name='key1'
+        ))
+        iter_dict_from_bq_query_mock.assert_called_with(
+            project_name=BIGQUERY_SOURCE_CONFIG_1.project_name,
+            query=BIGQUERY_SOURCE_CONFIG_1.sql_query
+        )
+
+    def test_should_return_dict_list_from_bq_query(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_mock.return_value = [
+            {'key1': 'value1', 'key2': 'value2'}
+        ]
+        result = list(iter_dict_for_bigquery_source_config_with_exclusion(
+            BIGQUERY_SOURCE_CONFIG_1,
+            key_field_name='key1'
+        ))
+        assert result == iter_dict_from_bq_query_mock.return_value
+
+    def test_should_fail_if_not_found_exception_and_not_ignored(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_mock.side_effect = (
+            google.cloud.exceptions.NotFound('not found')
+        )
+        with pytest.raises(google.cloud.exceptions.NotFound):
+            list(iter_dict_for_bigquery_source_config_with_exclusion(
+                BIGQUERY_SOURCE_CONFIG_1._replace(
+                    ignore_not_found=False
+                ),
+                key_field_name='key1'
+            ))
+
+    def test_should_return_empty_list_if_not_found_exception_and_ignored(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_mock.side_effect = (
+            google.cloud.exceptions.NotFound('not found')
+        )
+        result = list(iter_dict_for_bigquery_source_config_with_exclusion(
+            BIGQUERY_SOURCE_CONFIG_1._replace(
+                ignore_not_found=True
+            ),
+            key_field_name='key1'
+        ))
+        assert result == []
+
+    def test_should_return_non_exclude_result_if_not_found_exception_and_ignored(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_mock.side_effect = [
+            google.cloud.exceptions.NotFound('not found'),
+            [{'key1': 'value1', 'key2': 'value2'}]
+        ]
+        result = list(iter_dict_for_bigquery_source_config_with_exclusion(
+            BIGQUERY_SOURCE_CONFIG_1,
+            key_field_name='key1',
+            exclude_bigquery_source_config=BIGQUERY_SOURCE_CONFIG_2._replace(
+                ignore_not_found=True
+            )
+        ))
+        assert result == [{'key1': 'value1', 'key2': 'value2'}]
 
 
 class TestGetResponseJsonWithProvenanceFromApi:

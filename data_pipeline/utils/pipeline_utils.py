@@ -1,14 +1,16 @@
 import logging
 from datetime import datetime
 from json.decoder import JSONDecodeError
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import requests
 
 import google.cloud.exceptions
 
 from data_pipeline.utils.data_store.bq_data_service import (
-    get_single_column_value_list_from_bq_query
+    get_query_with_exclusion,
+    get_single_column_value_list_from_bq_query,
+    iter_dict_from_bq_query
 )
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig
@@ -35,6 +37,44 @@ def fetch_single_column_value_list_for_bigquery_source_config(
     LOGGER.debug('value_list: %r', value_list)
     LOGGER.info('length of value_list: %r', len(value_list))
     return value_list
+
+
+def iter_dict_for_bigquery_source_config_with_exclusion(
+    bigquery_source_config: BigQuerySourceConfig,
+    key_field_name: str,
+    exclude_bigquery_source_config: Optional[BigQuerySourceConfig] = None
+) -> Iterable[dict]:
+    LOGGER.debug('bigquery_source: %r', bigquery_source_config)
+    query = bigquery_source_config.sql_query
+    if exclude_bigquery_source_config:
+        query_with_exclusion = get_query_with_exclusion(
+            query,
+            key_field_name=key_field_name,
+            exclude_query=exclude_bigquery_source_config.sql_query
+        )
+    else:
+        query_with_exclusion = query
+    try:
+        yield from iter_dict_from_bq_query(
+            project_name=bigquery_source_config.project_name,
+            query=query_with_exclusion
+        )
+        return
+    except google.cloud.exceptions.NotFound:
+        if query_with_exclusion == query and not bigquery_source_config.ignore_not_found:
+            raise
+        if exclude_bigquery_source_config and not exclude_bigquery_source_config.ignore_not_found:
+            raise
+    try:
+        LOGGER.info('caught not found, returning empty list')
+        yield from iter_dict_from_bq_query(
+            project_name=bigquery_source_config.project_name,
+            query=bigquery_source_config.sql_query
+        )
+    except google.cloud.exceptions.NotFound:
+        if not bigquery_source_config.ignore_not_found:
+            raise
+        LOGGER.info('caught not found, returning empty list')
 
 
 def get_valid_json_from_response(response: requests.Response) -> dict:
