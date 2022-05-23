@@ -20,14 +20,14 @@ semanticScholarRecommendation:
                           list_key,
                           user_id,
                           TO_HEX(MD5(ARRAY_TO_STRING(ARRAY_AGG(doi ORDER BY item_timestamp), '|'))) AS list_hash,
-                          ARRAY_AGG(STRUCT(item_timestamp, doi, is_exclude) ORDER BY item_timestamp) AS list
+                          ARRAY_AGG(STRUCT(item_timestamp, doi, is_excluded) ORDER BY item_timestamp) AS list
                       FROM (
                           SELECT
                               CONCAT('user:', event.user_id) AS list_key,
                               event.user_id,
                               event.event_timestamp AS item_timestamp,
                               event.article_doi AS doi,
-                              (event.event_name = 'UserUnsavedArticle') AS is_exclude,
+                              (event.event_name = 'UserUnsavedArticle') AS is_excluded,
                           FROM `elife-data-pipeline.de_proto.v_sciety_event` AS event
                           WHERE event.article_doi IS NOT NULL
                               AND event.event_name IN ('UserSavedArticle', 'UserUnsavedArticle')
