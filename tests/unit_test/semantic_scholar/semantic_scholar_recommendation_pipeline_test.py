@@ -289,7 +289,7 @@ class TestGetRecommendationResponseJsonFromApi:
             params=SOURCE_CONFIG_1.params,
             method='POST',
             json_data=ANY,
-            provenance=None,
+            provenance=ANY,
             session=session_mock,
             raise_on_status=False,
             progress_message='progress1'
@@ -316,6 +316,26 @@ class TestGetRecommendationResponseJsonFromApi:
             'positivePaperIds': [f'DOI:{DOI_2}'],
             'negativePaperIds': [f'DOI:{DOI_1}']
         }
+
+    def test_should_add_list_meta_to_provenance(
+        self,
+        session_mock: MagicMock,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        get_recommendation_response_json_from_api(
+            ExcludableListWithMeta(
+                list_key='key1',
+                list_meta={'meta_key1': 'meta_value1'},
+                item_list=[ExcludableListItem(doi=DOI_1)]
+            ),
+            source_config=SOURCE_CONFIG_1,
+            provenance=None,
+            session=session_mock,
+            progress_message='progress1'
+        )
+        _, kwargs = get_response_json_with_provenance_from_api_mock.call_args
+        assert kwargs['provenance']['list_key'] == 'key1'
+        assert kwargs['provenance']['list_meta'] == {'meta_key1': 'meta_value1'}
 
 
 class TestIterRecommendationData:

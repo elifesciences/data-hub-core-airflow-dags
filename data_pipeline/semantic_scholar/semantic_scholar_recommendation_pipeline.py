@@ -119,12 +119,17 @@ def get_recommendation_response_json_from_api(
             )
         )
     }
+    extended_provenance = {
+        **(provenance or {}),
+        'list_key': excludable_list_with_meta.list_key,
+        'list_meta': excludable_list_with_meta.list_meta
+    }
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
         method='POST',
         json_data=json_data,
-        provenance=provenance,
+        provenance=extended_provenance,
         session=session,
         raise_on_status=False,
         progress_message=progress_message
