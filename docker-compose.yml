@@ -138,6 +138,8 @@ services:
         environment:
             - FTP_PASS=password1
             - FTP_USER=elinks
+        volumes: 
+            - ./testftp_server_config/vsftpd.conf:/etc/vsftpd.conf
 
     test-client:
         image:  elifesciences/data-hub-core-dags-dev
