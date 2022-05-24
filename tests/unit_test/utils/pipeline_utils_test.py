@@ -183,7 +183,7 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
             ),
             key_field_name='key1'
         ))
-        assert result == []
+        assert not result
 
     def test_should_return_non_exclude_result_if_not_found_exception_and_ignored(
         self,
