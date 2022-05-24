@@ -104,6 +104,17 @@ watch:
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \
 		python -m pytest_watch -- -p no:cacheprovider $(ARGS) $(PYTEST_WATCH_MODULES)
 
+docker-show-ftpserver-logs-and-fail:
+	$(DOCKER_COMPOSE) logs "test-ftpserver" && exit 1
+
+docker-wait-for-ftpserver:
+	$(DOCKER_COMPOSE) run --rm wait-for-it \
+		"test-ftpserver:21" \
+		--timeout=30 \
+		--strict \
+		-- echo "test-ftpserver is up" \
+		|| $(MAKE) docker-show-ftpserver-logs-and-fail
+
 airflow-start:
 	$(DOCKER_COMPOSE) up worker webserver test-ftpserver flower
 
@@ -127,6 +138,7 @@ airflow-initdb:
 end2end-test:
 	$(MAKE) clean
 	$(MAKE) airflow-initdb
+	$(MAKE) docker-wait-for-ftpserver
 	$(DOCKER_COMPOSE) run --rm  test-client
 	$(MAKE) clean
 
