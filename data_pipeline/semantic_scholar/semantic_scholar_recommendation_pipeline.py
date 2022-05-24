@@ -1,6 +1,7 @@
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Iterable, Mapping, NamedTuple, Optional, Sequence
+from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence
 
 import requests
 
@@ -34,9 +35,11 @@ class ExcludableListItem(NamedTuple):
     is_excluded: bool = False
 
 
-class ExcludableListWithMeta(NamedTuple):
+@dataclass(frozen=True)
+class ExcludableListWithMeta:
     list_key: str
     item_list: Sequence[ExcludableListItem]
+    list_meta: Mapping[str, Any] = field(default_factory=dict)
 
 
 def get_order_preserving_doi_list_by_events(
@@ -69,6 +72,7 @@ def get_list_item_for_dict(list_item_dict: dict) -> ExcludableListItem:
 def get_list_with_meta_for_dict(list_dict: dict) -> ExcludableListWithMeta:
     return ExcludableListWithMeta(
         list_key=list_dict['list_key'],
+        list_meta=list_dict['list_meta'],
         item_list=[
             get_list_item_for_dict(list_item_dict)
             for list_item_dict in list_dict['list']

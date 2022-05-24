@@ -217,14 +217,19 @@ class TestIterListForMatrixConfig:
         iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
     ):
         iter_dict_for_bigquery_source_config_with_exclusion_mock.return_value = [
-            {'list_key': 'list1', 'list': [{
-                'doi': DOI_1, 'is_excluded': False
-            }]}
+            {
+                'list_key': 'list1',
+                'list_meta': {'meta_key1': 'meta_value1'},
+                'list': [{
+                    'doi': DOI_1, 'is_excluded': False
+                }]
+            }
         ]
         result = list(iter_list_for_matrix_config(MATRIX_CONFIG_1))
         assert result == [
             ExcludableListWithMeta(
                 list_key='list1',
+                list_meta={'meta_key1': 'meta_value1'},
                 item_list=[
                     ExcludableListItem(
                         doi=DOI_1,
