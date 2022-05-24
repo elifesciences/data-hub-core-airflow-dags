@@ -124,6 +124,7 @@ services:
           - smtp-server
           - redis
           - scheduler
+          - test-ftpserver
         volumes: *airflow-volumes
         image: elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
@@ -140,6 +141,9 @@ services:
             - FTP_USER=elinks
         volumes: 
             - ./testftp_server_config/vsftpd.conf:/etc/vsftpd.conf
+    
+    wait-for-it:
+        image: willwill/wait-for-it
 
     test-client:
         image:  elifesciences/data-hub-core-dags-dev
