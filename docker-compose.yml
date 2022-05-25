@@ -101,6 +101,8 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
         command: webserver
+        volumes:
+            - ./config/webserver_config.py:/opt/airflow/webserver_config.py
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8080"]
             interval: 30s
