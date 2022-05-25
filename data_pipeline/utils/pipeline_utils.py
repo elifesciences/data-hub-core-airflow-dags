@@ -128,6 +128,8 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
         request_provenance['request_params'] = [
             {'name': key, 'value': value} for key, value in params.items()
         ]
+    if json_data:
+        request_provenance['json_data'] = json_data
     return {
         **get_valid_json_from_response(response),
         'provenance': request_provenance

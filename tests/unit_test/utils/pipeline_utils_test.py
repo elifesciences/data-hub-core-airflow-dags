@@ -296,12 +296,14 @@ class TestGetResponseJsonWithProvenanceFromApi:
         response_mock.status_code = 200
         actual_response_json = get_response_json_with_provenance_from_api(
             API_URL_1,
-            params=API_PARAMS_1
+            params=API_PARAMS_1,
+            json_data=JSON_DATA_1
         )
         provenance_json = actual_response_json['provenance']
         assert provenance_json['api_url'] == API_URL_1
         assert provenance_json['request_url'] == response_mock.url
         assert provenance_json['http_status'] == 200
+        assert provenance_json['json_data'] == JSON_DATA_1
 
     def test_should_extend_provenance(
         self,
