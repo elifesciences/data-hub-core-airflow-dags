@@ -1,5 +1,5 @@
 semanticScholarRecommendation:
-  - dataPipelineId: semantic_scholar_recommendation_data_pipeline_1
+  - dataPipelineId: test_semantic_scholar_recommendation_data_pipeline
     matrix:  # similar to ci matrix, currently supporting a single variable only
       list:
         include:
