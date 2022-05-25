@@ -115,6 +115,10 @@ docker-wait-for-ftpserver:
 		-- echo "test-ftpserver is up" \
 		|| $(MAKE) docker-show-ftpserver-logs-and-fail
 
+test-ftpserver-start:
+	$(DOCKER_COMPOSE) up -d test-ftpserver
+
+
 airflow-start:
 	$(DOCKER_COMPOSE) up worker webserver test-ftpserver flower
 
@@ -138,6 +142,7 @@ airflow-initdb:
 end2end-test:
 	$(MAKE) clean
 	$(MAKE) airflow-initdb
+	$(MAKE) test-ftpserver-start
 	$(MAKE) docker-wait-for-ftpserver
 	$(DOCKER_COMPOSE) run --rm  test-client
 	$(MAKE) clean
