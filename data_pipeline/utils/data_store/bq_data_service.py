@@ -379,7 +379,7 @@ def get_query_with_exclusion(
 ) -> str:
     if not exclude_query:
         return query
-    return f'SELECT * FROM (\n{query}\n)\nWHERE {key_field_name} IN (\n{exclude_query}\n)'
+    return f'SELECT * FROM (\n{query}\n)\nWHERE {key_field_name} NOT IN (\n{exclude_query}\n)'
 
 
 def iter_dict_from_bq_query(

@@ -60,7 +60,14 @@ class TestGetQueryWithExclusion:
             'SELECT "key1" AS key',
             key_field_name='key',
             exclude_query='SELECT "key1" AS key'
-        ) == 'SELECT * FROM (\nSELECT "key1" AS key\n)\nWHERE key IN (\nSELECT "key1" AS key\n)'
+        ) == '\n'.join([
+            'SELECT * FROM (',
+            'SELECT "key1" AS key',
+            ')',
+            'WHERE key NOT IN (',
+            'SELECT "key1" AS key',
+            ')'
+        ])
 
 
 class TestIterDictFromBqQuery:
