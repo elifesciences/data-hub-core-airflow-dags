@@ -124,7 +124,6 @@ services:
           - smtp-server
           - redis
           - scheduler
-          - test-ftpserver
         volumes: *airflow-volumes
         image: elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
