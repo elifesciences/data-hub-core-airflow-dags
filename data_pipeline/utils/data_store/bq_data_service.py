@@ -1,7 +1,7 @@
 import logging
 import os
 from math import ceil
-from typing import Any, Iterable, List, Sequence
+from typing import Any, Iterable, List, Optional, Sequence
 from tempfile import TemporaryDirectory
 import pandas as pd
 from jinjasql import JinjaSql
@@ -10,6 +10,7 @@ from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
 from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import WriteDisposition
+from google.cloud.bigquery.table import RowIterator
 from bigquery_schema_generator.generate_schema import SchemaGenerator
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
@@ -360,13 +361,42 @@ def load_from_temp_table_to_actual_table(
     LOGGER.info("Loaded table %s", table_id)
 
 
+def get_bq_result_from_bq_query(
+    project_name: str,
+    query: str
+) -> RowIterator:
+    client = get_bq_client(project=project_name)
+    query_job = client.query(query)  # Make an API request.
+    bq_result = query_job.result()  # Waits for query to finish
+    LOGGER.debug('bq_result: %r', bq_result)
+    return bq_result
+
+
+def get_query_with_exclusion(
+    query: str,
+    key_field_name: str,
+    exclude_query: Optional[str] = None
+) -> str:
+    if not exclude_query:
+        return query
+    return f'SELECT * FROM (\n{query}\n)\nWHERE {key_field_name} NOT IN (\n{exclude_query}\n)'
+
+
+def iter_dict_from_bq_query(
+    project_name: str,
+    query: str
+) -> Iterable[dict]:
+    bq_result = get_bq_result_from_bq_query(project_name=project_name, query=query)
+    for row in bq_result:
+        LOGGER.debug('row: %r', row)
+        yield dict(row.items())
+
+
 def get_single_column_value_list_from_bq_query(
     project_name: str,
     query: str
 ) -> Sequence[str]:
-    client = get_bq_client(project=project_name)
-    query_job = client.query(query)  # Make an API request.
-    results = query_job.result()  # Waits for query to finish
+    results = get_bq_result_from_bq_query(project_name=project_name, query=query)
     return [row[0] for row in results]
 
 

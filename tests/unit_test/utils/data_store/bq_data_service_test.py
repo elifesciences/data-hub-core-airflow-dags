@@ -1,11 +1,15 @@
 from math import ceil
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+from google.cloud.bigquery.table import Row
 
 import data_pipeline.utils.data_store.bq_data_service \
     as bq_data_service_module
 from data_pipeline.utils.data_store.bq_data_service import (
+    get_query_with_exclusion,
+    iter_dict_from_bq_query,
     load_file_into_bq,
     load_tuple_list_into_bq,
     get_new_merged_schema
@@ -42,6 +46,44 @@ def _getsize():
         mock.return_value.getsize = 1
         mock.return_value.isfile = True
         yield mock
+
+
+class TestGetQueryWithExclusion:
+    def test_should_return_regular_query_without_exclusion(self):
+        assert get_query_with_exclusion(
+            'query1',
+            key_field_name='key1'
+        ) == 'query1'
+
+    def test_should_wrap_query_and_add_where_clause(self):
+        assert get_query_with_exclusion(
+            'SELECT "key1" AS key',
+            key_field_name='key',
+            exclude_query='SELECT "key1" AS key'
+        ) == '\n'.join([
+            'SELECT * FROM (',
+            'SELECT "key1" AS key',
+            ')',
+            'WHERE key NOT IN (',
+            'SELECT "key1" AS key',
+            ')'
+        ])
+
+
+class TestIterDictFromBqQuery:
+    def test_should_return_dict_for_row(self, mock_bq_client: MagicMock):
+        mock_query_job = mock_bq_client.return_value.query.return_value
+        mock_query_job.result.return_value = [
+            Row(["value1", "value2"], {"key1": 0, "key2": 1})
+        ]
+        result = list(iter_dict_from_bq_query(
+            project_name="project1",
+            query="query1"
+        ))
+        assert result == [{
+            "key1": "value1",
+            "key2": "value2"
+        }]
 
 
 def test_should_load_file_into_bq(
