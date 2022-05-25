@@ -42,7 +42,7 @@ class ExcludableListWithMeta:
     list_meta: Mapping[str, Any] = field(default_factory=dict)
 
 
-def get_order_preserving_doi_list_by_events(
+def get_ordered_doi_list_for_item_list(
     item_list: Sequence[ExcludableListItem],
     return_exclude_list: bool = False
 ) -> Sequence[str]:
@@ -99,7 +99,7 @@ def iter_list_with_positive_items(
     list_iterable: Iterable[ExcludableListWithMeta]
 ) -> Iterable[ExcludableListWithMeta]:
     for list_ in list_iterable:
-        if not get_order_preserving_doi_list_by_events(list_.item_list):
+        if not get_ordered_doi_list_for_item_list(list_.item_list):
             LOGGER.info('ignoring list without positive dois, list_key: %r', list_.list_key)
             continue
         yield list_
@@ -118,13 +118,13 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
     params = get_request_params_for_source_config(source_config)
     json_data = {
         'positivePaperIds': get_paper_ids_for_dois(
-            get_order_preserving_doi_list_by_events(
+            get_ordered_doi_list_for_item_list(
                 excludable_list_with_meta.item_list,
                 return_exclude_list=False
             )[-max_paper_ids:]
         ),
         'negativePaperIds': get_paper_ids_for_dois(
-            get_order_preserving_doi_list_by_events(
+            get_ordered_doi_list_for_item_list(
                 excludable_list_with_meta.item_list,
                 return_exclude_list=True
             )[-max_paper_ids:]

@@ -22,7 +22,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline imp
     ExcludableListItem,
     ExcludableListWithMeta,
     fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigquery,
-    get_order_preserving_doi_list_by_events,
+    get_ordered_doi_list_for_item_list,
     get_recommendation_response_json_from_api,
     iter_list_for_matrix_config,
     iter_list_with_positive_items,
@@ -252,7 +252,7 @@ class TestIterListForMatrixConfig:
 
 class TestGetOrderPreservingDoiListByEvents:
     def test_should_return_included_dois(self):
-        assert get_order_preserving_doi_list_by_events(
+        assert get_ordered_doi_list_for_item_list(
             [
                 ExcludableListItem(DOI_1),
                 ExcludableListItem(DOI_2)
@@ -260,7 +260,7 @@ class TestGetOrderPreservingDoiListByEvents:
         ) == [DOI_1, DOI_2]
 
     def test_should_excluded_doi(self):
-        assert get_order_preserving_doi_list_by_events(
+        assert get_ordered_doi_list_for_item_list(
             [
                 ExcludableListItem(DOI_1),
                 ExcludableListItem(DOI_1, is_excluded=True),
@@ -269,7 +269,7 @@ class TestGetOrderPreservingDoiListByEvents:
         ) == [DOI_2]
 
     def test_should_return_excluded_dois(self):
-        assert get_order_preserving_doi_list_by_events(
+        assert get_ordered_doi_list_for_item_list(
             [
                 ExcludableListItem(DOI_1),
                 ExcludableListItem(DOI_1, is_excluded=True),
