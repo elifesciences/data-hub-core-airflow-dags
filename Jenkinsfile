@@ -18,6 +18,7 @@ elifePipeline {
                             sh "make ci-build-and-end2end-test"
                         }
                     } finally {
+                        sh "docker-compose ps"
                         sh "docker-compose logs"
                         sh "make ci-clean"
                     }
