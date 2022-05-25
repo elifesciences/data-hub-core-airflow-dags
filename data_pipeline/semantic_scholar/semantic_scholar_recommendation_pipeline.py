@@ -95,12 +95,13 @@ def iter_list_for_matrix_config(
     return map(get_list_with_meta_for_dict, iterable)
 
 
-def get_recommendation_response_json_from_api(
+def get_recommendation_response_json_from_api(  # pylint: disable=too-many-arguments
     excludable_list_with_meta: ExcludableListWithMeta,
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
-    progress_message: Optional[str] = None
+    progress_message: Optional[str] = None,
+    max_paper_ids:  int = 100
 ) -> dict:
     LOGGER.debug('list_: %r', excludable_list_with_meta)
     url = source_config.api_url
@@ -110,13 +111,13 @@ def get_recommendation_response_json_from_api(
             get_order_preserving_doi_list_by_events(
                 excludable_list_with_meta.item_list,
                 return_exclude_list=False
-            )
+            )[-max_paper_ids:]
         ),
         'negativePaperIds': get_paper_ids_for_dois(
             get_order_preserving_doi_list_by_events(
                 excludable_list_with_meta.item_list,
                 return_exclude_list=True
-            )
+            )[-max_paper_ids:]
         )
     }
     extended_provenance = {

@@ -317,6 +317,36 @@ class TestGetRecommendationResponseJsonFromApi:
             'negativePaperIds': [f'DOI:{DOI_1}']
         }
 
+    def test_should_pass_last_n_positive_and_negative_paper_ids_to_api(
+        self,
+        session_mock: MagicMock,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        item_list = [
+            ExcludableListItem(doi='pos_1'),
+            ExcludableListItem(doi='neg_1'),
+            ExcludableListItem(doi='neg_1', is_excluded=True),
+            ExcludableListItem(doi='pos_2'),
+            ExcludableListItem(doi='neg_2'),
+            ExcludableListItem(doi='neg_2', is_excluded=True),
+            ExcludableListItem(doi='pos_3'),
+            ExcludableListItem(doi='neg_3'),
+            ExcludableListItem(doi='neg_3', is_excluded=True),
+        ]
+        get_recommendation_response_json_from_api(
+            ExcludableListWithMeta(list_key='key1', item_list=item_list),
+            source_config=SOURCE_CONFIG_1,
+            provenance=None,
+            session=session_mock,
+            progress_message='progress1',
+            max_paper_ids=2
+        )
+        _, kwargs = get_response_json_with_provenance_from_api_mock.call_args
+        assert kwargs['json_data'] == {
+            'positivePaperIds': ['DOI:pos_2', 'DOI:pos_3'],
+            'negativePaperIds': ['DOI:neg_2', 'DOI:neg_3']
+        }
+
     def test_should_add_list_meta_to_provenance(
         self,
         session_mock: MagicMock,
