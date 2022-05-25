@@ -98,11 +98,16 @@ def iter_list_for_matrix_config(
 def iter_list_with_positive_items(
     list_iterable: Iterable[ExcludableListWithMeta]
 ) -> Iterable[ExcludableListWithMeta]:
+    total_count = 0
+    result_count = 0
     for list_ in list_iterable:
+        total_count += 1
         if not get_ordered_doi_list_for_item_list(list_.item_list):
             LOGGER.info('ignoring list without positive dois, list_key: %r', list_.list_key)
             continue
+        result_count += 1
         yield list_
+    LOGGER.info('done, %d out of %d lists having positive dois', result_count, total_count)
 
 
 def get_recommendation_response_json_from_api(  # pylint: disable=too-many-arguments
