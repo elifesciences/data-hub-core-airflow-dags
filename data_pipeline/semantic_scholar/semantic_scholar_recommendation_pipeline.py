@@ -95,6 +95,16 @@ def iter_list_for_matrix_config(
     return map(get_list_with_meta_for_dict, iterable)
 
 
+def iter_list_with_positive_items(
+    list_iterable: Iterable[ExcludableListWithMeta]
+) -> Iterable[ExcludableListWithMeta]:
+    for list_ in list_iterable:
+        if not get_order_preserving_doi_list_by_events(list_.item_list):
+            LOGGER.info('ignoring list without positive dois, list_key: %r', list_.list_key)
+            continue
+        yield list_
+
+
 def get_recommendation_response_json_from_api(  # pylint: disable=too-many-arguments
     excludable_list_with_meta: ExcludableListWithMeta,
     source_config: SemanticScholarSourceConfig,
@@ -160,7 +170,9 @@ def fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigque
     LOGGER.info('config: %r', config)
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
-    list_iterable = iter_list_for_matrix_config(config.matrix)
+    list_iterable = iter_list_with_positive_items(
+        iter_list_for_matrix_config(config.matrix)
+    )
     with requests_retry_session(
         status_forcelist=(500, 502, 503, 504, 429),
         raise_on_redirect=False,  # avoid raising exception, instead we will save response as is

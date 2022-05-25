@@ -25,6 +25,7 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_pipeline imp
     get_order_preserving_doi_list_by_events,
     get_recommendation_response_json_from_api,
     iter_list_for_matrix_config,
+    iter_list_with_positive_items,
     iter_recommendation_data
 )
 
@@ -171,6 +172,15 @@ def _iter_list_for_matrix_config_mock():
         yield mock
 
 
+@pytest.fixture(name='iter_list_with_positive_items_mock')
+def _iter_list_with_positive_items_mock():
+    with patch.object(
+        semantic_scholar_recommendation_pipeline_module,
+        'iter_list_with_positive_items'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='get_recommendation_response_json_from_api_mock')
 def _get_recommendation_response_json_from_api_mock():
     with patch.object(
@@ -267,6 +277,25 @@ class TestGetOrderPreservingDoiListByEvents:
             ],
             return_exclude_list=True
         ) == [DOI_1]
+
+
+class TestIterListWithPositiveItems:
+    def test_should_include_list_with_positive_dois(self):
+        list_with_positive_dois = ExcludableListWithMeta(list_key='key1', item_list=[
+            ExcludableListItem(doi=DOI_1)
+        ])
+        assert list(iter_list_with_positive_items(
+            [list_with_positive_dois]
+        )) == [list_with_positive_dois]
+
+    def test_should_exclude_list_with_positive_dois(self):
+        list_with_positive_dois = ExcludableListWithMeta(list_key='key1', item_list=[
+            ExcludableListItem(doi=DOI_1),
+            ExcludableListItem(doi=DOI_1, is_excluded=True)
+        ])
+        assert not list(iter_list_with_positive_items(
+            [list_with_positive_dois]
+        ))
 
 
 class TestGetRecommendationResponseJsonFromApi:
@@ -411,6 +440,7 @@ class TestFetchArticleDataFromSemanticScholarRecommendationAndLoadIntoBigQuery:
     def test_should_pass_iter_doi_result_to_iter_recommendation_data(
         self,
         iter_list_for_matrix_config_mock: MagicMock,
+        iter_list_with_positive_items_mock: MagicMock,
         iter_recommendation_data_mock: MagicMock
     ):
         json_list = [ITEM_RESPONSE_JSON_1]
@@ -421,9 +451,11 @@ class TestFetchArticleDataFromSemanticScholarRecommendationAndLoadIntoBigQuery:
         iter_list_for_matrix_config_mock.assert_called_with(
             MATRIX_CONFIG_1
         )
-        list_iterable = iter_list_for_matrix_config_mock.return_value
+        iter_list_with_positive_items_mock.assert_called_with(
+            iter_list_for_matrix_config_mock.return_value
+        )
         iter_recommendation_data_mock.assert_called_with(
-            list_iterable,
+            iter_list_with_positive_items_mock.return_value,
             source_config=SOURCE_CONFIG_1,
             provenance=ANY,
             session=ANY
