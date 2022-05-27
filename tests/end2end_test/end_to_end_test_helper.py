@@ -80,6 +80,8 @@ class AirflowAPI:
         return all(states)
 
     def is_dag_running(self, dag_id, execution_date):
+        if not (execution_date and dag_id):
+            return False
         return self.get_dag_status(dag_id, execution_date) == "running"
 
     def get_dag_status(self, dag_id, execution_date):
