@@ -72,6 +72,7 @@ def enable_and_trigger_dag_and_wait_for_success(
     execution_date = airflow_api.trigger_dag(
         dag_id=dag_id, conf=dag_trigger_conf
     )
+    LOGGER.info("target_dag is %s", target_dag)
     wait_till_all_dag_run_ends(
         airflow_api, execution_date, dag_id, target_dag,
     )
@@ -137,6 +138,7 @@ def wait_till_all_dag_run_ends(
         dag_id=dag_id,
         execution_date=execution_date
     )
+    LOGGER.info("triggered_dag_id is %s", triggered_dag_id)
     if triggered_dag_id:
         while airflow_api.is_triggered_dag_running(triggered_dag_id):
             LOGGER.info(

@@ -93,9 +93,8 @@ class AirflowAPI:
 def simple_query(project: str, dataset: str, table: str, query: str) \
         -> List[dict]:
     bigquery_client = bigquery.Client(project=project)
-    _query = \
-        query.format(project=project, dataset=dataset, table=table).strip()
-    LOGGER.debug("running query:\n%s", _query)
+    _query = query.format(project=project, dataset=dataset, table=table).strip()
+    LOGGER.info("running query:\n%s", _query)
     query_job = bigquery_client.query(_query)
     rows = [dict(row) for row in query_job]
     LOGGER.debug("rows: %s", rows)
