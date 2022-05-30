@@ -38,6 +38,12 @@ DOI_LIST = [DOI_1, DOI_2]
 
 LIST_1 = {'list_key': 'key1'}
 
+LIST_ITEM_1 = {
+    'doi': DOI_1,
+    'is_excluded': False,
+    'item_timestamp': datetime.fromisoformat('2021-01-01T01:01:01')
+}
+
 
 ITEM_RESPONSE_JSON_1 = {
     'externalIds': {
@@ -230,9 +236,9 @@ class TestIterListForMatrixConfig:
             {
                 'list_key': 'list1',
                 'list_meta': {'meta_key1': 'meta_value1'},
-                'list': [{
-                    'doi': DOI_1, 'is_excluded': False
-                }]
+                'list': [
+                    {'doi': DOI_1, 'is_excluded': False, 'other_key': 'other_value'}
+                ]
             }
         ]
         result = list(iter_list_for_matrix_config(MATRIX_CONFIG_1))
@@ -243,7 +249,8 @@ class TestIterListForMatrixConfig:
                 item_list=[
                     ExcludableListItem(
                         doi=DOI_1,
-                        is_excluded=False
+                        is_excluded=False,
+                        json_data={'doi': DOI_1, 'is_excluded': False, 'other_key': 'other_value'}
                     )
                 ]
             )
@@ -385,7 +392,7 @@ class TestGetRecommendationResponseJsonFromApi:
             ExcludableListWithMeta(
                 list_key='key1',
                 list_meta={'meta_key1': 'meta_value1'},
-                item_list=[ExcludableListItem(doi=DOI_1)]
+                item_list=[ExcludableListItem(doi=DOI_1, json_data=LIST_ITEM_1)]
             ),
             source_config=SOURCE_CONFIG_1,
             provenance=None,
@@ -395,6 +402,7 @@ class TestGetRecommendationResponseJsonFromApi:
         _, kwargs = get_response_json_with_provenance_from_api_mock.call_args
         assert kwargs['provenance']['list_key'] == 'key1'
         assert kwargs['provenance']['list_meta'] == {'meta_key1': 'meta_value1'}
+        assert kwargs['provenance']['item_list'] == [LIST_ITEM_1]
 
 
 class TestIterRecommendationData:
