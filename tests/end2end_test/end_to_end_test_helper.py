@@ -87,6 +87,7 @@ class AirflowAPI:
     def get_dag_status(self, dag_id, execution_date):
         response = self.dag_state(dag_id, execution_date)
         json_response = json.loads(response.text)
+        LOGGER.info("json_response: %s", json_response)
         return json_response.get("state").lower()
 
 
