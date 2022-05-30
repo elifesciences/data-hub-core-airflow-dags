@@ -16,6 +16,7 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
+    - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=5
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
@@ -103,6 +104,8 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
         command: webserver
+        volumes:
+            - ./config/webserver_config.py:/opt/airflow/webserver_config.py
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8080"]
             interval: 30s
@@ -134,7 +137,7 @@ services:
         command: >
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
-            && airflow worker"
+            && airflow celery worker"
         
     test-ftpserver:
         image: delfer/alpine-ftp-server
@@ -172,11 +175,11 @@ services:
         environment:
             - ALLOW_EMPTY_PASSWORD=yes
 
-    flower:
-        image: elifesciences/data-hub-core-dags-dev
-        depends_on:
-            - redis
-        environment: *airflow-env
-        ports:
-            - "5555:5555"
-        command: celery flower
+    # flower:
+    #     image: elifesciences/data-hub-core-dags-dev
+    #     depends_on:
+    #         - redis
+    #     environment: *airflow-env
+    #     ports:
+    #         - "5555:5555"
+    #     command: celery flower

@@ -1,4 +1,4 @@
-FROM apache/airflow:1.10.15-python3.7
+FROM apache/airflow:2.3.0-python3.7
 
 USER root
 
@@ -25,7 +25,7 @@ RUN pip install --disable-pip-version-check \
   -r requirements.txt
 
 ARG install_dev=n
-COPY --chown=airflow:airflow requirements.dev.txt ./
+COPY requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then \
     pip install --user --disable-pip-version-check \
       -r requirements.monitoring.txt \
@@ -35,17 +35,13 @@ RUN if [ "${install_dev}" = "y" ]; then \
 
 ENV PATH /home/airflow/.local/bin:$PATH
 
-COPY --chown=airflow:airflow data_pipeline ./data_pipeline
-COPY --chown=airflow:airflow dags ./dags
-COPY --chown=airflow:airflow setup.py ./setup.py
+COPY data_pipeline ./data_pipeline
+COPY dags ./dags
+COPY setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
-COPY --chown=airflow:airflow .flake8 .pylintrc run_test.sh ./
-COPY --chown=airflow:airflow tests ./tests
-RUN if [ "${install_dev}" = "y" ]; then chmod +x run_test.sh; fi
-
-# COPY --chown=airflow:airflow worker.sh ./
-# RUN chmod +x worker.sh
+COPY .flake8 .pylintrc run_test.sh ./
+COPY tests ./tests
 
 RUN mkdir -p $AIRFLOW_HOME/serve
 RUN ln -s $AIRFLOW_HOME/logs $AIRFLOW_HOME/serve/log
