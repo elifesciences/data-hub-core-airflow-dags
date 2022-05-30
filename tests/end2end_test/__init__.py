@@ -140,7 +140,7 @@ def wait_till_all_dag_run_ends(
     )
     LOGGER.info("triggered_dag_id is %s", triggered_dag_id)
     if triggered_dag_id:
-        while airflow_api.is_triggered_dag_running(triggered_dag_id):
+        while airflow_api.does_triggered_dag_run_end_with_success(triggered_dag_id):
             LOGGER.info(
                 "waiting for the DAG triggered by the controller. Dag id is %s",
                 triggered_dag_id
