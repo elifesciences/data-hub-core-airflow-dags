@@ -6,6 +6,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 import requests
 
 from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.json import get_recursive_json_compatible_value
 from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -148,15 +149,17 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
         'list_meta': excludable_list_with_meta.list_meta,
         'item_list': excludable_list_with_meta.json_data
     }
-    return get_response_json_with_provenance_from_api(
-        url,
-        params=params,
-        method='POST',
-        json_data=json_data,
-        provenance=extended_provenance,
-        session=session,
-        raise_on_status=False,
-        progress_message=progress_message
+    return get_recursive_json_compatible_value(
+        get_response_json_with_provenance_from_api(
+            url,
+            params=params,
+            method='POST',
+            json_data=json_data,
+            provenance=extended_provenance,
+            session=session,
+            raise_on_status=False,
+            progress_message=progress_message
+        )
     )
 
 
