@@ -72,7 +72,7 @@ def enable_and_trigger_dag_and_wait_for_success(
         airflow_api.unpause_dag(target_dag)
         LOGGER.info("unpause target_dag is %s", target_dag)
     LOGGER.info("main dag is %s", dag_id)
-    execution_date = airflow_api.unpause_and_trigger_dag(
+    execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
         dag_id=dag_id, conf=dag_trigger_conf
     )
     wait_untill_all_dag_run_ends_with_success(
