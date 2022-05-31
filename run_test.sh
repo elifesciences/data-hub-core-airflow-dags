@@ -6,7 +6,7 @@ set -e
 export AIRFLOW__CORE__FERNET_KEY
 
 # to initialize SQLite DB for running non-e2e test and Postgres DB for running e2e test
-# airflow initdb
+# airflow db init
 
 # avoid issues with .pyc/pyo files when mounting source directory
 export PYTHONOPTIMIZE=

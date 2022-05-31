@@ -53,12 +53,14 @@ class AirflowAPI:
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/paused/true"
         )
 
-    def trigger_dag(self, dag_id, conf=None):
+    def unpause_and_trigger_dag_and_return_execution_date(
+        self, dag_id, conf=None
+    ):
         self.unpause_dag(dag_id)
         endpoint = f"/api/experimental/dags/{dag_id}/dag_runs"
         url = urljoin(self.airflow_url, endpoint)
         data = self.send_request(url, method="POST",
-                                 json_param={"conf": conf, })
+                                 json_param={"conf": conf or {}, })
 
         pattern = r"\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d"
         return re.findall(pattern, data["message"])[0]
@@ -68,13 +70,26 @@ class AirflowAPI:
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs/{execution_date}"
         )
 
-    def is_triggered_dag_running(self, dag_id):
+    def is_any_dag_run_queued_or_running(self, dag_id):
         response = requests.get(
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs"
         )
         dag_runs = json.loads(response.text)
+        LOGGER.info("DAG runs response: %r", dag_runs)
         states = [
-            dag_run.get("state").lower() == "running"
+            dag_run.get("state").lower() in ("running", "queued")
+            for dag_run in dag_runs
+        ]
+        return any(states)
+
+    def do_all_dag_runs_end_with_success(self, dag_id):
+        response = requests.get(
+            f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs"
+        )
+        dag_runs = json.loads(response.text)
+        LOGGER.info("DAG runs response: %r", dag_runs)
+        states = [
+            dag_run.get("state").lower() == "success"
             for dag_run in dag_runs
         ]
         return all(states)
@@ -82,11 +97,7 @@ class AirflowAPI:
     def is_dag_running(self, dag_id, execution_date):
         if not (execution_date and dag_id):
             return False
-        response = self.dag_state(dag_id, execution_date)
-        json_response = json.loads(response.text)
-        if json_response.get("state").lower() == "running":
-            return True
-        return False
+        return self.get_dag_status(dag_id, execution_date) == "running"
 
     def get_dag_status(self, dag_id, execution_date):
         response = self.dag_state(dag_id, execution_date)
@@ -97,9 +108,8 @@ class AirflowAPI:
 def simple_query(project: str, dataset: str, table: str, query: str) \
         -> List[dict]:
     bigquery_client = bigquery.Client(project=project)
-    _query = \
-        query.format(project=project, dataset=dataset, table=table).strip()
-    LOGGER.debug("running query:\n%s", _query)
+    _query = query.format(project=project, dataset=dataset, table=table).strip()
+    LOGGER.info("running query:\n%s", _query)
     query_job = bigquery_client.query(_query)
     rows = [dict(row) for row in query_job]
     LOGGER.debug("rows: %s", rows)

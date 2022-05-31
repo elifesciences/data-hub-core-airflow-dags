@@ -120,7 +120,7 @@ test-ftpserver-start:
 
 
 airflow-start:
-	$(DOCKER_COMPOSE) up worker webserver test-ftpserver flower
+	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
 
 
 airflow-stop:
@@ -134,13 +134,16 @@ test-exclude-e2e: build-dev
 clean:
 	$(DOCKER_COMPOSE) down -v
 
+airflow-db-upgrade:
+	$(DOCKER_COMPOSE) run --rm  webserver db upgrade
 
 airflow-initdb:
-	$(DOCKER_COMPOSE) run --rm  webserver initdb
+	$(DOCKER_COMPOSE) run --rm  webserver db init
 
 
 end2end-test:
 	$(MAKE) clean
+	$(MAKE) airflow-db-upgrade
 	$(MAKE) airflow-initdb
 	$(MAKE) test-ftpserver-start
 	$(MAKE) docker-wait-for-ftpserver

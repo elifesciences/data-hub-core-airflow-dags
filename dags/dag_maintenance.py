@@ -16,7 +16,7 @@ from airflow.models import (
     DagModel, Variable
 )
 from airflow.utils import timezone
-from airflow.jobs import BaseJob
+from airflow.jobs.base_job import BaseJob
 from airflow import settings
 from airflow.operators.python_operator import PythonOperator
 from sqlalchemy import func, and_
@@ -75,7 +75,7 @@ DATABASE_OBJECTS = [
     },
     {
         "airflow_db_model": DagModel,
-        "age_check_column": DagModel.last_scheduler_run,
+        "age_check_column": DagModel.last_parsed_time,
         "keep_last": False,
         "keep_last_filters": None,
         "keep_last_group_by": None
@@ -125,8 +125,8 @@ def get_max_data_cleanup_configuration_function(**context):
 get_configuration = PythonOperator(
     task_id='get_configuration',
     python_callable=get_max_data_cleanup_configuration_function,
-    provide_context=True,
-    dag=maintenance_dag)
+    dag=maintenance_dag
+)
 
 
 def cleanup_function(**context):
@@ -182,7 +182,6 @@ for db_object in DATABASE_OBJECTS:
         task_id='cleanup_' + str(db_object["airflow_db_model"].__name__),
         python_callable=cleanup_function,
         params=db_object,
-        provide_context=True,
         dag=maintenance_dag
     )
     # pylint: disable=pointless-statement
