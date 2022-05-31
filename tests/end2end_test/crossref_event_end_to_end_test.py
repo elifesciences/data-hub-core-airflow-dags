@@ -32,7 +32,10 @@ def disabled_test_dag_runs_data_imported():
         "latest_download_date": {"10.7554": "2019-09-20"},
         "current_timestamp": "2012-10-01 00:00:00",
     }
-    execution_date = AIRFLW_API.trigger_dag(dag_id=dag_id, conf=config)
+    execution_date = AIRFLW_API.unpause_and_trigger_dag_and_return_execution_date(
+        dag_id=dag_id,
+        conf=config
+    )
     is_running = True
     while is_running:
         is_running = AIRFLW_API.is_dag_running(dag_id, execution_date)

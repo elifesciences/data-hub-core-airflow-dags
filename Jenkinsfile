@@ -17,6 +17,9 @@ elifePipeline {
                         timeout(time: 40, unit: 'MINUTES') {
                             sh "make ci-build-and-end2end-test"
                         }
+                    } catch (exc) {
+                        sh "make ci-end2end-test-logs"
+                        throw exc
                     } finally {
                         sh "docker-compose logs"
                         sh "make ci-clean"
