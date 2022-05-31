@@ -21,6 +21,7 @@ elifePipeline {
                         sh "make ci-end2end-test-logs"
                         throw exc
                     } finally {
+                        sh "docker-compose ps"
                         sh "docker-compose logs"
                         sh "make ci-clean"
                     }
