@@ -19,7 +19,7 @@ elifePipeline {
                         }
                     } catch (exc) {
                         sh "make ci-end2end-test-logs"
-                        throw
+                        throw exc
                     } finally {
                         sh "docker-compose logs"
                         sh "make ci-clean"
