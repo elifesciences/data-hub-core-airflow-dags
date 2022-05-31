@@ -70,7 +70,7 @@ class AirflowAPI:
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs/{execution_date}"
         )
 
-    def are_all_dag_runs_queued_or_running(self, dag_id):
+    def is_any_dag_run_queued_or_running(self, dag_id):
         response = requests.get(
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs"
         )
@@ -80,9 +80,9 @@ class AirflowAPI:
             dag_run.get("state").lower() in ("running", "queued")
             for dag_run in dag_runs
         ]
-        return all(states)
+        return any(states)
 
-    def does_triggered_dag_run_end_with_success(self, dag_id):
+    def do_all_dag_runs_end_with_success(self, dag_id):
         response = requests.get(
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs"
         )
