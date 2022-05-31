@@ -65,18 +65,19 @@ def get_table_row_count(
 def enable_and_trigger_dag_and_wait_for_success(
     airflow_api,
     dag_id: str,
-    target_dag=None,
-    dag_trigger_conf: dict = None
+    target_dag: Optional[str] = None,
+    dag_trigger_conf: Optional[dict] = None
 ):
-    airflow_api.unpause_dag(target_dag)
-    execution_date = airflow_api.trigger_dag(
+    if target_dag:
+        airflow_api.unpause_dag(target_dag)
+        LOGGER.info("unpause target_dag is %s", target_dag)
+    LOGGER.info("main dag is %s", dag_id)
+    execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
         dag_id=dag_id, conf=dag_trigger_conf
     )
-    is_dag_running = wait_till_all_dag_run_ends(
+    wait_untill_all_dag_run_ends_with_success(
         airflow_api, execution_date, dag_id, target_dag,
     )
-    assert not is_dag_running
-    assert airflow_api.get_dag_status(dag_id, execution_date) == "success"
 
 
 # pylint: disable=too-many-arguments
@@ -114,22 +115,39 @@ def trigger_run_test_pipeline(
     assert loaded_table_row_count > 0
 
 
-def wait_till_all_dag_run_ends(
+def wait_untill_dag_run_is_successful(
+    airflow_api,
+    dag_id: str,
+    execution_date: str
+) -> None:
+    dag_status: str
+    while True:
+        dag_status = airflow_api.get_dag_status(dag_id, execution_date)
+        if dag_status not in {"running", "queued"}:
+            break
+        time.sleep(5)
+        LOGGER.info("etl in progress (status: %r)", dag_status)
+    assert dag_status == "success"
+
+
+def wait_untill_all_dag_run_ends_with_success(
         airflow_api, execution_date,
         dag_id, triggered_dag_id=None
 ):
-    is_dag_running = True
-    while is_dag_running:
-        is_dag_running = airflow_api.is_dag_running(dag_id, execution_date)
-        if not is_dag_running and triggered_dag_id:
-            time.sleep(15)
-            is_dag_running = airflow_api.is_triggered_dag_running(
+    wait_untill_dag_run_is_successful(
+        airflow_api=airflow_api,
+        dag_id=dag_id,
+        execution_date=execution_date
+    )
+    LOGGER.info("triggered_dag_id is %s", triggered_dag_id)
+    if triggered_dag_id:
+        while airflow_api.is_any_dag_run_queued_or_running(triggered_dag_id):
+            LOGGER.info(
+                "waiting for the DAG triggered by the controller. Dag id is %s",
                 triggered_dag_id
             )
-        LOGGER.info("etl in progress")
-        time.sleep(5)
-    time.sleep(15)
-    return is_dag_running
+            time.sleep(5)
+        assert airflow_api.do_all_dag_runs_end_with_success(triggered_dag_id)
 
 
 class TestQueryTemplate:
