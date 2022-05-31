@@ -138,15 +138,18 @@ services:
             bash -c "sudo install -D /tmp/credentials.json -m 644 -t  /home/airflow/.config/gcloud
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
             && airflow celery worker"
-        
+
     test-ftpserver:
         image: garethflowers/ftp-server
         environment:
             - FTP_PASS=password1
             - FTP_USER=elinks
         volumes: 
-            - ./testftp_server_config/vsftpd.conf:/etc/vsftpd.conf
-    
+            - ./testftp_server_config/vsftpd.conf:/tmp/vsftpd.conf
+        command: >
+            sh -c "install -D /tmp/vsftpd.conf -m 644 /etc/
+            && /usr/sbin/vsftpd"
+
     wait-for-it:
         image: willwill/wait-for-it
 
