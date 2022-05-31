@@ -1,11 +1,12 @@
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence
+from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import requests
 
 from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.json import get_recursive_json_compatible_value
 from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -30,9 +31,11 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config impor
 LOGGER = logging.getLogger(__name__)
 
 
-class ExcludableListItem(NamedTuple):
+@dataclass(frozen=True)
+class ExcludableListItem:
     doi: str
     is_excluded: bool = False
+    json_data: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -40,6 +43,10 @@ class ExcludableListWithMeta:
     list_key: str
     item_list: Sequence[ExcludableListItem]
     list_meta: Mapping[str, Any] = field(default_factory=dict)
+
+    @property
+    def json_data(self) -> Sequence[dict]:
+        return [item.json_data for item in self.item_list]
 
 
 def get_ordered_doi_list_for_item_list(
@@ -65,7 +72,8 @@ def get_paper_ids_for_dois(doi_list: Iterable[str]) -> Sequence[str]:
 def get_list_item_for_dict(list_item_dict: dict) -> ExcludableListItem:
     return ExcludableListItem(
         doi=list_item_dict['doi'],
-        is_excluded=list_item_dict['is_excluded']
+        is_excluded=list_item_dict['is_excluded'],
+        json_data=list_item_dict
     )
 
 
@@ -138,17 +146,20 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
     extended_provenance = {
         **(provenance or {}),
         'list_key': excludable_list_with_meta.list_key,
-        'list_meta': excludable_list_with_meta.list_meta
+        'list_meta': excludable_list_with_meta.list_meta,
+        'item_list': excludable_list_with_meta.json_data
     }
-    return get_response_json_with_provenance_from_api(
-        url,
-        params=params,
-        method='POST',
-        json_data=json_data,
-        provenance=extended_provenance,
-        session=session,
-        raise_on_status=False,
-        progress_message=progress_message
+    return get_recursive_json_compatible_value(
+        get_response_json_with_provenance_from_api(
+            url,
+            params=params,
+            method='POST',
+            json_data=json_data,
+            provenance=extended_provenance,
+            session=session,
+            raise_on_status=False,
+            progress_message=progress_message
+        )
     )
 
 
