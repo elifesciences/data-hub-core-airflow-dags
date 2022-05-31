@@ -53,7 +53,9 @@ class AirflowAPI:
             f"{self.airflow_url}/api/experimental/dags/{dag_id}/paused/true"
         )
 
-    def trigger_dag(self, dag_id, conf=None):
+    def unpause_and_trigger_dag_and_return_execution_date(
+        self, dag_id, conf=None
+    ):
         self.unpause_dag(dag_id)
         endpoint = f"/api/experimental/dags/{dag_id}/dag_runs"
         url = urljoin(self.airflow_url, endpoint)
