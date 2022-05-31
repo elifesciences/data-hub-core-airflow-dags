@@ -19,6 +19,7 @@ elifePipeline {
                         }
                     } finally {
                         sh "docker-compose logs"
+                        sh "make ci-end2end-test-logs"
                         sh "make ci-clean"
                     }
                 } 
