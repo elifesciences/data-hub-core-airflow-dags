@@ -141,13 +141,13 @@ def wait_untill_all_dag_run_ends_with_success(
     )
     LOGGER.info("triggered_dag_id is %s", triggered_dag_id)
     if triggered_dag_id:
-        while airflow_api.are_all_dag_runs_queued_or_running(triggered_dag_id):
+        while airflow_api.is_any_dag_run_queued_or_running(triggered_dag_id):
             LOGGER.info(
                 "waiting for the DAG triggered by the controller. Dag id is %s",
                 triggered_dag_id
             )
             time.sleep(5)
-        assert airflow_api.does_triggered_dag_run_end_with_success(triggered_dag_id)
+        assert airflow_api.do_all_dag_runs_end_with_success(triggered_dag_id)
 
 
 class TestQueryTemplate:
