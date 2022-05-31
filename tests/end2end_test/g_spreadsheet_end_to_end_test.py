@@ -1,6 +1,5 @@
 import os
 import logging
-import time
 
 from dags.google_spreadsheet_pipeline_controller import (
     DAG_ID,
@@ -14,6 +13,7 @@ from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
     MultiSpreadsheetConfig, MultiCsvSheet
 )
+from tests.end2end_test import enable_and_trigger_dag_and_wait_for_success
 from tests.end2end_test.end_to_end_test_helper import (
     AirflowAPI, simple_query
 )
@@ -35,22 +35,11 @@ def test_dag_runs_data_imported():
         )
     except Exception:
         LOGGER.info("table not cleaned, maybe it does not exist")
-
-    AIRFLW_API.unpause_dag(TARGET_DAG_ID)
-    execution_date = AIRFLW_API.trigger_dag(dag_id=DAG_ID)
-    is_running = True
-    while is_running:
-        is_running = AIRFLW_API.is_dag_running(DAG_ID, execution_date)
-        if not is_running:
-            is_running = AIRFLW_API.is_triggered_dag_running(
-                TARGET_DAG_ID
-            )
-
-        time.sleep(5)
-        LOGGER.info("etl in progress")
-    time.sleep(15)
-    assert not is_running
-    assert AIRFLW_API.get_dag_status(DAG_ID, execution_date) == "success"
+    enable_and_trigger_dag_and_wait_for_success(
+        airflow_api=AIRFLW_API,
+        dag_id=DAG_ID,
+        target_dag=TARGET_DAG_ID
+    )
     query_response = simple_query(
         query=TestQueryTemplate.READ_COUNT_TABLE_QUERY,
         project=project,
