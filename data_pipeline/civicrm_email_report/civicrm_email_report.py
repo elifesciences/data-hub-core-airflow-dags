@@ -72,7 +72,7 @@ def transform_email_report(
     mail_id_str = str(mail_id)
     return {
         "mail_id": mail_id,
-        "successful deliveries": int(dict_response[
+        "successful_deliveries": int(dict_response[
             "report_with_non_distinct_values"
         ]["values"][mail_id_str]["Delivered"]),
         "bounces": int(dict_response[
