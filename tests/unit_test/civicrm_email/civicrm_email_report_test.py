@@ -7,6 +7,7 @@ MAIL_ID = 100
 DELIVERED_VALUE = "135"
 BOUNCES_VALUE = "1"
 UNSUBSCRIBERS_VALUE = 0
+CLICKS_VALUE = "30"
 UNIQUE_CLICKS_VALUE = "10"
 OPENED_VALUE = "200"
 CLICKTHROUGH_RATE_VALUE = "30.30%"
@@ -14,16 +15,32 @@ OPENED_RATE_VALUE = "180.5%"
 DELIVERED_RATE_VALUE = "99%"
 
 DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE = {
-    "values": {
-        str(MAIL_ID): {
-            "Delivered": DELIVERED_VALUE,
-            "Bounces": BOUNCES_VALUE,
-            "Unsubscribers": UNSUBSCRIBERS_VALUE,
-            "Unique Clicks": UNIQUE_CLICKS_VALUE,
-            "Opened": OPENED_VALUE,
-            "clickthrough_rate": CLICKTHROUGH_RATE_VALUE,
-            "opened_rate": OPENED_RATE_VALUE,
-            "delivered_rate": DELIVERED_RATE_VALUE
+    "report_with_non_distinct_values":{
+        "values": {
+            str(MAIL_ID): {
+                "Delivered": DELIVERED_VALUE,
+                "Bounces": BOUNCES_VALUE,
+                "Unsubscribers": UNSUBSCRIBERS_VALUE,
+                "Unique Clicks": CLICKS_VALUE,
+                "Opened": OPENED_VALUE,
+                "clickthrough_rate": CLICKTHROUGH_RATE_VALUE,
+                "opened_rate": OPENED_RATE_VALUE,
+                "delivered_rate": DELIVERED_RATE_VALUE
+            }
+        }
+    },
+    "report_with_distinct_values":{
+        "values": {
+            str(MAIL_ID): {
+                "Delivered": DELIVERED_VALUE,
+                "Bounces": BOUNCES_VALUE,
+                "Unsubscribers": UNSUBSCRIBERS_VALUE,
+                "Unique Clicks": UNIQUE_CLICKS_VALUE,
+                "Opened": OPENED_VALUE,
+                "clickthrough_rate": CLICKTHROUGH_RATE_VALUE,
+                "opened_rate": OPENED_RATE_VALUE,
+                "delivered_rate": DELIVERED_RATE_VALUE
+            }
         }
     }
 }
@@ -43,7 +60,7 @@ class TestTransformEmailReport():
             DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE,
             MAIL_ID
         )
-        assert result["delivered"] == int(DELIVERED_VALUE)
+        assert result["successful_deliveries"] == int(DELIVERED_VALUE)
 
     def test_should_extract_bounces_as_integer(self):
         result = transform_email_report(
