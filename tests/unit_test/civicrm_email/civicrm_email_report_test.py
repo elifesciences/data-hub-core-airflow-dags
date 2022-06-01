@@ -17,7 +17,7 @@ DISTINCT_UNIQUE_CLICKS_VALUE = "10"
 DISTINCT_OPENED_VALUE = "50"
 
 DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE = {
-    "report_with_non_distinct_values":{
+    "report_with_non_distinct_values": {
         "values": {
             str(MAIL_ID): {
                 "Delivered": DELIVERED_VALUE,
@@ -31,7 +31,7 @@ DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE = {
             }
         }
     },
-    "report_with_distinct_values":{
+    "report_with_distinct_values": {
         "values": {
             str(MAIL_ID): {
                 "Unique Clicks": DISTINCT_UNIQUE_CLICKS_VALUE,
@@ -71,7 +71,7 @@ class TestTransformEmailReport():
             MAIL_ID
         )
         assert result["unsubscribe_requests"] == int(UNSUBSCRIBERS_VALUE)
-    
+
     def test_should_extract_total_clicks_as_integer(self):
         result = transform_email_report(
             DEFAULT_CIVICRM_EMAIL_REPORT_RESPONSE,
