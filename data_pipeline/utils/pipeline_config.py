@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Callable, T, NamedTuple, Sequence
+from typing import Any, Callable, T, Mapping, NamedTuple, Sequence
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
@@ -192,3 +192,13 @@ def get_pipeline_config_for_env_name_and_config_parser(
     pipeline_config = config_parser_fn(pipeline_config_dict)
     LOGGER.info('pipeline_config: %s', pipeline_config)
     return pipeline_config
+
+
+class MappingConfig(NamedTuple):
+    mapping: Mapping[str, Any]
+
+    @staticmethod
+    def from_dict(mapping_config_dict: dict) -> 'StateFileConfig':
+        return MappingConfig(
+            mapping=mapping_config_dict
+        )

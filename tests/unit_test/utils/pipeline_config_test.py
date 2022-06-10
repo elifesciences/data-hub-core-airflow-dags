@@ -4,6 +4,7 @@ import pytest
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     BigQueryTargetConfig,
+    MappingConfig,
     StateFileConfig,
     get_resolved_parameter_values_from_file_path_env_name,
     str_to_bool,
@@ -125,3 +126,9 @@ class TestGetEnvironmentVariableValue:
         })
         with pytest.raises(KeyError):
             get_environment_variable_value('key1', required=True)
+
+
+class TestMappingConfig:
+    def test_should_read_simple_dict(self):
+        config = MappingConfig.from_dict({'key1': 'value1'})
+        assert config.mapping == {'key1': 'value1'}
