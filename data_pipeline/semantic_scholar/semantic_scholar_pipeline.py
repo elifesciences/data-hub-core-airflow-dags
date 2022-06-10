@@ -78,6 +78,8 @@ def get_article_response_json_from_api(
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
+        headers=source_config.headers.mapping,
+        printable_headers=source_config.headers.printable_mapping,
         provenance=extended_provenance,
         session=session,
         raise_on_status=False,
