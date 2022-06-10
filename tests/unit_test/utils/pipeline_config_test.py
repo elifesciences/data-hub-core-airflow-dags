@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
+    SECRET_VALUE_PLACEHOLDER,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig,
@@ -140,10 +141,11 @@ class TestMappingConfig:
         config = MappingConfig.from_dict({'key1': 'value1'})
         assert config.mapping == {'key1': 'value1'}
 
-    def test_should_include_simple_value_in_str_and_repr(self):
+    def test_should_include_simple_value_in_str_repr_and_printable_mapping(self):
         config = MappingConfig.from_dict({'key1': 'value1'})
-        assert 'value1' in str(config.mapping)
-        assert 'value1' in repr(config.mapping)
+        assert config.printable_mapping == {'key1': 'value1'}
+        assert 'value1' in str(config)
+        assert 'value1' in repr(config)
 
     def test_should_read_from_env_file(self, mock_env: dict, tmp_path: Path):
         value_file_path = tmp_path / 'value1'
@@ -157,3 +159,23 @@ class TestMappingConfig:
         })
         LOGGER.debug('config: %r', config)
         assert config.mapping == {'key1': 'value1'}
+
+    def test_should_not_include_env_file_values_in_str_repr_and_printable_mapping(
+        self,
+        mock_env: dict,
+        tmp_path: Path
+    ):
+        value_file_path = tmp_path / 'value1'
+        value_file_path.write_text('value1')
+        mock_env[ENV_VAR_1] = str(value_file_path)
+        config = MappingConfig.from_dict({
+            'parametersFromFile': [{
+                'parameterName': 'key1',
+                'filePathEnvName': ENV_VAR_1
+            }]
+        })
+        LOGGER.debug('config: %r', config)
+        assert config.mapping == {'key1': 'value1'}
+        assert config.printable_mapping == {'key1': SECRET_VALUE_PLACEHOLDER}
+        assert 'value1' not in str(config)
+        assert 'value1' not in repr(config)
