@@ -33,6 +33,21 @@ PARAMETERS_FROM_FILE_CONFIG_DICT_1 = {
 }
 
 
+@pytest.fixture(name='existing_secret_file_path_1')
+def _existing_secret_file_path_1(tmp_path: Path) -> Path:
+    value_file_path = tmp_path / 'secret1'
+    value_file_path.write_text(VALUE_1)
+    return value_file_path
+
+
+@pytest.fixture(name='existing_secret_file_and_env_1')
+def _existing_secret_file_and_env_1(
+    mock_env: dict,
+    existing_secret_file_path_1: Path
+):
+    mock_env[ENV_VAR_1] = str(existing_secret_file_path_1)
+
+
 class TestBigQuerySourceConfig:
     def test_should_read_project_and_sql_query(self):
         config = BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
@@ -154,24 +169,16 @@ class TestMappingConfig:
         assert VALUE_1 in str(config)
         assert VALUE_1 in repr(config)
 
-    def test_should_read_from_env_file(self, mock_env: dict, tmp_path: Path):
-        value_file_path = tmp_path / 'secret1'
-        value_file_path.write_text(VALUE_1)
-        mock_env[ENV_VAR_1] = str(value_file_path)
+    @pytest.mark.usefixtures('existing_secret_file_and_env_1')
+    def test_should_read_from_env_file(self):
         config = MappingConfig.from_dict({
             'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
         })
         LOGGER.debug('config: %r', config)
         assert config.mapping == {KEY_1: VALUE_1}
 
-    def test_should_not_include_env_file_values_in_str_repr_and_printable_mapping(
-        self,
-        mock_env: dict,
-        tmp_path: Path
-    ):
-        value_file_path = tmp_path / 'secret1'
-        value_file_path.write_text(VALUE_1)
-        mock_env[ENV_VAR_1] = str(value_file_path)
+    @pytest.mark.usefixtures('existing_secret_file_and_env_1')
+    def test_should_not_include_env_file_values_in_str_repr_and_printable_mapping(self):
         config = MappingConfig.from_dict({
             'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
         })
