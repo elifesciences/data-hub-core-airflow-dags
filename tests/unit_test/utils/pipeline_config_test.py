@@ -140,6 +140,11 @@ class TestMappingConfig:
         config = MappingConfig.from_dict({'key1': 'value1'})
         assert config.mapping == {'key1': 'value1'}
 
+    def test_should_include_simple_value_in_str_and_repr(self):
+        config = MappingConfig.from_dict({'key1': 'value1'})
+        assert 'value1' in str(config.mapping)
+        assert 'value1' in repr(config.mapping)
+
     def test_should_read_from_env_file(self, mock_env: dict, tmp_path: Path):
         value_file_path = tmp_path / 'value1'
         value_file_path.write_text('value1')
