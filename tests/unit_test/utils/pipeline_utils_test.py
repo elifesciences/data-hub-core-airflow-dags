@@ -329,6 +329,14 @@ class TestGetResponseJsonWithProvenanceFromApi:
                 printable_headers={'header1': '***'}
             )
 
+    def test_should_raise_error_if_printable_headers_have_different_keys_to_headers(self):
+        with pytest.raises(AssertionError):
+            get_response_json_with_provenance_from_api(
+                API_URL_1,
+                headers={'header1': 'value1'},
+                printable_headers={'other_header1': '***'}
+            )
+
     def test_should_extend_provenance(
         self,
         requests_mock: MagicMock
