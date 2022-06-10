@@ -88,6 +88,7 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
 def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
     url: str,
     params: Mapping[str, str] = None,
+    headers: Mapping[str, str] = None,
     method: str = 'GET',
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
@@ -103,9 +104,9 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
     request_timestamp = datetime.utcnow()
     if session:
-        response = session.request(method, url, params=params, json=json_data)
+        response = session.request(method, url, params=params, headers=headers, json=json_data)
     else:
-        response = requests.request(method, url, params=params, json=json_data)
+        response = requests.request(method, url, params=params, headers=headers, json=json_data)
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()

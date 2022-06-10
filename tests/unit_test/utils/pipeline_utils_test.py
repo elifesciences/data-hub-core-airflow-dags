@@ -27,6 +27,7 @@ BIGQUERY_SOURCE_CONFIG_2 = BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='query2')
 
 API_URL_1 = '/api1'
 API_PARAMS_1 = {'param1': 'value1'}
+API_HEADERS_1 = {'header1': 'value1'}
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
     'data': 'value1'
@@ -204,13 +205,14 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
 
 
 class TestGetResponseJsonWithProvenanceFromApi:
-    def test_should_pass_url_and_params_to_requests_request(
+    def test_should_pass_url_params_and_headers_to_requests_request(
         self,
         requests_mock: MagicMock
     ):
         get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             method='POST',
             json_data=JSON_DATA_1
         )
@@ -218,16 +220,18 @@ class TestGetResponseJsonWithProvenanceFromApi:
             'POST',
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             json=JSON_DATA_1
         )
 
-    def test_should_pass_url_and_params_to_session_request_if_provided(
+    def test_should_pass_url_params_and_headers_to_session_request_if_provided(
         self
     ):
         session_mock = MagicMock(name='session')
         get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             method='POST',
             json_data=JSON_DATA_1,
             session=session_mock
@@ -236,6 +240,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
             'POST',
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             json=JSON_DATA_1
         )
 
