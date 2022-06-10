@@ -71,10 +71,14 @@ def get_article_response_json_from_api(
     )
     params = get_request_params_for_source_config(source_config)
     LOGGER.debug('resolved url: %r (%r)', url, params)
+    extended_provenance = {
+        **(provenance or {}),
+        'doi': doi
+    }
     return get_response_json_with_provenance_from_api(
         url,
         params=params,
-        provenance=provenance,
+        provenance=extended_provenance,
         session=session,
         raise_on_status=False,
         progress_message=progress_message
