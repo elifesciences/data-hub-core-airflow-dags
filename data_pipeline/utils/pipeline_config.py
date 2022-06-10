@@ -199,6 +199,14 @@ class MappingConfig(NamedTuple):
 
     @staticmethod
     def from_dict(mapping_config_dict: dict) -> 'StateFileConfig':
+        mapping = mapping_config_dict.copy()
+        secrets_config_list = mapping.pop('parametersFromFile', [])
+        LOGGER.debug('secrets_config_list: %r', secrets_config_list)
+        secrets_dict = get_resolved_parameter_values_from_file_path_env_name(
+            secrets_config_list
+        )
+        LOGGER.debug('secrets.keys: %r', secrets_dict.keys())
+        mapping.update(secrets_dict)
         return MappingConfig(
-            mapping=mapping_config_dict
+            mapping=mapping
         )

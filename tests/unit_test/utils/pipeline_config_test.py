@@ -1,4 +1,6 @@
+import logging
 from pathlib import Path
+
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
@@ -12,10 +14,15 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'projectName': 'project1',
     'sqlQuery': 'query1'
 }
+
+ENV_VAR_1 = 'env1'
 
 
 class TestBigQuerySourceConfig:
@@ -131,4 +138,17 @@ class TestGetEnvironmentVariableValue:
 class TestMappingConfig:
     def test_should_read_simple_dict(self):
         config = MappingConfig.from_dict({'key1': 'value1'})
+        assert config.mapping == {'key1': 'value1'}
+
+    def test_should_read_from_env_file(self, mock_env: dict, tmp_path: Path):
+        value_file_path = tmp_path / 'value1'
+        value_file_path.write_text('value1')
+        mock_env[ENV_VAR_1] = str(value_file_path)
+        config = MappingConfig.from_dict({
+            'parametersFromFile': [{
+                'parameterName': 'key1',
+                'filePathEnvName': ENV_VAR_1
+            }]
+        })
+        LOGGER.debug('config: %r', config)
         assert config.mapping == {'key1': 'value1'}
