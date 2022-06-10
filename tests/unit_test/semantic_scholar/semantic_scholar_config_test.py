@@ -66,6 +66,17 @@ class TestSemanticScholarConfig:
         }))
         assert config.source.params == params
 
+    def test_should_read_api_headers(self):
+        headers = {'key1': 'value1'}
+        config = SemanticScholarConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'source': {
+                **SOURCE_1,
+                'headers': headers
+            }
+        }))
+        assert config.source.headers.mapping == headers
+
     def test_should_read_batch_size(self):
         config = SemanticScholarConfig.from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT_1,
