@@ -25,6 +25,13 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 
 ENV_VAR_1 = 'env1'
 
+KEY_1 = 'key1'
+VALUE_1 = 'value1'
+PARAMETERS_FROM_FILE_CONFIG_DICT_1 = {
+    'parameterName': KEY_1,
+    'filePathEnvName': ENV_VAR_1
+}
+
 
 class TestBigQuerySourceConfig:
     def test_should_read_project_and_sql_query(self):
@@ -138,44 +145,38 @@ class TestGetEnvironmentVariableValue:
 
 class TestMappingConfig:
     def test_should_read_simple_dict(self):
-        config = MappingConfig.from_dict({'key1': 'value1'})
-        assert config.mapping == {'key1': 'value1'}
+        config = MappingConfig.from_dict({KEY_1: VALUE_1})
+        assert config.mapping == {KEY_1: VALUE_1}
 
     def test_should_include_simple_value_in_str_repr_and_printable_mapping(self):
-        config = MappingConfig.from_dict({'key1': 'value1'})
-        assert config.printable_mapping == {'key1': 'value1'}
-        assert 'value1' in str(config)
-        assert 'value1' in repr(config)
+        config = MappingConfig.from_dict({KEY_1: VALUE_1})
+        assert config.printable_mapping == {KEY_1: VALUE_1}
+        assert VALUE_1 in str(config)
+        assert VALUE_1 in repr(config)
 
     def test_should_read_from_env_file(self, mock_env: dict, tmp_path: Path):
-        value_file_path = tmp_path / 'value1'
-        value_file_path.write_text('value1')
+        value_file_path = tmp_path / 'secret1'
+        value_file_path.write_text(VALUE_1)
         mock_env[ENV_VAR_1] = str(value_file_path)
         config = MappingConfig.from_dict({
-            'parametersFromFile': [{
-                'parameterName': 'key1',
-                'filePathEnvName': ENV_VAR_1
-            }]
+            'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
         })
         LOGGER.debug('config: %r', config)
-        assert config.mapping == {'key1': 'value1'}
+        assert config.mapping == {KEY_1: VALUE_1}
 
     def test_should_not_include_env_file_values_in_str_repr_and_printable_mapping(
         self,
         mock_env: dict,
         tmp_path: Path
     ):
-        value_file_path = tmp_path / 'value1'
-        value_file_path.write_text('value1')
+        value_file_path = tmp_path / 'secret1'
+        value_file_path.write_text(VALUE_1)
         mock_env[ENV_VAR_1] = str(value_file_path)
         config = MappingConfig.from_dict({
-            'parametersFromFile': [{
-                'parameterName': 'key1',
-                'filePathEnvName': ENV_VAR_1
-            }]
+            'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
         })
         LOGGER.debug('config: %r', config)
-        assert config.mapping == {'key1': 'value1'}
-        assert config.printable_mapping == {'key1': SECRET_VALUE_PLACEHOLDER}
-        assert 'value1' not in str(config)
-        assert 'value1' not in repr(config)
+        assert config.mapping == {KEY_1: VALUE_1}
+        assert config.printable_mapping == {KEY_1: SECRET_VALUE_PLACEHOLDER}
+        assert VALUE_1 not in str(config)
+        assert VALUE_1 not in repr(config)
