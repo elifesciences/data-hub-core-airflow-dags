@@ -85,10 +85,11 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
         raise
 
 
-def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
+def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Mapping[str, str] = None,
     headers: Mapping[str, str] = None,
+    printable_headers: Mapping[str, str] = None,
     method: str = 'GET',
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
@@ -128,6 +129,10 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     if params:
         request_provenance['request_params'] = [
             {'name': key, 'value': value} for key, value in params.items()
+        ]
+    if printable_headers:
+        request_provenance['request_headers'] = [
+            {'name': key, 'value': value} for key, value in printable_headers.items()
         ]
     if json_data:
         request_provenance['json_data'] = json_data

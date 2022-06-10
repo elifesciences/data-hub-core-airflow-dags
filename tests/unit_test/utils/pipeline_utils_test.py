@@ -310,6 +310,18 @@ class TestGetResponseJsonWithProvenanceFromApi:
         assert provenance_json['http_status'] == 200
         assert provenance_json['json_data'] == JSON_DATA_1
 
+    def test_should_include_printable_headers_in_provenance(self):
+        actual_response_json = get_response_json_with_provenance_from_api(
+            API_URL_1,
+            headers=API_HEADERS_1,
+            printable_headers={'header1': '***'}
+        )
+        provenance_json = actual_response_json['provenance']
+        assert provenance_json['request_headers'] == [{
+            'name': 'header1',
+            'value': '***'
+        }]
+
     def test_should_extend_provenance(
         self,
         requests_mock: MagicMock
