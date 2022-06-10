@@ -131,6 +131,7 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
             {'name': key, 'value': value} for key, value in params.items()
         ]
     if printable_headers:
+        assert headers, 'headers required when passing in printable_headers'
         request_provenance['request_headers'] = [
             {'name': key, 'value': value} for key, value in printable_headers.items()
         ]

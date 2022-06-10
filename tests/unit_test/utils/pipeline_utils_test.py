@@ -322,6 +322,13 @@ class TestGetResponseJsonWithProvenanceFromApi:
             'value': '***'
         }]
 
+    def test_should_raise_error_if_only_printable_headers_was_passed_in(self):
+        with pytest.raises(AssertionError):
+            get_response_json_with_provenance_from_api(
+                API_URL_1,
+                printable_headers={'header1': '***'}
+            )
+
     def test_should_extend_provenance(
         self,
         requests_mock: MagicMock
