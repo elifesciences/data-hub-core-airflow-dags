@@ -4,7 +4,11 @@ from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
+    BigQueryTargetConfig,
+    MappingConfig
+)
 
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarConfig,
@@ -224,11 +228,29 @@ class TestGetArticleResponseJsonFromApi:
         get_response_json_with_provenance_from_api_mock.assert_called_with(
             get_resolved_api_url(SOURCE_CONFIG_1.api_url, doi=DOI_1),
             params=SOURCE_CONFIG_1.params,
+            headers=ANY,
+            printable_headers=ANY,
             provenance=ANY,
             session=session_mock,
             raise_on_status=False,
             progress_message='progress1'
         )
+
+    def test_should_pass_headers_and_pritable_headers(
+        self,
+        get_response_json_with_provenance_from_api_mock: MagicMock
+    ):
+        headers_config = MappingConfig(
+            mapping={'header1': 'value1'},
+            printable_mapping={'header1': '***'}
+        )
+        get_article_response_json_from_api(
+            DOI_1,
+            source_config=SOURCE_CONFIG_1._replace(headers=headers_config)
+        )
+        _args, kwargs = get_response_json_with_provenance_from_api_mock.call_args
+        assert kwargs['headers'] == headers_config.mapping
+        assert kwargs['printable_headers'] == headers_config.printable_mapping
 
     @pytest.mark.parametrize(
         'input_provenance,expected_provenance', [

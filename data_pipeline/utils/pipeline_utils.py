@@ -85,9 +85,11 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
         raise
 
 
-def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-arguments
+def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Mapping[str, str] = None,
+    headers: Mapping[str, str] = None,
+    printable_headers: Mapping[str, str] = None,
     method: str = 'GET',
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
@@ -103,9 +105,9 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
     request_timestamp = datetime.utcnow()
     if session:
-        response = session.request(method, url, params=params, json=json_data)
+        response = session.request(method, url, params=params, headers=headers, json=json_data)
     else:
-        response = requests.request(method, url, params=params, json=json_data)
+        response = requests.request(method, url, params=params, headers=headers, json=json_data)
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
@@ -127,6 +129,13 @@ def get_response_json_with_provenance_from_api(  # pylint: disable=too-many-argu
     if params:
         request_provenance['request_params'] = [
             {'name': key, 'value': value} for key, value in params.items()
+        ]
+    if printable_headers:
+        assert headers, 'headers required when passing in printable_headers'
+        assert printable_headers.keys() == headers.keys(), \
+            'keys of printable_headers and headers do not match'
+        request_provenance['request_headers'] = [
+            {'name': key, 'value': value} for key, value in printable_headers.items()
         ]
     if json_data:
         request_provenance['json_data'] = json_data

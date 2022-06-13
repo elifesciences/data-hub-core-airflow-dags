@@ -1,6 +1,10 @@
 from typing import Mapping, NamedTuple, Optional
 
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
+    BigQueryTargetConfig,
+    MappingConfig
+)
 
 
 DEFAULT_BATCH_SIZE = 1000
@@ -55,12 +59,14 @@ class SemanticScholarMatrixConfig(NamedTuple):
 class SemanticScholarSourceConfig(NamedTuple):
     api_url: str
     params: Mapping[str, str]
+    headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'SemanticScholarSourceConfig':
         return SemanticScholarSourceConfig(
             api_url=source_config_dict['apiUrl'],
-            params=source_config_dict.get('params', {})
+            params=source_config_dict.get('params', {}),
+            headers=MappingConfig.from_dict(source_config_dict.get('headers', {}))
         )
 
 

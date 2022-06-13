@@ -27,6 +27,7 @@ BIGQUERY_SOURCE_CONFIG_2 = BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='query2')
 
 API_URL_1 = '/api1'
 API_PARAMS_1 = {'param1': 'value1'}
+API_HEADERS_1 = {'header1': 'value1'}
 
 SINGLE_ITEM_RESPONSE_JSON_1 = {
     'data': 'value1'
@@ -204,13 +205,14 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
 
 
 class TestGetResponseJsonWithProvenanceFromApi:
-    def test_should_pass_url_and_params_to_requests_request(
+    def test_should_pass_url_params_and_headers_to_requests_request(
         self,
         requests_mock: MagicMock
     ):
         get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             method='POST',
             json_data=JSON_DATA_1
         )
@@ -218,16 +220,18 @@ class TestGetResponseJsonWithProvenanceFromApi:
             'POST',
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             json=JSON_DATA_1
         )
 
-    def test_should_pass_url_and_params_to_session_request_if_provided(
+    def test_should_pass_url_params_and_headers_to_session_request_if_provided(
         self
     ):
         session_mock = MagicMock(name='session')
         get_response_json_with_provenance_from_api(
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             method='POST',
             json_data=JSON_DATA_1,
             session=session_mock
@@ -236,6 +240,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
             'POST',
             API_URL_1,
             params=API_PARAMS_1,
+            headers=API_HEADERS_1,
             json=JSON_DATA_1
         )
 
@@ -304,6 +309,33 @@ class TestGetResponseJsonWithProvenanceFromApi:
         assert provenance_json['request_url'] == response_mock.url
         assert provenance_json['http_status'] == 200
         assert provenance_json['json_data'] == JSON_DATA_1
+
+    def test_should_include_printable_headers_in_provenance(self):
+        actual_response_json = get_response_json_with_provenance_from_api(
+            API_URL_1,
+            headers=API_HEADERS_1,
+            printable_headers={'header1': '***'}
+        )
+        provenance_json = actual_response_json['provenance']
+        assert provenance_json['request_headers'] == [{
+            'name': 'header1',
+            'value': '***'
+        }]
+
+    def test_should_raise_error_if_only_printable_headers_was_passed_in(self):
+        with pytest.raises(AssertionError):
+            get_response_json_with_provenance_from_api(
+                API_URL_1,
+                printable_headers={'header1': '***'}
+            )
+
+    def test_should_raise_error_if_printable_headers_have_different_keys_to_headers(self):
+        with pytest.raises(AssertionError):
+            get_response_json_with_provenance_from_api(
+                API_URL_1,
+                headers={'header1': 'value1'},
+                printable_headers={'other_header1': '***'}
+            )
 
     def test_should_extend_provenance(
         self,
