@@ -27,3 +27,10 @@ class RelatedArticlesConfig(NamedTuple):
                 item_config_dict['target']
             )
         )
+
+    @staticmethod
+    def from_dict(config_dict: dict) -> 'RelatedArticlesConfig':
+        item_config_list = config_dict['relatedArticles']
+        return RelatedArticlesConfig._from_item_dict(
+            item_config_list[0]
+        )
