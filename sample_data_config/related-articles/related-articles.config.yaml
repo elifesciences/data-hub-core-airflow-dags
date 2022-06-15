@@ -2,7 +2,7 @@ relatedArticles:
   - dataPipelineId: related-articles
     source:
       gitRepoUrl: 'https://api.github.com/repos/elifesciences/elife-article-xml/git/trees/master'
-      headers: {'content-type': 'application/json', 'Accept-Charset': 'UTF-8'}
+      directoryName: 'articles'
     target:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'
