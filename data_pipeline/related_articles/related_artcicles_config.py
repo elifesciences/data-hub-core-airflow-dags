@@ -20,7 +20,7 @@ class RelatedArticlesConfig(NamedTuple):
     @staticmethod
     def _from_item_dict(item_config_dict) -> 'RelatedArticlesConfig':
         return RelatedArticlesConfig(
-            source_config=RelatedArticlesSourceConfig.from_dict(
+            source=RelatedArticlesSourceConfig.from_dict(
                 item_config_dict['source']
             ),
             target=BigQueryTargetConfig.from_dict(
