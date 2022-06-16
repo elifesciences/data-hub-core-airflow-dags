@@ -1,15 +1,14 @@
 from unittest.mock import MagicMock, patch
 import pytest
 
-from data_pipeline.elife_article_xml import(
+from data_pipeline.elife_article_xml import (
     elife_article_xml_pipeline as elife_article_xml_pipeline_module
 )
 from data_pipeline.elife_article_xml.elife_article_xml_config import RelatedArticlesSourceConfig
 
-from data_pipeline.elife_article_xml.elife_article_xml_pipeline import(
+from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_url_of_xml_file_directory_from_repo,
-    iter_xml_file_url_from_git_directory,
-    fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery
+    iter_xml_file_url_from_git_directory
 )
 
 
@@ -18,9 +17,12 @@ def _get_json_response_from_url_mock():
     with patch.object(elife_article_xml_pipeline_module, 'get_json_response_from_url') as mock:
         yield mock
 
+
 @pytest.fixture(name='get_url_of_xml_file_directory_from_repo_mock')
 def get_url_of_xml_file_directory_from_repo_mock():
-    with patch.object(elife_article_xml_pipeline_module, 'get_url_of_xml_file_directory_from_repo') as mock:
+    with patch.object(
+      elife_article_xml_pipeline_module, 'get_url_of_xml_file_directory_from_repo'
+    ) as mock:
         yield mock
 
 
@@ -30,7 +32,6 @@ def get_url_of_xml_file_directory_from_repo_mock():
 # XML_FILE_JSON = {
 #     'content': CONTENT_ENCODED
 # }
-
 MATCHING_DIRECTORY_NAME = 'matching_directory'
 OTHER_DIRECTORY_NAME = 'other_directory'
 
@@ -78,6 +79,7 @@ SOURCE_CONFIG_1 = RelatedArticlesSourceConfig(
     directory_name=MATCHING_DIRECTORY_NAME
 )
 
+
 class TestGetUrlOfXmlFileDirectoryFromRepo:
     def test_should_return_url_for_matching_path(
         self,
@@ -98,4 +100,3 @@ class TestIterXmlFileUrlFromGitDirectory:
         get_url_of_xml_file_directory_from_repo_mock.return_value = GITHUB_TREE_REPONSE_2
         actual_return_value = list(iter_xml_file_url_from_git_directory(SOURCE_CONFIG_1))
         assert actual_return_value == [NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_URL_2]
-

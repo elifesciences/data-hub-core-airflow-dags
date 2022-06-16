@@ -19,7 +19,7 @@ def get_url_of_xml_file_directory_from_repo(
 ) -> str:
     response_json = get_json_response_from_url(url=source_config.git_repo_url)
     for folder in response_json['tree']:
-        if folder['path']==source_config.directory_name:
+        if folder['path'] == source_config.directory_name:
             return folder['url']
 
 
@@ -45,6 +45,7 @@ def iter_decoded_xml_file_content(
 
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery(
     source_config: RelatedArticlesSourceConfig
-):  
+):
+
     article_xml_url_list = iter_xml_file_url_from_git_directory(source_config=source_config)
     iter_decoded_xml_file_content(article_xml_url_list)

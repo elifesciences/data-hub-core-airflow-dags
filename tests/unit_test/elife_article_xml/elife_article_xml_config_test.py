@@ -25,10 +25,13 @@ ITEM_CONFIG_DICT = {
     'target': TARGET_CONFIG
 }
 
+
 def get_config_for_item_config_dict(item_dict: dict) -> dict:
     return {'elifeArticleXml': [item_dict]}
 
+
 CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
+
 
 class TestRelatedArticlesConfig:
     def test_should_read_git_repo_url(self):

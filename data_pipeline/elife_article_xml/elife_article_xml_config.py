@@ -2,6 +2,7 @@ from typing import NamedTuple
 
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
 
+
 class RelatedArticlesSourceConfig(NamedTuple):
     git_repo_url: str
     directory_name: str
@@ -12,6 +13,7 @@ class RelatedArticlesSourceConfig(NamedTuple):
             git_repo_url=source_config_dict['gitRepoUrl'],
             directory_name=source_config_dict['directoryName']
         )
+
 
 class RelatedArticlesConfig(NamedTuple):
     source: RelatedArticlesSourceConfig
