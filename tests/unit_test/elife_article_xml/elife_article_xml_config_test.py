@@ -1,4 +1,4 @@
-from data_pipeline.related_articles.related_articles_config import (
+from data_pipeline.elife_article_xml.elife_article_xml_config import (
     RelatedArticlesConfig
 )
 
@@ -26,7 +26,7 @@ ITEM_CONFIG_DICT = {
 }
 
 def get_config_for_item_config_dict(item_dict: dict) -> dict:
-    return {'relatedArticles': [item_dict]}
+    return {'elifeArticleXml': [item_dict]}
 
 CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
 

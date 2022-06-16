@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock, patch
 import pytest
 
-from data_pipeline.related_articles import(
-    related_articles_pipeline as related_articles_pipeline_module
+from data_pipeline.elife_article_xml import(
+    elife_article_xml_pipeline as elife_article_xml_pipeline_module
 )
-from data_pipeline.related_articles.related_articles_config import RelatedArticlesSourceConfig
+from data_pipeline.elife_article_xml.elife_article_xml_config import RelatedArticlesSourceConfig
 
-from data_pipeline.related_articles.related_articles_pipeline import(
+from data_pipeline.elife_article_xml.elife_article_xml_pipeline import(
     get_url_of_xml_file_directory_from_repo,
     iter_decoded_xml_file_content,
     fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery
@@ -15,7 +15,7 @@ from data_pipeline.related_articles.related_articles_pipeline import(
 
 @pytest.fixture(name='get_json_response_from_url_mock')
 def _get_json_response_from_url_mock():
-    with patch.object(related_articles_pipeline_module, 'get_json_response_from_url') as mock:
+    with patch.object(elife_article_xml_pipeline_module, 'get_json_response_from_url') as mock:
         yield mock
 
 

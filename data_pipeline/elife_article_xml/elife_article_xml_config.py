@@ -30,7 +30,7 @@ class RelatedArticlesConfig(NamedTuple):
 
     @staticmethod
     def from_dict(config_dict: dict) -> 'RelatedArticlesConfig':
-        item_config_list = config_dict['relatedArticles']
+        item_config_list = config_dict['elifeArticleXml']
         return RelatedArticlesConfig._from_item_dict(
             item_config_list[0]
         )
