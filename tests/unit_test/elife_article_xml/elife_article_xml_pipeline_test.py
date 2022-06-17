@@ -56,6 +56,9 @@ GITHUB_TREE_REPONSE_1 = {
 EMPTY_ARTICLE_URL = 'empty_article_url'
 NOT_EMPTY_ARTICLE_URL_1 = 'not_empty_article_url_1'
 NOT_EMPTY_ARTICLE_URL_2 = 'not_empty_article_url_2'
+PROCESSED_NOT_EMPTY_ARTICLE_URL = 'existing_not_empty_article_url'
+
+PROCESSED_FILE_URL_LIST = [PROCESSED_NOT_EMPTY_ARTICLE_URL]
 
 GITHUB_TREE_REPONSE_2 = {
     'tree': [
@@ -70,6 +73,10 @@ GITHUB_TREE_REPONSE_2 = {
         {
             'size': 15,
             'url': NOT_EMPTY_ARTICLE_URL_2
+        },
+        {
+            'size': 15,
+            'url': PROCESSED_NOT_EMPTY_ARTICLE_URL
         }
     ]
 }
@@ -113,14 +120,17 @@ class TestGetUrlOfXmlFileDirectoryFromRepo:
         assert actual_return_value == MATCHING_URL
 
 
+@pytest.mark.usefixtures("get_url_of_xml_file_directory_from_repo_mock")
 class TestIterXmlFileUrlFromGitDirectory:
-    @pytest.mark.usefixtures("get_url_of_xml_file_directory_from_repo_mock")
-    def test_should_return_url_list_for_not_empty_files(
+    def test_should_return_url_list_only_for_not_empty_and_non_processed_files(
         self,
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
-        actual_return_value = list(iter_xml_file_url_from_git_directory(SOURCE_CONFIG_1))
+        actual_return_value = list(iter_xml_file_url_from_git_directory(
+            source_config=SOURCE_CONFIG_1,
+            processed_file_url_list=PROCESSED_FILE_URL_LIST
+        ))
         assert actual_return_value == [NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_URL_2]
 
 
