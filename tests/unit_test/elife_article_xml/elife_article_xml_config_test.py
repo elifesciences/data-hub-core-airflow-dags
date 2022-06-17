@@ -10,9 +10,9 @@ SOURCE_CONFIG = {
     'directoryName': DIRECTORY_NAME
 }
 
-PROJECT_NAME = 'project'
-DATASET_NAME = 'dataset'
-TABLE_NAME = 'table'
+PROJECT_NAME = 'project_1'
+DATASET_NAME = 'dataset_1'
+TABLE_NAME = 'table_1'
 
 TARGET_CONFIG = {
     'projectName': PROJECT_NAME,
