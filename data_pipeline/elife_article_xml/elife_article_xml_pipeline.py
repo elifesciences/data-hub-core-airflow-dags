@@ -1,11 +1,14 @@
 import base64
 from typing import Iterable, Any
 import requests
+import logging
 
 
 from data_pipeline.elife_article_xml.elife_article_xml_config import (
     RelatedArticlesSourceConfig
 )
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_json_response_from_url(url: str) -> Any:
@@ -40,7 +43,11 @@ def iter_decoded_xml_file_content(
     # dont forget to update the list
     for article_xml_url in article_xml_url_list:
         response_json = get_json_response_from_url(url=article_xml_url)
-        yield base64.b64decode(response_json['content']).decode('utf-8')
+        if response_json['encoding'] == 'base64':
+            yield base64.b64decode(response_json['content']).decode('utf-8')
+        else:
+            LOGGER.info('File is not decoded base64, file url: %s', article_xml_url)
+
 
 
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery(
