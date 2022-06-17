@@ -4,7 +4,7 @@ import pytest
 from data_pipeline.elife_article_xml import (
     elife_article_xml_pipeline as elife_article_xml_pipeline_module
 )
-from data_pipeline.elife_article_xml.elife_article_xml_config import RelatedArticlesSourceConfig
+from data_pipeline.elife_article_xml.elife_article_xml_config import ElifeArticleXmlSourceConfig
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_url_of_xml_file_directory_from_repo,
@@ -69,7 +69,7 @@ GITHUB_TREE_REPONSE_2 = {
 
 GIT_REPO_URL = 'git_repo_url_1'
 
-SOURCE_CONFIG_1 = RelatedArticlesSourceConfig(
+SOURCE_CONFIG_1 = ElifeArticleXmlSourceConfig(
     git_repo_url=GIT_REPO_URL,
     directory_name=MATCHING_DIRECTORY_NAME
 )

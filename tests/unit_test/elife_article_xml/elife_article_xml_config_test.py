@@ -1,5 +1,5 @@
 from data_pipeline.elife_article_xml.elife_article_xml_config import (
-    RelatedArticlesConfig
+    ElifeArticleXmlConfig
 )
 
 GIT_REPO_URL = 'git_repo_url'
@@ -33,11 +33,11 @@ def get_config_for_item_config_dict(item_dict: dict) -> dict:
 CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
 
 
-class TestRelatedArticlesConfig:
+class TestElifeArticleXmlConfig:
     def test_should_read_git_repo_url(self):
-        config = RelatedArticlesConfig.from_dict(CONFIG_DICT)
+        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
         assert config.source.git_repo_url == GIT_REPO_URL
 
     def test_should_read_directory_name(self):
-        config = RelatedArticlesConfig.from_dict(CONFIG_DICT)
+        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
         assert config.source.directory_name == DIRECTORY_NAME
