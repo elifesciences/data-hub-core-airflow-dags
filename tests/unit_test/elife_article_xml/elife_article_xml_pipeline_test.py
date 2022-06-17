@@ -7,10 +7,17 @@ from data_pipeline.elife_article_xml import (
 from data_pipeline.elife_article_xml.elife_article_xml_config import ElifeArticleXmlSourceConfig
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
+    get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
     iter_xml_file_url_from_git_directory,
     iter_decoded_xml_file_content
 )
+
+
+@pytest.fixture(name='requests_mock', autouse=True)
+def _requests_mock():
+    with patch.object(elife_article_xml_pipeline_module, 'requests') as mock:
+        yield mock
 
 
 @pytest.fixture(name='get_json_response_from_url_mock')
@@ -20,7 +27,7 @@ def _get_json_response_from_url_mock():
 
 
 @pytest.fixture(name='get_url_of_xml_file_directory_from_repo_mock')
-def get_url_of_xml_file_directory_from_repo_mock():
+def _get_url_of_xml_file_directory_from_repo_mock():
     with patch.object(
       elife_article_xml_pipeline_module, 'get_url_of_xml_file_directory_from_repo'
     ) as mock:
@@ -86,6 +93,16 @@ XML_FILE_JSON = {
 XML_FILE_URL_LIST = ['xml_file_url_1']
 
 
+class TestGetJsonResponseFromUrl:
+    def test_should_pass_url_to_request_get_function(
+        self,
+        requests_mock: MagicMock
+    ):
+        get_json_response_from_url(url=GIT_REPO_URL)
+        requests_mock.get.assert_called_with(url=GIT_REPO_URL)
+
+
+
 class TestGetUrlOfXmlFileDirectoryFromRepo:
     def test_should_return_url_for_matching_path(
         self,
@@ -97,13 +114,12 @@ class TestGetUrlOfXmlFileDirectoryFromRepo:
 
 
 class TestIterXmlFileUrlFromGitDirectory:
+    @pytest.mark.usefixtures("get_url_of_xml_file_directory_from_repo_mock")
     def test_should_return_url_list_for_not_empty_files(
         self,
-        get_json_response_from_url_mock: MagicMock,
-        get_url_of_xml_file_directory_from_repo_mock: MagicMock
+        get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
-        get_url_of_xml_file_directory_from_repo_mock.return_value = GITHUB_TREE_REPONSE_2
         actual_return_value = list(iter_xml_file_url_from_git_directory(SOURCE_CONFIG_1))
         assert actual_return_value == [NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_URL_2]
 
