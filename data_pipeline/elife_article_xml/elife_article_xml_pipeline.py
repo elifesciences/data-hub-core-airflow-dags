@@ -27,15 +27,16 @@ def get_url_of_xml_file_directory_from_repo(
 
 
 def iter_xml_file_url_from_git_directory(
-    source_config: ElifeArticleXmlSourceConfig
+    source_config: ElifeArticleXmlSourceConfig,
+    processed_file_url_list: Iterable[str]
 ) -> Iterable[str]:
     response_json = get_json_response_from_url(
         url=get_url_of_xml_file_directory_from_repo(source_config=source_config)
     )
     for article_xml_url in response_json['tree']:
-        # dont forget to update the list
         if article_xml_url['size'] > 0:
-            yield article_xml_url['url']
+            if article_xml_url['url'] not in processed_file_url_list:
+                yield article_xml_url['url']
 
 
 def iter_decoded_xml_file_content(
@@ -48,10 +49,3 @@ def iter_decoded_xml_file_content(
         else:
             LOGGER.info('File is not decoded base64, file url: %s', article_xml_url)
 
-
-def fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery(
-    source_config: ElifeArticleXmlSourceConfig
-):
-
-    article_xml_url_list = iter_xml_file_url_from_git_directory(source_config=source_config)
-    iter_decoded_xml_file_content(article_xml_url_list)
