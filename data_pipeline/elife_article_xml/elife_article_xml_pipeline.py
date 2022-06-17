@@ -49,7 +49,6 @@ def iter_decoded_xml_file_content(
             LOGGER.info('File is not decoded base64, file url: %s', article_xml_url)
 
 
-
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bigquery(
     source_config: RelatedArticlesSourceConfig
 ):

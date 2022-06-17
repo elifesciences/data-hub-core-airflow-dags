@@ -60,7 +60,7 @@ GITHUB_TREE_REPONSE_2 = {
             'size': 10,
             'url': NOT_EMPTY_ARTICLE_URL_1
         },
-        { 
+        {
             'size': 15,
             'url': NOT_EMPTY_ARTICLE_URL_2
         }
