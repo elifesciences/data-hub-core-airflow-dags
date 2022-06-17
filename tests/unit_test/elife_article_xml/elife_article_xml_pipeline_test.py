@@ -8,7 +8,8 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import RelatedArti
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_url_of_xml_file_directory_from_repo,
-    iter_xml_file_url_from_git_directory
+    iter_xml_file_url_from_git_directory,
+    iter_decoded_xml_file_content
 )
 
 
@@ -91,7 +92,7 @@ class TestGetUrlOfXmlFileDirectoryFromRepo:
 
 
 class TestIterXmlFileUrlFromGitDirectory:
-    def test_should_return_not_empty_file_url_list(
+    def test_should_return_url_list_for_not_empty_files(
         self,
         get_json_response_from_url_mock: MagicMock,
         get_url_of_xml_file_directory_from_repo_mock: MagicMock
