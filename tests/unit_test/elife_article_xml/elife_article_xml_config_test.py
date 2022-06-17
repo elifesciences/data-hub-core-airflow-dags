@@ -41,3 +41,9 @@ class TestElifeArticleXmlConfig:
     def test_should_read_directory_name(self):
         config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
         assert config.source.directory_name == DIRECTORY_NAME
+
+    def test_should_read_target_project_dataset_and_table_name(self):
+        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
+        assert config.target.project_name == PROJECT_NAME
+        assert config.target.dataset_name == DATASET_NAME
+        assert config.target.table_name == TABLE_NAME
