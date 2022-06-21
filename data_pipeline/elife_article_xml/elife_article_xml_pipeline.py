@@ -1,12 +1,17 @@
 import base64
-from typing import Iterable, Any
-import requests
+from typing import Iterable, Any, Optional, Tuple
 import logging
-
+import requests
+import xml.etree.ElementTree as ET
 
 from data_pipeline.elife_article_xml.elife_article_xml_config import (
     ElifeArticleXmlSourceConfig
 )
+from data_pipeline.utils.json import (
+    get_recursively_transformed_object,
+    remove_key_with_null_value
+)
+from data_pipeline.utils.xml import parse_xml_and_return_it_as_dict
 
 LOGGER = logging.getLogger(__name__)
 
@@ -49,3 +54,29 @@ def iter_decoded_xml_file_content(
         else:
             LOGGER.info('File is not decoded base64, file url: %s', article_xml_url)
 
+
+def get_bq_compatible_transformed_key_value(
+    key: str,
+    value: Any
+) -> Tuple[Optional[str], Optional[Any]]:
+    return (
+        key.replace('-', '_'),
+        value
+    )
+
+
+def get_bq_compatible_json_dict(json_dict: dict) -> dict:
+    return get_recursively_transformed_object(
+        remove_key_with_null_value(json_dict),
+        key_value_transform_fn=get_bq_compatible_transformed_key_value
+    )
+
+
+def get_article_json_data_from_xml_string_content(
+    xml_string: str
+) -> dict:
+    xml_root = ET.fromstring(xml_string)
+    parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
+    parsed_dict = get_bq_compatible_json_dict(parsed_dict)
+    LOGGER.info(parsed_dict)
+    return parsed_dict
