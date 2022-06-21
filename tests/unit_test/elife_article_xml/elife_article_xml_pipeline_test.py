@@ -240,15 +240,19 @@ class TestGetArticleJsonDataFromXmlStringContent:
         assert return_value == {}
 
     def test_should_return_dict_with_related_article_if_it_exists(self):
+        # pylint: disable=line-too-long
         xml_string = '''
-            <article><front><article-meta><related-article ext-link-type="doi" id="ra1" related-article-type="related_article_type_1" href="related_article_doi_1"/></article-meta></front></article>
+<article><front><article-meta>\
+<related-article ext-link-type="doi" id="ra1" \
+related-article-type="related_article_type_1" href="related_article_doi_1"/>\
+</article-meta></front></article>
         '''
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
-            'article':{
+            'article': {
                 'front': [{
                     'article_meta': [{
-                        'related_article':[{
+                        'related_article': [{
                             'ext_link_type': 'doi',
                             'id': 'ra1',
                             'related_article_type': 'related_article_type_1',
