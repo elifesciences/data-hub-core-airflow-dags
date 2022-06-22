@@ -218,6 +218,21 @@ class TestIterXmlFileUrlFromGitDirectory:
         ))
         assert actual_return_value == [NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_URL_2]
 
+    def test_should_return_all_url_list_if_processed_files_list_empty(
+        self,
+        get_json_response_from_url_mock: MagicMock
+    ):
+        get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
+        actual_return_value = list(iter_unprocessed_xml_file_url_from_git_directory(
+            source_config=SOURCE_CONFIG_1,
+            processed_file_url_list=[]
+        ))
+        assert actual_return_value == [
+            NOT_EMPTY_ARTICLE_URL_1,
+            NOT_EMPTY_ARTICLE_URL_2,
+            PROCESSED_NOT_EMPTY_ARTICLE_URL
+        ]
+
 
 class TestIterDecodedXmlFileContent:
     def test_should_return_decoded_file_content(
