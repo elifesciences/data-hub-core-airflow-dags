@@ -87,6 +87,12 @@ def get_article_json_data_from_xml_string_content(
         for key in parsed_dict['article']['front'][0]['article_meta'][0].copy().keys():
             if key != 'related_article':
                 parsed_dict['article']['front'][0]['article_meta'][0].pop(key, None)
+        for key in parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0].copy().keys():
+            if 'href' in key:
+                parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0]['href'] = (
+                    parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0].pop(key)
+                )
+        LOGGER.info(parsed_dict)
     return parsed_dict
 
 

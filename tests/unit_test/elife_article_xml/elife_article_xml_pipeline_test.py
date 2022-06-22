@@ -277,9 +277,9 @@ class TestGetArticleJsonDataFromXmlStringContent:
 
     def test_should_return_dict_with_related_article_if_it_exists(self):
         xml_string = ''.join([
-            '<article><front><article-meta>',
+            '<article xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
             '<related-article ext-link-type="doi" id="ra1" ',
-            'related-article-type="related_article_type_1" href="related_article_doi_1"/>',
+            'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '</article-meta></front></article>'
         ])
 
@@ -301,9 +301,9 @@ class TestGetArticleJsonDataFromXmlStringContent:
 
     def test_should_not_return_other_elements(self):
         xml_string = ''.join([
-            '<article><front><article-meta>',
+            '<article xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
             '<related-article ext-link-type="doi" id="ra1" ',
-            'related-article-type="related_article_type_1" href="related_article_doi_1"/>',
+            'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '<other>"other"</other>',
             '</article-meta></front></article>'
         ])
