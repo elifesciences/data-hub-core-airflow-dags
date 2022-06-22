@@ -113,7 +113,8 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
             project_name=project_name,
             query=f'''
                 SELECT articles.article_url
-                FROM `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
+                FROM
+                `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
             '''
         )
     else:
