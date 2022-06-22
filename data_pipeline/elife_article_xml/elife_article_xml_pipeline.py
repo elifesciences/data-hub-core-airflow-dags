@@ -103,7 +103,7 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
             FROM `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
         '''
     )
-    article_xml_url_list = iter_xml_file_url_from_git_directory(
+    article_xml_url_list = iter_unprocessed_xml_file_url_from_git_directory(
         source_config=config.source,
         processed_file_url_list=processed_file_url_list
     )
