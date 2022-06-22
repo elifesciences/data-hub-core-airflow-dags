@@ -79,4 +79,8 @@ def get_article_json_data_from_xml_string_content(
     parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
     LOGGER.info(parsed_dict)
+    if parsed_dict:
+        for key in parsed_dict['article']['front'][0]['article_meta'][0].copy().keys():
+            if key != 'related_article':
+                parsed_dict['article']['front'][0]['article_meta'][0].pop(key, None)
     return parsed_dict
