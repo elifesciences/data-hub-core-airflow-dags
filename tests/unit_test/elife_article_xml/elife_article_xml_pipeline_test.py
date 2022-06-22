@@ -10,6 +10,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 )
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
+    get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
     iter_xml_file_url_from_git_directory,
@@ -228,6 +229,41 @@ class TestIterDecodedXmlFileContent:
         assert actual_return_value == [XML_FILE_CONTENT_DECODED]
 
 
+class TestIterBqCompatibleJson:
+    def test_should_keep_compatible_key_name_with_underscore(self):
+        input_data = [{
+            'key_1': 'value1'
+        }]
+        result = get_bq_compatible_json_dict(input_data)
+        assert result == input_data
+
+    def test_should_replace_hyphen_in_key_name_with_underscore(self):
+        input_data = [{
+            'key-1': 'value1'
+        }]
+        expected_data = [{
+            'key_1': 'value1'
+        }]
+        result = get_bq_compatible_json_dict(input_data)
+        assert result == expected_data
+
+    def test_should_remove_none_value(self):
+        input_data = [{
+            'key_1': None
+        }]
+        expected_data = []
+        result = get_bq_compatible_json_dict(input_data)
+        assert result == expected_data
+
+    def test_should_remove_empty_list_value(self):
+        input_data = [{
+            'key_1': []
+        }]
+        expected_data = []
+        result = get_bq_compatible_json_dict(input_data)
+        assert result == expected_data
+
+
 class TestGetArticleJsonDataFromXmlStringContent:
     def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
         xml_string = '<article></article>'
@@ -262,6 +298,3 @@ related-article-type="related_article_type_1" href="related_article_doi_1"/>\
                 }]
             }
         }
-
-    def test_should_not_return_other_elements(self):
-        pass
