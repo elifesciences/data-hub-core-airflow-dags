@@ -280,19 +280,22 @@ class TestIterBqCompatibleJson:
 
 
 class TestGetArticleJsonDataFromXmlStringContent:
-    def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
-        xml_string = '<article></article>'
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
-        assert return_value == {}
+    # def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
+    #     xml_string = '<article></article>'
+    #     return_value = get_article_json_data_from_xml_string_content(xml_string)
+    #     assert return_value == {}
 
-    def test_should_return_empty_dict_if_the_xml_has_empty_article_meta(self):
-        xml_string = '<article><front><article-meta></article-meta></front></article>'
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
-        assert return_value == {}
+    # def test_should_return_empty_dict_if_the_xml_has_empty_article_meta(self):
+    #     xml_string = '<article><front><article-meta></article-meta></front></article>'
+    #     return_value = get_article_json_data_from_xml_string_content(xml_string)
+    #     assert return_value == {}
 
-    def test_should_return_dict_with_related_article_if_it_exists(self):
+    def test_should_return_dict_with_related_article_and_article_if_if_they_exist(self):
         xml_string = ''.join([
-            '<article xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article article-type="article_type_1" ',
+            'xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
+            '<article-id pub-id-type="doi">doi_1</article-id>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '</article-meta></front></article>'
@@ -301,8 +304,19 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
             'article': {
+                'article_type': 'article_type_1',
                 'front': [{
                     'article_meta': [{
+                        'article_id': [
+                            {
+                                'pub_id_type': 'publisher-id',
+                                'value_text': 'publisher_id_1'
+                            },
+                            {
+                                'pub_id_type': 'doi',
+                                'value_text': 'doi_1'
+                            }
+                        ],
                         'related_article': [{
                             'ext_link_type': 'doi',
                             'id': 'ra1',
@@ -316,7 +330,10 @@ class TestGetArticleJsonDataFromXmlStringContent:
 
     def test_should_not_return_other_elements(self):
         xml_string = ''.join([
-            '<article xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article article-type="article_type_1" ',
+            'xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
+            '<article-id pub-id-type="doi">doi_1</article-id>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '<other>"other"</other>',
@@ -325,8 +342,19 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
             'article': {
+                'article_type': 'article_type_1',
                 'front': [{
                     'article_meta': [{
+                        'article_id': [
+                            {
+                                'pub_id_type': 'publisher-id',
+                                'value_text': 'publisher_id_1'
+                            },
+                            {
+                                'pub_id_type': 'doi',
+                                'value_text': 'doi_1'
+                            }
+                        ],
                         'related_article': [{
                             'ext_link_type': 'doi',
                             'id': 'ra1',

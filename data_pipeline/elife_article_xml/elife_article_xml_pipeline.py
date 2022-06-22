@@ -86,7 +86,7 @@ def get_article_json_data_from_xml_string_content(
     if parsed_dict:
         article_meta_dict = parsed_dict['article']['front'][0]['article_meta'][0]
         for key in article_meta_dict.copy().keys():
-            if key != 'related_article':
+            if key not in ('related_article', 'article_id'):
                 article_meta_dict.pop(key, None)
         if 'related_article' in article_meta_dict:
             for key in article_meta_dict['related_article'][0].copy().keys():
