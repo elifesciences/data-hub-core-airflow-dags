@@ -84,15 +84,16 @@ def get_article_json_data_from_xml_string_content(
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
     LOGGER.info(parsed_dict)
     if parsed_dict:
-        for key in parsed_dict['article']['front'][0]['article_meta'][0].copy().keys():
+        article_meta_dict = parsed_dict['article']['front'][0]['article_meta'][0]
+        for key in article_meta_dict.copy().keys():
             if key != 'related_article':
-                parsed_dict['article']['front'][0]['article_meta'][0].pop(key, None)
-        for key in parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0].copy().keys():
+                article_meta_dict.pop(key, None)
+        for key in article_meta_dict['related_article'][0].copy().keys():
             if 'href' in key:
-                parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0]['href'] = (
-                    parsed_dict['article']['front'][0]['article_meta'][0]['related_article'][0].pop(key)
+                article_meta_dict['related_article'][0]['href'] = (
+                    article_meta_dict['related_article'][0].pop(key)
                 )
-        LOGGER.info(parsed_dict)
+        parsed_dict['article']['front'][0]['article_meta'][0] = article_meta_dict
     return parsed_dict
 
 
