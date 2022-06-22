@@ -298,3 +298,27 @@ related-article-type="related_article_type_1" href="related_article_doi_1"/>\
                 }]
             }
         }
+
+    def test_should_not_return_other_elements(self):
+        xml_string = '''
+<article><front><article-meta>\
+<related-article ext-link-type="doi" id="ra1" \
+related-article-type="related_article_type_1" href="related_article_doi_1"/>\
+<article-title>"article_title"</article-title>\
+</article-meta></front></article>
+        '''
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {
+            'article': {
+                'front': [{
+                    'article_meta': [{
+                        'related_article': [{
+                            'ext_link_type': 'doi',
+                            'id': 'ra1',
+                            'related_article_type': 'related_article_type_1',
+                            'href': 'related_article_doi_1'
+                        }]
+                    }]
+                }]
+            }
+        }
