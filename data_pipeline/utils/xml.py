@@ -12,7 +12,7 @@ def parse_xml_and_return_it_as_dict(
         )}
     dict_of_xml = xml_root.attrib
     if xml_root.text:
-        dict_of_xml["_text"] = xml_root.text
+        dict_of_xml["value_text"] = xml_root.text
     for xml_child in xml_root:
         if xml_child.tag not in dict_of_xml:
             dict_of_xml[xml_child.tag] = []
