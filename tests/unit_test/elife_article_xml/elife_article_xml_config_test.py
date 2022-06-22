@@ -2,8 +2,8 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
     ElifeArticleXmlConfig
 )
 
-GIT_REPO_URL = 'git_repo_url'
-DIRECTORY_NAME = 'directory_name'
+GIT_REPO_URL = 'git_repo_url_1'
+DIRECTORY_NAME = 'directory_name_1'
 
 SOURCE_CONFIG = {
     'gitRepoUrl': GIT_REPO_URL,
