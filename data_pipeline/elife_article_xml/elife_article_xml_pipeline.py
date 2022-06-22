@@ -10,6 +10,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
     ElifeArticleXmlSourceConfig
 )
 from data_pipeline.utils.data_store.bq_data_service import (
+    does_bigquery_table_exist,
     get_single_column_value_list_from_bq_query,
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -101,13 +102,23 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
     config: ElifeArticleXmlConfig
 ):
     dataset_name = config.target.dataset_name
-    processed_file_url_list = get_single_column_value_list_from_bq_query(
-        project_name=config.target.project_name,
-        query=f'''
-            SELECT articles.article_url
-            FROM `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
-        '''
-    )
+    project_name = config.target.project_name
+    table_name = config.target.table_name
+    if does_bigquery_table_exist(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name
+    ):
+        processed_file_url_list = get_single_column_value_list_from_bq_query(
+            project_name=project_name,
+            query=f'''
+                SELECT articles.article_url
+                FROM `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
+            '''
+        )
+    else:
+        processed_file_url_list = []
+
     article_xml_url_list = iter_unprocessed_xml_file_url_from_git_directory(
         source_config=config.source,
         processed_file_url_list=processed_file_url_list
