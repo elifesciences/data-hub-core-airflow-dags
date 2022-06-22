@@ -95,7 +95,7 @@ def get_article_json_data_from_xml_string_content(
 def fetch_and_iter_related_article_from_elife_article_xml_repo(
     config: ElifeArticleXmlConfig
 ):
-    dataset_name=config.target.dataset_name
+    dataset_name = config.target.dataset_name
     processed_file_url_list = get_single_column_value_list_from_bq_query(
         project_name=config.target.project_name,
         query=f'''
