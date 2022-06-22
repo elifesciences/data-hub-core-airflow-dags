@@ -280,15 +280,15 @@ class TestIterBqCompatibleJson:
 
 
 class TestGetArticleJsonDataFromXmlStringContent:
-    # def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
-    #     xml_string = '<article></article>'
-    #     return_value = get_article_json_data_from_xml_string_content(xml_string)
-    #     assert return_value == {}
+    def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
+        xml_string = '<article></article>'
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {}
 
-    # def test_should_return_empty_dict_if_the_xml_has_empty_article_meta(self):
-    #     xml_string = '<article><front><article-meta></article-meta></front></article>'
-    #     return_value = get_article_json_data_from_xml_string_content(xml_string)
-    #     assert return_value == {}
+    def test_should_return_empty_dict_if_the_xml_has_empty_article_meta(self):
+        xml_string = '<article><front><article-meta></article-meta></front></article>'
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {}
 
     def test_should_return_dict_with_related_article_and_article_if_if_they_exist(self):
         xml_string = ''.join([
