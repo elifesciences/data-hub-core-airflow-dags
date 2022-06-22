@@ -55,10 +55,8 @@ def iter_decoded_xml_file_content(
 ) -> Iterable[str]:
     for article_xml_url in article_xml_url_list:
         response_json = get_json_response_from_url(url=article_xml_url)
-        if response_json['encoding'] == 'base64':
-            yield base64.b64decode(response_json['content']).decode('utf-8')
-        else:
-            LOGGER.info('File is not decoded base64, file url: %s', article_xml_url)
+        assert response_json['encoding'] == 'base64'
+        yield base64.b64decode(response_json['content']).decode('utf-8')
 
 
 def get_bq_compatible_transformed_key_value(
