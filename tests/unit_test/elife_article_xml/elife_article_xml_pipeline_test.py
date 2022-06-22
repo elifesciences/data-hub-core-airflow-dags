@@ -13,7 +13,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
-    iter_xml_file_url_from_git_directory,
+    iter_unprocessed_xml_file_url_from_git_directory,
     iter_decoded_xml_file_content,
     get_article_json_data_from_xml_string_content
 )
@@ -26,11 +26,11 @@ def _requests_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_xml_file_url_from_git_directory_mock', autouse=True)
-def _iter_xml_file_url_from_git_directory_mock():
+@pytest.fixture(name='iter_unprocessed_xml_file_url_from_git_directory_mock', autouse=True)
+def _iter_unprocessed_xml_file_url_from_git_directory_mock():
     with patch.object(
         elife_article_xml_pipeline_module,
-        'iter_xml_file_url_from_git_directory'
+        'iter_unprocessed_xml_file_url_from_git_directory'
     ) as mock:
         yield mock
 
@@ -212,7 +212,7 @@ class TestIterXmlFileUrlFromGitDirectory:
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
-        actual_return_value = list(iter_xml_file_url_from_git_directory(
+        actual_return_value = list(iter_unprocessed_xml_file_url_from_git_directory(
             source_config=SOURCE_CONFIG_1,
             processed_file_url_list=PROCESSED_FILE_URL_LIST
         ))
@@ -276,7 +276,6 @@ class TestGetArticleJsonDataFromXmlStringContent:
         assert return_value == {}
 
     def test_should_return_dict_with_related_article_if_it_exists(self):
-        # pylint: disable=line-too-long
         xml_string = '''
 <article><front><article-meta>\
 <related-article ext-link-type="doi" id="ra1" \
@@ -304,7 +303,7 @@ related-article-type="related_article_type_1" href="related_article_doi_1"/>\
 <article><front><article-meta>\
 <related-article ext-link-type="doi" id="ra1" \
 related-article-type="related_article_type_1" href="related_article_doi_1"/>\
-<article-title>"article_title"</article-title>\
+<other>"other"</other>\
 </article-meta></front></article>
         '''
         return_value = get_article_json_data_from_xml_string_content(xml_string)

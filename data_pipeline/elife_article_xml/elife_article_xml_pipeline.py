@@ -37,7 +37,7 @@ def get_url_of_xml_file_directory_from_repo(
             return folder['url']
 
 
-def iter_xml_file_url_from_git_directory(
+def iter_unprocessed_xml_file_url_from_git_directory(
     source_config: ElifeArticleXmlSourceConfig,
     processed_file_url_list: Iterable[str]
 ) -> Iterable[str]:
