@@ -83,7 +83,6 @@ def get_article_json_data_from_xml_string_content(
     xml_root = ET.fromstring(xml_string)
     parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
-    LOGGER.info(parsed_dict)
     if parsed_dict:
         article_meta_dict = parsed_dict['article']['front'][0]['article_meta'][0]
         for key in article_meta_dict.copy().keys():
