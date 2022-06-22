@@ -89,11 +89,12 @@ def get_article_json_data_from_xml_string_content(
         for key in article_meta_dict.copy().keys():
             if key != 'related_article':
                 article_meta_dict.pop(key, None)
-        for key in article_meta_dict['related_article'][0].copy().keys():
-            if 'href' in key:
-                article_meta_dict['related_article'][0]['href'] = (
-                    article_meta_dict['related_article'][0].pop(key)
-                )
+        if 'related_article' in article_meta_dict:
+            for key in article_meta_dict['related_article'][0].copy().keys():
+                if 'href' in key:
+                    article_meta_dict['related_article'][0]['href'] = (
+                        article_meta_dict['related_article'][0].pop(key)
+                    )
         parsed_dict['article']['front'][0]['article_meta'][0] = article_meta_dict
     return parsed_dict
 
