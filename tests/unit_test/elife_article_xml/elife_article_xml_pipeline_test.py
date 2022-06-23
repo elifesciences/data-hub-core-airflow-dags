@@ -376,3 +376,45 @@ class TestGetArticleJsonDataFromXmlStringContent:
                 'href': 'related_article_doi_1'
             }]
         }
+
+    def test_should_return_dict_with_all_related_article_if_there_are_more_than_one(self):
+        xml_string = ''.join([
+            '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '<front><article-meta>',
+            '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
+            '<article-id pub-id-type="doi">doi_1</article-id>',
+            '<related-article ext-link-type="doi_1" id="ra1" ',
+            'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
+            '<related-article ext-link-type="doi_2" id="ra2" ',
+            'related-article-type="related_article_type_2" xlink:href="related_article_doi_2"/>',
+            '</article-meta></front>',
+            '</article>'
+        ])
+
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {
+            'article_id': [
+                {
+                    'pub_id_type': 'publisher-id',
+                    'value_text': 'publisher_id_1'
+                },
+                {
+                    'pub_id_type': 'doi',
+                    'value_text': 'doi_1'
+                }
+            ],
+            'related_article': [
+                {
+                    'ext_link_type': 'doi_1',
+                    'id': 'ra1',
+                    'related_article_type': 'related_article_type_1',
+                    'href': 'related_article_doi_1'
+                },
+                {
+                    'ext_link_type': 'doi_2',
+                    'id': 'ra2',
+                    'related_article_type': 'related_article_type_2',
+                    'href': 'related_article_doi_2'
+                }
+            ]
+        }
