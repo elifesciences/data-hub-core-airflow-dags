@@ -51,13 +51,13 @@ def iter_unprocessed_xml_file_url_from_git_directory(
                 yield article_xml_url['url']
 
 
-def iter_decoded_xml_file_content(
+def iter_xml_file_url_and_decoded_content(
     article_xml_url_list: Iterable[str]
-) -> Iterable[str]:
+) -> Iterable[Tuple]:
     for article_xml_url in article_xml_url_list:
         response_json = get_json_response_from_url(url=article_xml_url)
         assert response_json['encoding'] == 'base64'
-        yield base64.b64decode(response_json['content']).decode('utf-8')
+        yield (article_xml_url, base64.b64decode(response_json['content']).decode('utf-8'))
 
 
 def get_bq_compatible_transformed_key_value(
@@ -85,6 +85,7 @@ def get_article_json_data_from_xml_string_content(
     xml_root = ET.fromstring(xml_string)
     parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
+    LOGGER.info(parsed_dict)
     if parsed_dict:
         if 'front' in parsed_dict['article']:
             if 'article_meta' in parsed_dict['article']['front'][0]:
@@ -103,7 +104,7 @@ def get_article_json_data_from_xml_string_content(
 
 def fetch_and_iter_related_article_from_elife_article_xml_repo(
     config: ElifeArticleXmlConfig
-):
+) -> Iterable[dict]:
     dataset_name = config.target.dataset_name
     project_name = config.target.project_name
     table_name = config.target.table_name
@@ -128,8 +129,15 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_content in iter_decoded_xml_file_content(article_xml_url_list):
-        yield get_article_json_data_from_xml_string_content(xml_file_content)
+    for xml_file_url_and_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+        yield {
+            'article_xml': {
+                'article_xml_url': xml_file_url_and_content[0],
+                'article_xml_content': get_article_json_data_from_xml_string_content(
+                    xml_file_url_and_content[1]
+                )
+            }
+        }
 
 
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(
