@@ -14,7 +14,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
     iter_unprocessed_xml_file_url_from_git_directory,
-    iter_decoded_xml_file_content,
+    iter_xml_file_url_and_decoded_content,
     get_article_json_data_from_xml_string_content
 )
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
@@ -41,9 +41,12 @@ def _get_json_response_from_url_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_decoded_xml_file_content_mock')
-def _iter_decoded_xml_file_content_mock():
-    with patch.object(elife_article_xml_pipeline_module, 'iter_decoded_xml_file_content') as mock:
+@pytest.fixture(name='iter_xml_file_url_and_decoded_content_mock')
+def _iter_xml_file_url_and_decoded_content_mock():
+    with patch.object(
+        elife_article_xml_pipeline_module,
+        'iter_xml_file_url_and_decoded_content'
+    ) as mock:
         yield mock
 
 
@@ -235,13 +238,13 @@ class TestIterXmlFileUrlFromGitDirectory:
 
 
 class TestIterDecodedXmlFileContent:
-    def test_should_return_decoded_file_content(
+    def test_should_return_file_url_and_its_decoded_content(
         self,
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = XML_FILE_JSON
-        actual_return_value = list(iter_decoded_xml_file_content(XML_FILE_URL_LIST))
-        assert actual_return_value == [XML_FILE_CONTENT_DECODED]
+        actual_return_value = list(iter_xml_file_url_and_decoded_content(XML_FILE_URL_LIST))
+        assert actual_return_value == [('xml_file_url_1', XML_FILE_CONTENT_DECODED)]
 
 
 class TestIterBqCompatibleJson:
@@ -301,7 +304,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {}
 
-    def test_should_not_return_empty_dict_if_the_xml_has_no_front_section(self):
+    def test_should_return_empty_dict_if_the_xml_has_no_front_section(self):
         xml_string = ''.join([
             '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
             '<other2>"other2"</other2>',
@@ -310,7 +313,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {}
 
-    def test_should_return_dict_with_related_article_and_article_if_if_they_exist(self):
+    def test_should_return_dict_with_related_article_and_article_if_they_exist(self):
         xml_string = ''.join([
             '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
             '<front><article-meta>',
