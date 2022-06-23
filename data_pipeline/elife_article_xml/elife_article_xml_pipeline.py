@@ -64,6 +64,8 @@ def get_bq_compatible_transformed_key_value(
     key: str,
     value: Any
 ) -> Tuple[Optional[str], Optional[Any]]:
+    if 'href' in key:
+        return 'href', value
     return (
         key.replace('-', '_'),
         value
@@ -83,7 +85,6 @@ def get_article_json_data_from_xml_string_content(
     xml_root = ET.fromstring(xml_string)
     parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
-    LOGGER.info(parsed_dict)
     if parsed_dict:
         if 'front' in parsed_dict['article']:
             if 'article_meta' in parsed_dict['article']['front'][0]:
@@ -95,12 +96,6 @@ def get_article_json_data_from_xml_string_content(
                     for key in article_meta_dict.copy().keys():
                         if key not in ('related_article', 'article_id'):
                             article_meta_dict.pop(key, None)
-                    if 'related_article' in article_meta_dict:
-                        for key in article_meta_dict['related_article'][0].copy().keys():
-                            if 'href' in key:
-                                article_meta_dict['related_article'][0]['href'] = (
-                                    article_meta_dict['related_article'][0].pop(key)
-                                )
                     LOGGER.info(article_meta_dict)
                 return article_meta_dict
     return {}
