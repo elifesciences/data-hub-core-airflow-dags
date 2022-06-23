@@ -1,5 +1,5 @@
 import base64
-from typing import Iterable, Any, Optional, Tuple
+from typing import Iterable, Any, Optional, Sequence, Tuple
 import logging
 import xml.etree.ElementTree as ET
 import requests
@@ -40,7 +40,7 @@ def get_url_of_xml_file_directory_from_repo(
 
 def iter_unprocessed_xml_file_url_from_git_directory(
     source_config: ElifeArticleXmlSourceConfig,
-    processed_file_url_list: Iterable[str]
+    processed_file_url_list: Sequence[str]
 ) -> Iterable[str]:
     response_json = get_json_response_from_url(
         url=get_url_of_xml_file_directory_from_repo(source_config=source_config)
