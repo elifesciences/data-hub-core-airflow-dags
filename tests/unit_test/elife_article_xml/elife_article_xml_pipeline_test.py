@@ -326,12 +326,12 @@ class TestGetArticleJsonDataFromXmlStringContent:
         assert return_value == {
             'article_id': [
                 {
-                'pub_id_type': 'publisher-id',
-                'value_text': 'publisher_id_1'
+                    'pub_id_type': 'publisher-id',
+                    'value_text': 'publisher_id_1'
                 },
                 {
-                'pub_id_type': 'doi',
-                'value_text': 'doi_1'
+                    'pub_id_type': 'doi',
+                    'value_text': 'doi_1'
                 }
             ],
             'related_article': [{
@@ -361,12 +361,12 @@ class TestGetArticleJsonDataFromXmlStringContent:
         assert return_value == {
             'article_id': [
                 {
-                'pub_id_type': 'publisher-id',
-                'value_text': 'publisher_id_1'
+                    'pub_id_type': 'publisher-id',
+                    'value_text': 'publisher_id_1'
                 },
                 {
-                'pub_id_type': 'doi',
-                'value_text': 'doi_1'
+                    'pub_id_type': 'doi',
+                    'value_text': 'doi_1'
                 }
             ],
             'related_article': [{
