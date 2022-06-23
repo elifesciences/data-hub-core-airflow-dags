@@ -290,78 +290,89 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {}
 
+    def test_should_not_return_empty_dict_if_the_xml_has_no_article_meta_section(self):
+        xml_string = ''.join([
+            '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '<front>',
+            '<other2>"other2"</other2>',
+            '</front>',
+            '</article>'
+        ])
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {}
+
+    def test_should_not_return_empty_dict_if_the_xml_has_no_front_section(self):
+        xml_string = ''.join([
+            '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '<other2>"other2"</other2>',
+            '</article>'
+        ])
+        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        assert return_value == {}
+
     def test_should_return_dict_with_related_article_and_article_if_if_they_exist(self):
         xml_string = ''.join([
-            '<article article-type="article_type_1" ',
-            'xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '<front><article-meta>',
             '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
             '<article-id pub-id-type="doi">doi_1</article-id>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
-            '</article-meta></front></article>'
+            '</article-meta></front>',
+            '</article>'
         ])
 
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
-            'article': {
-                'article_type': 'article_type_1',
-                'front': [{
-                    'article_meta': [{
-                        'article_id': [
-                            {
-                                'pub_id_type': 'publisher-id',
-                                'value_text': 'publisher_id_1'
-                            },
-                            {
-                                'pub_id_type': 'doi',
-                                'value_text': 'doi_1'
-                            }
-                        ],
-                        'related_article': [{
-                            'ext_link_type': 'doi',
-                            'id': 'ra1',
-                            'related_article_type': 'related_article_type_1',
-                            'href': 'related_article_doi_1'
-                        }]
-                    }]
-                }]
-            }
+            'article_id': [
+                {
+                'pub_id_type': 'publisher-id',
+                'value_text': 'publisher_id_1'
+                },
+                {
+                'pub_id_type': 'doi',
+                'value_text': 'doi_1'
+                }
+            ],
+            'related_article': [{
+                'ext_link_type': 'doi',
+                'id': 'ra1',
+                'related_article_type': 'related_article_type_1',
+                'href': 'related_article_doi_1'
+            }]
         }
 
     def test_should_not_return_other_elements(self):
         xml_string = ''.join([
-            '<article article-type="article_type_1" ',
-            'xmlns:xlink="http://www.w3.org/1999/xlink"><front><article-meta>',
+            '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '<front><article-meta>',
             '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
             '<article-id pub-id-type="doi">doi_1</article-id>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '<other>"other"</other>',
-            '</article-meta></front></article>'
+            '</article-meta>',
+            '<other2>"other2"</other2>',
+            '</front>',
+            '<other3>"other3"</other3>',
+            '</article>'
         ])
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
-            'article': {
-                'article_type': 'article_type_1',
-                'front': [{
-                    'article_meta': [{
-                        'article_id': [
-                            {
-                                'pub_id_type': 'publisher-id',
-                                'value_text': 'publisher_id_1'
-                            },
-                            {
-                                'pub_id_type': 'doi',
-                                'value_text': 'doi_1'
-                            }
-                        ],
-                        'related_article': [{
-                            'ext_link_type': 'doi',
-                            'id': 'ra1',
-                            'related_article_type': 'related_article_type_1',
-                            'href': 'related_article_doi_1'
-                        }]
-                    }]
-                }]
-            }
+            'article_id': [
+                {
+                'pub_id_type': 'publisher-id',
+                'value_text': 'publisher_id_1'
+                },
+                {
+                'pub_id_type': 'doi',
+                'value_text': 'doi_1'
+                }
+            ],
+            'related_article': [{
+                'ext_link_type': 'doi',
+                'id': 'ra1',
+                'related_article_type': 'related_article_type_1',
+                'href': 'related_article_doi_1'
+            }]
         }
