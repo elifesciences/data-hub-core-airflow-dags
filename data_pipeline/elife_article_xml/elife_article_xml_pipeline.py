@@ -116,7 +116,7 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list = get_single_column_value_list_from_bq_query(
             project_name=project_name,
             query=f'''
-                SELECT articles.article_url
+                SELECT articles.article_xml.article_xml_url
                 FROM
                 `elife-data-pipeline.{dataset_name}.elife_article_xml_related_articles` AS articles
             '''
