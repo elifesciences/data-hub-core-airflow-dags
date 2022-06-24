@@ -27,6 +27,7 @@ LOGGER = logging.getLogger(__name__)
 class GitHubRateLimitError(RuntimeError):
     pass
 
+
 def get_json_response_from_url(url: str) -> Any:
     response = requests.get(url=url)
     if response.status_code == 403:
@@ -133,7 +134,7 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_url, xml_content  in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
         LOGGER.info("xml_file_url: %s", xml_file_url)
         yield {
             'article_xml': {
@@ -146,7 +147,10 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(
     config: ElifeArticleXmlConfig
 ):
-    article_data_iterable = fetch_and_iter_related_article_from_elife_article_xml_repo(config)
+    article_data_iterable = iter_item_until_exception(
+        fetch_and_iter_related_article_from_elife_article_xml_repo(config),
+        GitHubRateLimitError
+    )
     load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,

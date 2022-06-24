@@ -1,5 +1,4 @@
 from unittest.mock import MagicMock, patch
-from urllib import response
 import pytest
 
 from data_pipeline.elife_article_xml import (
@@ -12,6 +11,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     GitHubRateLimitError,
+    fetch_related_article_from_elife_article_xml_repo_and_load_into_bq,
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
@@ -20,6 +20,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_article_json_data_from_xml_string_content
 )
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from tests.unit_test.utils.collections_test import _iter_item_or_raise_exception
 
 
 @pytest.fixture(name='requests_mock', autouse=True)
@@ -28,7 +29,7 @@ def _requests_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_unprocessed_xml_file_url_from_git_directory_mock', autouse=True)
+@pytest.fixture(name='iter_unprocessed_xml_file_url_from_git_directory_mock')
 def _iter_unprocessed_xml_file_url_from_git_directory_mock():
     with patch.object(
         elife_article_xml_pipeline_module,
@@ -72,6 +73,24 @@ def _get_url_of_xml_file_directory_from_repo_mock():
 @pytest.fixture(name='parse_xml_and_return_it_as_dict_mock')
 def _parse_xml_and_return_it_as_dict_mock():
     with patch.object(elife_article_xml_pipeline_module, 'parse_xml_and_return_it_as_dict') as mock:
+        yield mock
+
+
+@pytest.fixture(name='fetch_and_iter_related_article_from_elife_article_xml_repo_mock')
+def _fetch_and_iter_related_article_from_elife_article_xml_repomock():
+    with patch.object(
+        elife_article_xml_pipeline_module,
+        'fetch_and_iter_related_article_from_elife_article_xml_repo'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
+def _load_given_json_list_data_from_tempdir_to_bq_mock():
+    with patch.object(
+        elife_article_xml_pipeline_module,
+        'load_given_json_list_data_from_tempdir_to_bq'
+    ) as mock:
         yield mock
 
 
@@ -442,3 +461,19 @@ class TestGetArticleJsonDataFromXmlStringContent:
                 }
             ]
         }
+
+
+class TestFetchRelatedArticleFromElifeArticleXmlRepoAndLoadIntoBq:
+    def test_should_load_data_until_rate_limit_exception(
+        self,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock,
+        fetch_and_iter_related_article_from_elife_article_xml_repo_mock: MagicMock
+    ):
+        fetch_and_iter_related_article_from_elife_article_xml_repo_mock.return_value = (
+            _iter_item_or_raise_exception([1, 2, 3, GitHubRateLimitError()])
+        )
+
+        fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(CONFIG_1)
+
+        _args, kwargs = load_given_json_list_data_from_tempdir_to_bq_mock.call_args
+        assert list(kwargs['json_list']) == [1, 2, 3]
