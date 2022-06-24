@@ -9,6 +9,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
     ElifeArticleXmlConfig,
     ElifeArticleXmlSourceConfig
 )
+from data_pipeline.utils.collections import iter_item_until_exception
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     get_single_column_value_list_from_bq_query,
@@ -23,8 +24,13 @@ from data_pipeline.utils.xml import parse_xml_and_return_it_as_dict
 LOGGER = logging.getLogger(__name__)
 
 
+class GitHubRateLimitError(RuntimeError):
+    pass
+
 def get_json_response_from_url(url: str) -> Any:
     response = requests.get(url=url)
+    if response.status_code == 403:
+        raise GitHubRateLimitError()
     response.raise_for_status()
     return response.json()
 
@@ -85,14 +91,12 @@ def get_article_json_data_from_xml_string_content(
     xml_root = ET.fromstring(xml_string)
     parsed_dict = parse_xml_and_return_it_as_dict(xml_root)
     parsed_dict = get_bq_compatible_json_dict(parsed_dict)
-    LOGGER.info(parsed_dict)
     if parsed_dict:
         if 'front' in parsed_dict['article']:
             if 'article_meta' in parsed_dict['article']['front'][0]:
                 article_meta_dict = get_bq_compatible_json_dict(
                     parsed_dict['article']['front'][0]['article_meta'][0]
                 )
-                LOGGER.info(article_meta_dict)
                 if article_meta_dict:
                     for key in article_meta_dict.copy().keys():
                         if key not in ('related_article', 'article_id'):
@@ -129,7 +133,8 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+    for xml_file_url, xml_content  in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+        LOGGER.info("xml_file_url: %s", xml_file_url)
         yield {
             'article_xml': {
                 'article_xml_url': xml_file_url,
@@ -141,10 +146,10 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
 def fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(
     config: ElifeArticleXmlConfig
 ):
-    article_data_list = fetch_and_iter_related_article_from_elife_article_xml_repo(config)
+    article_data_iterable = fetch_and_iter_related_article_from_elife_article_xml_repo(config)
     load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=article_data_list
+            json_list=article_data_iterable
         )

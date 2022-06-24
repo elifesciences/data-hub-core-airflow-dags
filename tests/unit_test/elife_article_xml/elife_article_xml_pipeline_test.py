@@ -1,4 +1,5 @@
 from unittest.mock import MagicMock, patch
+from urllib import response
 import pytest
 
 from data_pipeline.elife_article_xml import (
@@ -10,6 +11,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 )
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
+    GitHubRateLimitError,
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
@@ -196,6 +198,25 @@ class TestGetJsonResponseFromUrl:
     ):
         get_json_response_from_url(url=GIT_REPO_URL)
         requests_mock.get.assert_called_with(url=GIT_REPO_URL)
+
+    def test_should_raise_rate_limit_error_if_status_code_was_403(
+        self,
+        requests_mock: MagicMock
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.status_code = 403
+        response_mock.raise_for_status.side_effect = RuntimeError()
+        with pytest.raises(GitHubRateLimitError):
+            get_json_response_from_url(url=GIT_REPO_URL)
+
+    def test_should_raise_exceptions_from_raise_for_status(
+        self,
+        requests_mock: MagicMock
+    ):
+        response_mock = requests_mock.get.return_value
+        response_mock.raise_for_status.side_effect = RuntimeError()
+        with pytest.raises(RuntimeError):
+            get_json_response_from_url(url=GIT_REPO_URL)
 
 
 class TestGetUrlOfXmlFileDirectoryFromRepo:
