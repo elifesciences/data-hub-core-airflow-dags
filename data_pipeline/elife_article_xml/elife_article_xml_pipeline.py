@@ -129,13 +129,11 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_url_and_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
         yield {
             'article_xml': {
-                'article_xml_url': xml_file_url_and_content[0],
-                'article_xml_content': get_article_json_data_from_xml_string_content(
-                    xml_file_url_and_content[1]
-                )
+                'article_xml_url': xml_file_url,
+                'article_xml_content': get_article_json_data_from_xml_string_content(xml_content)
             }
         }
 
