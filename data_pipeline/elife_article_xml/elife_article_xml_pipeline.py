@@ -29,8 +29,10 @@ class GitHubRateLimitError(requests.RequestException):
     pass
 
 
-def get_json_response_from_url(url: str) -> Any:
-    response = requests.get(url=url)
+def get_json_response_from_url(url: str, api_token: str = None) -> Any:
+    if api_token:
+        headers = {'Authorization': f'token {api_token}'}
+    response = requests.get(url=url, headers=headers)
     if response.status_code == 403:
         LOGGER.info("GitHubRateLimitError: %s", response.json())
         raise GitHubRateLimitError()
