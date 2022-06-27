@@ -1,17 +1,19 @@
 from typing import NamedTuple
 
-from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingConfig
 
 
 class ElifeArticleXmlSourceConfig(NamedTuple):
     git_repo_url: str
     directory_name: str
+    headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'ElifeArticleXmlSourceConfig':
         return ElifeArticleXmlSourceConfig(
             git_repo_url=source_config_dict['gitRepoUrl'],
-            directory_name=source_config_dict['directoryName']
+            directory_name=source_config_dict['directoryName'],
+            headers=MappingConfig.from_dict(source_config_dict.get('headers', {}))
         )
 
 

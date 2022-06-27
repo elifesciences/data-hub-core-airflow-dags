@@ -47,3 +47,14 @@ class TestElifeArticleXmlConfig:
         assert config.target.project_name == PROJECT_NAME
         assert config.target.dataset_name == DATASET_NAME
         assert config.target.table_name == TABLE_NAME
+
+    def test_should_read_api_headers(self):
+        headers = {'key1': 'value1'}
+        config = ElifeArticleXmlConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT,
+            'source': {
+                **SOURCE_CONFIG,
+                'headers': headers
+            }
+        }))
+        assert config.source.headers.mapping == headers
