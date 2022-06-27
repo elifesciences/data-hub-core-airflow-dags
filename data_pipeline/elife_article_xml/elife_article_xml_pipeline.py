@@ -31,6 +31,7 @@ class GitHubRateLimitError(requests.RequestException):
 def get_json_response_from_url(url: str) -> Any:
     response = requests.get(url=url)
     if response.status_code == 403:
+        LOGGER.info("GitHubRateLimitError: %s", response.json())
         raise GitHubRateLimitError()
     response.raise_for_status()
     return response.json()
