@@ -24,7 +24,7 @@ from data_pipeline.utils.xml import parse_xml_and_return_it_as_dict
 LOGGER = logging.getLogger(__name__)
 
 
-class GitHubRateLimitError(RuntimeError):
+class GitHubRateLimitError(requests.RequestException):
     pass
 
 
