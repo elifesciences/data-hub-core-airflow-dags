@@ -28,6 +28,8 @@ x-airflow-env:
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
+    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
+    - ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL=${ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
     - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
@@ -59,6 +61,7 @@ x-airflow-env:
 x-airflow-volumes:
   &airflow-volumes
     - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - ./sample_data_config/elife-article-xml/elife-article-xml.config.yaml:/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
     - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
     - ./sample_data_config/europepmc/europepmc-labslink.config.yaml:/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
     - ./sample_data_config/europepmc/test-ftp-password.txt:/home/airflow/app-config/europepmc/test-ftp-password.txt
