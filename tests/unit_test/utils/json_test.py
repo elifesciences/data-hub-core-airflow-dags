@@ -83,6 +83,11 @@ class TestRemoveKeyWithNullValue:
             'other': 'value'
         }) == {'other': 'value'}
 
+    def test_should_remove_none_from_list(self):
+        assert remove_key_with_null_value([
+            'item1', None
+        ]) == ['item1']
+
     def test_should_remove_empty_string_from_dict(self):
         assert remove_key_with_null_value({
             'key1': '',
