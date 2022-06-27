@@ -10,6 +10,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
     ElifeArticleXmlSourceConfig
 )
 from data_pipeline.utils.collections import iter_item_until_exception
+from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     get_single_column_value_list_from_bq_query,
@@ -141,7 +142,8 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
             'article_xml': {
                 'article_xml_url': xml_file_url,
                 'article_xml_content': get_article_json_data_from_xml_string_content(xml_content)
-            }
+            },
+            'imported_timestamp': get_current_timestamp_as_string()
         }
 
 
