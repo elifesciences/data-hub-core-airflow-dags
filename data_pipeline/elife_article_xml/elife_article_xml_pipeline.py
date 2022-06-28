@@ -33,12 +33,7 @@ def get_json_response_from_url(
     url: str,
     headers: Mapping[str, str] = None,
 ) -> Any:
-    if headers:
-        LOGGER.info("API call with access token...")
-        response = requests.get(url=url, headers=headers)
-    else:
-        LOGGER.info("API call without token...")
-        response = requests.get(url=url)
+    response = requests.get(url=url, headers=headers)
     if response.status_code == 403:
         LOGGER.info("GitHubRateLimitError: %s", response.json())
         raise GitHubRateLimitError()
