@@ -6,7 +6,7 @@ elifeArticleXml:
       headers:
         parametersFromFile:
           # parameters will be skipped if referenced file does not exist
-          - parameterName: x-api-key
+          - parameterName: Authorization
             filePathEnvName: GITHUB_API_KEY_FILE_PATH
     target:
       projectName: 'elife-data-pipeline'
