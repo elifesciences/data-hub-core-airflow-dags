@@ -9,6 +9,7 @@ x-airflow-env:
     - SURVEYMONKEY_SECRET_FILE=/home/airflow/secrets/surveymonkey_credentials.json
     # Semantic Scholar API Key is optional
     - SEMANTIC_SCHOLAR_API_KEY_FILE_PATH=/home/airflow/secrets/semantic_scholar_api_key.txt
+    - GITHUB_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/github_api_authorization.txt
 
 x-airflow-volumes:
   &airflow-volumes

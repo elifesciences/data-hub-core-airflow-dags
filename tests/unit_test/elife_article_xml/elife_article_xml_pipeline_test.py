@@ -215,8 +215,8 @@ class TestGetJsonResponseFromUrl:
         self,
         requests_mock: MagicMock
     ):
-        get_json_response_from_url(url=GIT_REPO_URL)
-        requests_mock.get.assert_called_with(url=GIT_REPO_URL)
+        get_json_response_from_url(url=GIT_REPO_URL, headers={})
+        requests_mock.get.assert_called_with(url=GIT_REPO_URL, headers={})
 
     def test_should_raise_rate_limit_error_if_status_code_was_403(
         self,
@@ -283,7 +283,9 @@ class TestIterDecodedXmlFileContent:
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = XML_FILE_JSON
-        actual_return_value = list(iter_xml_file_url_and_decoded_content(XML_FILE_URL_LIST))
+        actual_return_value = list(
+            iter_xml_file_url_and_decoded_content(SOURCE_CONFIG_1, XML_FILE_URL_LIST)
+        )
         assert actual_return_value == [('xml_file_url_1', XML_FILE_CONTENT_DECODED)]
 
 

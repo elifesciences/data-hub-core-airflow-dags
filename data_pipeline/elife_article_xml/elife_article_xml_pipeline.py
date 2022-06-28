@@ -1,5 +1,5 @@
 import base64
-from typing import Iterable, Any, Optional, Sequence, Tuple
+from typing import Iterable, Any, Mapping, Optional, Sequence, Tuple
 import logging
 import xml.etree.ElementTree as ET
 import requests
@@ -29,8 +29,11 @@ class GitHubRateLimitError(requests.RequestException):
     pass
 
 
-def get_json_response_from_url(url: str) -> Any:
-    response = requests.get(url=url)
+def get_json_response_from_url(
+    url: str,
+    headers: Mapping[str, str] = None,
+) -> Any:
+    response = requests.get(url=url, headers=headers)
     if response.status_code == 403:
         LOGGER.info("GitHubRateLimitError: %s", response.json())
         raise GitHubRateLimitError()
@@ -41,7 +44,10 @@ def get_json_response_from_url(url: str) -> Any:
 def get_url_of_xml_file_directory_from_repo(
     source_config: ElifeArticleXmlSourceConfig,
 ) -> str:
-    response_json = get_json_response_from_url(url=source_config.git_repo_url)
+    response_json = get_json_response_from_url(
+        url=source_config.git_repo_url,
+        headers=source_config.headers.mapping
+    )
     for folder in response_json['tree']:
         if folder['path'] == source_config.directory_name:
             return folder['url']
@@ -52,7 +58,8 @@ def iter_unprocessed_xml_file_url_from_git_directory(
     processed_file_url_list: Sequence[str]
 ) -> Iterable[str]:
     response_json = get_json_response_from_url(
-        url=get_url_of_xml_file_directory_from_repo(source_config=source_config)
+        url=get_url_of_xml_file_directory_from_repo(source_config=source_config),
+        headers=source_config.headers.mapping
     )
     for article_xml_url in response_json['tree']:
         if article_xml_url['size'] > 0:
@@ -61,10 +68,14 @@ def iter_unprocessed_xml_file_url_from_git_directory(
 
 
 def iter_xml_file_url_and_decoded_content(
+    source_config: ElifeArticleXmlSourceConfig,
     article_xml_url_list: Iterable[str]
 ) -> Iterable[Tuple]:
     for article_xml_url in article_xml_url_list:
-        response_json = get_json_response_from_url(url=article_xml_url)
+        response_json = get_json_response_from_url(
+            url=article_xml_url,
+            headers=source_config.headers.mapping
+        )
         assert response_json['encoding'] == 'base64'
         yield (article_xml_url, base64.b64decode(response_json['content']).decode('utf-8'))
 
@@ -136,7 +147,10 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(article_xml_url_list):
+    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(
+        source_config=config.source,
+        article_xml_url_list=article_xml_url_list
+    ):
         LOGGER.info("xml_file_url: %s", xml_file_url)
         yield {
             'article_xml': {
