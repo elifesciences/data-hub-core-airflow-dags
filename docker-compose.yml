@@ -77,7 +77,6 @@ x-airflow-volumes:
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
-    - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
     - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
 
 services:
