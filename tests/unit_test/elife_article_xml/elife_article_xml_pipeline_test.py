@@ -127,7 +127,7 @@ PROCESSED_FILE_URL_LIST = [PROCESSED_NOT_EMPTY_ARTICLE_URL]
 
 GITHUB_TREE_REPONSE_2 = {
     'tree': [
-        {   
+        {
             'path': EMPTY_ARTICLE_PATH,
             'size': 0,
             'url': EMPTY_ARTICLE_URL
@@ -177,7 +177,7 @@ XML_FILE_JSON = {
     'encoding': 'base64'
 }
 
-XML_FILE_URL_AND_PATH_LIST = [('xml_file_url_1','xml_file_path_1')]
+XML_FILE_URL_AND_PATH_LIST = [('xml_file_url_1', 'xml_file_path_1')]
 
 ARTICLE_TYPE_1 = 'article_type_1'
 ARTICLE_ID_1 = 'article_id_1'
