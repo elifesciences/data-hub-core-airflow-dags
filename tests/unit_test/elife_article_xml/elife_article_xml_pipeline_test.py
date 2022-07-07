@@ -355,7 +355,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {}
 
-    def test_should_return_dict_with_related_article_and_article_if_they_exist(self):
+    def test_should_return_dict_with_related_article_article_id_and_type_if_they_exist(self):
         xml_string = ''.join([
             '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
             '<front><article-meta>',
@@ -369,6 +369,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
 
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
+            'article_type': 'article_type_1',
             'article_id': [
                 {
                     'pub_id_type': 'publisher-id',
@@ -404,6 +405,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
         ])
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
+            'article_type': 'article_type_1',
             'article_id': [
                 {
                     'pub_id_type': 'publisher-id',
@@ -438,6 +440,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
 
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {
+            'article_type': 'article_type_1',
             'article_id': [
                 {
                     'pub_id_type': 'publisher-id',

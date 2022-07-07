@@ -116,7 +116,10 @@ def get_article_json_data_from_xml_string_content(
                         if key not in ('related_article', 'article_id'):
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
-                return article_meta_dict
+                return {
+                    'article_type': parsed_dict['article']['article_type'],
+                    **article_meta_dict
+                }
     return {}
 
 
