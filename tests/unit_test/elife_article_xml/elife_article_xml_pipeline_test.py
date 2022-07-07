@@ -15,8 +15,8 @@ from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
-    iter_unprocessed_xml_file_url_from_git_directory,
-    iter_xml_file_url_and_decoded_content,
+    iter_unprocessed_xml_file_url_and_path_from_git_directory,
+    iter_xml_file_url_path_and_decoded_content,
     get_article_json_data_from_xml_string_content
 )
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
@@ -29,11 +29,11 @@ def _requests_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_unprocessed_xml_file_url_from_git_directory_mock')
-def _iter_unprocessed_xml_file_url_from_git_directory_mock():
+@pytest.fixture(name='iter_unprocessed_xml_file_url_and_path_from_git_directory_mock')
+def _iter_unprocessed_xml_file_url_and_path_from_git_directory_mock():
     with patch.object(
         elife_article_xml_pipeline_module,
-        'iter_unprocessed_xml_file_url_from_git_directory'
+        'iter_unprocessed_xml_file_url_and_path_from_git_directory'
     ) as mock:
         yield mock
 
@@ -44,11 +44,11 @@ def _get_json_response_from_url_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_xml_file_url_and_decoded_content_mock')
-def _iter_xml_file_url_and_decoded_content_mock():
+@pytest.fixture(name='iter_xml_file_url_path_and_decoded_content_mock')
+def _iter_xml_file_url_path_and_decoded_content_mock():
     with patch.object(
         elife_article_xml_pipeline_module,
-        'iter_xml_file_url_and_decoded_content'
+        'iter_xml_file_url_path_and_decoded_content'
     ) as mock:
         yield mock
 
@@ -118,23 +118,32 @@ NOT_EMPTY_ARTICLE_URL_1 = 'not_empty_article_url_1'
 NOT_EMPTY_ARTICLE_URL_2 = 'not_empty_article_url_2'
 PROCESSED_NOT_EMPTY_ARTICLE_URL = 'existing_not_empty_article_url'
 
+EMPTY_ARTICLE_PATH = 'file1-v1.xml'
+NOT_EMPTY_ARTICLE_PATH_1 = 'file2-v1.xml'
+NOT_EMPTY_ARTICLE_PATH_2 = 'file2-v2.xml'
+PROCESSED_NOT_EMPTY_ARTICLE_PATH = 'file3-v1.xml'
+
 PROCESSED_FILE_URL_LIST = [PROCESSED_NOT_EMPTY_ARTICLE_URL]
 
 GITHUB_TREE_REPONSE_2 = {
     'tree': [
-        {
+        {   
+            'path': EMPTY_ARTICLE_PATH,
             'size': 0,
             'url': EMPTY_ARTICLE_URL
         },
         {
+            'path': NOT_EMPTY_ARTICLE_PATH_1,
             'size': 10,
             'url': NOT_EMPTY_ARTICLE_URL_1
         },
         {
+            'path': NOT_EMPTY_ARTICLE_PATH_2,
             'size': 15,
             'url': NOT_EMPTY_ARTICLE_URL_2
         },
         {
+            'path': PROCESSED_NOT_EMPTY_ARTICLE_PATH,
             'size': 15,
             'url': PROCESSED_NOT_EMPTY_ARTICLE_URL
         }
@@ -168,7 +177,7 @@ XML_FILE_JSON = {
     'encoding': 'base64'
 }
 
-XML_FILE_URL_LIST = ['xml_file_url_1']
+XML_FILE_URL_AND_PATH_LIST = [('xml_file_url_1','xml_file_path_1')]
 
 ARTICLE_TYPE_1 = 'article_type_1'
 ARTICLE_ID_1 = 'article_id_1'
@@ -249,44 +258,49 @@ class TestGetUrlOfXmlFileDirectoryFromRepo:
 
 
 @pytest.mark.usefixtures("get_url_of_xml_file_directory_from_repo_mock")
-class TestIterXmlFileUrlFromGitDirectory:
-    def test_should_return_url_list_only_for_not_empty_and_non_processed_files(
+class TestIterXmlFileUrlAndPathFromGitDirectory:
+    def test_should_return_url_and_path_list_only_for_not_empty_and_non_processed_files(
         self,
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
-        actual_return_value = list(iter_unprocessed_xml_file_url_from_git_directory(
+        actual_return_value = list(iter_unprocessed_xml_file_url_and_path_from_git_directory(
             source_config=SOURCE_CONFIG_1,
             processed_file_url_list=PROCESSED_FILE_URL_LIST
         ))
-        assert actual_return_value == [NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_URL_2]
+        assert actual_return_value == [
+            (NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_PATH_1),
+            (NOT_EMPTY_ARTICLE_URL_2, NOT_EMPTY_ARTICLE_PATH_2)
+        ]
 
-    def test_should_return_all_url_list_if_processed_files_list_empty(
+    def test_should_return_all_url_and_path_list_if_processed_files_list_empty(
         self,
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = GITHUB_TREE_REPONSE_2
-        actual_return_value = list(iter_unprocessed_xml_file_url_from_git_directory(
+        actual_return_value = list(iter_unprocessed_xml_file_url_and_path_from_git_directory(
             source_config=SOURCE_CONFIG_1,
             processed_file_url_list=[]
         ))
         assert actual_return_value == [
-            NOT_EMPTY_ARTICLE_URL_1,
-            NOT_EMPTY_ARTICLE_URL_2,
-            PROCESSED_NOT_EMPTY_ARTICLE_URL
+            (NOT_EMPTY_ARTICLE_URL_1, NOT_EMPTY_ARTICLE_PATH_1),
+            (NOT_EMPTY_ARTICLE_URL_2, NOT_EMPTY_ARTICLE_PATH_2),
+            (PROCESSED_NOT_EMPTY_ARTICLE_URL, PROCESSED_NOT_EMPTY_ARTICLE_PATH)
         ]
 
 
-class TestIterDecodedXmlFileContent:
-    def test_should_return_file_url_and_its_decoded_content(
+class TestIterXmlFileUrlPathAndDecodedContent:
+    def test_should_return_file_url_file_path_and_its_decoded_content(
         self,
         get_json_response_from_url_mock: MagicMock
     ):
         get_json_response_from_url_mock.return_value = XML_FILE_JSON
         actual_return_value = list(
-            iter_xml_file_url_and_decoded_content(SOURCE_CONFIG_1, XML_FILE_URL_LIST)
+            iter_xml_file_url_path_and_decoded_content(SOURCE_CONFIG_1, XML_FILE_URL_AND_PATH_LIST)
         )
-        assert actual_return_value == [('xml_file_url_1', XML_FILE_CONTENT_DECODED)]
+        assert actual_return_value == [
+            ('xml_file_url_1', 'xml_file_path_1', XML_FILE_CONTENT_DECODED)
+        ]
 
 
 class TestIterBqCompatibleJson:
