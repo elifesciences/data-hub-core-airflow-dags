@@ -56,7 +56,7 @@ def get_url_of_xml_file_directory_from_repo(
 def iter_unprocessed_xml_file_url_and_path_from_git_directory(
     source_config: ElifeArticleXmlSourceConfig,
     processed_file_url_list: Sequence[str]
-) -> Iterable[str]:
+) -> Iterable[Tuple[str, str]]:
     response_json = get_json_response_from_url(
         url=get_url_of_xml_file_directory_from_repo(source_config=source_config),
         headers=source_config.headers.mapping
@@ -69,8 +69,8 @@ def iter_unprocessed_xml_file_url_and_path_from_git_directory(
 
 def iter_xml_file_url_path_and_decoded_content(
     source_config: ElifeArticleXmlSourceConfig,
-    article_xml_url_and_path_list: Iterable[str]
-) -> Iterable[Tuple]:
+    article_xml_url_and_path_list: Iterable[Tuple[str, str]]
+) -> Iterable[Tuple[str, str, str]]:
     for article_xml_url, article_xml_path in article_xml_url_and_path_list:
         response_json = get_json_response_from_url(
             url=article_xml_url,
@@ -121,8 +121,8 @@ def get_article_json_data_from_xml_string_content(
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
                 return {
-                    'article_type': parsed_dict['article']['article_type'],
-                    **article_meta_dict
+                    **article_meta_dict,
+                    'article_type': parsed_dict['article']['article_type']
                 }
     return {}
 
