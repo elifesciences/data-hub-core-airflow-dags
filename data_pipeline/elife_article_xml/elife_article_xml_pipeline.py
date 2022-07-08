@@ -53,10 +53,10 @@ def get_url_of_xml_file_directory_from_repo(
             return folder['url']
 
 
-def iter_unprocessed_xml_file_url_from_git_directory(
+def iter_unprocessed_xml_file_url_and_path_from_git_directory(
     source_config: ElifeArticleXmlSourceConfig,
     processed_file_url_list: Sequence[str]
-) -> Iterable[str]:
+) -> Iterable[Tuple[str, str]]:
     response_json = get_json_response_from_url(
         url=get_url_of_xml_file_directory_from_repo(source_config=source_config),
         headers=source_config.headers.mapping
@@ -64,20 +64,24 @@ def iter_unprocessed_xml_file_url_from_git_directory(
     for article_xml_url in response_json['tree']:
         if article_xml_url['size'] > 0:
             if article_xml_url['url'] not in processed_file_url_list:
-                yield article_xml_url['url']
+                yield (article_xml_url['url'], article_xml_url['path'])
 
 
-def iter_xml_file_url_and_decoded_content(
+def iter_xml_file_url_path_and_decoded_content(
     source_config: ElifeArticleXmlSourceConfig,
-    article_xml_url_list: Iterable[str]
-) -> Iterable[Tuple]:
-    for article_xml_url in article_xml_url_list:
+    article_xml_url_and_path_list: Iterable[Tuple[str, str]]
+) -> Iterable[Tuple[str, str, str]]:
+    for article_xml_url, article_xml_path in article_xml_url_and_path_list:
         response_json = get_json_response_from_url(
             url=article_xml_url,
             headers=source_config.headers.mapping
         )
         assert response_json['encoding'] == 'base64'
-        yield (article_xml_url, base64.b64decode(response_json['content']).decode('utf-8'))
+        yield (
+            article_xml_url,
+            article_xml_path,
+            base64.b64decode(response_json['content']).decode('utf-8')
+        )
 
 
 def get_bq_compatible_transformed_key_value(
@@ -116,7 +120,10 @@ def get_article_json_data_from_xml_string_content(
                         if key not in ('related_article', 'article_id'):
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
-                return article_meta_dict
+                return {
+                    **article_meta_dict,
+                    'article_type': parsed_dict['article']['article_type']
+                }
     return {}
 
 
@@ -142,19 +149,20 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
     else:
         processed_file_url_list = []
 
-    article_xml_url_list = iter_unprocessed_xml_file_url_from_git_directory(
+    article_xml_url_and_path_list = iter_unprocessed_xml_file_url_and_path_from_git_directory(
         source_config=config.source,
         processed_file_url_list=processed_file_url_list
     )
 
-    for xml_file_url, xml_content in iter_xml_file_url_and_decoded_content(
+    for xml_file_url, xml_file_path, xml_content in iter_xml_file_url_path_and_decoded_content(
         source_config=config.source,
-        article_xml_url_list=article_xml_url_list
+        article_xml_url_and_path_list=article_xml_url_and_path_list
     ):
         LOGGER.info("xml_file_url: %s", xml_file_url)
         yield {
             'article_xml': {
                 'article_xml_url': xml_file_url,
+                'article_xml_path': xml_file_path,
                 'article_xml_content': get_article_json_data_from_xml_string_content(xml_content)
             },
             'imported_timestamp': get_current_timestamp_as_string()
