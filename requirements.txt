@@ -11,7 +11,7 @@ cloudpickle==2.1.0
 dateparser==1.1.0
 regex==2022.4.24
 fsspec==2021.11.1
-lxml<4.9.0, >=4.8.0
+lxml>=4.8.0, <4.10.0
 google-api-python-client==2.54.0
 google-cloud-bigquery>=1.27.2
 google-oauth==1.0.1
