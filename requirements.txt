@@ -6,7 +6,7 @@ bigquery-views-manager>=1.0.3
 boto3==1.19.8
 aiobotocore==2.0.1
 botocore<1.23.0, >=1.22.0
-cattrs==1.10.0
+cattrs==22.1.0
 cloudpickle==2.1.0
 dateparser==1.1.0
 regex==2022.4.24
