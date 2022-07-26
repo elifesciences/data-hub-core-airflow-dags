@@ -1,6 +1,6 @@
 apache-airflow[crypto,celery,postgres,jdbc,ssh]==2.3.0
 apache-airflow-providers-amazon==3.4.0
-backoff==2.0.1
+backoff==2.1.2
 bigquery-schema-generator==1.5
 bigquery-views-manager>=1.0.3
 boto3==1.19.8
@@ -11,7 +11,7 @@ cloudpickle==2.1.0
 dateparser==1.1.0
 regex==2022.4.24
 fsspec==2021.11.1
-lxml<4.9.0, >=4.8.0
+lxml>=4.8.0, <4.10.0
 google-api-python-client==2.54.0
 google-cloud-bigquery>=1.27.2
 google-oauth==1.0.1
