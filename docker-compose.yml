@@ -28,6 +28,8 @@ x-airflow-env:
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
+    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
+    - ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL=${ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
     - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
@@ -41,7 +43,6 @@ x-airflow-env:
     - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
     - S3_CSV_CONFIG_FILE_PATH=/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
     - WEB_API_CONFIG_FILE_PATH=/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
     - CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
     - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
     - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
@@ -59,6 +60,7 @@ x-airflow-env:
 x-airflow-volumes:
   &airflow-volumes
     - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - ./sample_data_config/elife-article-xml/elife-article-xml.config.yaml:/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
     - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
     - ./sample_data_config/europepmc/europepmc-labslink.config.yaml:/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
     - ./sample_data_config/europepmc/test-ftp-password.txt:/home/airflow/app-config/europepmc/test-ftp-password.txt
@@ -74,7 +76,6 @@ x-airflow-volumes:
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
-    - ./sample_data_config/google-analytics/ga-data-pipeline.config.yaml:/home/airflow/app-config/google-analytics/ga-data-pipeline.config.yaml
     - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
 
 services:

@@ -1,6 +1,7 @@
 import os
 import logging
-from typing import Callable, T, NamedTuple, Sequence
+from dataclasses import dataclass, field
+from typing import Any, Callable, T, Mapping, NamedTuple, Sequence
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
@@ -19,6 +20,8 @@ class PipelineEnvironmentVariables:
 DEFAULT_DEPLOYMENT_ENV = 'ci'
 
 DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
+
+SECRET_VALUE_PLACEHOLDER = '***'
 
 
 class BigQuerySourceConfig(NamedTuple):
@@ -192,3 +195,29 @@ def get_pipeline_config_for_env_name_and_config_parser(
     pipeline_config = config_parser_fn(pipeline_config_dict)
     LOGGER.info('pipeline_config: %s', pipeline_config)
     return pipeline_config
+
+
+@dataclass(frozen=True)
+class MappingConfig:
+    mapping: Mapping[str, Any] = field(repr=False)
+    printable_mapping: Mapping[str, Any]
+
+    @staticmethod
+    def from_dict(mapping_config_dict: dict) -> 'StateFileConfig':
+        mapping = mapping_config_dict.copy()
+        secrets_config_list = mapping.pop('parametersFromFile', [])
+        LOGGER.debug('secrets_config_list: %r', secrets_config_list)
+        secrets_dict = get_resolved_parameter_values_from_file_path_env_name(
+            secrets_config_list
+        )
+        LOGGER.debug('secrets.keys: %r', secrets_dict.keys())
+        mapping.update(secrets_dict)
+        secret_keys = secrets_dict.keys()
+        printable_mapping = {
+            key: SECRET_VALUE_PLACEHOLDER if key in secret_keys else value
+            for key, value in mapping.items()
+        }
+        return MappingConfig(
+            mapping=mapping,
+            printable_mapping=printable_mapping
+        )

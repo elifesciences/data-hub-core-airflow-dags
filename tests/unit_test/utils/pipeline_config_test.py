@@ -1,9 +1,13 @@
+import logging
 from pathlib import Path
+
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
+    SECRET_VALUE_PLACEHOLDER,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
+    MappingConfig,
     StateFileConfig,
     get_resolved_parameter_values_from_file_path_env_name,
     str_to_bool,
@@ -11,10 +15,37 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 
+LOGGER = logging.getLogger(__name__)
+
+
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'projectName': 'project1',
     'sqlQuery': 'query1'
 }
+
+ENV_VAR_1 = 'env1'
+
+KEY_1 = 'key1'
+VALUE_1 = 'value1'
+PARAMETERS_FROM_FILE_CONFIG_DICT_1 = {
+    'parameterName': KEY_1,
+    'filePathEnvName': ENV_VAR_1
+}
+
+
+@pytest.fixture(name='existing_secret_file_path_1')
+def _existing_secret_file_path_1(tmp_path: Path) -> Path:
+    value_file_path = tmp_path / 'secret1'
+    value_file_path.write_text(VALUE_1)
+    return value_file_path
+
+
+@pytest.fixture(name='existing_secret_file_and_env_1')
+def _existing_secret_file_and_env_1(
+    mock_env: dict,
+    existing_secret_file_path_1: Path
+):
+    mock_env[ENV_VAR_1] = str(existing_secret_file_path_1)
 
 
 class TestBigQuerySourceConfig:
@@ -125,3 +156,34 @@ class TestGetEnvironmentVariableValue:
         })
         with pytest.raises(KeyError):
             get_environment_variable_value('key1', required=True)
+
+
+class TestMappingConfig:
+    def test_should_read_simple_dict(self):
+        config = MappingConfig.from_dict({KEY_1: VALUE_1})
+        assert config.mapping == {KEY_1: VALUE_1}
+
+    def test_should_include_simple_value_in_str_repr_and_printable_mapping(self):
+        config = MappingConfig.from_dict({KEY_1: VALUE_1})
+        assert config.printable_mapping == {KEY_1: VALUE_1}
+        assert VALUE_1 in str(config)
+        assert VALUE_1 in repr(config)
+
+    @pytest.mark.usefixtures('existing_secret_file_and_env_1')
+    def test_should_read_from_env_file(self):
+        config = MappingConfig.from_dict({
+            'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
+        })
+        LOGGER.debug('config: %r', config)
+        assert config.mapping == {KEY_1: VALUE_1}
+
+    @pytest.mark.usefixtures('existing_secret_file_and_env_1')
+    def test_should_not_include_env_file_values_in_str_repr_and_printable_mapping(self):
+        config = MappingConfig.from_dict({
+            'parametersFromFile': [PARAMETERS_FROM_FILE_CONFIG_DICT_1]
+        })
+        LOGGER.debug('config: %r', config)
+        assert config.mapping == {KEY_1: VALUE_1}
+        assert config.printable_mapping == {KEY_1: SECRET_VALUE_PLACEHOLDER}
+        assert VALUE_1 not in str(config)
+        assert VALUE_1 not in repr(config)
