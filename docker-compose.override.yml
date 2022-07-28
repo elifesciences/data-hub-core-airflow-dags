@@ -10,7 +10,7 @@ x-airflow-env:
     # Semantic Scholar API Key is optional
     - SEMANTIC_SCHOLAR_API_KEY_FILE_PATH=/home/airflow/secrets/semantic_scholar_api_key.txt
     - GITHUB_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/github_api_authorization.txt
-    - TWITTER_API_BEARER_TOKEN_FILE_PATH=/home/airflow/secrets/twitter_api_authorization.txt
+    - TWITTER_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/twitter_api_authorization.txt
 
 x-airflow-volumes:
   &airflow-volumes
