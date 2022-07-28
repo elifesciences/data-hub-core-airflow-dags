@@ -100,7 +100,7 @@ class TestGetItemList:
             data,
             data_config,
         )
-        assert actual_response == data
+        assert actual_response == [data]
 
     def test_should_get_data_when_path_keys_are_all_dict_keys_in_data(
             self

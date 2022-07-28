@@ -8,6 +8,7 @@ from data_pipeline.generic_web_api.url_builder import (
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
+    MappingConfig,
     update_deployment_env_placeholder
 )
 
@@ -99,6 +100,7 @@ class WebApiConfig:
         configurable_parameters = api_config.get(
             "dataUrl"
         ).get("configurableParameters", {})
+        self.headers = MappingConfig.from_dict(api_config.get('headers', {}))
         self.default_start_date = configurable_parameters.get(
             "defaultStartDate", None)
         start_to_end_date_diff_in_days = (

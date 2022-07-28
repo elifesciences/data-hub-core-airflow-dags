@@ -1,8 +1,18 @@
 from data_pipeline.utils.pipeline_config import ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
     get_web_api_config_id,
-    MultiWebApiConfig
+    MultiWebApiConfig,
+    WebApiConfig
 )
+
+DATASET_1 = 'dataset_1'
+TABLE_1 = 'table_1'
+
+MINIMAL_WEB_API_CONFIG_DICT = {
+    'dataset': DATASET_1,
+    'table': TABLE_1,
+    'dataUrl': {}
+}
 
 
 class TestGetWebApiConfigId:
@@ -36,3 +46,22 @@ class TestMultiWebApiConfig:
         assert multi_web_api_config.web_api_config[0][
             ConfigKeys.DATA_PIPELINE_CONFIG_ID
         ] == 'table1_0'
+
+
+class TestWebApiConfig:
+    def test_should_parse_dataset_and_table(self):
+        web_api_config = WebApiConfig(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.dataset_name == DATASET_1
+        assert web_api_config.table_name == TABLE_1
+
+    def test_should_set_headers_field_to_empty_dict_if_headers_not_defined(self):
+        web_api_config = WebApiConfig(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.headers.mapping == {}
+
+    def test_should_read_api_headers(self):
+        headers = {'key1': 'value1'}
+        web_api_config = WebApiConfig({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'headers': headers
+        })
+        assert web_api_config.headers.mapping == headers

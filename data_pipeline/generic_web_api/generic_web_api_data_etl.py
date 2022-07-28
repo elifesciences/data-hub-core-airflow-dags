@@ -21,8 +21,8 @@ from data_pipeline.utils.data_store.s3_data_service import (
 from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     create_or_extend_table_schema
-
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.web_api import requests_retry_session
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -104,7 +104,8 @@ def get_data_single_page(
         ):
             session.auth = tuple(data_config.authentication.auth_val_list)
         session.verify = False
-        session_response = session.get(url)
+        LOGGER.info("Headers: %s", data_config.headers)
+        session_response = session.get(url, headers=data_config.headers.mapping)
         session_response.raise_for_status()
         resp = session_response.content
         try:
@@ -113,7 +114,7 @@ def get_data_single_page(
             json_resp = get_newline_delimited_json_string_as_json_list(
                 resp.decode("utf-8")
             )
-    return json_resp
+    return remove_key_with_null_value(json_resp)
 
 
 # pylint: disable=too-many-locals
@@ -362,6 +363,8 @@ def get_items_list(page_data, web_config):
             f'item list not found in response, \
                 key path: {web_config.items_key_path_from_response_root}'
         )
+    if isinstance(item_list, dict):
+        return [item_list]
     return item_list
 
 
