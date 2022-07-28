@@ -203,7 +203,7 @@ class MappingConfig:
     printable_mapping: Mapping[str, Any]
 
     @staticmethod
-    def from_dict(mapping_config_dict: dict) -> 'StateFileConfig':
+    def from_dict(mapping_config_dict: dict) -> 'MappingConfig':
         mapping = mapping_config_dict.copy()
         secrets_config_list = mapping.pop('parametersFromFile', [])
         LOGGER.debug('secrets_config_list: %r', secrets_config_list)
