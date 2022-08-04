@@ -12,7 +12,7 @@ class TwitterAdsApiSourceConfig(NamedTuple):
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':
         return TwitterAdsApiSourceConfig(
             resource=source_config_dict['resource'],
-            secrets=MappingConfig.from_dict(source_config_dict.get('secrets', {}))
+            secrets=MappingConfig.from_dict(source_config_dict['secrets'])
         )
 
 

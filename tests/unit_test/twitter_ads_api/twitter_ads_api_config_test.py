@@ -3,10 +3,11 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
 )
 
 RESOURCE = 'resource_1'
-SECRET_FILE_ENV_VAR = 'secret_file_env_name_1'
+SECRETS = {'key1': 'value1', 'key2': 'value2'}
 
 SOURCE_CONFIG = {
-    'resource': RESOURCE
+    'resource': RESOURCE,
+    'secrets': SECRETS
 }
 
 PROJECT_NAME = 'project_1'
@@ -23,6 +24,7 @@ ITEM_CONFIG_DICT = {
     'source': SOURCE_CONFIG,
     'target': TARGET_CONFIG
 }
+
 
 def get_config_for_item_config_dict(item_dict: dict) -> dict:
     return {'twitterAdsApi': [item_dict]}
