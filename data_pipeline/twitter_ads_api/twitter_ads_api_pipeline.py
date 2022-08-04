@@ -31,7 +31,7 @@ def get_bq_compatible_json_response_from_resource(
     return remove_key_with_null_value(response.body)
 
 
-def fetch_twitter_ads_api_data_and_write_into_bq(
+def fetch_twitter_ads_api_data_and_load_into_bq(
     config: TwitterAdsApiConfig
 ):
     data_from_twitter_ads_api = get_bq_compatible_json_response_from_resource(
