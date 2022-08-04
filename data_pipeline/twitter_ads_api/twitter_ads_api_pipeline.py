@@ -6,17 +6,21 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiConfig,
     TwitterAdsApiSourceConfig
 )
-from data_pipeline.utils.data_store.bq_data_service import load_given_json_list_data_from_tempdir_to_bq
+from data_pipeline.utils.data_store.bq_data_service import (
+    load_given_json_list_data_from_tempdir_to_bq
+)
 from data_pipeline.utils.json import remove_key_with_null_value
 
 
 def get_client_from_twitter_ads_api(
     source_config: TwitterAdsApiSourceConfig
 ) -> Client:
-    return Client(consumer_key=source_config.secrets.mapping['api_key'],
-                consumer_secret=source_config.secrets.mapping['api_secret'],
-                access_token=source_config.secrets.mapping['access_token'],
-                access_token_secret=source_config.secrets.mapping['access_token_secret'])
+    return Client(
+        consumer_key=source_config.secrets.mapping['api_key'],
+        consumer_secret=source_config.secrets.mapping['api_secret'],
+        access_token=source_config.secrets.mapping['access_token'],
+        access_token_secret=source_config.secrets.mapping['access_token_secret']
+    )
 
 
 def get_bq_compatible_json_response_from_resource(
