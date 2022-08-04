@@ -31,7 +31,7 @@ def get_config_for_item_config_dict(item_dict: dict) -> dict:
 CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
 
 
-class TestElifeArticleXmlConfig:
+class TestTwitterAdsApiConfig:
     def test_should_read_resource(self):
         config = TwitterAdsApiConfig.from_dict(CONFIG_DICT)
         assert config.source.resource == RESOURCE
