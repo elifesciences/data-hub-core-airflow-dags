@@ -52,3 +52,14 @@ class TestTwitterAdsApiConfig:
             }
         }))
         assert config.source.secrets.mapping == secrets
+
+    def test_should_read_api_secrets_by_key(self):
+        secrets = {'key1': 'value1', 'key2': 'value2'}
+        config = TwitterAdsApiConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT,
+            'source': {
+                **SOURCE_CONFIG,
+                'secrets': secrets
+            }
+        }))
+        assert config.source.secrets.mapping['key1'] == secrets['key1']
