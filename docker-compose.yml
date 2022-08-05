@@ -55,6 +55,7 @@ x-airflow-env:
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
+    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
     
 
 x-airflow-volumes:
@@ -77,6 +78,7 @@ x-airflow-volumes:
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
     - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
+    - ./sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml:/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
 
 services:
     data-hub-dags:

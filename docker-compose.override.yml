@@ -11,6 +11,10 @@ x-airflow-env:
     - SEMANTIC_SCHOLAR_API_KEY_FILE_PATH=/home/airflow/secrets/semantic_scholar_api_key.txt
     - GITHUB_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/github_api_authorization.txt
     - TWITTER_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/twitter_api_authorization.txt
+    - TWITTER_API_KEY_FILE_PATH=/home/airflow/secrets/twitter_api_key.txt
+    - TWITTER_API_SECRET_FILE_PATH=/home/airflow/secrets/twitter_api_secret.txt
+    - TWITTER_ACCESS_TOKEN_FILE_PATH=/home/airflow/secrets/twitter_access_token.txt
+    - TWITTER_ACCESS_TOKEN_SECRET_FILE_PATH=/home/airflow/secrets/twitter_access_token_secret.txt
 
 x-airflow-volumes:
   &airflow-volumes
