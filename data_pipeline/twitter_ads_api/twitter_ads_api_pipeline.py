@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from twitter_ads.http import Request
 from twitter_ads.client import Client
@@ -23,7 +24,7 @@ def get_client_from_twitter_ads_api(
     )
 
 
-def get_bq_compatible_json_response_from_resource(
+def get_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
     req = Request(
@@ -31,14 +32,22 @@ def get_bq_compatible_json_response_from_resource(
         method="GET",
         resource=source_config.resource
     )
+    provenance = {
+        'imported_timestamp': datetime.utcnow().isoformat(),
+        'request_resource': source_config.resource
+    }
+
     response = req.perform()
-    return remove_key_with_null_value(response.body)
+    return {
+        **remove_key_with_null_value(response.body),
+        'provenance': provenance
+    }
 
 
 def fetch_twitter_ads_api_data_and_load_into_bq(
     config: TwitterAdsApiConfig
 ):
-    data_from_twitter_ads_api = get_bq_compatible_json_response_from_resource(
+    data_from_twitter_ads_api = get_bq_compatible_json_response_from_resource_with_provenance(
         source_config=config.source
     )
     load_given_json_list_data_from_tempdir_to_bq(
