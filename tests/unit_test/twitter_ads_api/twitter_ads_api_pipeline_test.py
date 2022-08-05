@@ -44,6 +44,7 @@ PROVENANCE_1 = {
     'request_resource': RESOURCE
 }
 
+
 @pytest.fixture(name='datetime_mock', autouse=True)
 def _datetime_mock():
     with patch.object(twitter_ads_api_pipeline_module, 'datetime') as mock:
