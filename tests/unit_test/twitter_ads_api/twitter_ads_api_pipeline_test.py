@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import patch, MagicMock
 import pytest
 
@@ -6,7 +7,7 @@ from data_pipeline.twitter_ads_api import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
-    get_bq_compatible_json_response_from_resource
+    get_bq_compatible_json_response_from_resource_with_provenance
 )
 
 from data_pipeline.utils.pipeline_config import (
@@ -16,25 +17,6 @@ from data_pipeline.utils.pipeline_config import (
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiSourceConfig
 )
-
-
-@pytest.fixture(name='get_client_from_twitter_ads_api_mock')
-def _get_client_from_twitter_ads_api_mock():
-    with patch.object(twitter_ads_api_pipeline_module, 'get_client_from_twitter_ads_api') as mock:
-        yield mock
-
-
-@pytest.fixture(name='remove_key_with_null_value_mock')
-def _remove_key_with_null_value_mock():
-    with patch.object(twitter_ads_api_pipeline_module, 'remove_key_with_null_value') as mock:
-        yield mock
-
-
-@pytest.fixture(name='request_mock', autouse=True)
-def _request_mock():
-    with patch.object(twitter_ads_api_pipeline_module, 'Request') as mock:
-        yield mock
-
 
 RESOURCE = 'resource_1'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
@@ -55,6 +37,37 @@ RESPONSE_JSON_1 = {
     'response_key_2': 'response_value_2'
 }
 
+MOCK_UTC_NOW_STR = '2022-08-03T16:35:56'
+
+PROVENANCE_1 = {
+    'imported_timestamp': MOCK_UTC_NOW_STR,
+    'request_resource': RESOURCE
+}
+
+@pytest.fixture(name='datetime_mock', autouse=True)
+def _datetime_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'datetime') as mock:
+        mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
+        yield mock
+
+
+@pytest.fixture(name='get_client_from_twitter_ads_api_mock')
+def _get_client_from_twitter_ads_api_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'get_client_from_twitter_ads_api') as mock:
+        yield mock
+
+
+@pytest.fixture(name='remove_key_with_null_value_mock')
+def _remove_key_with_null_value_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'remove_key_with_null_value') as mock:
+        yield mock
+
+
+@pytest.fixture(name='request_mock', autouse=True)
+def _request_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'Request') as mock:
+        yield mock
+
 
 class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
     def test_should_pass_resource_and_params_to_request(
@@ -62,7 +75,7 @@ class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
         request_mock: MagicMock,
         get_client_from_twitter_ads_api_mock: MagicMock
     ):
-        get_bq_compatible_json_response_from_resource(
+        get_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_1
         )
         request_mock.assert_called_with(
@@ -71,14 +84,14 @@ class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
             resource=RESOURCE
         )
 
-    def test_should_return_response_json(
+    def test_should_return_response_json_with_provenance(
         self,
         get_client_from_twitter_ads_api_mock: MagicMock,
         remove_key_with_null_value_mock: MagicMock
     ):
         get_client_from_twitter_ads_api_mock.return_value = 'client'
         remove_key_with_null_value_mock.return_value = RESPONSE_JSON_1
-        actual_response_json = get_bq_compatible_json_response_from_resource(
+        actual_response_json = get_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_1
         )
-        assert actual_response_json == RESPONSE_JSON_1
+        assert actual_response_json == {**RESPONSE_JSON_1, 'provenance': PROVENANCE_1}
