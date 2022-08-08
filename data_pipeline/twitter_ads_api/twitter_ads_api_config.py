@@ -6,7 +6,7 @@ from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingCon
 
 class TwitterAdsApiSourceConfig(NamedTuple):
     resource: str
-    params: Mapping[str, str]
+    params: Mapping[str, str] = {}
     secrets: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
