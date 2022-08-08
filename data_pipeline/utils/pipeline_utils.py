@@ -102,7 +102,10 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
         if progress_message
         else ''
     )
-    LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
+    LOGGER.info(
+        'requesting url%s: %r %r (params=%r, headers=%r)',
+        progress_message_str, method, url, params, printable_headers
+    )
     request_timestamp = datetime.utcnow()
     if session:
         response = session.request(method, url, params=params, headers=headers, json=json_data)
