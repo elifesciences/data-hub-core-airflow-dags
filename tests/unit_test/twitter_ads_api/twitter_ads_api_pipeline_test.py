@@ -19,11 +19,18 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
 )
 
 RESOURCE = 'resource_1'
+PARAMS = {'param1': 'value1'}
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
 
-SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
+SOURCE_CONFIG_WITHOUT_PARAMS_1 = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS
+)
+
+SOURCE_CONFIG_WITH_PARAMS_1 = TwitterAdsApiSourceConfig(
+    resource=RESOURCE,
+    secrets=SECRETS,
+    params=PARAMS
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -71,18 +78,34 @@ def _request_mock():
 
 
 class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
-    def test_should_pass_resource_and_params_to_request(
+    def test_should_pass_resource_to_request(
         self,
         request_mock: MagicMock,
         get_client_from_twitter_ads_api_mock: MagicMock
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_WITHOUT_PARAMS_1
         )
         request_mock.assert_called_with(
-            client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_1),
+            client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_WITHOUT_PARAMS_1),
             method="GET",
-            resource=RESOURCE
+            resource=RESOURCE,
+            params={}
+        )
+
+    def test_should_pass_params_to_request_if_params_exist(
+        self,
+        request_mock: MagicMock,
+        get_client_from_twitter_ads_api_mock: MagicMock
+    ):
+        get_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_PARAMS_1
+        )
+        request_mock.assert_called_with(
+            client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_WITH_PARAMS_1),
+            method="GET",
+            resource=RESOURCE,
+            params=PARAMS
         )
 
     def test_should_return_response_json_with_provenance(
@@ -93,6 +116,24 @@ class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
         get_client_from_twitter_ads_api_mock.return_value = 'client'
         remove_key_with_null_value_mock.return_value = RESPONSE_JSON_1
         actual_response_json = get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_WITHOUT_PARAMS_1
         )
         assert actual_response_json == {**RESPONSE_JSON_1, 'provenance': PROVENANCE_1}
+
+    def test_should_return_response_json_with_provenance_include_params(
+        self,
+        get_client_from_twitter_ads_api_mock: MagicMock,
+        remove_key_with_null_value_mock: MagicMock
+    ):
+        get_client_from_twitter_ads_api_mock.return_value = 'client'
+        remove_key_with_null_value_mock.return_value = RESPONSE_JSON_1
+        actual_response_json = get_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_PARAMS_1
+        )
+        assert actual_response_json == {
+            **RESPONSE_JSON_1,
+            'provenance': {
+                **PROVENANCE_1,
+                'request_params': [{'name': 'param1', 'value': PARAMS['param1']}]
+            }
+        }

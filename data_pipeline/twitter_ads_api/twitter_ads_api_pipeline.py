@@ -30,13 +30,17 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
     req = Request(
         client=get_client_from_twitter_ads_api(source_config=source_config),
         method="GET",
-        resource=source_config.resource
+        resource=source_config.resource,
+        params=source_config.params
     )
     provenance = {
         'imported_timestamp': datetime.utcnow().isoformat(),
         'request_resource': source_config.resource
     }
-
+    if source_config.params:
+        provenance['request_params'] = [
+            {'name': key, 'value': value} for key, value in source_config.params.items()
+        ]
     response = req.perform()
     return {
         **remove_key_with_null_value(response.body),
