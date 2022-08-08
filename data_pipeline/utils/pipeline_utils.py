@@ -99,9 +99,9 @@ def get_default_printable_mapping_with_secrets(
 
 def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
-    params: Mapping[str, str] = None,
-    headers: Mapping[str, str] = None,
-    printable_headers: Mapping[str, str] = None,
+    params: Optional[Mapping[str, str]] = None,
+    headers: Optional[Mapping[str, str]] = None,
+    printable_headers: Optional[Mapping[str, str]] = None,
     method: str = 'GET',
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
