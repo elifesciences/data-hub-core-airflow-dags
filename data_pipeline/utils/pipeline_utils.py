@@ -13,6 +13,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     iter_dict_from_bq_query
 )
 from data_pipeline.utils.pipeline_config import (
+    SECRET_VALUE_PLACEHOLDER,
     BigQuerySourceConfig
 )
 
@@ -85,6 +86,17 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
         raise
 
 
+def get_default_printable_mapping_with_secrets(
+    mapping: Optional[Mapping[str, str]] = None,
+    printable_mapping: Optional[Mapping[str, str]] = None
+) -> Optional[Mapping[str, str]]:
+    if printable_mapping is not None:
+        return printable_mapping
+    if mapping is not None:
+        return {key: SECRET_VALUE_PLACEHOLDER for key, value in mapping.items()}
+    return None
+
+
 def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Mapping[str, str] = None,
@@ -101,6 +113,10 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
         f'({progress_message})'
         if progress_message
         else ''
+    )
+    printable_headers = get_default_printable_mapping_with_secrets(
+        mapping=headers,
+        printable_mapping=printable_headers
     )
     LOGGER.info(
         'requesting url%s: %r %r (params=%r, headers=%r)',
