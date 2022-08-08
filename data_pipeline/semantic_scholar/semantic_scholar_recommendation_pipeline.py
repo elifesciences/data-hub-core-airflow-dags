@@ -153,6 +153,8 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
         get_response_json_with_provenance_from_api(
             url,
             params=params,
+            headers=source_config.headers.mapping,
+            printable_headers=source_config.headers.printable_mapping,
             method='POST',
             json_data=json_data,
             provenance=extended_provenance,

@@ -13,6 +13,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     iter_dict_from_bq_query
 )
 from data_pipeline.utils.pipeline_config import (
+    SECRET_VALUE_PLACEHOLDER,
     BigQuerySourceConfig
 )
 
@@ -85,11 +86,22 @@ def get_valid_json_from_response(response: requests.Response) -> dict:
         raise
 
 
+def get_default_printable_mapping_with_secrets(
+    mapping: Optional[Mapping[str, str]] = None,
+    printable_mapping: Optional[Mapping[str, str]] = None
+) -> Optional[Mapping[str, str]]:
+    if printable_mapping is not None:
+        return printable_mapping
+    if mapping is not None:
+        return {key: SECRET_VALUE_PLACEHOLDER for key, value in mapping.items()}
+    return None
+
+
 def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
-    params: Mapping[str, str] = None,
-    headers: Mapping[str, str] = None,
-    printable_headers: Mapping[str, str] = None,
+    params: Optional[Mapping[str, str]] = None,
+    headers: Optional[Mapping[str, str]] = None,
+    printable_headers: Optional[Mapping[str, str]] = None,
     method: str = 'GET',
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
@@ -102,7 +114,14 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
         if progress_message
         else ''
     )
-    LOGGER.info('requesting url%s: %r %r (%r)', progress_message_str, method, url, params)
+    printable_headers = get_default_printable_mapping_with_secrets(
+        mapping=headers,
+        printable_mapping=printable_headers
+    )
+    LOGGER.info(
+        'requesting url%s: %r %r (params=%r, headers=%r)',
+        progress_message_str, method, url, params, printable_headers
+    )
     request_timestamp = datetime.utcnow()
     if session:
         response = session.request(method, url, params=params, headers=headers, json=json_data)

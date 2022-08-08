@@ -6,9 +6,10 @@ import pytest
 
 import google.cloud.exceptions
 
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
+from data_pipeline.utils.pipeline_config import SECRET_VALUE_PLACEHOLDER, BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import (
     fetch_single_column_value_list_for_bigquery_source_config,
+    get_default_printable_mapping_with_secrets,
     get_response_json_with_provenance_from_api,
     iter_dict_for_bigquery_source_config_with_exclusion
 )
@@ -202,6 +203,22 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
             )
         ))
         assert result == [{'key1': 'value1', 'key2': 'value2'}]
+
+
+class TestGetDefaultPrintableMappingWithSecrets:
+    def test_should_return_none_if_passed_in_mapping_is_none(self):
+        assert get_default_printable_mapping_with_secrets(None) is None
+
+    def test_should_return_printable_mapping_if_passed_in(self):
+        assert get_default_printable_mapping_with_secrets(
+            mapping={'key1': 'value1'},
+            printable_mapping={'key1': '*secret*'}
+        ) == {'key1': '*secret*'}
+
+    def test_should_replace_value_with_placeholder(self):
+        assert get_default_printable_mapping_with_secrets(
+            mapping={'key1': 'value1'}
+        ) == {'key1': SECRET_VALUE_PLACEHOLDER}
 
 
 class TestGetResponseJsonWithProvenanceFromApi:
