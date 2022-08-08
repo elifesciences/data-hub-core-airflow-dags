@@ -1,17 +1,19 @@
 
-from typing import NamedTuple
+from typing import Mapping, NamedTuple
 
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingConfig
 
 
 class TwitterAdsApiSourceConfig(NamedTuple):
     resource: str
+    params: Mapping[str, str]
     secrets: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':
         return TwitterAdsApiSourceConfig(
             resource=source_config_dict['resource'],
+            params=source_config_dict.get('params', {}),
             secrets=MappingConfig.from_dict(source_config_dict['secrets'])
         )
 
