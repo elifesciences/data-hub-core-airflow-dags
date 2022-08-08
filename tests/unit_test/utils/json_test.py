@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 import numpy as np
 
@@ -13,6 +13,8 @@ from data_pipeline.utils.json import (
 # reformatting to avoid issues with changes to formatting
 DATETIME_STR_1 = datetime.fromisoformat('2021-02-03T04:05:06+00:00').isoformat()
 
+DATE_STR_1 = date.fromisoformat('2021-02-03').isoformat()
+
 
 class TestGetJsonCompatibleValue:
     def test_should_not_change_str(self):
@@ -20,6 +22,9 @@ class TestGetJsonCompatibleValue:
 
     def test_should_format_datetime(self):
         assert get_json_compatible_value(datetime.fromisoformat(DATETIME_STR_1)) == DATETIME_STR_1
+
+    def test_should_format_date(self):
+        assert get_json_compatible_value(date.fromisoformat(DATE_STR_1)) == DATE_STR_1
 
 
 class TestGetRecursiveJsonCompatibleValue:
