@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Callable, Optional, Tuple, TypeVar
 import pandas as pd
 import numpy as np
@@ -13,6 +13,8 @@ def get_json_compatible_value(value):
     but less dependent on the actual serialization.
     """
     if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
         return value.isoformat()
     return value
 
