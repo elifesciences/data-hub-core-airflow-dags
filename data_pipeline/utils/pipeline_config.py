@@ -25,15 +25,15 @@ SECRET_VALUE_PLACEHOLDER = '***'
 
 
 class BigQuerySourceConfig(NamedTuple):
-    project_name: str
-    sql_query: str
+    project_name: str = ''
+    sql_query: str = ''
     ignore_not_found: bool = False
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
         return BigQuerySourceConfig(
-            project_name=source_config_dict['projectName'],
-            sql_query=source_config_dict['sqlQuery'],
+            project_name=source_config_dict.get('projectName', ''),
+            sql_query=source_config_dict.get('sqlQuery', ''),
             ignore_not_found=source_config_dict.get('ignoreNotFound', False)
         )
 
