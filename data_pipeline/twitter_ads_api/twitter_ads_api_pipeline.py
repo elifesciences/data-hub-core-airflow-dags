@@ -59,9 +59,9 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
-    if source_config.bigquery and source_config.param_names:
+    if source_config.param_from_bigquery and source_config.param_names:
         value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-            source_config.bigquery
+            source_config.param_from_bigquery
         )
         LOGGER.debug('value_list_from_bq: %r', value_list_from_bq)
         today = date.today()

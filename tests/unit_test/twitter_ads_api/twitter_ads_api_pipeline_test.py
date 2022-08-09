@@ -29,6 +29,13 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
 
 PARAMS = {'param1': 'value1'}
 
+SOURCE_CONFIG_WITH_PARAMS_1 = TwitterAdsApiSourceConfig(
+    resource=RESOURCE,
+    secrets=SECRETS,
+    param_names=['param_name_1'],
+    param_from_bigquery={'param_from_bigquery_1':'param_from_bigquery_value_1'}
+)
+
 TARGET_CONFIG_1 = BigQueryTargetConfig(
     project_name='project1',
     dataset_name='dataset1',
