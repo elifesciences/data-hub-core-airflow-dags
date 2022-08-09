@@ -20,7 +20,7 @@ twitterAdsApi:
   - dataPipelineId: twitter_ads_api_campaign_reach_elife_journal
     source:
       resource: '/11/stats/accounts/18ce53up4ko/reach/campaigns'
-      bigQuery:
+      paramFromBigQuery:
         projectName: 'elife-data-pipeline'
         sqlQuery: |-
           SELECT DISTINCT t_data.id
