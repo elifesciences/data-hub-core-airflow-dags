@@ -73,7 +73,8 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
             if param_name_list:
                 params_dict = {
                     param_name_list[0]: value_from_bq,
-                    param_name_list[1]: '2018-05-01',  # earliest campaign creation date
+                    # earliest campaign creation date for initial load:
+                    param_name_list[1]: '2018-05-01',
                     param_name_list[2]: yesterday
                 }
 
