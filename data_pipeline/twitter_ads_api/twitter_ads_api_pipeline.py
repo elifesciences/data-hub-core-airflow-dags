@@ -30,11 +30,10 @@ def get_client_from_twitter_ads_api(
     )
 
 
-def get_bq_compatible_json_response_from_resource_with_provenance(
+def get_provenance(
     source_config: TwitterAdsApiSourceConfig,
     params_dict: Optional[Mapping[str, str]] = None
-) -> Any:
-
+) -> dict:
     provenance = {
         'imported_timestamp': datetime.utcnow().isoformat(),
         'request_resource': source_config.resource
@@ -44,7 +43,13 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
             {'name': key, 'value': value} for key, value in params_dict.items()
         ]
     LOGGER.debug('provenance: %r', provenance)
+    return provenance
 
+
+def get_bq_compatible_json_response_from_resource_with_provenance(
+    source_config: TwitterAdsApiSourceConfig,
+    params_dict: Optional[Mapping[str, str]] = None
+) -> Any:
     LOGGER.info("Getting data for resource: %s", source_config.resource)
     LOGGER.info('params_dict: %r', params_dict)
     req = Request(
@@ -54,48 +59,52 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
         params=params_dict
     )
     response = req.perform()
-    LOGGER.debug('response.body: %r', response.body)
-    return {
+    return remove_key_with_null_value({
         **response.body,
-        'provenance': provenance
+        'provenance': get_provenance(source_config, params_dict)
+    })
+
+
+def get_param_dict_from_required_params_and_value_from_bq(
+    source_config: TwitterAdsApiSourceConfig,
+    value_from_bq: str,
+    start_time: str,
+    end_time: str
+):
+    return {
+        source_config.required_params['paramNameForBqValue']: value_from_bq,
+        source_config.required_params['paramNameForStartTime']: start_time,
+        source_config.required_params['paramNameForEndTime']: end_time
     }
 
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
-    if source_config.param_from_bigquery and source_config.param_names:
+    if source_config.required_params:
         value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-            source_config.param_from_bigquery
+            source_config.param_value_from_bigquery
         )
-        LOGGER.info('value_list_from_bq: %r', len(value_list_from_bq))
         today = date.today()
         yesterday = today - timedelta(days=1)
-
         for value_from_bq in value_list_from_bq:
-            param_name_list = source_config.param_names
-            LOGGER.info('param_name_list: %r', param_name_list)
-            if param_name_list:
-                params_dict = {
-                    param_name_list[0]: value_from_bq,
-                    # earliest campaign creation date for initial load:
-                    param_name_list[1]: '2018-05-01',
-                    param_name_list[2]: yesterday.isoformat()
-                }
+            params_dict = get_param_dict_from_required_params_and_value_from_bq(
+                source_config=source_config,
+                value_from_bq=value_from_bq,
+                # earliest campaign creation date for initial load:
+                start_time='2018-05-01',
+                end_time=yesterday.isoformat()
+            )
 
-                yield remove_key_with_null_value(
-                    get_bq_compatible_json_response_from_resource_with_provenance(
-                        source_config=source_config,
-                        params_dict=params_dict
-                    )
+            yield get_bq_compatible_json_response_from_resource_with_provenance(
+                    source_config=source_config,
+                    params_dict=params_dict
                 )
     else:
-        yield remove_key_with_null_value(
-            get_bq_compatible_json_response_from_resource_with_provenance(
+        yield get_bq_compatible_json_response_from_resource_with_provenance(
                 source_config=source_config,
                 params_dict=None
             )
-        )
 
 
 def fetch_twitter_ads_api_data_and_load_into_bq(

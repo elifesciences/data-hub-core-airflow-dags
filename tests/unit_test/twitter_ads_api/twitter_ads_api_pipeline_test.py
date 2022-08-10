@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from unittest.mock import patch, MagicMock
 import pytest
 import logging
@@ -8,6 +8,7 @@ from data_pipeline.twitter_ads_api import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
+    get_provenance,
     get_bq_compatible_json_response_from_resource_with_provenance,
     iter_bq_compatible_json_response_from_resource_with_provenance
 )
@@ -29,16 +30,20 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS
 )
-PARAMS = {'param1': 'value1'}
 
-PARAM_NAMES = ['param_name_1', 'param_name_2', 'param_name_3']
+PARAM_NAME_VALUE = 'param_name_value_1'
+
+REQUIRED_PARAMS_DICT = {
+    'paramName': PARAM_NAME_VALUE
+}
+
 PARAM_VALUES_FROM_BQ = ['bq_param_1']
 
-SOURCE_CONFIG_WITH_PARAM_NAMES_AND_BQ = TwitterAdsApiSourceConfig(
+SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS,
-    param_names=PARAM_NAMES,
-    param_from_bigquery=PARAM_VALUES_FROM_BQ
+    param_value_from_bigquery=PARAM_VALUES_FROM_BQ,
+    required_params=REQUIRED_PARAMS_DICT
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -57,6 +62,10 @@ MOCK_UTC_NOW_STR = '2022-08-03T16:35:56'
 PROVENANCE_1 = {
     'imported_timestamp': MOCK_UTC_NOW_STR,
     'request_resource': RESOURCE
+}
+
+PARAM_DICT_1 = {
+    'param_name_1': 'param_value_1'
 }
 
 
@@ -114,7 +123,34 @@ def _fetch_single_column_value_list_for_bigquery_source_config_mock():
         yield mock
 
 
-class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
+@pytest.fixture(
+    name='get_param_dict_from_required_params_and_value_from_bq_mock',
+    autouse=True
+)
+def _get_param_dict_from_required_params_and_value_from_bq_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'get_param_dict_from_required_params_and_value_from_bq'
+    ) as mock:
+        yield mock
+
+
+class TestGetProvenance:
+    def test_should_return_provenance_dict(self):
+        actual_return_dict = get_provenance(source_config=SOURCE_CONFIG_1)
+        assert actual_return_dict == PROVENANCE_1
+
+    def test_should_return_provenance_dict_with_requested_params_if_params_dict_defined(self):
+        actual_return_dict = get_provenance(
+            source_config=SOURCE_CONFIG_1, params_dict=REQUIRED_PARAMS_DICT
+        )
+        assert actual_return_dict == {
+            **PROVENANCE_1,
+            'request_params': [{'name': 'paramName', 'value': REQUIRED_PARAMS_DICT['paramName']}]
+        }
+
+
+class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_should_pass_resource_to_request(
         self,
         request_class_mock: MagicMock,
@@ -137,13 +173,13 @@ class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_1,
-            PARAMS
+            REQUIRED_PARAMS_DICT
         )
         request_class_mock.assert_called_with(
             client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_1),
             method="GET",
             resource=RESOURCE,
-            params=PARAMS
+            params=REQUIRED_PARAMS_DICT
         )
 
     def test_should_return_response_json_with_provenance(
@@ -159,29 +195,9 @@ class TestGetBqCompatibleJsonResponseRromResourceWithProvenance:
         )
         assert actual_response_json == {**RESPONSE_JSON_1, 'provenance': PROVENANCE_1}
 
-    def test_should_return_response_json_with_provenance_include_params_if_defined(
-        self,
-        get_client_from_twitter_ads_api_mock: MagicMock,
-        request_mock: MagicMock
-    ):
-        get_client_from_twitter_ads_api_mock.return_value = 'client'
-        response_mock = request_mock.perform.return_value
-        response_mock.body = RESPONSE_JSON_1
-        actual_response_json = get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1,
-            PARAMS
-        )
-        assert actual_response_json == {
-            **RESPONSE_JSON_1,
-            'provenance': {
-                **PROVENANCE_1,
-                'request_params': [{'name': 'param1', 'value': PARAMS['param1']}]
-            }
-        }
-
 
 class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
-    def test_should_pass_none_to_params_dict_if_param_names_and_param_from_bq_not_exist(
+    def test_should_pass_none_to_params_dict_if_required_params_not_defined(
         self,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock
     ):
@@ -193,24 +209,22 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             params_dict=None
         )
 
-    def test_should_pass_params_dict_if_param_names_and_bigquery_are_defined_in_source_conf(
+    def test_should_pass_params_dict_if_required_params_defined(
         self,
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        get_param_dict_from_required_params_and_value_from_bq_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
-        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock
     ):
         fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
             PARAM_VALUES_FROM_BQ
         )
+        get_param_dict_from_required_params_and_value_from_bq_mock.return_value = (
+            PARAM_DICT_1
+        )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_PARAM_NAMES_AND_BQ
+            SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE
         ))
-        today = date.today()
-        yesterday = today - timedelta(days=1)
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
-            source_config=SOURCE_CONFIG_WITH_PARAM_NAMES_AND_BQ,
-            params_dict={
-                PARAM_NAMES[0]: PARAM_VALUES_FROM_BQ[0],
-                PARAM_NAMES[1]: '2018-05-01',
-                PARAM_NAMES[2]: yesterday.isoformat()
-            }
+            source_config=SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE,
+            params_dict=PARAM_DICT_1
         )
