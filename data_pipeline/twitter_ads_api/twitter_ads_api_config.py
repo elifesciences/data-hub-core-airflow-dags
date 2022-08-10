@@ -1,5 +1,4 @@
-
-from typing import Iterable, Mapping, NamedTuple, Sequence
+from typing import Mapping, NamedTuple, Sequence
 
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
@@ -12,9 +11,6 @@ class TwitterAdsApiSourceConfig(NamedTuple):
     resource: str
     secrets: MappingConfig = MappingConfig.from_dict({})
     param_value_from_bigquery: BigQuerySourceConfig = {}
-    # param_name_for_bq_value: str = ''
-    # param_name_for_start_time: str = ''
-    # param_name_for_end_time: str = ''
     required_params: Mapping[str, str] = {}
 
     @staticmethod
@@ -26,9 +22,6 @@ class TwitterAdsApiSourceConfig(NamedTuple):
                 source_config_dict.get('paramValueFromBigQuery', {})
             ),
             required_params=source_config_dict.get('requiredParams', {})
-            # param_name_for_bq_value=source_config_dict.get('paramNameForBqValue', ''),
-            # param_name_for_start_time=source_config_dict.get('paramNameForStartTime', ''),
-            # param_name_for_end_time=source_config_dict.get('paramNameForEndTime', '')
         )
 
 
