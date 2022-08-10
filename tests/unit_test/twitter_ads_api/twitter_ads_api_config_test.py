@@ -6,19 +6,6 @@ RESOURCE_1 = 'resource_1'
 RESOURCE_2 = 'resource_2'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
 
-SQL_QUERY = 'query 1'
-
-PROJECT_NAME = 'project_1'
-DATASET_NAME = 'dataset_1'
-TABLE_NAME = 'table_1'
-
-BIGQUERY_SOURCE_CONFIG_DICT_1 = {
-    'projectName': PROJECT_NAME,
-    'sqlQuery': SQL_QUERY
-}
-
-PARAM_NAMES = ['param_name_1', 'param_name_2']
-
 SOURCE_CONFIG_1 = {
     'resource': RESOURCE_1,
     'secrets': SECRETS
@@ -28,6 +15,21 @@ SOURCE_CONFIG_2 = {
     'resource': RESOURCE_2,
     'secrets': SECRETS
 }
+
+SQL_QUERY = 'query 1'
+
+PROJECT_NAME = 'project_1'
+DATASET_NAME = 'dataset_1'
+TABLE_NAME = 'table_1'
+
+PARAM_VALUE_FROM_BQ_DICT = {
+    'projectName': PROJECT_NAME,
+    'sqlQuery': SQL_QUERY
+}
+
+PARAM_NAME_FOR_BQ_VALUE = 'param_name_for_bq_value_1'
+PARAM_NAME_FOR_START_TIME = 'param_name_for_start_time_1'
+PARAM_NAME_FOR_END_TIME = 'param_name_for_end_time_1'
 
 TARGET_CONFIG = {
     'projectName': PROJECT_NAME,
@@ -111,7 +113,7 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.secrets.mapping['key1'] == secrets['key1']
         assert config[1].source.secrets.mapping['key1'] == secrets['key1']
 
-    def test_should_read_param_names_if_defined_and_should_be_an_empty_list_if_not_defined(
+    def test_should_read_param_name_for_bq_value_if_defined_and_should_return_an_empty_str_if_not(
         self
     ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
@@ -120,14 +122,50 @@ class TestTwitterAdsApiConfig:
                     **ITEM_CONFIG_DICT_1,
                     'source': {
                         **SOURCE_CONFIG_1,
-                        'paramNames': PARAM_NAMES
+                        'paramNameForBqValue': PARAM_NAME_FOR_BQ_VALUE
                     }
                 },
                 ITEM_CONFIG_DICT_2
             )
         )
-        assert config[0].source.param_names == PARAM_NAMES
-        assert config[1].source.param_names == []
+        assert config[0].source.param_name_for_bq_value == PARAM_NAME_FOR_BQ_VALUE
+        assert config[1].source.param_name_for_bq_value == ''
+
+    def test_should_read_param_name_for_start_time_if_defined_and_should_return_an_empty_str_if_not(
+        self
+    ):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict(
+                {
+                    **ITEM_CONFIG_DICT_1,
+                    'source': {
+                        **SOURCE_CONFIG_1,
+                        'paramNameForStartTime': PARAM_NAME_FOR_START_TIME
+                    }
+                },
+                ITEM_CONFIG_DICT_2
+            )
+        )
+        assert config[0].source.param_name_for_start_time == PARAM_NAME_FOR_START_TIME
+        assert config[1].source.param_name_for_start_time == ''
+
+    def test_should_read_param_name_for_end_time_if_defined_and_should_return_an_empty_str_if_not(
+        self
+    ):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict(
+                {
+                    **ITEM_CONFIG_DICT_1,
+                    'source': {
+                        **SOURCE_CONFIG_1,
+                        'paramNameForEndTime': PARAM_NAME_FOR_END_TIME
+                    }
+                },
+                ITEM_CONFIG_DICT_2
+            )
+        )
+        assert config[0].source.param_name_for_end_time == PARAM_NAME_FOR_END_TIME
+        assert config[1].source.param_name_for_end_time == ''
 
     def test_should_read_params_from_bq_sql_query_if_defined_otherwise_should_return_an_empty_str(
         self
@@ -138,14 +176,14 @@ class TestTwitterAdsApiConfig:
                     **ITEM_CONFIG_DICT_1,
                     'source': {
                         **SOURCE_CONFIG_1,
-                        'paramFromBigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                        'paramValueFromBigQuery': PARAM_VALUE_FROM_BQ_DICT
                     }
                 },
                 ITEM_CONFIG_DICT_2
             )
         )
-        assert config[0].source.param_from_bigquery.sql_query == SQL_QUERY
-        assert config[0].source.param_from_bigquery.project_name == PROJECT_NAME
-        assert config[1].source.param_from_bigquery.sql_query == ''
-        assert config[1].source.param_from_bigquery.project_name == ''
-        assert config[1].source.param_from_bigquery.sql_query == ''
+        assert config[0].source.param_value_from_bigquery.sql_query == SQL_QUERY
+        assert config[0].source.param_value_from_bigquery.project_name == PROJECT_NAME
+        assert config[1].source.param_value_from_bigquery.sql_query == ''
+        assert config[1].source.param_value_from_bigquery.project_name == ''
+        assert config[1].source.param_value_from_bigquery.sql_query == ''

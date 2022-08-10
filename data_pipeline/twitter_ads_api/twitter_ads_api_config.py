@@ -11,18 +11,22 @@ from data_pipeline.utils.pipeline_config import (
 class TwitterAdsApiSourceConfig(NamedTuple):
     resource: str
     secrets: MappingConfig = MappingConfig.from_dict({})
-    param_from_bigquery: BigQuerySourceConfig = {}
-    param_names: Iterable[str] = []
+    param_value_from_bigquery: BigQuerySourceConfig = {}
+    param_name_for_bq_value: str = ''
+    param_name_for_start_time: str = ''
+    param_name_for_end_time: str = ''
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':
         return TwitterAdsApiSourceConfig(
             resource=source_config_dict['resource'],
             secrets=MappingConfig.from_dict(source_config_dict['secrets']),
-            param_from_bigquery=BigQuerySourceConfig.from_dict(
-                source_config_dict.get('paramFromBigQuery', {})
+            param_value_from_bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict.get('paramValueFromBigQuery', {})
             ),
-            param_names=source_config_dict.get('paramNames', []),
+            param_name_for_bq_value=source_config_dict.get('paramNameForBqValue', ''),
+            param_name_for_start_time=source_config_dict.get('paramNameForStartTime', ''),
+            param_name_for_end_time=source_config_dict.get('paramNameForEndTime', '')
         )
 
 

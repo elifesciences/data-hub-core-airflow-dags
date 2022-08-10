@@ -20,17 +20,16 @@ twitterAdsApi:
   - dataPipelineId: twitter_ads_api_campaign_reach_elife_journal
     source:
       resource: '/11/stats/accounts/18ce53up4ko/reach/campaigns'
-      paramFromBigQuery:
+      paramValueFromBigQuery:
         projectName: 'elife-data-pipeline'
         sqlQuery: |-
           SELECT DISTINCT t_data.id
           FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
           JOIN UNNEST(data) AS t_data
           WHERE t_data.id IN ('git3k', 'gwdrg')
-      paramNames:
-        - campaign_ids
-        - start_time
-        - end_time
+      paramNameForBqValue: campaign_ids
+      paramNameForStartTime: start_time
+      paramNameForEndTime: end_time
       secrets:
         parametersFromFile:
           - parameterName: api_key
