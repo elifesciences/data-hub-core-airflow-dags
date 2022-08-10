@@ -27,9 +27,10 @@ twitterAdsApi:
           FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
           JOIN UNNEST(data) AS t_data
           WHERE t_data.id IN ('git3k', 'gwdrg')
-      paramNameForBqValue: campaign_ids
-      paramNameForStartTime: start_time
-      paramNameForEndTime: end_time
+      requiredParams:
+        paramNameForBqValue: campaign_ids
+        paramNameForStartTime: start_time
+        paramNameForEndTime: end_time
       secrets:
         parametersFromFile:
           - parameterName: api_key

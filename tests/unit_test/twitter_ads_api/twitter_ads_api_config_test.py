@@ -27,9 +27,10 @@ PARAM_VALUE_FROM_BQ_DICT = {
     'sqlQuery': SQL_QUERY
 }
 
-PARAM_NAME_FOR_BQ_VALUE = 'param_name_for_bq_value_1'
-PARAM_NAME_FOR_START_TIME = 'param_name_for_start_time_1'
-PARAM_NAME_FOR_END_TIME = 'param_name_for_end_time_1'
+PARAM_NAME_VALUE = 'param_name_value_1'
+REQUIRED_PARAMS_DICT = {
+    'paramName': PARAM_NAME_VALUE
+}
 
 TARGET_CONFIG = {
     'projectName': PROJECT_NAME,
@@ -113,59 +114,22 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.secrets.mapping['key1'] == secrets['key1']
         assert config[1].source.secrets.mapping['key1'] == secrets['key1']
 
-    def test_should_read_param_name_for_bq_value_if_defined_and_should_return_an_empty_str_if_not(
-        self
-    ):
+    def test_should_read_required_params_if_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict(
                 {
                     **ITEM_CONFIG_DICT_1,
                     'source': {
                         **SOURCE_CONFIG_1,
-                        'paramNameForBqValue': PARAM_NAME_FOR_BQ_VALUE
+                        'requiredParams': REQUIRED_PARAMS_DICT
                     }
                 },
                 ITEM_CONFIG_DICT_2
             )
         )
-        assert config[0].source.param_name_for_bq_value == PARAM_NAME_FOR_BQ_VALUE
-        assert config[1].source.param_name_for_bq_value == ''
-
-    def test_should_read_param_name_for_start_time_if_defined_and_should_return_an_empty_str_if_not(
-        self
-    ):
-        config = TwitterAdsApiConfig.parse_config_list_from_dict(
-            get_config_for_item_config_dict(
-                {
-                    **ITEM_CONFIG_DICT_1,
-                    'source': {
-                        **SOURCE_CONFIG_1,
-                        'paramNameForStartTime': PARAM_NAME_FOR_START_TIME
-                    }
-                },
-                ITEM_CONFIG_DICT_2
-            )
-        )
-        assert config[0].source.param_name_for_start_time == PARAM_NAME_FOR_START_TIME
-        assert config[1].source.param_name_for_start_time == ''
-
-    def test_should_read_param_name_for_end_time_if_defined_and_should_return_an_empty_str_if_not(
-        self
-    ):
-        config = TwitterAdsApiConfig.parse_config_list_from_dict(
-            get_config_for_item_config_dict(
-                {
-                    **ITEM_CONFIG_DICT_1,
-                    'source': {
-                        **SOURCE_CONFIG_1,
-                        'paramNameForEndTime': PARAM_NAME_FOR_END_TIME
-                    }
-                },
-                ITEM_CONFIG_DICT_2
-            )
-        )
-        assert config[0].source.param_name_for_end_time == PARAM_NAME_FOR_END_TIME
-        assert config[1].source.param_name_for_end_time == ''
+        assert config[0].source.required_params == REQUIRED_PARAMS_DICT
+        assert config[0].source.required_params['paramName'] == PARAM_NAME_VALUE
+        assert config[1].source.required_params == {}
 
     def test_should_read_params_from_bq_sql_query_if_defined_otherwise_should_return_an_empty_str(
         self
