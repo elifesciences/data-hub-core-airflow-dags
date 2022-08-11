@@ -24,22 +24,19 @@ def fetch_single_column_value_list_for_bigquery_source_config(
     bigquery_source_config: BigQuerySourceConfig
 ) -> Sequence[str]:
     LOGGER.debug('bigquery_source: %r', bigquery_source_config)
-    if bigquery_source_config.project_name and bigquery_source_config.sql_query:
-        try:
-            value_list = get_single_column_value_list_from_bq_query(
-                project_name=bigquery_source_config.project_name,
-                query=bigquery_source_config.sql_query
-            )
-        except google.cloud.exceptions.NotFound:
-            if bigquery_source_config.ignore_not_found:
-                LOGGER.info('caught not found, returning empty list')
-                return []
-            raise
-        LOGGER.debug('value_list: %r', value_list)
-        LOGGER.info('length of value_list: %r', len(value_list))
-        return value_list
-    LOGGER.info('bigquery_source is not defined, returning empty list')
-    return []
+    try:
+        value_list = get_single_column_value_list_from_bq_query(
+            project_name=bigquery_source_config.project_name,
+            query=bigquery_source_config.sql_query
+        )
+    except google.cloud.exceptions.NotFound:
+        if bigquery_source_config.ignore_not_found:
+            LOGGER.info('caught not found, returning empty list')
+            return []
+        raise
+    LOGGER.debug('value_list: %r', value_list)
+    LOGGER.info('length of value_list: %r', len(value_list))
+    return value_list
 
 
 def iter_dict_for_bigquery_source_config_with_exclusion(
