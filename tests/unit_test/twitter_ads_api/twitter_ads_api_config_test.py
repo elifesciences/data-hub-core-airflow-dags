@@ -141,6 +141,7 @@ class TestTwitterAdsApiConfig:
                 PROJECT_NAME
             )
         )
+
     def test_should_read_empty_str_from_bigquery_sql_query_and_project_name_if_not_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
