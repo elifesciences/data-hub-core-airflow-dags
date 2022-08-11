@@ -256,22 +256,22 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             params_dict=API_QUERY_PARAMETERS_DICT
         )
 
-    # def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
-    #     self,
-    #     fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
-    #     get_param_dict_from_api_query_parameters_mock : MagicMock,
-    #     get_yesterdays_date_mock: MagicMock
-    # ):
-    #     fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
-    #         FROM_BIGQUERY_PARAM_VALUE
-    #     )
-    #     get_yesterdays_date_mock.isoformat.return_value = '2022-08-03'
-    #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
-    #         SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE
-    #     ))
-    #     get_param_dict_from_api_query_parameters_mock.assert_called_with(
-    #         api_query_parameters=API_QUERY_PARAMETERS,
-    #         value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
-    #         start_time=START_TIME_PARAM_VALUE,
-    #         end_time='2022-08-03'
-    #     )
+    def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
+        self,
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock : MagicMock,
+        get_yesterdays_date_mock: MagicMock
+    ):
+        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
+            FROM_BIGQUERY_PARAM_VALUE
+        )
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 3).date()
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE
+        ))
+        get_param_dict_from_api_query_parameters_mock.assert_called_with(
+            api_query_parameters=API_QUERY_PARAMETERS,
+            value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
+            start_time=START_TIME_PARAM_VALUE,
+            end_time='2022-08-03'
+        )
