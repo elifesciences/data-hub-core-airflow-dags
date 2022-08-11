@@ -80,24 +80,6 @@ def get_param_dict_from_api_query_parameters(
     }
 
 
-def get_param_dict_from_api_query_parameters_v2(
-    api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
-) -> dict:
-    value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-        api_query_parameters_config.parameter_values.from_bigquery
-    )
-    today = date.today()
-    yesterday = today - timedelta(days=1)
-    for value_from_bq in value_list_from_bq:
-        return {
-            api_query_parameters_config.parameter_names_for.bigquery_value: value_from_bq,
-            api_query_parameters_config.parameter_names_for.start_time: (
-                api_query_parameters_config.parameter_values.start_time_value
-            ),
-            api_query_parameters_config.parameter_names_for.end_time: yesterday.isoformat()
-        }
-
-
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:

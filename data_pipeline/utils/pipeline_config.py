@@ -1,7 +1,7 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, T, Mapping, NamedTuple, Sequence
+from typing import Any, Callable, T, Mapping, NamedTuple, Optional, Sequence
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
@@ -25,15 +25,15 @@ SECRET_VALUE_PLACEHOLDER = '***'
 
 
 class BigQuerySourceConfig(NamedTuple):
-    project_name: str = ''
-    sql_query: str = ''
+    project_name: str
+    sql_query: str
     ignore_not_found: bool = False
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
         return BigQuerySourceConfig(
-            project_name=source_config_dict.get('projectName', ''),
-            sql_query=source_config_dict.get('sqlQuery', ''),
+            project_name=source_config_dict['projectName'],
+            sql_query=source_config_dict['sqlQuery'],
             ignore_not_found=source_config_dict.get('ignoreNotFound', False)
         )
 
