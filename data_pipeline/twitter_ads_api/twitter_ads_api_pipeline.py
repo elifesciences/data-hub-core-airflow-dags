@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 import logging
 from typing import Any, Mapping, Optional, Sequence
 from twitter_ads.http import Request
