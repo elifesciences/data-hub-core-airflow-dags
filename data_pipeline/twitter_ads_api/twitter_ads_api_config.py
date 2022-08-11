@@ -58,13 +58,18 @@ class TwitterAdsApiSourceConfig(NamedTuple):
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':
-        return TwitterAdsApiSourceConfig(
-            resource=source_config_dict['resource'],
-            secrets=MappingConfig.from_dict(source_config_dict['secrets']),
-            api_query_parameters=TwitterAdsApiApiQueryParametersConfig.from_dict(
-                source_config_dict.get('apiQueryParameters', {})
+        if source_config_dict.get('apiQueryParameters', {}):
+            return TwitterAdsApiSourceConfig(
+                resource=source_config_dict['resource'],
+                secrets=MappingConfig.from_dict(source_config_dict['secrets']),
+                api_query_parameters=TwitterAdsApiApiQueryParametersConfig.from_dict(
+                    source_config_dict.get('apiQueryParameters', {})
+                )
             )
-        )
+        return TwitterAdsApiSourceConfig(
+                resource=source_config_dict['resource'],
+                secrets=MappingConfig.from_dict(source_config_dict['secrets'])
+            )
 
 
 class TwitterAdsApiConfig(NamedTuple):
