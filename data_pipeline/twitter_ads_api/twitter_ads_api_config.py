@@ -1,4 +1,4 @@
-from typing import NamedTuple, Sequence
+from typing import NamedTuple, Optional, Sequence
 
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
@@ -9,7 +9,7 @@ from data_pipeline.utils.pipeline_config import (
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
-    start_time_value: str = ''
+    start_time_value: Optional[str] = None
 
     @staticmethod
     def from_dict(parameter_values_config_dict: dict) -> 'TwitterAdsApiParameterValuesConfig':
@@ -22,9 +22,9 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
 
 
 class TwitterAdsApiParameterNamesForConfig(NamedTuple):
-    bigquery_value: str = ''
-    start_time: str = ''
-    end_time: str = ''
+    bigquery_value: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
 
     @staticmethod
     def from_dict(parameter_names_for_config_dict: dict) -> 'TwitterAdsApiParameterNamesForConfig':
