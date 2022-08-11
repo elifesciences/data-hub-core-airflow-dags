@@ -18,6 +18,9 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
+    TwitterAdsApiApiQueryParametersConfig,
+    TwitterAdsApiParameterNamesForConfig,
+    TwitterAdsApiParameterValuesConfig,
     TwitterAdsApiSourceConfig
 )
 
@@ -31,19 +34,33 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     secrets=SECRETS
 )
 
-PARAM_NAME_VALUE = 'param_name_value_1'
+FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
+START_TIME_PARAM_VALUE = 'start_time_value_1'
 
-REQUIRED_PARAMS_DICT = {
-    'paramName': PARAM_NAME_VALUE
-}
+PARAM_NAME_FOR_BIGQUERY_VALUE = 'param_name_for_bq_value_1'
+PARAM_NAME_FOR_START_TIME = 'param_name_for_start_time'
+PARAM_NAME_FOR_END_TIME = 'param_name_for_end_time'
 
-PARAM_VALUES_FROM_BQ = ['bq_param_1']
+PARAMETER_NAMES_FOR = TwitterAdsApiParameterNamesForConfig(
+    bigquery_value=PARAM_NAME_FOR_BIGQUERY_VALUE,
+    start_time=PARAM_NAME_FOR_START_TIME,
+    end_time=PARAM_NAME_FOR_END_TIME
+)
+
+PARAMETER_VALUES = TwitterAdsApiParameterValuesConfig(
+    from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
+    start_time_value=START_TIME_PARAM_VALUE
+)
+
+API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
+    parameter_values=PARAMETER_VALUES,
+    parameter_names_for=PARAMETER_NAMES_FOR
+)
 
 SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS,
-    param_value_from_bigquery=PARAM_VALUES_FROM_BQ,
-    required_params=REQUIRED_PARAMS_DICT
+    api_query_parameters=API_QUERY_PARAMETERS
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -64,14 +81,21 @@ PROVENANCE_1 = {
     'request_resource': RESOURCE
 }
 
-PARAM_DICT_1 = {
-    'param_name_1': 'param_value_1'
+API_QUERY_PARAMETERS_DICT = {
+    'apiQueryParameterName': 'api_query_parameter_value_1'
 }
 
 
 @pytest.fixture(name='datetime_mock', autouse=True)
 def _datetime_mock():
     with patch.object(twitter_ads_api_pipeline_module, 'datetime') as mock:
+        mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
+        yield mock
+
+
+@pytest.fixture(name='get_yesterdays_date_mock', autouse=True)
+def _get_yesterdays_date_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'get_yesterdays_date') as mock:
         mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
         yield mock
 
@@ -124,13 +148,13 @@ def _fetch_single_column_value_list_for_bigquery_source_config_mock():
 
 
 @pytest.fixture(
-    name='get_param_dict_from_required_params_and_value_from_bq_mock',
+    name='get_param_dict_from_api_query_parameters_mock',
     autouse=True
 )
-def _get_param_dict_from_required_params_and_value_from_bq_mock():
+def _get_param_dict_from_api_query_parameters_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
-        'get_param_dict_from_required_params_and_value_from_bq'
+        'get_param_dict_from_api_query_parameters'
     ) as mock:
         yield mock
 
@@ -142,11 +166,14 @@ class TestGetProvenance:
 
     def test_should_return_provenance_dict_with_requested_params_if_params_dict_defined(self):
         actual_return_dict = get_provenance(
-            source_config=SOURCE_CONFIG_1, params_dict=REQUIRED_PARAMS_DICT
+            source_config=SOURCE_CONFIG_1, params_dict=API_QUERY_PARAMETERS_DICT
         )
         assert actual_return_dict == {
             **PROVENANCE_1,
-            'request_params': [{'name': 'paramName', 'value': REQUIRED_PARAMS_DICT['paramName']}]
+            'request_params': [{
+                'name': 'apiQueryParameterName',
+                'value': API_QUERY_PARAMETERS_DICT['apiQueryParameterName']
+            }]
         }
 
 
@@ -173,13 +200,13 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_1,
-            REQUIRED_PARAMS_DICT
+            API_QUERY_PARAMETERS_DICT
         )
         request_class_mock.assert_called_with(
             client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_1),
             method="GET",
             resource=RESOURCE,
-            params=REQUIRED_PARAMS_DICT
+            params=API_QUERY_PARAMETERS_DICT
         )
 
     def test_should_return_response_json_with_provenance(
@@ -197,7 +224,7 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
 
 
 class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
-    def test_should_pass_none_to_params_dict_if_required_params_not_defined(
+    def test_should_pass_none_to_params_dict_if_api_query_parameters_not_defined(
         self,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock
     ):
@@ -209,22 +236,42 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             params_dict=None
         )
 
-    def test_should_pass_params_dict_if_required_params_defined(
+    def test_should_pass_params_dict_if_api_query_parameters_defined(
         self,
         fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
-        get_param_dict_from_required_params_and_value_from_bq_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
         fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
-            PARAM_VALUES_FROM_BQ
+            API_QUERY_PARAMETERS
         )
-        get_param_dict_from_required_params_and_value_from_bq_mock.return_value = (
-            PARAM_DICT_1
+        get_param_dict_from_api_query_parameters_mock.return_value = (
+            API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE,
-            params_dict=PARAM_DICT_1
+            params_dict=API_QUERY_PARAMETERS_DICT
         )
+
+    # def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
+    #     self,
+    #     fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+    #     get_param_dict_from_api_query_parameters_mock : MagicMock,
+    #     get_yesterdays_date_mock: MagicMock
+    # ):
+    #     fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
+    #         FROM_BIGQUERY_PARAM_VALUE
+    #     )
+    #     get_yesterdays_date_mock.isoformat.return_value = '2022-08-03'
+    #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
+    #         SOURCE_CONFIG_WITH_REQUIRED_PARAMS_BQ_VALUE
+    #     ))
+    #     get_param_dict_from_api_query_parameters_mock.assert_called_with(
+    #         api_query_parameters=API_QUERY_PARAMETERS,
+    #         value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
+    #         start_time=START_TIME_PARAM_VALUE,
+    #         end_time='2022-08-03'
+    #     )

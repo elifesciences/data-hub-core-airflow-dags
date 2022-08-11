@@ -5,9 +5,11 @@ from twitter_ads.http import Request
 from twitter_ads.client import Client
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
+    TwitterAdsApiApiQueryParametersConfig,
     TwitterAdsApiConfig,
     TwitterAdsApiSourceConfig
 )
+from data_pipeline.utils.data_pipeline_timestamp import get_yesterdays_date
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -65,35 +67,50 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
     })
 
 
-def get_param_dict_from_required_params_and_value_from_bq(
-    source_config: TwitterAdsApiSourceConfig,
+def get_param_dict_from_api_query_parameters(
+    api_query_parameters: TwitterAdsApiApiQueryParametersConfig,
     value_from_bq: str,
     start_time: str,
     end_time: str
-):
+) -> dict:
     return {
-        source_config.required_params['paramNameForBqValue']: value_from_bq,
-        source_config.required_params['paramNameForStartTime']: start_time,
-        source_config.required_params['paramNameForEndTime']: end_time
+        api_query_parameters.parameter_names_for.bigquery_value: value_from_bq,
+        api_query_parameters.parameter_names_for.start_time: start_time,
+        api_query_parameters.parameter_names_for.end_time: end_time
     }
+
+
+def get_param_dict_from_api_query_parameters_v2(
+    api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
+) -> dict:
+    value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
+        api_query_parameters_config.parameter_values.from_bigquery
+    )
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    for value_from_bq in value_list_from_bq:
+        return {
+            api_query_parameters_config.parameter_names_for.bigquery_value: value_from_bq,
+            api_query_parameters_config.parameter_names_for.start_time: (
+                api_query_parameters_config.parameter_values.start_time_value
+            ),
+            api_query_parameters_config.parameter_names_for.end_time: yesterday.isoformat()
+        }
 
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
-    if source_config.required_params:
+    if source_config.api_query_parameters:
         value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-            source_config.param_value_from_bigquery
+            source_config.api_query_parameters.parameter_values.from_bigquery
         )
-        today = date.today()
-        yesterday = today - timedelta(days=1)
         for value_from_bq in value_list_from_bq:
-            params_dict = get_param_dict_from_required_params_and_value_from_bq(
-                source_config=source_config,
+            params_dict = get_param_dict_from_api_query_parameters(
+                api_query_parameters=source_config.api_query_parameters,
                 value_from_bq=value_from_bq,
-                # earliest campaign creation date for initial load:
-                start_time='2018-05-01',
-                end_time=yesterday.isoformat()
+                start_time=source_config.api_query_parameters.parameter_values.start_time_value,
+                end_time=get_yesterdays_date().isoformat()
             )
 
             yield get_bq_compatible_json_response_from_resource_with_provenance(

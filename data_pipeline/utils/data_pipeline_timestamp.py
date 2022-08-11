@@ -1,6 +1,8 @@
 from datetime import (
     datetime,
-    timezone
+    timezone,
+    date,
+    timedelta
 )
 import dateparser
 import pytz
@@ -45,3 +47,8 @@ def get_tz_aware_datetime(datetime_obj: datetime):
     if not is_datetime_tz_aware(datetime_obj):
         datetime_obj = datetime_obj.replace(tzinfo=pytz.UTC)
     return datetime_obj
+
+
+def get_yesterdays_date() -> datetime.date:
+    today = date.today()
+    return today - timedelta(days=1)
