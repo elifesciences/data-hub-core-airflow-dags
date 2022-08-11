@@ -259,7 +259,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
         self,
         fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
-        get_param_dict_from_api_query_parameters_mock : MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_yesterdays_date_mock: MagicMock
     ):
         fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
