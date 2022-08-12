@@ -123,7 +123,9 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters == {}
 
-    def test_should_read_defined_parameter_values_and_read_and_empty_string_or_list_for_not_defined(self):
+    def test_should_read_defined_parameter_values_and_read_empty_string_or_list_for_not_defined(
+        self
+    ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
                 ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
