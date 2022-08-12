@@ -1,18 +1,55 @@
+from typing import Sequence
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiConfig
 )
 
-RESOURCE = 'resource_1'
+RESOURCE_1 = 'resource_1'
+RESOURCE_2 = 'resource_2'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
 
-SOURCE_CONFIG = {
-    'resource': RESOURCE,
-    'secrets': SECRETS
-}
+SQL_QUERY = 'query_1'
 
 PROJECT_NAME = 'project_1'
 DATASET_NAME = 'dataset_1'
 TABLE_NAME = 'table_1'
+
+FROM_BIGQUERY_DICT = {
+    'projectName': PROJECT_NAME,
+    'sqlQuery': SQL_QUERY
+}
+
+START_TIME_VALUE_1 = 'start_time_value_1'
+
+PARAMETER_VALUES_DICT = {
+    'fromBigQuery': FROM_BIGQUERY_DICT,
+    'startTimeValue': START_TIME_VALUE_1
+}
+
+BIGQUERY_VALUE_1 = 'bigquery_value_1'
+START_TIME_1 = 'start_time_1'
+END_TIME_1 = 'end_time_1'
+
+PARAMETER_NAMES_FOR_DICT = {
+    'bigqueryValue': BIGQUERY_VALUE_1,
+    'startTime': START_TIME_1,
+    'endTime': END_TIME_1
+}
+
+API_QUERY_PARAMETERS_DICT = {
+    'parameterValues': PARAMETER_VALUES_DICT,
+    'parameterNamesFor': PARAMETER_NAMES_FOR_DICT
+}
+
+SOURCE_CONFIG_WITHOUT_API_QUERY_PARAMETERS = {
+    'resource': RESOURCE_1,
+    'secrets': SECRETS
+}
+
+SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS = {
+    'resource': RESOURCE_2,
+    'secrets': SECRETS,
+    'apiQueryParameters': API_QUERY_PARAMETERS_DICT
+}
 
 TARGET_CONFIG = {
     'projectName': PROJECT_NAME,
@@ -20,48 +57,107 @@ TARGET_CONFIG = {
     'tableName': TABLE_NAME
 }
 
-ITEM_CONFIG_DICT = {
-    'source': SOURCE_CONFIG,
+ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS = {
+    'source': SOURCE_CONFIG_WITHOUT_API_QUERY_PARAMETERS,
+    'target': TARGET_CONFIG
+}
+
+ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS = {
+    'source': SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
     'target': TARGET_CONFIG
 }
 
 
-def get_config_for_item_config_dict(item_dict: dict) -> dict:
-    return {'twitterAdsApi': [item_dict]}
+def get_config_for_item_config_dict(item_dict_list: Sequence[dict]) -> dict:
+    return {'twitterAdsApi': item_dict_list}
 
 
-CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
+CONFIG_DICT = get_config_for_item_config_dict([
+    ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS,
+    ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+])
 
 
 class TestTwitterAdsApiConfig:
     def test_should_read_resource(self):
-        config = TwitterAdsApiConfig.from_dict(CONFIG_DICT)
-        assert config.source.resource == RESOURCE
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].source.resource == RESOURCE_1
+        assert config[1].source.resource == RESOURCE_2
 
     def test_should_read_target_project_dataset_and_table_name(self):
-        config = TwitterAdsApiConfig.from_dict(CONFIG_DICT)
-        assert config.target.project_name == PROJECT_NAME
-        assert config.target.dataset_name == DATASET_NAME
-        assert config.target.table_name == TABLE_NAME
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].target.project_name == PROJECT_NAME
+        assert config[0].target.dataset_name == DATASET_NAME
+        assert config[0].target.table_name == TABLE_NAME
 
     def test_should_read_api_secrets(self):
         secrets = {'key1': 'value1', 'key2': 'value2'}
-        config = TwitterAdsApiConfig.from_dict(get_config_for_item_config_dict({
-            **ITEM_CONFIG_DICT,
-            'source': {
-                **SOURCE_CONFIG,
-                'secrets': secrets
-            }
-        }))
-        assert config.source.secrets.mapping == secrets
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                {
+                    **ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS,
+                    'source': {
+                        **SOURCE_CONFIG_WITHOUT_API_QUERY_PARAMETERS,
+                        'secrets': secrets
+                    }
+                },
+                {
+                    **ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS,
+                    'source': {
+                        **SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+                        'secrets': secrets
+                    }
+                }
+            ])
+        )
+        assert config[0].source.secrets.mapping == secrets
+        assert config[1].source.secrets.mapping == secrets
 
-    def test_should_read_api_secrets_by_key(self):
-        secrets = {'key1': 'value1', 'key2': 'value2'}
-        config = TwitterAdsApiConfig.from_dict(get_config_for_item_config_dict({
-            **ITEM_CONFIG_DICT,
-            'source': {
-                **SOURCE_CONFIG,
-                'secrets': secrets
-            }
-        }))
-        assert config.source.secrets.mapping['key1'] == secrets['key1']
+    def test_should_read_empty_dict_for_api_query_parameters_if_not_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS
+            ])
+        )
+        assert config[0].source.api_query_parameters == {}
+
+    def test_should_read_start_time_value_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+            ])
+        )
+        assert config[0].source.api_query_parameters.parameter_values.start_time_value == (
+            START_TIME_VALUE_1
+        )
+
+    def test_should_read_from_bigquery_sql_query_and_project_name_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+            ])
+        )
+        assert config[0].source.api_query_parameters.parameter_values.from_bigquery.sql_query == (
+            SQL_QUERY
+        )
+        assert (
+            config[0].source.api_query_parameters.parameter_values.from_bigquery.project_name == (
+                PROJECT_NAME
+            )
+        )
+
+    def test_should_read_parameter_names_values_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+            ])
+        )
+        assert config[0].source.api_query_parameters.parameter_names_for.bigquery_value == (
+            BIGQUERY_VALUE_1
+        )
+        assert config[0].source.api_query_parameters.parameter_names_for.start_time == (
+            START_TIME_1
+        )
+        assert config[0].source.api_query_parameters.parameter_names_for.end_time == (
+            END_TIME_1
+        )
