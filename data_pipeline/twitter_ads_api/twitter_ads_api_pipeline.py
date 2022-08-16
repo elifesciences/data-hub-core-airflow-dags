@@ -68,15 +68,23 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
 
 
 def get_param_dict_from_api_query_parameters(
-    api_query_parameters: TwitterAdsApiApiQueryParametersConfig,
+    api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     value_from_bq: str,
     start_time: str,
-    end_time: str
+    end_time: str,
+    placement: Optional[str] = None
 ) -> dict:
+    if placement:
+        return {
+            api_query_parameters_config.parameter_names_for.bigquery_value: value_from_bq,
+            api_query_parameters_config.parameter_names_for.start_time: start_time,
+            api_query_parameters_config.parameter_names_for.end_time: end_time,
+            api_query_parameters_config.parameter_names_for.placement: placement
+        }
     return {
-        api_query_parameters.parameter_names_for.bigquery_value: value_from_bq,
-        api_query_parameters.parameter_names_for.start_time: start_time,
-        api_query_parameters.parameter_names_for.end_time: end_time
+        api_query_parameters_config.parameter_names_for.bigquery_value: value_from_bq,
+        api_query_parameters_config.parameter_names_for.start_time: start_time,
+        api_query_parameters_config.parameter_names_for.end_time: end_time
     }
 
 
@@ -87,18 +95,36 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
             source_config.api_query_parameters.parameter_values.from_bigquery
         )
-        for value_from_bq in value_list_from_bq:
-            params_dict = get_param_dict_from_api_query_parameters(
-                api_query_parameters=source_config.api_query_parameters,
-                value_from_bq=value_from_bq,
-                start_time=source_config.api_query_parameters.parameter_values.start_time_value,
-                end_time=get_yesterdays_date().isoformat()
-            )
-
-            yield get_bq_compatible_json_response_from_resource_with_provenance(
-                    source_config=source_config,
-                    params_dict=params_dict
+        if (
+            source_config.api_query_parameters.parameter_names_for.placement and
+            source_config.api_query_parameters.parameter_values.placement_value
+        ):
+            for value_from_bq in value_list_from_bq:
+                params_dict = get_param_dict_from_api_query_parameters(
+                    api_query_parameters_config=source_config.api_query_parameters,
+                    value_from_bq=value_from_bq,
+                    start_time=source_config.api_query_parameters.parameter_values.start_time_value,
+                    end_time=source_config.api_query_parameters.parameter_values.end_time_value,
+                    placement=source_config.api_query_parameters.parameter_values.placement_value[0]
                 )
+
+                yield get_bq_compatible_json_response_from_resource_with_provenance(
+                        source_config=source_config,
+                        params_dict=params_dict
+                    )
+        else:
+            for value_from_bq in value_list_from_bq:
+                params_dict = get_param_dict_from_api_query_parameters(
+                    api_query_parameters_config=source_config.api_query_parameters,
+                    value_from_bq=value_from_bq,
+                    start_time=source_config.api_query_parameters.parameter_values.start_time_value,
+                    end_time=get_yesterdays_date().isoformat()
+                )
+
+                yield get_bq_compatible_json_response_from_resource_with_provenance(
+                        source_config=source_config,
+                        params_dict=params_dict
+                    )
     else:
         yield get_bq_compatible_json_response_from_resource_with_provenance(
                 source_config=source_config,
