@@ -72,7 +72,6 @@ twitterAdsApi:
               FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
               JOIN UNNEST(data) AS t_data
               WHERE t_data.id IN ('git3k', 'gwdrg')
-          # earliest campaign creation date for initial load:
           startTimeValue: '2022-01-12'
           endTimeValue: '2022-01-13'
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
