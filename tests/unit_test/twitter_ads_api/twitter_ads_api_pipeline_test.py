@@ -1,7 +1,6 @@
 from datetime import datetime
-from unittest.mock import ANY, call, patch, MagicMock
+from unittest.mock import call, patch, MagicMock
 import pytest
-import logging
 
 from data_pipeline.twitter_ads_api import (
     twitter_ads_api_pipeline as twitter_ads_api_pipeline_module
@@ -24,8 +23,6 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiParameterValuesConfig,
     TwitterAdsApiSourceConfig
 )
-
-LOGGER = logging.getLogger(__name__)
 
 RESOURCE = 'resource_1'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
@@ -120,6 +117,7 @@ API_QUERY_PARAMETERS_DICT = {
 def _datetime_mock():
     with patch.object(twitter_ads_api_pipeline_module, 'datetime') as mock:
         mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
+        mock.strptime = datetime.strptime
         yield mock
 
 
@@ -185,6 +183,18 @@ def _get_param_dict_from_api_query_parameters_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
         'get_param_dict_from_api_query_parameters'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(
+    name='iter_dict_from_bq_query_for_bigquery_source_config_mock',
+    autouse=True
+)
+def _iter_dict_from_bq_query_for_bigquery_source_config_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'iter_dict_from_bq_query_for_bigquery_source_config'
     ) as mock:
         yield mock
 
@@ -338,13 +348,15 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
 
     def test_sould_pass_params_dict_with_placement_defined(
         self,
-        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_yesterdays_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
-        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
-            API_QUERY_PARAMETERS_WITH_PLACEMENT
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
         )
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
         )
@@ -358,31 +370,35 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_placement_defined(
         self,
-        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_yesterdays_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
-        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
-            FROM_BIGQUERY_PARAM_VALUE
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
         )
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT
         ))
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS_WITH_PLACEMENT,
-            value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
-            start_time=START_TIME_PARAM_VALUE,
-            end_time=END_TIME_PARAM_VALUE,
+            value_from_bq='id_1',
+            start_time='2022-08-01',
+            end_time='2022-08-02',
             placement=PLACEMENT_PARAM_VALUE[0]
         )
 
     def test_should_call_get_param_dict_for_each_placement_value(
         self,
-        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_yesterdays_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
-        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
-            FROM_BIGQUERY_PARAM_VALUE
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
         )
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 placement_value=['placement_value_1', 'placement_value_2']
@@ -393,20 +409,60 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 api_query_parameters=api_query_parameters
             )
         ))
+
         get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
-                start_time=START_TIME_PARAM_VALUE,
-                end_time=END_TIME_PARAM_VALUE,
+                value_from_bq='id_1',
+                start_time='2022-08-01',
+                end_time='2022-08-02',
                 placement='placement_value_1'
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
-                start_time=START_TIME_PARAM_VALUE,
-                end_time=END_TIME_PARAM_VALUE,
+                value_from_bq='id_1',
+                start_time='2022-08-01',
+                end_time='2022-08-02',
                 placement='placement_value_2'
             )
-        ], any_order=True
-    )
+        ], any_order=True)
+
+    def test_should_call_get_param_dict_for_every_day_from_bq_campaign_start_date_till_yesterday(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_yesterdays_date_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
+        )
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 3).date()
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
+            parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
+                start_time_value=None,
+                end_time_value=None
+            )
+        )
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT._replace(
+                api_query_parameters=api_query_parameters
+            )
+        ))
+        # print('call_list: ', get_param_dict_from_api_query_parameters_mock.call_args_list)
+
+        get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
+            call(
+                api_query_parameters_config=api_query_parameters,
+                value_from_bq='id_1',
+                start_time='2022-08-01',
+                end_time='2022-08-02',
+                placement=PLACEMENT_PARAM_VALUE[0]
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                value_from_bq='id_1',
+                start_time='2022-08-02',
+                end_time='2022-08-03',
+                placement=PLACEMENT_PARAM_VALUE[0]
+            )
+        ], any_order=True)

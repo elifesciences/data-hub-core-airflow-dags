@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from typing import Any, Mapping, Optional, Sequence
 from twitter_ads.http import Request
@@ -15,7 +15,8 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import (
-    fetch_single_column_value_list_for_bigquery_source_config
+    fetch_single_column_value_list_for_bigquery_source_config,
+    iter_dict_from_bq_query_for_bigquery_source_config
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -92,31 +93,42 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
     if source_config.api_query_parameters:
-        value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-            source_config.api_query_parameters.parameter_values.from_bigquery
-        )
         placement_value_list = source_config.api_query_parameters.parameter_values.placement_value
         if (
             source_config.api_query_parameters.parameter_names_for.placement and
             placement_value_list
         ):
-            for value_from_bq in value_list_from_bq:
+            dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
+                source_config.api_query_parameters.parameter_values.from_bigquery
+            ))
+            LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
+            for dict_value_from_bq in dict_value_list_from_bq:
                 for placement_value in placement_value_list:
-                    params_dict = get_param_dict_from_api_query_parameters(
-                        api_query_parameters_config=source_config.api_query_parameters,
-                        value_from_bq=value_from_bq,
-                        start_time=(
-                            source_config.api_query_parameters.parameter_values.start_time_value
-                        ),
-                        end_time=source_config.api_query_parameters.parameter_values.end_time_value,
-                        placement=placement_value
+                    start_time_value = (
+                        datetime.strptime(dict_value_from_bq['create_date'], '%Y-%m-%d').date()
                     )
-
-                    yield get_bq_compatible_json_response_from_resource_with_provenance(
-                            source_config=source_config,
-                            params_dict=params_dict
+                    yesterday_date = get_yesterdays_date()
+                    LOGGER.debug("start_time_value: %r", start_time_value)
+                    LOGGER.debug("yesterday: %r", yesterday_date)
+                    while start_time_value < yesterday_date:
+                        end_time_value = start_time_value + timedelta(days=1)
+                        params_dict = get_param_dict_from_api_query_parameters(
+                            api_query_parameters_config=source_config.api_query_parameters,
+                            value_from_bq=dict_value_from_bq['campaign_id'],
+                            start_time=start_time_value.isoformat(),
+                            end_time=end_time_value.isoformat(),
+                            placement=placement_value
                         )
+                        start_time_value = end_time_value
+
+                        yield get_bq_compatible_json_response_from_resource_with_provenance(
+                                source_config=source_config,
+                                params_dict=params_dict
+                            )
         else:
+            value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
+                source_config.api_query_parameters.parameter_values.from_bigquery
+            )
             for value_from_bq in value_list_from_bq:
                 params_dict = get_param_dict_from_api_query_parameters(
                     api_query_parameters_config=source_config.api_query_parameters,

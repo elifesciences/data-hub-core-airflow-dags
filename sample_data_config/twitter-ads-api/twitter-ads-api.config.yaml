@@ -64,16 +64,17 @@ twitterAdsApi:
           - parameterName: access_token_secret
             filePathEnvName: TWITTER_ACCESS_TOKEN_SECRET_FILE_PATH
       apiQueryParameters:
+        useStartTimeFromBigQuery: True
         parameterValues:
           fromBigQuery:
             projectName: 'elife-data-pipeline'
             sqlQuery: |-
-              SELECT DISTINCT t_data.id
+              SELECT DISTINCT t_data.id AS campaign_id, CAST(CAST(t_data.created_at AS DATE) AS STRING) AS create_date
               FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
               JOIN UNNEST(data) AS t_data
               WHERE t_data.id IN ('git3k', 'gwdrg')
-          startTimeValue: '2022-01-12'
-          endTimeValue: '2022-01-13'
+          # startTimeValue: '2022-01-12'
+          # endTimeValue: '2022-01-13'
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
         parameterNamesFor:
           bigqueryValue: entity_ids
