@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import ANY, call, patch, MagicMock
 import pytest
 import logging
 
@@ -374,3 +374,39 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             end_time=END_TIME_PARAM_VALUE,
             placement=PLACEMENT_PARAM_VALUE[0]
         )
+
+    def test_should_call_get_param_dict_for_each_placement_value(
+        self,
+        fetch_single_column_value_list_for_bigquery_source_config_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock,
+    ):
+        fetch_single_column_value_list_for_bigquery_source_config_mock.return_value = (
+            FROM_BIGQUERY_PARAM_VALUE
+        )
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
+            parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
+                placement_value=['placement_value_1', 'placement_value_2']
+            )
+        )
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT._replace(
+                api_query_parameters=api_query_parameters
+            )
+        ))
+        get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
+            call(
+                api_query_parameters_config=api_query_parameters,
+                value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
+                start_time=START_TIME_PARAM_VALUE,
+                end_time=END_TIME_PARAM_VALUE,
+                placement='placement_value_1'
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
+                start_time=START_TIME_PARAM_VALUE,
+                end_time=END_TIME_PARAM_VALUE,
+                placement='placement_value_2'
+            )
+        ], any_order=True
+    )
