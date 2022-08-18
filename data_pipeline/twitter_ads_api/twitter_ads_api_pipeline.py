@@ -113,7 +113,11 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                     LOGGER.debug("start_time_value: %r", start_time_value)
                     LOGGER.debug("yesterday: %r", yesterday_date)
                     while start_time_value < yesterday_date:
-                        end_time_value = start_time_value + timedelta(days=1)
+                        seven_days_after_start_time_value = start_time_value + timedelta(days=7)
+                        if seven_days_after_start_time_value > yesterday_date:
+                            end_time_value = yesterday_date
+                        else:
+                            end_time_value = start_time_value + timedelta(days=7)
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,
                             value_from_bq=dict_value_from_bq['campaign_id'],

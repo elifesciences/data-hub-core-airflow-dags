@@ -428,7 +428,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             )
         ], any_order=True)
 
-    def test_should_call_get_param_dict_for_every_day_from_bq_campaign_start_date_till_yesterday(
+    def test_should_call_get_param_dict_for_every_seven_days_from_start_date_till_yesterday(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
         get_yesterdays_date_mock: MagicMock,
@@ -437,7 +437,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
         )
-        get_yesterdays_date_mock.return_value = datetime(2022, 8, 3).date()
+        get_yesterdays_date_mock.return_value = datetime(2022, 8, 17).date()
         api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 start_time_value=None,
@@ -456,14 +456,21 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 api_query_parameters_config=api_query_parameters,
                 value_from_bq='id_1',
                 start_time='2022-08-01',
-                end_time='2022-08-02',
+                end_time='2022-08-08',
                 placement=PLACEMENT_PARAM_VALUE[0]
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
                 value_from_bq='id_1',
-                start_time='2022-08-02',
-                end_time='2022-08-03',
+                start_time='2022-08-08',
+                end_time='2022-08-15',
+                placement=PLACEMENT_PARAM_VALUE[0]
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                value_from_bq='id_1',
+                start_time='2022-08-15',
+                end_time='2022-08-17',
                 placement=PLACEMENT_PARAM_VALUE[0]
             )
         ], any_order=True)
