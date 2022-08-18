@@ -93,13 +93,15 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
     if source_config.api_query_parameters:
-        placement_value_list = source_config.api_query_parameters.parameter_values.placement_value
+        api_query_parameters_config = source_config.api_query_parameters
+        placement_value_list = api_query_parameters_config.parameter_values.placement_value
         if (
-            source_config.api_query_parameters.parameter_names_for.placement and
-            placement_value_list
+            api_query_parameters_config.parameter_names_for.placement and
+            placement_value_list and
+            api_query_parameters_config.use_start_time_from_bigquery
         ):
             dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
-                source_config.api_query_parameters.parameter_values.from_bigquery
+                api_query_parameters_config.parameter_values.from_bigquery
             ))
             LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
             for dict_value_from_bq in dict_value_list_from_bq:
@@ -113,7 +115,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                     while start_time_value < yesterday_date:
                         end_time_value = start_time_value + timedelta(days=1)
                         params_dict = get_param_dict_from_api_query_parameters(
-                            api_query_parameters_config=source_config.api_query_parameters,
+                            api_query_parameters_config=api_query_parameters_config,
                             value_from_bq=dict_value_from_bq['campaign_id'],
                             start_time=start_time_value.isoformat(),
                             end_time=end_time_value.isoformat(),
@@ -127,13 +129,13 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                             )
         else:
             value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-                source_config.api_query_parameters.parameter_values.from_bigquery
+                api_query_parameters_config.parameter_values.from_bigquery
             )
             for value_from_bq in value_list_from_bq:
                 params_dict = get_param_dict_from_api_query_parameters(
-                    api_query_parameters_config=source_config.api_query_parameters,
+                    api_query_parameters_config=api_query_parameters_config,
                     value_from_bq=value_from_bq,
-                    start_time=source_config.api_query_parameters.parameter_values.start_time_value,
+                    start_time=api_query_parameters_config.parameter_values.start_time_value,
                     end_time=get_yesterdays_date().isoformat()
                 )
 
