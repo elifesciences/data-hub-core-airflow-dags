@@ -33,38 +33,38 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
 )
 
 FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
-START_TIME_PARAM_VALUE = 'start_time_value_1'
-END_TIME_PARAM_VALUE = 'end_time_value_1'
+START_DATE_PARAM_VALUE = 'start_date_value_1'
+END_DATE_PARAM_VALUE = 'end_date_value_1'
 PLACEMENT_PARAM_VALUE = ['placement_value_1']
 
 PARAM_NAME_FOR_BIGQUERY_VALUE = 'param_name_for_bq_value_1'
-PARAM_NAME_FOR_START_TIME = 'param_name_for_start_time_1'
-PARAM_NAME_FOR_END_TIME = 'param_name_for_end_time_1'
+PARAM_NAME_FOR_START_TIME = 'param_name_for_start_date_1'
+PARAM_NAME_FOR_END_TIME = 'param_name_for_end_date_1'
 PARAM_NAME_FOR_PLACEMENT = 'param_name_for_placement_1'
 
 PARAMETER_NAMES_FOR = TwitterAdsApiParameterNamesForConfig(
-    bigquery_value=PARAM_NAME_FOR_BIGQUERY_VALUE,
-    start_time=PARAM_NAME_FOR_START_TIME,
-    end_time=PARAM_NAME_FOR_END_TIME
+    entity_id=PARAM_NAME_FOR_BIGQUERY_VALUE,
+    start_date=PARAM_NAME_FOR_START_TIME,
+    end_date=PARAM_NAME_FOR_END_TIME
 )
 
 PARAMETER_NAMES_FOR_WITH_PLACEMENT = TwitterAdsApiParameterNamesForConfig(
-    bigquery_value=PARAM_NAME_FOR_BIGQUERY_VALUE,
-    start_time=PARAM_NAME_FOR_START_TIME,
-    end_time=PARAM_NAME_FOR_END_TIME,
+    entity_id=PARAM_NAME_FOR_BIGQUERY_VALUE,
+    start_date=PARAM_NAME_FOR_START_TIME,
+    end_date=PARAM_NAME_FOR_END_TIME,
     placement=PARAM_NAME_FOR_PLACEMENT
 )
 
 PARAMETER_VALUES = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    start_time_value=START_TIME_PARAM_VALUE,
-    end_time_value=END_TIME_PARAM_VALUE,
+    start_date_value=START_DATE_PARAM_VALUE,
+    end_date_value=END_DATE_PARAM_VALUE,
 )
 
 PARAMETER_VALUES_WITH_PLACEMENT = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    start_time_value=START_TIME_PARAM_VALUE,
-    end_time_value=END_TIME_PARAM_VALUE,
+    start_date_value=START_DATE_PARAM_VALUE,
+    end_date_value=END_DATE_PARAM_VALUE,
     placement_value=PLACEMENT_PARAM_VALUE
 )
 
@@ -76,7 +76,7 @@ API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
 API_QUERY_PARAMETERS_WITH_PLACEMENT = TwitterAdsApiApiQueryParametersConfig(
     parameter_values=PARAMETER_VALUES_WITH_PLACEMENT,
     parameter_names_for=PARAMETER_NAMES_FOR_WITH_PLACEMENT,
-    use_start_time_from_bigquery=True
+    use_start_date_from_bigquery=True
 )
 
 SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS = TwitterAdsApiSourceConfig(
@@ -222,28 +222,28 @@ class TestGetParamDictFromApiQueryParameters:
     def test_should_return_param_dict(self):
         actual_return_value = get_param_dict_from_api_query_parameters(
             api_query_parameters_config=API_QUERY_PARAMETERS,
-            value_from_bq=FROM_BIGQUERY_PARAM_VALUE,
-            start_time=START_TIME_PARAM_VALUE,
-            end_time=END_TIME_PARAM_VALUE
+            entity_id=FROM_BIGQUERY_PARAM_VALUE,
+            start_date=START_DATE_PARAM_VALUE,
+            end_date=END_DATE_PARAM_VALUE
         )
         assert actual_return_value == {
-            API_QUERY_PARAMETERS.parameter_names_for.bigquery_value: FROM_BIGQUERY_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.start_time: START_TIME_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.end_time: END_TIME_PARAM_VALUE
+            API_QUERY_PARAMETERS.parameter_names_for.entity_id: FROM_BIGQUERY_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.start_date: START_DATE_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.end_date: END_DATE_PARAM_VALUE
         }
 
     def test_should_return_param_dict_with_placement_if_defined(self):
         actual_return_value = get_param_dict_from_api_query_parameters(
             api_query_parameters_config=API_QUERY_PARAMETERS,
-            value_from_bq=FROM_BIGQUERY_PARAM_VALUE,
-            start_time=START_TIME_PARAM_VALUE,
-            end_time=END_TIME_PARAM_VALUE,
+            entity_id=FROM_BIGQUERY_PARAM_VALUE,
+            start_date=START_DATE_PARAM_VALUE,
+            end_date=END_DATE_PARAM_VALUE,
             placement=PLACEMENT_PARAM_VALUE[0]
         )
         assert actual_return_value == {
-            API_QUERY_PARAMETERS.parameter_names_for.bigquery_value: FROM_BIGQUERY_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.start_time: START_TIME_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.end_time: END_TIME_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.entity_id: FROM_BIGQUERY_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.start_date: START_DATE_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.end_date: END_DATE_PARAM_VALUE,
             API_QUERY_PARAMETERS.parameter_names_for.placement: PLACEMENT_PARAM_VALUE[0]
         }
 
@@ -342,9 +342,9 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS,
-            value_from_bq=FROM_BIGQUERY_PARAM_VALUE[0],
-            start_time=START_TIME_PARAM_VALUE,
-            end_time='2022-08-03'
+            entity_id=FROM_BIGQUERY_PARAM_VALUE[0],
+            start_date=START_DATE_PARAM_VALUE,
+            end_date='2022-08-03'
         )
 
     def test_sould_pass_params_dict_with_placement_defined(
@@ -355,7 +355,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         get_param_dict_from_api_query_parameters_mock.return_value = (
@@ -376,7 +376,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
@@ -384,9 +384,9 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS_WITH_PLACEMENT,
-            value_from_bq='id_1',
-            start_time='2022-08-01',
-            end_time='2022-08-02',
+            entity_id='id_1',
+            start_date='2022-08-01',
+            end_date='2022-08-02',
             placement=PLACEMENT_PARAM_VALUE[0]
         )
 
@@ -397,7 +397,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
@@ -414,16 +414,16 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq='id_1',
-                start_time='2022-08-01',
-                end_time='2022-08-02',
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-02',
                 placement='placement_value_1'
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq='id_1',
-                start_time='2022-08-01',
-                end_time='2022-08-02',
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-02',
                 placement='placement_value_2'
             )
         ], any_order=True)
@@ -435,13 +435,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'campaign_id': 'id_1', 'create_date': '2022-08-01'}]
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 17).date()
         api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                start_time_value=None,
-                end_time_value=None
+                start_date_value=None,
+                end_date_value=None
             )
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
@@ -449,28 +449,27 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 api_query_parameters=api_query_parameters
             )
         ))
-        # print('call_list: ', get_param_dict_from_api_query_parameters_mock.call_args_list)
 
         get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq='id_1',
-                start_time='2022-08-01',
-                end_time='2022-08-08',
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-08',
                 placement=PLACEMENT_PARAM_VALUE[0]
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq='id_1',
-                start_time='2022-08-08',
-                end_time='2022-08-15',
+                entity_id='id_1',
+                start_date='2022-08-08',
+                end_date='2022-08-15',
                 placement=PLACEMENT_PARAM_VALUE[0]
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
-                value_from_bq='id_1',
-                start_time='2022-08-15',
-                end_time='2022-08-17',
+                entity_id='id_1',
+                start_date='2022-08-15',
+                end_date='2022-08-17',
                 placement=PLACEMENT_PARAM_VALUE[0]
             )
         ], any_order=True)
