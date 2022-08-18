@@ -9,8 +9,8 @@ from data_pipeline.utils.pipeline_config import (
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
-    start_time_value: Optional[str] = None
-    end_time_value: Optional[str] = None
+    start_date_value: Optional[str] = None
+    end_date_value: Optional[str] = None
     placement_value: Optional[Sequence[str]] = []
 
     @staticmethod
@@ -19,32 +19,32 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
             from_bigquery=BigQuerySourceConfig.from_dict(
                 parameter_values_config_dict.get('fromBigQuery', {})
             ),
-            start_time_value=parameter_values_config_dict.get('startTimeValue', ''),
-            end_time_value=parameter_values_config_dict.get('endTimeValue', ''),
+            start_date_value=parameter_values_config_dict.get('startDateValue', None),
+            end_date_value=parameter_values_config_dict.get('endDateValue', None),
             placement_value=parameter_values_config_dict.get('placementValue', [])
         )
 
 
 class TwitterAdsApiParameterNamesForConfig(NamedTuple):
-    bigquery_value: Optional[str] = None
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
+    entity_id: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     placement: Optional[str] = None
 
     @staticmethod
     def from_dict(parameter_names_for_config_dict: dict) -> 'TwitterAdsApiParameterNamesForConfig':
         return TwitterAdsApiParameterNamesForConfig(
-            bigquery_value=parameter_names_for_config_dict.get('bigqueryValue', ''),
-            start_time=parameter_names_for_config_dict.get('startTime', ''),
-            end_time=parameter_names_for_config_dict.get('endTime', ''),
-            placement=parameter_names_for_config_dict.get('placement', ''),
+            entity_id=parameter_names_for_config_dict.get('entityId', None),
+            start_date=parameter_names_for_config_dict.get('startDate', None),
+            end_date=parameter_names_for_config_dict.get('endDate', None),
+            placement=parameter_names_for_config_dict.get('placement', None),
         )
 
 
 class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
     parameter_values: TwitterAdsApiParameterValuesConfig = {}
     parameter_names_for: TwitterAdsApiParameterNamesForConfig = {}
-    use_start_time_from_bigquery: bool = False
+    use_start_date_from_bigquery: bool = False
 
     @staticmethod
     def from_dict(api_query_parameters_config: dict) -> 'TwitterAdsApiApiQueryParametersConfig':
@@ -55,8 +55,8 @@ class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
             parameter_names_for=TwitterAdsApiParameterNamesForConfig.from_dict(
                 api_query_parameters_config.get('parameterNamesFor', {})
             ),
-            use_start_time_from_bigquery=api_query_parameters_config.get(
-                'useStartTimeFromBigQuery',
+            use_start_date_from_bigquery=api_query_parameters_config.get(
+                'useStartDateFromBigQuery',
                 False
             )
         )
