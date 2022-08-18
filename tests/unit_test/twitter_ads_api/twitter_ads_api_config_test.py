@@ -115,6 +115,31 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.secrets.mapping == secrets
         assert config[1].source.secrets.mapping == secrets
 
+    def test_should_read_use_start_time_from_bigquery_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                {
+                    **ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS,
+                    'source': {
+                        **SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+                        'apiQueryParameters': {
+                            **API_QUERY_PARAMETERS_DICT,
+                            'useStartTimeFromBigQuery': True
+                        }
+                    }
+                }
+            ])
+        )
+        assert config[0].source.api_query_parameters.use_start_time_from_bigquery
+
+    def test_should_read_use_start_time_from_bigquery_as_false_if_not_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+            ])
+        )
+        assert not config[0].source.api_query_parameters.use_start_time_from_bigquery
+
     def test_should_read_empty_dict_for_api_query_parameters_if_not_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
