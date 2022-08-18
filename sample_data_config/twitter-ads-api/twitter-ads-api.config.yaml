@@ -15,7 +15,7 @@ twitterAdsApi:
   #   target:
   #     projectName: 'elife-data-pipeline'
   #     datasetName: '{ENV}'
-  #     tableName: twitter_campaign_details_elife_journal
+  #     tableName: test_twitter_campaign_details_elife_journal
 
   # - dataPipelineId: twitter_ads_api_campaign_reach_elife_journal
   #   source:
@@ -48,7 +48,7 @@ twitterAdsApi:
   #   target:
   #     projectName: 'elife-data-pipeline'
   #     datasetName: '{ENV}'
-  #     tableName: twitter_campaign_reach_elife_journal
+  #     tableName: test_twitter_campaign_reach_elife_journal
 
   - dataPipelineId: twitter_ads_api_campaign_clicks_and_impressions_elife_journal
     source:
@@ -72,7 +72,7 @@ twitterAdsApi:
               SELECT DISTINCT t_data.id AS entity_id, CAST(CAST(t_data.created_at AS DATE) AS STRING) AS start_date
               FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
               JOIN UNNEST(data) AS t_data
-              WHERE t_data.id IN ('git3k')
+              WHERE t_data.id IN ('i61cm')
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
         parameterNamesFor:
           entityId: entity_ids
