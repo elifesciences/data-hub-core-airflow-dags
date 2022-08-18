@@ -44,7 +44,7 @@ twitterAdsApi:
   #       parameterNamesFor:
   #         entityId: campaign_ids
   #         startDate: start_time
-  #         endTime: end_time
+  #         endDate: end_time
   #   target:
   #     projectName: 'elife-data-pipeline'
   #     datasetName: '{ENV}'
@@ -82,4 +82,4 @@ twitterAdsApi:
     target:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'
-      tableName: twitter_campaign_clicks_and_impressions_elife_journal
+      tableName: test_twitter_campaign_clicks_and_impressions_elife_journal
