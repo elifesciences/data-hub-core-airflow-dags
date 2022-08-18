@@ -18,22 +18,24 @@ FROM_BIGQUERY_DICT = {
     'sqlQuery': SQL_QUERY
 }
 
-START_TIME_VALUE_1 = 'start_time_value_1'
+START_DATE_VALUE_1 = 'start_date_value_1'
 
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
-    'startTimeValue': START_TIME_VALUE_1
+    'startDateValue': START_DATE_VALUE_1
 }
 
-BIGQUERY_VALUE_1 = 'bigquery_value_1'
-START_TIME_1 = 'start_time_1'
-END_TIME_1 = 'end_time_1'
+NAME_FOR_ENTITY_ID_1 = 'name_for_entity_id_1'
+NAME_FOR_START_DATE_1 = 'name_for_start_date_1'
+NAME_FOR_END_DATE_1 = 'name_for_end_date_1'
 
 PARAMETER_NAMES_FOR_DICT = {
-    'bigqueryValue': BIGQUERY_VALUE_1,
-    'startTime': START_TIME_1,
-    'endTime': END_TIME_1
+    'entityId': NAME_FOR_ENTITY_ID_1,
+    'startDate': NAME_FOR_START_DATE_1,
+    'endDate': NAME_FOR_END_DATE_1
 }
+
+PLACEMENT_1 = 'placement_1'
 
 API_QUERY_PARAMETERS_DICT = {
     'parameterValues': PARAMETER_VALUES_DICT,
@@ -113,6 +115,31 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.secrets.mapping == secrets
         assert config[1].source.secrets.mapping == secrets
 
+    def test_should_read_use_start_date_from_bigquery_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                {
+                    **ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS,
+                    'source': {
+                        **SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+                        'apiQueryParameters': {
+                            **API_QUERY_PARAMETERS_DICT,
+                            'useStartDateFromBigQuery': True
+                        }
+                    }
+                }
+            ])
+        )
+        assert config[0].source.api_query_parameters.use_start_date_from_bigquery
+
+    def test_should_read_use_start_date_from_bigquery_as_false_if_not_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
+            ])
+        )
+        assert not config[0].source.api_query_parameters.use_start_date_from_bigquery
+
     def test_should_read_empty_dict_for_api_query_parameters_if_not_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
@@ -121,15 +148,19 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters == {}
 
-    def test_should_read_start_time_value_if_defined(self):
+    def test_should_read_defined_parameter_values_and_read_empty_string_or_list_for_not_defined(
+        self
+    ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
                 ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
             ])
         )
-        assert config[0].source.api_query_parameters.parameter_values.start_time_value == (
-            START_TIME_VALUE_1
+        assert config[0].source.api_query_parameters.parameter_values.start_date_value == (
+            START_DATE_VALUE_1
         )
+        assert config[0].source.api_query_parameters.parameter_values.end_date_value is None
+        assert config[0].source.api_query_parameters.parameter_values.placement_value == []
 
     def test_should_read_from_bigquery_sql_query_and_project_name_if_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
@@ -146,18 +177,19 @@ class TestTwitterAdsApiConfig:
             )
         )
 
-    def test_should_read_parameter_names_values_if_defined(self):
+    def test_should_read_parameter_names_for_values_if_defined_and_none_if_not_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
                 ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
             ])
         )
-        assert config[0].source.api_query_parameters.parameter_names_for.bigquery_value == (
-            BIGQUERY_VALUE_1
+        assert config[0].source.api_query_parameters.parameter_names_for.entity_id == (
+            NAME_FOR_ENTITY_ID_1
         )
-        assert config[0].source.api_query_parameters.parameter_names_for.start_time == (
-            START_TIME_1
+        assert config[0].source.api_query_parameters.parameter_names_for.start_date == (
+            NAME_FOR_START_DATE_1
         )
-        assert config[0].source.api_query_parameters.parameter_names_for.end_time == (
-            END_TIME_1
+        assert config[0].source.api_query_parameters.parameter_names_for.end_date == (
+            NAME_FOR_END_DATE_1
         )
+        assert config[0].source.api_query_parameters.parameter_names_for.placement is None

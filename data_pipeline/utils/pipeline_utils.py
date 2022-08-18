@@ -40,6 +40,22 @@ def fetch_single_column_value_list_for_bigquery_source_config(
     return value_list
 
 
+def iter_dict_from_bq_query_for_bigquery_source_config(
+    bigquery_source_config: BigQuerySourceConfig
+) -> Iterable[dict]:
+    LOGGER.debug('bigquery_source: %r', bigquery_source_config)
+    try:
+        yield from iter_dict_from_bq_query(
+            project_name=bigquery_source_config.project_name,
+            query=bigquery_source_config.sql_query
+        )
+    except google.cloud.exceptions.NotFound:
+        if bigquery_source_config.ignore_not_found:
+            LOGGER.info('caught not found, returning empty list')
+            return
+        raise
+
+
 def iter_dict_for_bigquery_source_config_with_exclusion(
     bigquery_source_config: BigQuerySourceConfig,
     key_field_name: str,
