@@ -35,7 +35,7 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
 FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
 START_DATE_PARAM_VALUE = 'start_date_value_1'
 END_DATE_PARAM_VALUE = 'end_date_value_1'
-PLACEMENT_PARAM_VALUE = ['placement_value_1']
+SINGLE_PLACEMENT_PARAM_VALUE = ['placement_value_1']
 
 PARAM_NAME_FOR_BIGQUERY_VALUE = 'param_name_for_bq_value_1'
 PARAM_NAME_FOR_START_TIME = 'param_name_for_start_date_1'
@@ -65,7 +65,7 @@ PARAMETER_VALUES_WITH_PLACEMENT = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
     start_date_value=START_DATE_PARAM_VALUE,
     end_date_value=END_DATE_PARAM_VALUE,
-    placement_value=PLACEMENT_PARAM_VALUE
+    placement_value=SINGLE_PLACEMENT_PARAM_VALUE
 )
 
 API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
@@ -73,7 +73,7 @@ API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
     parameter_names_for=PARAMETER_NAMES_FOR,
 )
 
-API_QUERY_PARAMETERS_WITH_PLACEMENT = TwitterAdsApiApiQueryParametersConfig(
+API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE = TwitterAdsApiApiQueryParametersConfig(
     parameter_values=PARAMETER_VALUES_WITH_PLACEMENT,
     parameter_names_for=PARAMETER_NAMES_FOR_WITH_PLACEMENT,
     use_start_date_from_bigquery=True
@@ -85,10 +85,10 @@ SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS = TwitterAdsApiSourceConfig(
     api_query_parameters=API_QUERY_PARAMETERS
 )
 
-SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT = TwitterAdsApiSourceConfig(
+SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS,
-    api_query_parameters=API_QUERY_PARAMETERS_WITH_PLACEMENT
+    api_query_parameters=API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -238,13 +238,13 @@ class TestGetParamDictFromApiQueryParameters:
             entity_id=FROM_BIGQUERY_PARAM_VALUE,
             start_date=START_DATE_PARAM_VALUE,
             end_date=END_DATE_PARAM_VALUE,
-            placement=PLACEMENT_PARAM_VALUE[0]
+            placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
         assert actual_return_value == {
             API_QUERY_PARAMETERS.parameter_names_for.entity_id: FROM_BIGQUERY_PARAM_VALUE,
             API_QUERY_PARAMETERS.parameter_names_for.start_date: START_DATE_PARAM_VALUE,
             API_QUERY_PARAMETERS.parameter_names_for.end_date: END_DATE_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.placement: PLACEMENT_PARAM_VALUE[0]
+            API_QUERY_PARAMETERS.parameter_names_for.placement: SINGLE_PLACEMENT_PARAM_VALUE[0]
         }
 
 
@@ -362,10 +362,10 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
-            source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT,
+            source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
             params_dict=API_QUERY_PARAMETERS_DICT
         )
 
@@ -380,14 +380,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
         ))
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
-            api_query_parameters_config=API_QUERY_PARAMETERS_WITH_PLACEMENT,
+            api_query_parameters_config=API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
             entity_id='id_1',
             start_date='2022-08-01',
             end_date='2022-08-02',
-            placement=PLACEMENT_PARAM_VALUE[0]
+            placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
 
     def test_should_call_get_param_dict_for_each_placement_value(
@@ -400,13 +400,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 2).date()
-        api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 placement_value=['placement_value_1', 'placement_value_2']
             )
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT._replace(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
                 api_query_parameters=api_query_parameters
             )
         ))
@@ -438,14 +438,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 17).date()
-        api_query_parameters = API_QUERY_PARAMETERS_WITH_PLACEMENT._replace(
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 start_date_value=None,
                 end_date_value=None
             )
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_IN_PLACEMENT._replace(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
                 api_query_parameters=api_query_parameters
             )
         ))
@@ -456,20 +456,21 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 entity_id='id_1',
                 start_date='2022-08-01',
                 end_date='2022-08-08',
-                placement=PLACEMENT_PARAM_VALUE[0]
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
                 start_date='2022-08-08',
                 end_date='2022-08-15',
-                placement=PLACEMENT_PARAM_VALUE[0]
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
                 start_date='2022-08-15',
+                # end_date here is equal to yesterday because of +7 days would be in future
                 end_date='2022-08-17',
-                placement=PLACEMENT_PARAM_VALUE[0]
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
             )
         ], any_order=True)
