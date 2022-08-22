@@ -24,7 +24,7 @@ END_PERIOD_PER_DAYS = 53
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
     'startDateValue': START_DATE_VALUE_1,
-    'endPeriodPerDays':END_PERIOD_PER_DAYS
+    'endingPeriodPerDay':END_PERIOD_PER_DAYS
 }
 
 NAME_FOR_ENTITY_ID_1 = 'name_for_entity_id_1'
@@ -162,7 +162,7 @@ class TestTwitterAdsApiConfig:
             START_DATE_VALUE_1
         )
         assert config[0].source.api_query_parameters.parameter_values.end_date_value is None
-        assert config[0].source.api_query_parameters.parameter_values.end_period_per_days == (
+        assert config[0].source.api_query_parameters.parameter_values.ending_period_per_day == (
             END_PERIOD_PER_DAYS
         )
         assert config[0].source.api_query_parameters.parameter_values.placement_value == []

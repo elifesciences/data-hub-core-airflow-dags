@@ -41,7 +41,7 @@ twitterAdsApi:
               WHERE t_data.id IN ('git3k', 'gwdrg')
               -- t_data.effective_status = 'ACTIVE'
           # earliest campaign creation date for initial load:
-          endPeriodPerDays: 600
+          endingPeriodPerDay: 600
         parameterNamesFor:
           entityId: campaign_ids
           startDate: start_time
@@ -75,7 +75,7 @@ twitterAdsApi:
   #             FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
   #             JOIN UNNEST(data) AS t_data
   #             WHERE t_data.id IN ('i61cm')
-  #         endPeriodPerDays: 7
+  #         endingPeriodPerDay: 7
   #         placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
   #       parameterNamesFor:
   #         entityId: entity_ids
