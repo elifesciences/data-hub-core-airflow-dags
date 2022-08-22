@@ -24,7 +24,7 @@ END_PERIOD_PER_DAYS = 53
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
     'startDateValue': START_DATE_VALUE_1,
-    'endingPeriodPerDay':END_PERIOD_PER_DAYS
+    'endingPeriodPerDay': END_PERIOD_PER_DAYS
 }
 
 NAME_FOR_ENTITY_ID_1 = 'name_for_entity_id_1'
