@@ -93,7 +93,6 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         placement_value_list = api_query_parameters_config.parameter_values.placement_value
         if api_query_parameters_config.parameter_names_for.placement:
             assert placement_value_list
-            assert api_query_parameters_config.use_start_date_from_bigquery
             dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
                 api_query_parameters_config.parameter_values.from_bigquery
             ))

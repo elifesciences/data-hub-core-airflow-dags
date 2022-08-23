@@ -75,8 +75,7 @@ API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
 
 API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE = TwitterAdsApiApiQueryParametersConfig(
     parameter_values=PARAMETER_VALUES_WITH_PLACEMENT,
-    parameter_names_for=PARAMETER_NAMES_FOR_WITH_PLACEMENT,
-    use_start_date_from_bigquery=True
+    parameter_names_for=PARAMETER_NAMES_FOR_WITH_PLACEMENT
 )
 
 SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS = TwitterAdsApiSourceConfig(
