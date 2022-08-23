@@ -85,6 +85,28 @@ def get_param_dict_from_api_query_parameters(
     return result
 
 
+def get_start_date_and_period_end_date_dict(
+    api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig, 
+    start_date_value_from_bq: str
+) -> dict:
+    start_date_value = (
+        datetime.strptime(start_date_value_from_bq, '%Y-%m-%d').date()
+    )
+    LOGGER.debug("start_date_value: %r", )
+    yesterday_date = get_yesterdays_date()
+    LOGGER.debug("yesterday: %r", yesterday_date)
+    end_date_by_period = start_date_value + timedelta(
+        days=api_query_parameters_config.parameter_values.ending_period_per_day
+    )
+    LOGGER.debug("end_date_by_period: %r", end_date_by_period)
+    if end_date_by_period > yesterday_date:
+        end_date_value = yesterday_date
+    else:
+        end_date_value = end_date_by_period
+    LOGGER.debug("end_date_value: %r", end_date_value)
+    return {'start_date': start_date_value, 'period_end_date': end_date_value}
+
+
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
@@ -99,26 +121,20 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
             LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
             for dict_value_from_bq in dict_value_list_from_bq:
                 for placement_value in placement_value_list:
-                    start_date_value = (
-                        datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
+                    start_and_end_date_dict = get_start_date_and_period_end_date_dict(
+                        api_query_parameters_config=api_query_parameters_config,
+                        start_date_value_from_bq=(
+                            datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
+                        )
                     )
-                    LOGGER.debug("start_date_value: %r", )
-                    yesterday_date = get_yesterdays_date()
-                    LOGGER.debug("yesterday: %r", yesterday_date)
-                    end_date_by_period = start_date_value + timedelta(
-                        days=api_query_parameters_config.parameter_values.ending_period_per_day
-                    )
-                    LOGGER.debug("end_date_by_period: %r", end_date_by_period)
-                    if end_date_by_period > yesterday_date:
-                        period_end_date = yesterday_date
-                    else:
-                        period_end_date = end_date_by_period
-                    while start_date_value < period_end_date:
+                    start_date_value = start_and_end_date_dict['start_date']
+                    period_end_date_value = start_and_end_date_dict['period_end_date']
+                    while start_date_value < period_end_date_value:
                         seven_days_after_start_date_value = start_date_value + timedelta(days=7)
-                        if seven_days_after_start_date_value > period_end_date:
-                            end_date_value = period_end_date
+                        if seven_days_after_start_date_value > period_end_date_value:
+                            end_date_value = period_end_date_value
                         else:
-                            end_date_value = start_date_value + timedelta(days=7)
+                            end_date_value = seven_days_after_start_date_value
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,
                             entity_id=dict_value_from_bq['entity_id'],
