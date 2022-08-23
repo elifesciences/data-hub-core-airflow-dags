@@ -102,13 +102,21 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                     start_date_value = (
                         datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
                     )
-                    yesterday_date = get_yesterdays_date()
                     LOGGER.debug("start_date_value: %r", )
+                    yesterday_date = get_yesterdays_date()
                     LOGGER.debug("yesterday: %r", yesterday_date)
-                    while start_date_value < yesterday_date:
+                    end_date_by_period = start_date_value + timedelta(
+                        days=api_query_parameters_config.parameter_values.ending_period_per_day
+                    )
+                    LOGGER.debug("end_date_by_period: %r", end_date_by_period)
+                    if end_date_by_period > yesterday_date:
+                        period_end_date = yesterday_date
+                    else:
+                        period_end_date = end_date_by_period
+                    while start_date_value < period_end_date:
                         seven_days_after_start_date_value = start_date_value + timedelta(days=7)
-                        if seven_days_after_start_date_value > yesterday_date:
-                            end_date_value = yesterday_date
+                        if seven_days_after_start_date_value > period_end_date:
+                            end_date_value = period_end_date
                         else:
                             end_date_value = start_date_value + timedelta(days=7)
                         params_dict = get_param_dict_from_api_query_parameters(

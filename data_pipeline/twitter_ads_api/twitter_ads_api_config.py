@@ -11,7 +11,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
     start_date_value: Optional[str] = None
     end_date_value: Optional[str] = None
-    ending_period_per_day: Optional[int] = None
+    ending_period_per_day: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = []
 
     @staticmethod
@@ -22,7 +22,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
             ),
             start_date_value=parameter_values_config_dict.get('startDateValue', None),
             end_date_value=parameter_values_config_dict.get('endDateValue', None),
-            ending_period_per_day=parameter_values_config_dict.get('endingPeriodPerDay', None),
+            ending_period_per_day=parameter_values_config_dict.get('endingPeriodPerDay', 0),
             placement_value=parameter_values_config_dict.get('placementValue', [])
         )
 
