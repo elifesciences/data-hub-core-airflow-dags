@@ -46,7 +46,6 @@ class TwitterAdsApiParameterNamesForConfig(NamedTuple):
 class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
     parameter_values: TwitterAdsApiParameterValuesConfig = {}
     parameter_names_for: TwitterAdsApiParameterNamesForConfig = {}
-    use_start_date_from_bigquery: bool = False
 
     @staticmethod
     def from_dict(api_query_parameters_config: dict) -> 'TwitterAdsApiApiQueryParametersConfig':
@@ -56,10 +55,6 @@ class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
             ),
             parameter_names_for=TwitterAdsApiParameterNamesForConfig.from_dict(
                 api_query_parameters_config.get('parameterNamesFor', {})
-            ),
-            use_start_date_from_bigquery=api_query_parameters_config.get(
-                'useStartDateFromBigQuery',
-                False
             )
         )
 
