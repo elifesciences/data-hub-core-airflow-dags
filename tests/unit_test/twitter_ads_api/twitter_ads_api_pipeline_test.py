@@ -35,8 +35,6 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
 )
 
 FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
-START_DATE_PARAM_VALUE = 'start_date_value_1'
-END_DATE_PARAM_VALUE = 'end_date_value_1'
 SINGLE_PLACEMENT_PARAM_VALUE = ['placement_value_1']
 ENDING_PERIOD_PER_DAY_VALUE = 10
 
@@ -223,27 +221,27 @@ class TestGetParamDictFromApiQueryParameters:
         actual_return_value = get_param_dict_from_api_query_parameters(
             api_query_parameters_config=API_QUERY_PARAMETERS,
             entity_id=FROM_BIGQUERY_PARAM_VALUE,
-            start_date=START_DATE_PARAM_VALUE,
-            end_date=END_DATE_PARAM_VALUE
+            start_date='2022-08-01',
+            end_date='2022-08-02'
         )
         assert actual_return_value == {
             API_QUERY_PARAMETERS.parameter_names_for.entity_id: FROM_BIGQUERY_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.start_date: START_DATE_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.end_date: END_DATE_PARAM_VALUE
+            API_QUERY_PARAMETERS.parameter_names_for.start_date: '2022-08-01',
+            API_QUERY_PARAMETERS.parameter_names_for.end_date: '2022-08-02'
         }
 
     def test_should_return_param_dict_with_placement_if_defined(self):
         actual_return_value = get_param_dict_from_api_query_parameters(
             api_query_parameters_config=API_QUERY_PARAMETERS,
             entity_id=FROM_BIGQUERY_PARAM_VALUE,
-            start_date=START_DATE_PARAM_VALUE,
-            end_date=END_DATE_PARAM_VALUE,
+            start_date='2022-08-01',
+            end_date='2022-08-02',
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
         assert actual_return_value == {
             API_QUERY_PARAMETERS.parameter_names_for.entity_id: FROM_BIGQUERY_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.start_date: START_DATE_PARAM_VALUE,
-            API_QUERY_PARAMETERS.parameter_names_for.end_date: END_DATE_PARAM_VALUE,
+            API_QUERY_PARAMETERS.parameter_names_for.start_date: '2022-08-01',
+            API_QUERY_PARAMETERS.parameter_names_for.end_date: '2022-08-02',
             API_QUERY_PARAMETERS.parameter_names_for.placement: SINGLE_PLACEMENT_PARAM_VALUE[0]
         }
 
@@ -301,9 +299,7 @@ class TestGetStartDateAndFinalEndDateDict:
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                ending_period_per_day=10,  # in 10 days
-                start_date_value=None,
-                end_date_value=None
+                ending_period_per_day=10  # in 10 days
             )
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 5).date()  # in 4 days
@@ -322,9 +318,7 @@ class TestGetStartDateAndFinalEndDateDict:
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                ending_period_per_day=10,  # in 10 days
-                start_date_value=None,
-                end_date_value=None
+                ending_period_per_day=10  # in 10 days
             )
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 31).date()  # in 30 days
