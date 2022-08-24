@@ -18,12 +18,10 @@ FROM_BIGQUERY_DICT = {
     'sqlQuery': SQL_QUERY
 }
 
-START_DATE_VALUE_1 = 'start_date_value_1'
 END_PERIOD_PER_DAYS = 53
 
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
-    'startDateValue': START_DATE_VALUE_1,
     'endingPeriodPerDay': END_PERIOD_PER_DAYS
 }
 
@@ -125,7 +123,7 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters == {}
 
-    def test_should_read_defined_parameter_values_and_none_for_not_defined(
+    def test_should_read_defined_parameter_values_and_empty_list_for_not_defined(
         self
     ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
@@ -133,10 +131,6 @@ class TestTwitterAdsApiConfig:
                 ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
             ])
         )
-        assert config[0].source.api_query_parameters.parameter_values.start_date_value == (
-            START_DATE_VALUE_1
-        )
-        assert config[0].source.api_query_parameters.parameter_values.end_date_value is None
         assert config[0].source.api_query_parameters.parameter_values.ending_period_per_day == (
             END_PERIOD_PER_DAYS
         )
