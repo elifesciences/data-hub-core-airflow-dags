@@ -309,7 +309,7 @@ class TestFinalEndDate:
         )
         assert actual_return_value == datetime.strptime('2022-08-05', '%Y-%m-%d').date()
 
-    def test_should_return_final_end_date_for_given_period_if_ending_period_days_is_before_yesterday(
+    def test_should_return_final_end_date_of_given_period_if_ending_period_days_is_before_yesterday(
         self,
         get_yesterdays_date_mock: MagicMock
     ):
@@ -455,7 +455,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_should_call_get_param_dict_for_each_placement_value(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-        get_param_dict_from_api_query_parameters_mock:MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_final_end_date_mock: MagicMock
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
