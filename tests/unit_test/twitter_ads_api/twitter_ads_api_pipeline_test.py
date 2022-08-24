@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, call
 import pytest
 
 from data_pipeline.twitter_ads_api import (
@@ -10,7 +10,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
     get_param_dict_from_api_query_parameters,
     get_provenance,
     get_bq_compatible_json_response_from_resource_with_provenance,
-    get_start_date_and_final_end_date_dict,
+    get_final_end_date,
     iter_bq_compatible_json_response_from_resource_with_provenance,
     get_end_date_value_of_period
 )
@@ -187,13 +187,13 @@ def _iter_dict_from_bq_query_for_bigquery_source_config_mock():
 
 
 @pytest.fixture(
-    name='get_start_date_and_final_end_date_dict_mock',
+    name='get_final_end_date_mock',
     autouse=True
 )
-def _get_start_date_and_final_end_date_dict_mock():
+def _get_final_end_date_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
-        'get_start_date_and_final_end_date_dict'
+        'get_final_end_date'
     ) as mock:
         yield mock
 
@@ -292,7 +292,7 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
         assert actual_response_json == {**RESPONSE_JSON_1, 'provenance': PROVENANCE_1}
 
 
-class TestGetStartDateAndFinalEndDateDict:
+class TestFinalEndDate:
     def test_should_return_final_end_date_as_yesterday_if_the_ending_period_days_is_in_future(
         self,
         get_yesterdays_date_mock: MagicMock
@@ -303,16 +303,13 @@ class TestGetStartDateAndFinalEndDateDict:
             )
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 5).date()  # in 4 days
-        actual_return_value = get_start_date_and_final_end_date_dict(
+        actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
             start_date_value_from_bq='2022-08-01'
         )
-        assert actual_return_value == {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-05', '%Y-%m-%d').date()
-        }
+        assert actual_return_value == datetime.strptime('2022-08-05', '%Y-%m-%d').date()
 
-    def test_should_return_dict_with_final_end_date_if_ending_period_days_is_before_yesterday(
+    def test_should_return_final_end_date_for_given_period_if_ending_period_days_is_before_yesterday(
         self,
         get_yesterdays_date_mock: MagicMock
     ):
@@ -322,14 +319,11 @@ class TestGetStartDateAndFinalEndDateDict:
             )
         )
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 31).date()  # in 30 days
-        actual_return_value = get_start_date_and_final_end_date_dict(
+        actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
             start_date_value_from_bq='2022-08-01'
         )
-        assert actual_return_value == {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-11', '%Y-%m-%d').date()
-        }
+        assert actual_return_value == datetime.strptime('2022-08-11', '%Y-%m-%d').date()
 
 
 class TestGetEndDateValueOfPeriod:
@@ -366,17 +360,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_should_pass_params_dict_if_api_query_parameters_defined(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-        get_start_date_and_final_end_date_dict_mock: MagicMock,
+        get_final_end_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_start_date_and_final_end_date_dict_mock.return_value = {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-02', '%Y-%m-%d').date()
-        }
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
         )
@@ -392,15 +383,12 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
-        get_start_date_and_final_end_date_dict_mock: MagicMock
+        get_final_end_date_mock: MagicMock
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_start_date_and_final_end_date_dict_mock.return_value = {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-02', '%Y-%m-%d').date()
-        }
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS
         ))
@@ -414,17 +402,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_sould_pass_params_dict_with_placement_defined(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-        get_start_date_and_final_end_date_dict_mock: MagicMock,
+        get_final_end_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_start_date_and_final_end_date_dict_mock.return_value = {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-10', '%Y-%m-%d').date()
-        }
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-10', '%Y-%m-%d').date()
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
         )
@@ -439,16 +424,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     def test_should_pass_correct_values_to_get_param_dict_func_if_placement_defined(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-        get_start_date_and_final_end_date_dict_mock: MagicMock,
+        get_final_end_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_start_date_and_final_end_date_dict_mock.return_value = {
-            'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            'final_end_date': datetime.strptime('2022-08-02', '%Y-%m-%d').date()
-        }
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
         ))
@@ -470,129 +452,86 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         )
         assert not get_param_dict_from_api_query_parameters_mock.called
 
-    # def test_should_call_get_param_dict_for_each_placement_value(
-    #     self,
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-    #     get_param_dict_from_api_query_parameters_mock:MagicMock,
-    #     get_start_date_and_final_end_date_dict_mock: MagicMock
-    # ):
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-    #         [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-    #     )
-    #     # TypeError: '<' not supported between instances of 'MagicMock' and 'MagicMock'
-    #     get_start_date_and_final_end_date_dict_mock.return_value = {
-    #         'start_date': datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-    #         'final_end_date': datetime.strptime('2022-08-02', '%Y-%m-%d').date()
-    #     }
-    #     api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #         parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-    #             placement_value=['placement_value_1', 'placement_value_2']
-    #         )
-    #     )
-    #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
-    #         SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #             api_query_parameters=api_query_parameters
-    #         )
-    #     ))
-    #     # while start_date_value < final_end_date_value:
-    #     get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-01',
-    #             end_date='2022-08-02',
-    #             placement='placement_value_1'
-    #         ),
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-01',
-    #             end_date='2022-08-02',
-    #             placement='placement_value_2'
-    #         )
-    #     ], any_order=True)
+    def test_should_call_get_param_dict_for_each_placement_value(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock:MagicMock,
+        get_final_end_date_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
+        )
 
-    # def test_should_call_func_for_every_seven_days_till_yesterday_if_end_period_date_is_in_future(
-    #     self,
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-    #     get_yesterdays_date_mock: MagicMock,
-    #     get_param_dict_from_api_query_parameters_mock: MagicMock
-    # ):
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-    #         [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-    #     )
-    #     get_yesterdays_date_mock.return_value = datetime(2022, 8, 17).date()
-    #     api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #         parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-    #             ending_period_per_day=30  # end_date is in future
-    #         )
-    #     )
-    #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
-    #         SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #             api_query_parameters=api_query_parameters
-    #         )
-    #     ))
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
+            parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
+                placement_value=['placement_value_1', 'placement_value_2']
+            )
+        )
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-08', '%Y-%m-%d').date()
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
+                api_query_parameters=api_query_parameters
+            )
+        ))
+        get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
+            call(
+                api_query_parameters_config=api_query_parameters,
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-08',
+                placement='placement_value_1'
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-08',
+                placement='placement_value_2'
+            )
+        ], any_order=True)
 
-    #     get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-01',
-    #             end_date='2022-08-08',
-    #             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
-    #         ),
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-08',
-    #             end_date='2022-08-15',
-    #             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
-    #         ),
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-15',
-    #             # end_date here is equal to yesterday because of +7 days would be in future
-    #             end_date='2022-08-17',
-    #             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
-    #         )
-    #     ], any_order=True)
+    def test_should_call_func_for_every_seven_days_till_final_end_date(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_final_end_date_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
+        )
+        get_final_end_date_mock.return_value = datetime.strptime('2022-08-17', '%Y-%m-%d').date()
+        api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
+            parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
+                ending_period_per_day=30  # end_date is in future
+            )
+        )
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
+                api_query_parameters=api_query_parameters
+            )
+        ))
 
-    # def test_should_call_func_for_every_seven_days_till_end_period_date(
-    #     self,
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-    #     get_yesterdays_date_mock: MagicMock,
-    #     get_param_dict_from_api_query_parameters_mock: MagicMock
-    # ):
-    #     iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-    #         [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-    #     )
-    #     get_yesterdays_date_mock.return_value = datetime(2022, 8, 30).date()
-    #     api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #         parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-    #             ending_period_per_day=12  # end_date is in future
-    #         )
-    #     )
-    #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
-    #         SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
-    #             api_query_parameters=api_query_parameters
-    #         )
-    #     ))
-
-    #     get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-01',
-    #             end_date='2022-08-08',
-    #             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
-    #         ),
-    #         call(
-    #             api_query_parameters_config=api_query_parameters,
-    #             entity_id='id_1',
-    #             start_date='2022-08-08',
-    #             # end_date = start_date + ending_period_per_day (12 here)
-    #             end_date='2022-08-13',
-    #             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
-    #         )
-    #     ], any_order=True)
+        get_param_dict_from_api_query_parameters_mock.assert_has_calls(calls=[
+            call(
+                api_query_parameters_config=api_query_parameters,
+                entity_id='id_1',
+                start_date='2022-08-01',
+                end_date='2022-08-08',
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                entity_id='id_1',
+                start_date='2022-08-08',
+                end_date='2022-08-15',
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
+            ),
+            call(
+                api_query_parameters_config=api_query_parameters,
+                entity_id='id_1',
+                start_date='2022-08-15',
+                # end_date here is equal to final_end_date because of +7 days would be in future
+                end_date='2022-08-17',
+                placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
+            )
+        ], any_order=True)

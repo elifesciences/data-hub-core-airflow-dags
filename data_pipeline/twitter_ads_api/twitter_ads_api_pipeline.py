@@ -84,22 +84,22 @@ def get_param_dict_from_api_query_parameters(
     return result
 
 
-def get_start_date_and_final_end_date_dict(
+def get_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     start_date_value_from_bq: str
 ) -> dict:
-    start_date_value = (
+    initial_start_date_value = (
         datetime.strptime(start_date_value_from_bq, '%Y-%m-%d').date()
     )
     yesterday_date = get_yesterdays_date()
-    end_date_by_period = start_date_value + timedelta(
+    end_date_by_period = initial_start_date_value + timedelta(
         days=api_query_parameters_config.parameter_values.ending_period_per_day
     )
     if end_date_by_period > yesterday_date:
-        final_end_date = yesterday_date
+        final_end_date_value = yesterday_date
     else:
-        final_end_date = end_date_by_period
-    return {'start_date': start_date_value, 'final_end_date': final_end_date}
+        final_end_date_value = end_date_by_period
+    return final_end_date_value
 
 
 def get_end_date_value_of_period(
@@ -120,34 +120,33 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
 ) -> Any:
     if source_config.api_query_parameters:
         api_query_parameters_config = source_config.api_query_parameters
-        placement_value_list = api_query_parameters_config.parameter_values.placement_value
         dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
             api_query_parameters_config.parameter_values.from_bigquery
         ))
         LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
         for dict_value_from_bq in dict_value_list_from_bq:
-            start_date_value = (
+            initial_start_date_value = (
                 datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
             )
             entity_id = dict_value_from_bq['entity_id']
-            if start_date_value <= datetime.strptime('2015-01-01', '%Y-%m-%d').date():
+            if initial_start_date_value <= datetime.strptime('2015-01-01', '%Y-%m-%d').date():
                 LOGGER.info(
-                    "start_date %s for entity_id %s is out of range for the API",
-                    start_date_value,
+                    "initial_start_date %s for entity_id %s is out of range for the API",
+                    initial_start_date_value,
                     entity_id
                 )
                 continue
-            start_and_end_date_dict = get_start_date_and_final_end_date_dict(
+            final_end_date_value = get_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
-                start_date_value_from_bq=start_date_value
+                start_date_value_from_bq=initial_start_date_value
             )
-            final_end_date_value = start_and_end_date_dict['final_end_date']
 
+            placement_value_list = api_query_parameters_config.parameter_values.placement_value
             if not api_query_parameters_config.parameter_names_for.placement:
                 params_dict = get_param_dict_from_api_query_parameters(
                     api_query_parameters_config=api_query_parameters_config,
                     entity_id=entity_id,
-                    start_date=start_date_value.isoformat(),
+                    start_date=initial_start_date_value.isoformat(),
                     end_date=final_end_date_value.isoformat()
                 )
                 yield get_bq_compatible_json_response_from_resource_with_provenance(
@@ -157,6 +156,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
             else:
                 assert placement_value_list
                 for placement_value in placement_value_list:
+                    start_date_value = initial_start_date_value
                     while start_date_value < final_end_date_value:
                         end_date_value = get_end_date_value_of_period(
                             start_date_value=start_date_value,
@@ -166,12 +166,13 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                         )
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,
-                            entity_id=dict_value_from_bq['entity_id'],
+                            entity_id=entity_id,
                             start_date=start_date_value.isoformat(),
                             end_date=end_date_value.isoformat(),
                             placement=placement_value
                         )
                         start_date_value = end_date_value
+
                         yield get_bq_compatible_json_response_from_resource_with_provenance(
                                 source_config=source_config,
                                 params_dict=params_dict
