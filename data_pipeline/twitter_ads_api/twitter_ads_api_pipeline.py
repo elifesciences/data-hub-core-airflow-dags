@@ -126,18 +126,27 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         ))
         LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
         for dict_value_from_bq in dict_value_list_from_bq:
+            start_date_value = (
+                datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
+            )
+            entity_id = dict_value_from_bq['entity_id']
+            if start_date_value <= datetime.strptime('2015-01-01', '%Y-%m-%d').date():
+                LOGGER.info(
+                    "start_date %s for entity_id %s is out of range for the API",
+                    start_date_value,
+                    entity_id
+                )
+                continue
             start_and_end_date_dict = get_start_date_and_final_end_date_dict(
                 api_query_parameters_config=api_query_parameters_config,
-                start_date_value_from_bq=(
-                    datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
-                )
+                start_date_value_from_bq=start_date_value
             )
-            start_date_value = start_and_end_date_dict['start_date']
             final_end_date_value = start_and_end_date_dict['final_end_date']
+
             if not api_query_parameters_config.parameter_names_for.placement:
                 params_dict = get_param_dict_from_api_query_parameters(
                     api_query_parameters_config=api_query_parameters_config,
-                    entity_id=dict_value_from_bq['entity_id'],
+                    entity_id=entity_id,
                     start_date=start_date_value.isoformat(),
                     end_date=final_end_date_value.isoformat()
                 )
@@ -152,7 +161,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                         end_date_value = get_end_date_value_of_period(
                             start_date_value=start_date_value,
                             final_end_date_value=final_end_date_value,
-                            # seven days period is the max for the api endpoint
+                            # 7 days period is the max value for the api endpoint
                             days_in_period=7
                         )
                         params_dict = get_param_dict_from_api_query_parameters(

@@ -460,6 +460,16 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
 
+    def test_should_not_get_the_param_dict_when_the_entity_with_start_date_out_of_range(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_param_dict_from_api_query_parameters_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
+            [{'entity_id': 'id_1', 'start_date': '2014-08-01'}]  # '2014-12-01' is out of range
+        )
+        assert not get_param_dict_from_api_query_parameters_mock.called
+
     # def test_should_call_get_param_dict_for_each_placement_value(
     #     self,
     #     iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
@@ -514,9 +524,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     #     get_yesterdays_date_mock.return_value = datetime(2022, 8, 17).date()
     #     api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
     #         parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-    #             ending_period_per_day=30, # end_date is in future
-    #             start_date_value=None,
-    #             end_date_value=None
+    #             ending_period_per_day=30  # end_date is in future
     #         )
     #     )
     #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
@@ -562,9 +570,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     #     get_yesterdays_date_mock.return_value = datetime(2022, 8, 30).date()
     #     api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
     #         parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-    #             ending_period_per_day=12, # end_date is in future
-    #             start_date_value=None,
-    #             end_date_value=None
+    #             ending_period_per_day=12  # end_date is in future
     #         )
     #     )
     #     list(iter_bq_compatible_json_response_from_resource_with_provenance(
