@@ -305,7 +305,7 @@ class TestFinalEndDate:
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 5).date()  # in 4 days
         actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
-            start_date_value_from_bq='2022-08-01'
+            initial_start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date()
         )
         assert actual_return_value == datetime.strptime('2022-08-05', '%Y-%m-%d').date()
 
@@ -321,7 +321,7 @@ class TestFinalEndDate:
         get_yesterdays_date_mock.return_value = datetime(2022, 8, 31).date()  # in 30 days
         actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
-            start_date_value_from_bq='2022-08-01'
+            initial_start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date()
         )
         assert actual_return_value == datetime.strptime('2022-08-11', '%Y-%m-%d').date()
 

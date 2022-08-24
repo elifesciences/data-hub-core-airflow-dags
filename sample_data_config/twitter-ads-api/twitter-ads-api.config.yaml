@@ -40,7 +40,6 @@ twitterAdsApi:
               JOIN UNNEST(data) AS t_data
               WHERE t_data.id IN ('git3k', 'gwdrg')
               -- t_data.effective_status = 'ACTIVE'
-          # earliest campaign creation date for initial load:
           endingPeriodPerDay: 600
         parameterNamesFor:
           entityId: campaign_ids
