@@ -127,16 +127,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         for dict_value_from_bq in dict_value_list_from_bq:
             entity_id_from_bq = dict_value_from_bq['entity_id']
             start_date_str_from_bq = dict_value_from_bq['start_date']
-            initial_start_date_value = (
-                date.fromisoformat(start_date_str_from_bq)
-            )
-            if initial_start_date_value <= date.fromisoformat('2015-01-01'):
-                LOGGER.info(
-                    "initial_start_date %s for entity_id %s is out of range for the API",
-                    start_date_str_from_bq,
-                    entity_id_from_bq
-                )
-                continue
+            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
             final_end_date_value = get_current_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
                 initial_start_date=initial_start_date_value

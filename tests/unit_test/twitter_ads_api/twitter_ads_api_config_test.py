@@ -139,9 +139,6 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.api_query_parameters.parameter_values.period_batch_size_in_days == (
             PERIOD_BATCH_SIZE_IN_DAYS
         )
-        assert config[0].source.api_query_parameters.parameter_values.api_min_start_date == (
-            '2015-01-02'
-        )
         assert config[0].source.api_query_parameters.parameter_values.placement_value == []
 
     def test_should_read_from_bigquery_sql_query_and_project_name_if_defined(self):
