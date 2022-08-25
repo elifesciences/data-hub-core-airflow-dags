@@ -97,7 +97,7 @@ def add_days_to_date(date_value: date, number_of_days_to_add: int) -> date:
 def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     initial_start_date: date
-) -> datetime:
+) -> date:
     yesterday_date = get_yesterdays_date()
     max_period_end_date = add_days_to_date(
         initial_start_date,
@@ -108,9 +108,9 @@ def get_current_final_end_date(
 
 def get_end_date_value_of_batch_period(
     start_date: date,
-    final_end_date: datetime,
+    final_end_date: date,
     batch_size_in_days: int
-) -> datetime:
+) -> date:
     period_end_date = add_days_to_date(start_date, batch_size_in_days)
     return get_min_date(period_end_date, final_end_date)
 
@@ -128,9 +128,9 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
             entity_id_from_bq = dict_value_from_bq['entity_id']
             start_date_str_from_bq = dict_value_from_bq['start_date']
             initial_start_date_value = (
-                datetime.strptime(start_date_str_from_bq, '%Y-%m-%d').date()
+                date.fromisoformat(start_date_str_from_bq)
             )
-            if initial_start_date_value <= datetime.strptime('2015-01-01', '%Y-%m-%d').date():
+            if initial_start_date_value <= date.fromisoformat('2015-01-01'):
                 LOGGER.info(
                     "initial_start_date %s for entity_id %s is out of range for the API",
                     start_date_str_from_bq,
