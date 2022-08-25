@@ -125,7 +125,7 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters == {}
 
-    def test_should_read_defined_parameter_values_and_empty_list_for_not_defined(
+    def test_should_read_defined_parameter_values_and_default_value_for_not_defined(
         self
     ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
@@ -138,6 +138,9 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters.parameter_values.period_batch_size_in_days == (
             PERIOD_BATCH_SIZE_IN_DAYS
+        )
+        assert config[0].source.api_query_parameters.parameter_values.api_min_start_date == (
+            '2015-01-02'
         )
         assert config[0].source.api_query_parameters.parameter_values.placement_value == []
 

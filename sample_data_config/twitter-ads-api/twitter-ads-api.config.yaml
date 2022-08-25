@@ -73,6 +73,7 @@ twitterAdsApi:
               FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
               JOIN UNNEST(data) AS t_data
               WHERE t_data.id IN ('i61cm')
+          apiMinStartDate: '2015-01-02'
           maxPeriodInDays: 90
           periodBatchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']

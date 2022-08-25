@@ -1,3 +1,4 @@
+from datetime import date
 from typing import NamedTuple, Optional, Sequence
 
 from data_pipeline.utils.pipeline_config import (
@@ -9,6 +10,7 @@ from data_pipeline.utils.pipeline_config import (
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
+    api_min_start_date: Optional[str] = '2015-01-02'
     max_period_in_days: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = []
     period_batch_size_in_days: Optional[int] = 0
@@ -19,6 +21,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
             from_bigquery=BigQuerySourceConfig.from_dict(
                 parameter_values_config_dict.get('fromBigQuery', {})
             ),
+            api_min_start_date=parameter_values_config_dict.get('apiMinStartDate', '2015-01-02'),
             max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
             period_batch_size_in_days=parameter_values_config_dict.get('periodBatchSizeInDays', 0),
             placement_value=parameter_values_config_dict.get('placementValue', [])
