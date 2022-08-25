@@ -96,17 +96,14 @@ def add_days_to_date(date_value: date, number_of_days_to_add: int) -> date:
 
 def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
-    initial_start_date_value: datetime
+    initial_start_date: date
 ) -> datetime:
     yesterday_date = get_yesterdays_date()
-    end_date_by_period = initial_start_date_value + timedelta(
-        days=api_query_parameters_config.parameter_values.max_period_in_days
+    max_period_end_date = add_days_to_date(
+        initial_start_date,
+        api_query_parameters_config.parameter_values.max_period_in_days
     )
-    if end_date_by_period > yesterday_date:
-        final_end_date_value = yesterday_date
-    else:
-        final_end_date_value = end_date_by_period
-    return final_end_date_value
+    return get_min_date(yesterday_date, max_period_end_date)
 
 
 def get_end_date_value_of_batch_period(
@@ -142,7 +139,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 continue
             final_end_date_value = get_current_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
-                initial_start_date_value=initial_start_date_value
+                initial_start_date=initial_start_date_value
             )
 
             placement_value_list = api_query_parameters_config.parameter_values.placement_value
