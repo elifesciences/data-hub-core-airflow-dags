@@ -99,11 +99,11 @@ def get_current_final_end_date(
     initial_start_date: date
 ) -> date:
     yesterday_date = get_yesterdays_date()
-    max_period_end_date = add_days_to_date(
+    period_max_end_date = add_days_to_date(
         initial_start_date,
         api_query_parameters_config.parameter_values.max_period_in_days
     )
-    return get_min_date(yesterday_date, max_period_end_date)
+    return get_min_date(yesterday_date, period_max_end_date)
 
 
 def get_end_date_value_of_batch_period(
