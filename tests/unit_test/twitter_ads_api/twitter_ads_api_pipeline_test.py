@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import patch, MagicMock, call
 import pytest
 
@@ -58,12 +58,12 @@ PARAMETER_NAMES_FOR_WITH_PLACEMENT = TwitterAdsApiParameterNamesForConfig(
 
 PARAMETER_VALUES = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    ending_period_per_day=ENDING_PERIOD_PER_DAY_VALUE
+    max_period_in_days=ENDING_PERIOD_PER_DAY_VALUE
 )
 
 PARAMETER_VALUES_WITH_PLACEMENT = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    ending_period_per_day=10,
+    max_period_in_days=10,
     placement_value=SINGLE_PLACEMENT_PARAM_VALUE
 )
 
@@ -293,21 +293,21 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
 
 
 class TestFinalEndDate:
-    def test_should_return_final_end_date_as_yesterday_if_the_ending_period_days_is_in_future(
+    def test_should_return_final_end_date_as_yesterday_if_max_period_in_days_is_in_future(
         self,
         get_yesterdays_date_mock: MagicMock
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                ending_period_per_day=10  # in 10 days
+                max_period_in_days=10  # in 10 days
             )
         )
-        get_yesterdays_date_mock.return_value = datetime(2022, 8, 5).date()  # in 4 days
+        get_yesterdays_date_mock.return_value = date.fromisoformat('2022-08-05')  # in 4 days
         actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
-            initial_start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date()
+            initial_start_date_value=date.fromisoformat('2022-08-01')
         )
-        assert actual_return_value == datetime.strptime('2022-08-05', '%Y-%m-%d').date()
+        assert actual_return_value == date.fromisoformat('2022-08-05')
 
     def test_should_return_final_end_date_of_given_period_if_ending_period_days_is_before_yesterday(
         self,
@@ -315,33 +315,33 @@ class TestFinalEndDate:
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                ending_period_per_day=10  # in 10 days
+                max_period_in_days=10  # in 10 days
             )
         )
-        get_yesterdays_date_mock.return_value = datetime(2022, 8, 31).date()  # in 30 days
+        get_yesterdays_date_mock.return_value = date.fromisoformat('2022-08-31')  # in 30 days
         actual_return_value = get_final_end_date(
             api_query_parameters_config=api_query_parameters,
-            initial_start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date()
+            initial_start_date_value=date.fromisoformat('2022-08-01')
         )
-        assert actual_return_value == datetime.strptime('2022-08-11', '%Y-%m-%d').date()
+        assert actual_return_value == date.fromisoformat('2022-08-11')
 
 
 class TestGetEndDateValueOfPeriod:
     def test_should_return_period_end_date_as_end_date(self):
         actual_return_value = get_end_date_value_of_period(
-            start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            final_end_date_value=datetime.strptime('2022-08-10', '%Y-%m-%d').date(),
+            start_date_value=date.fromisoformat('2022-08-01'),
+            final_end_date_value=date.fromisoformat('2022-08-10'),
             days_in_period=5  # '2022-08-06'
         )
-        assert actual_return_value == datetime.strptime('2022-08-06', '%Y-%m-%d').date()
+        assert actual_return_value == date.fromisoformat('2022-08-06')
 
     def test_should_return_final_end_date_as_end_date_if_period_ends_in_future(self):
         actual_return_value = get_end_date_value_of_period(
-            start_date_value=datetime.strptime('2022-08-01', '%Y-%m-%d').date(),
-            final_end_date_value=datetime.strptime('2022-08-10', '%Y-%m-%d').date(),
+            start_date_value=date.fromisoformat('2022-08-01'),
+            final_end_date_value=date.fromisoformat('2022-08-10'),
             days_in_period=30  # '2022-08-31' period ends in the future
         )
-        assert actual_return_value == datetime.strptime('2022-08-10', '%Y-%m-%d').date()
+        assert actual_return_value == date.fromisoformat('2022-08-10')
 
 
 class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
@@ -367,7 +367,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
         )
@@ -388,7 +388,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS
         ))
@@ -409,7 +409,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-10', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-10')
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
         )
@@ -430,7 +430,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-02', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
         ))
@@ -467,7 +467,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 placement_value=['placement_value_1', 'placement_value_2']
             )
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-08', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-08')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
                 api_query_parameters=api_query_parameters
@@ -499,10 +499,10 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
             [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
         )
-        get_final_end_date_mock.return_value = datetime.strptime('2022-08-17', '%Y-%m-%d').date()
+        get_final_end_date_mock.return_value = date.fromisoformat('2022-08-17')
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                ending_period_per_day=30  # end_date is in future
+                max_period_in_days=30  # end_date is in future
             )
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
