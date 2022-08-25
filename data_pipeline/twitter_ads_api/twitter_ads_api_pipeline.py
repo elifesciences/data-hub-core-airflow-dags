@@ -134,6 +134,9 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
             )
 
             placement_value_list = api_query_parameters_config.parameter_values.placement_value
+            period_batch_size_in_days = (
+                api_query_parameters_config.parameter_values.period_batch_size_in_days
+            )
             if not api_query_parameters_config.parameter_names_for.placement:
                 params_dict = get_param_dict_from_api_query_parameters(
                     api_query_parameters_config=api_query_parameters_config,
@@ -147,6 +150,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 )
             else:
                 assert placement_value_list
+                assert period_batch_size_in_days
                 for placement_value in placement_value_list:
                     start_date_value = initial_start_date_value
                     while start_date_value < final_end_date_value:
@@ -154,7 +158,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                             start_date=start_date_value,
                             final_end_date=final_end_date_value,
                             # 7 days period is the max value for the api endpoint
-                            batch_size_in_days=7
+                            batch_size_in_days=period_batch_size_in_days
                         )
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,

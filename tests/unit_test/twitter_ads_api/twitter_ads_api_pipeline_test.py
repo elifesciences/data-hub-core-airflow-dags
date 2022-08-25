@@ -36,7 +36,8 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
 
 FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
 SINGLE_PLACEMENT_PARAM_VALUE = ['placement_value_1']
-ENDING_PERIOD_PER_DAY_VALUE = 10
+MAX_PERIOD_IN_DAYS = 10
+PERIOD_BATCH_SIZE_IN_DAYS = 7
 
 PARAM_NAME_FOR_BIGQUERY_VALUE = 'param_name_for_bq_value_1'
 PARAM_NAME_FOR_START_TIME = 'param_name_for_start_date_1'
@@ -58,13 +59,14 @@ PARAMETER_NAMES_FOR_WITH_PLACEMENT = TwitterAdsApiParameterNamesForConfig(
 
 PARAMETER_VALUES = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    max_period_in_days=ENDING_PERIOD_PER_DAY_VALUE
+    max_period_in_days=MAX_PERIOD_IN_DAYS
 )
 
 PARAMETER_VALUES_WITH_PLACEMENT = TwitterAdsApiParameterValuesConfig(
     from_bigquery=FROM_BIGQUERY_PARAM_VALUE,
-    max_period_in_days=10,
-    placement_value=SINGLE_PLACEMENT_PARAM_VALUE
+    max_period_in_days=MAX_PERIOD_IN_DAYS,
+    placement_value=SINGLE_PLACEMENT_PARAM_VALUE,
+    period_batch_size_in_days=PERIOD_BATCH_SIZE_IN_DAYS
 )
 
 API_QUERY_PARAMETERS = TwitterAdsApiApiQueryParametersConfig(
@@ -454,10 +456,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
 
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
-                placement_value=['placement_value_1', 'placement_value_2']
+                placement_value=['placement_value_1', 'placement_value_2'],
+                period_batch_size_in_days=1
             )
         )
-        get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-08')
+        get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
                 api_query_parameters=api_query_parameters
@@ -468,14 +471,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
                 start_date='2022-08-01',
-                end_date='2022-08-08',
+                end_date='2022-08-02',
                 placement='placement_value_1'
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
                 start_date='2022-08-01',
-                end_date='2022-08-08',
+                end_date='2022-08-02',
                 placement='placement_value_2'
             )
         ], any_order=True)
