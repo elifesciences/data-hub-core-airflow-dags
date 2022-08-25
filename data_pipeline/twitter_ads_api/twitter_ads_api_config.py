@@ -1,4 +1,3 @@
-from datetime import date
 from typing import NamedTuple, Optional, Sequence
 
 from data_pipeline.utils.pipeline_config import (
