@@ -442,16 +442,6 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
 
-    def test_should_not_get_the_param_dict_when_the_entity_with_start_date_out_of_range(
-        self,
-        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
-        get_param_dict_from_api_query_parameters_mock: MagicMock
-    ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2014-08-01'}]  # '2014-12-01' is out of range
-        )
-        assert not get_param_dict_from_api_query_parameters_mock.called
-
     def test_should_call_get_param_dict_for_each_placement_value(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
