@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 from typing import Any, Mapping, Optional, Sequence
 from twitter_ads.http import Request
@@ -84,7 +84,17 @@ def get_param_dict_from_api_query_parameters(
     return result
 
 
-def get_final_end_date(
+def get_min_date(date1: date, date2: date) -> date:
+    if date1 < date2:
+        return date1
+    return date2
+
+
+def add_days_to_date(date_value: date, number_of_days_to_add: int) -> date:
+    return date_value + timedelta(days=number_of_days_to_add)
+
+
+def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     initial_start_date_value: datetime
 ) -> datetime:
@@ -99,17 +109,13 @@ def get_final_end_date(
     return final_end_date_value
 
 
-def get_end_date_value_of_period(
-    start_date_value: datetime,
-    final_end_date_value: datetime,
-    days_in_period: int
+def get_end_date_value_of_batch_period(
+    start_date: date,
+    final_end_date: datetime,
+    batch_size_in_days: int
 ) -> datetime:
-    period_end_date_value = start_date_value + timedelta(days=days_in_period)
-    if period_end_date_value > final_end_date_value:
-        end_date_value = final_end_date_value
-    else:
-        end_date_value = period_end_date_value
-    return end_date_value
+    period_end_date = add_days_to_date(start_date, batch_size_in_days)
+    return get_min_date(period_end_date, final_end_date)
 
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
@@ -134,7 +140,7 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                     entity_id_from_bq
                 )
                 continue
-            final_end_date_value = get_final_end_date(
+            final_end_date_value = get_current_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
                 initial_start_date_value=initial_start_date_value
             )
@@ -156,11 +162,11 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 for placement_value in placement_value_list:
                     start_date_value = initial_start_date_value
                     while start_date_value < final_end_date_value:
-                        end_date_value = get_end_date_value_of_period(
-                            start_date_value=start_date_value,
-                            final_end_date_value=final_end_date_value,
+                        end_date_value = get_end_date_value_of_batch_period(
+                            start_date=start_date_value,
+                            final_end_date=final_end_date_value,
                             # 7 days period is the max value for the api endpoint
-                            days_in_period=7
+                            batch_size_in_days=7
                         )
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,
