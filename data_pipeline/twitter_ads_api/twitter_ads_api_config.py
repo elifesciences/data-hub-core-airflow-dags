@@ -9,7 +9,7 @@ from data_pipeline.utils.pipeline_config import (
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
-    ending_period_per_day: Optional[int] = 0
+    max_period_in_days: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = []
 
     @staticmethod
@@ -18,7 +18,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
             from_bigquery=BigQuerySourceConfig.from_dict(
                 parameter_values_config_dict.get('fromBigQuery', {})
             ),
-            ending_period_per_day=parameter_values_config_dict.get('endingPeriodPerDay', 0),
+            max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
             placement_value=parameter_values_config_dict.get('placementValue', [])
         )
 

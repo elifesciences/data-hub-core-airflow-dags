@@ -90,7 +90,7 @@ def get_final_end_date(
 ) -> datetime:
     yesterday_date = get_yesterdays_date()
     end_date_by_period = initial_start_date_value + timedelta(
-        days=api_query_parameters_config.parameter_values.ending_period_per_day
+        days=api_query_parameters_config.parameter_values.max_period_in_days
     )
     if end_date_by_period > yesterday_date:
         final_end_date_value = yesterday_date
