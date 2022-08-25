@@ -18,11 +18,13 @@ FROM_BIGQUERY_DICT = {
     'sqlQuery': SQL_QUERY
 }
 
-END_PERIOD_PER_DAYS = 53
+MAX_PERIOD_IN_DAYS = 53
+PERIOD_BATCH_SIZE_IN_DAYS = 7
 
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
-    'maxPeriodInDays': END_PERIOD_PER_DAYS
+    'maxPeriodInDays': MAX_PERIOD_IN_DAYS,
+    'periodBatchSizeInDays': PERIOD_BATCH_SIZE_IN_DAYS
 }
 
 NAME_FOR_ENTITY_ID_1 = 'name_for_entity_id_1'
@@ -132,7 +134,10 @@ class TestTwitterAdsApiConfig:
             ])
         )
         assert config[0].source.api_query_parameters.parameter_values.max_period_in_days == (
-            END_PERIOD_PER_DAYS
+            MAX_PERIOD_IN_DAYS
+        )
+        assert config[0].source.api_query_parameters.parameter_values.period_batch_size_in_days == (
+            PERIOD_BATCH_SIZE_IN_DAYS
         )
         assert config[0].source.api_query_parameters.parameter_values.placement_value == []
 

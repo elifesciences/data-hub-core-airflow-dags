@@ -11,6 +11,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
     max_period_in_days: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = []
+    period_batch_size_in_days: Optional[int] = 0
 
     @staticmethod
     def from_dict(parameter_values_config_dict: dict) -> 'TwitterAdsApiParameterValuesConfig':
@@ -19,6 +20,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
                 parameter_values_config_dict.get('fromBigQuery', {})
             ),
             max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
+            period_batch_size_in_days=parameter_values_config_dict.get('periodBatchSizeInDays', 0),
             placement_value=parameter_values_config_dict.get('placementValue', [])
         )
 

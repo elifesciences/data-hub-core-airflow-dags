@@ -74,7 +74,7 @@ twitterAdsApi:
               JOIN UNNEST(data) AS t_data
               WHERE t_data.id IN ('i61cm')
           maxPeriodInDays: 90
-          batchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
+          periodBatchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
         parameterNamesFor:
           entityId: entity_ids
