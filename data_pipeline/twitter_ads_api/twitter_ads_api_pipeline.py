@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 from typing import Any, Mapping, Optional, Sequence
 from twitter_ads.http import Request
@@ -15,7 +15,6 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import (
-    fetch_single_column_value_list_for_bigquery_source_config,
     iter_dict_from_bq_query_for_bigquery_source_config
 )
 
@@ -85,36 +84,85 @@ def get_param_dict_from_api_query_parameters(
     return result
 
 
+def get_min_date(date1: date, date2: date) -> date:
+    if date1 < date2:
+        return date1
+    return date2
+
+
+def add_days_to_date(date_value: date, number_of_days_to_add: int) -> date:
+    return date_value + timedelta(days=number_of_days_to_add)
+
+
+def get_current_final_end_date(
+    api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
+    initial_start_date: date
+) -> date:
+    yesterday_date = get_yesterdays_date()
+    period_max_end_date = add_days_to_date(
+        initial_start_date,
+        api_query_parameters_config.parameter_values.max_period_in_days
+    )
+    return get_min_date(yesterday_date, period_max_end_date)
+
+
+def get_end_date_value_of_batch_period(
+    start_date: date,
+    final_end_date: date,
+    batch_size_in_days: int
+) -> date:
+    period_end_date = add_days_to_date(start_date, batch_size_in_days)
+    return get_min_date(period_end_date, final_end_date)
+
+
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
 ) -> Any:
     if source_config.api_query_parameters:
         api_query_parameters_config = source_config.api_query_parameters
-        placement_value_list = api_query_parameters_config.parameter_values.placement_value
-        if api_query_parameters_config.parameter_names_for.placement:
-            assert placement_value_list
-            assert api_query_parameters_config.use_start_date_from_bigquery
-            dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
-                api_query_parameters_config.parameter_values.from_bigquery
-            ))
-            LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
-            for dict_value_from_bq in dict_value_list_from_bq:
+        dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
+            api_query_parameters_config.parameter_values.from_bigquery
+        ))
+        LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
+        for dict_value_from_bq in dict_value_list_from_bq:
+            entity_id_from_bq = dict_value_from_bq['entity_id']
+            start_date_str_from_bq = dict_value_from_bq['start_date']
+            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
+            final_end_date_value = get_current_final_end_date(
+                api_query_parameters_config=api_query_parameters_config,
+                initial_start_date=initial_start_date_value
+            )
+
+            placement_value_list = api_query_parameters_config.parameter_values.placement_value
+            period_batch_size_in_days = (
+                api_query_parameters_config.parameter_values.period_batch_size_in_days
+            )
+            if not api_query_parameters_config.parameter_names_for.placement:
+                params_dict = get_param_dict_from_api_query_parameters(
+                    api_query_parameters_config=api_query_parameters_config,
+                    entity_id=entity_id_from_bq,
+                    start_date=initial_start_date_value.isoformat(),
+                    end_date=final_end_date_value.isoformat()
+                )
+                yield get_bq_compatible_json_response_from_resource_with_provenance(
+                    source_config=source_config,
+                    params_dict=params_dict
+                )
+            else:
+                assert placement_value_list
+                assert period_batch_size_in_days
                 for placement_value in placement_value_list:
-                    start_date_value = (
-                        datetime.strptime(dict_value_from_bq['start_date'], '%Y-%m-%d').date()
-                    )
-                    yesterday_date = get_yesterdays_date()
-                    LOGGER.debug("start_date_value: %r", )
-                    LOGGER.debug("yesterday: %r", yesterday_date)
-                    while start_date_value < yesterday_date:
-                        seven_days_after_start_date_value = start_date_value + timedelta(days=7)
-                        if seven_days_after_start_date_value > yesterday_date:
-                            end_date_value = yesterday_date
-                        else:
-                            end_date_value = start_date_value + timedelta(days=7)
+                    start_date_value = initial_start_date_value
+                    while start_date_value < final_end_date_value:
+                        end_date_value = get_end_date_value_of_batch_period(
+                            start_date=start_date_value,
+                            final_end_date=final_end_date_value,
+                            # 7 days period is the max value for the api endpoint
+                            batch_size_in_days=period_batch_size_in_days
+                        )
                         params_dict = get_param_dict_from_api_query_parameters(
                             api_query_parameters_config=api_query_parameters_config,
-                            entity_id=dict_value_from_bq['entity_id'],
+                            entity_id=entity_id_from_bq,
                             start_date=start_date_value.isoformat(),
                             end_date=end_date_value.isoformat(),
                             placement=placement_value
@@ -125,22 +173,6 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                                 source_config=source_config,
                                 params_dict=params_dict
                             )
-        else:
-            value_list_from_bq = fetch_single_column_value_list_for_bigquery_source_config(
-                api_query_parameters_config.parameter_values.from_bigquery
-            )
-            for value_from_bq in value_list_from_bq:
-                params_dict = get_param_dict_from_api_query_parameters(
-                    api_query_parameters_config=api_query_parameters_config,
-                    entity_id=value_from_bq,
-                    start_date=api_query_parameters_config.parameter_values.start_date_value,
-                    end_date=get_yesterdays_date().isoformat()
-                )
-
-                yield get_bq_compatible_json_response_from_resource_with_provenance(
-                        source_config=source_config,
-                        params_dict=params_dict
-                    )
     else:
         yield get_bq_compatible_json_response_from_resource_with_provenance(
                 source_config=source_config,

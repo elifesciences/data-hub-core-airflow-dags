@@ -18,11 +18,13 @@ FROM_BIGQUERY_DICT = {
     'sqlQuery': SQL_QUERY
 }
 
-START_DATE_VALUE_1 = 'start_date_value_1'
+MAX_PERIOD_IN_DAYS = 53
+PERIOD_BATCH_SIZE_IN_DAYS = 7
 
 PARAMETER_VALUES_DICT = {
     'fromBigQuery': FROM_BIGQUERY_DICT,
-    'startDateValue': START_DATE_VALUE_1
+    'maxPeriodInDays': MAX_PERIOD_IN_DAYS,
+    'periodBatchSizeInDays': PERIOD_BATCH_SIZE_IN_DAYS
 }
 
 NAME_FOR_ENTITY_ID_1 = 'name_for_entity_id_1'
@@ -115,31 +117,6 @@ class TestTwitterAdsApiConfig:
         assert config[0].source.secrets.mapping == secrets
         assert config[1].source.secrets.mapping == secrets
 
-    def test_should_read_use_start_date_from_bigquery_if_defined(self):
-        config = TwitterAdsApiConfig.parse_config_list_from_dict(
-            get_config_for_item_config_dict([
-                {
-                    **ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS,
-                    'source': {
-                        **SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
-                        'apiQueryParameters': {
-                            **API_QUERY_PARAMETERS_DICT,
-                            'useStartDateFromBigQuery': True
-                        }
-                    }
-                }
-            ])
-        )
-        assert config[0].source.api_query_parameters.use_start_date_from_bigquery
-
-    def test_should_read_use_start_date_from_bigquery_as_false_if_not_defined(self):
-        config = TwitterAdsApiConfig.parse_config_list_from_dict(
-            get_config_for_item_config_dict([
-                ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
-            ])
-        )
-        assert not config[0].source.api_query_parameters.use_start_date_from_bigquery
-
     def test_should_read_empty_dict_for_api_query_parameters_if_not_defined(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
             get_config_for_item_config_dict([
@@ -148,7 +125,7 @@ class TestTwitterAdsApiConfig:
         )
         assert config[0].source.api_query_parameters == {}
 
-    def test_should_read_defined_parameter_values_and_read_empty_string_or_list_for_not_defined(
+    def test_should_read_defined_parameter_values_and_default_value_for_not_defined(
         self
     ):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(
@@ -156,10 +133,12 @@ class TestTwitterAdsApiConfig:
                 ITEM_CONFIG_DICT_WITH_API_QUERY_PARAMETERS
             ])
         )
-        assert config[0].source.api_query_parameters.parameter_values.start_date_value == (
-            START_DATE_VALUE_1
+        assert config[0].source.api_query_parameters.parameter_values.max_period_in_days == (
+            MAX_PERIOD_IN_DAYS
         )
-        assert config[0].source.api_query_parameters.parameter_values.end_date_value is None
+        assert config[0].source.api_query_parameters.parameter_values.period_batch_size_in_days == (
+            PERIOD_BATCH_SIZE_IN_DAYS
+        )
         assert config[0].source.api_query_parameters.parameter_values.placement_value == []
 
     def test_should_read_from_bigquery_sql_query_and_project_name_if_defined(self):

@@ -9,9 +9,9 @@ from data_pipeline.utils.pipeline_config import (
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
-    start_date_value: Optional[str] = None
-    end_date_value: Optional[str] = None
+    max_period_in_days: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = []
+    period_batch_size_in_days: Optional[int] = 0
 
     @staticmethod
     def from_dict(parameter_values_config_dict: dict) -> 'TwitterAdsApiParameterValuesConfig':
@@ -19,8 +19,8 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
             from_bigquery=BigQuerySourceConfig.from_dict(
                 parameter_values_config_dict.get('fromBigQuery', {})
             ),
-            start_date_value=parameter_values_config_dict.get('startDateValue', None),
-            end_date_value=parameter_values_config_dict.get('endDateValue', None),
+            max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
+            period_batch_size_in_days=parameter_values_config_dict.get('periodBatchSizeInDays', 0),
             placement_value=parameter_values_config_dict.get('placementValue', [])
         )
 
@@ -44,7 +44,6 @@ class TwitterAdsApiParameterNamesForConfig(NamedTuple):
 class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
     parameter_values: TwitterAdsApiParameterValuesConfig = {}
     parameter_names_for: TwitterAdsApiParameterNamesForConfig = {}
-    use_start_date_from_bigquery: bool = False
 
     @staticmethod
     def from_dict(api_query_parameters_config: dict) -> 'TwitterAdsApiApiQueryParametersConfig':
@@ -54,10 +53,6 @@ class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
             ),
             parameter_names_for=TwitterAdsApiParameterNamesForConfig.from_dict(
                 api_query_parameters_config.get('parameterNamesFor', {})
-            ),
-            use_start_date_from_bigquery=api_query_parameters_config.get(
-                'useStartDateFromBigQuery',
-                False
             )
         )
 
