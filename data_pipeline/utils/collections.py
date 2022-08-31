@@ -7,8 +7,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 def iter_batches_iterable(
-        long_list: Iterable[T],
-        batch_size: int) -> Iterable[Iterable[T]]:
+    long_list: Iterable[T],
+    batch_size: int
+) -> Iterable[Iterable[T]]:
     iterator = iter(long_list)
     while True:
         batch = list(islice(iterator, batch_size))
