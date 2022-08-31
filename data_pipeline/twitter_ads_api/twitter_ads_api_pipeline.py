@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 import logging
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Iterable, Mapping, Optional, Sequence
 from twitter_ads.http import Request
 from twitter_ads.client import Client
 
@@ -28,7 +28,15 @@ def get_client_from_twitter_ads_api(
         consumer_key=source_config.secrets.mapping['api_key'],
         consumer_secret=source_config.secrets.mapping['api_secret'],
         access_token=source_config.secrets.mapping['access_token'],
-        access_token_secret=source_config.secrets.mapping['access_token_secret']
+        access_token_secret=source_config.secrets.mapping['access_token_secret'],
+        options={
+            'handle_rate_limit': True,
+            'retry_max': 10,
+            'retry_delay': 5000,
+            'retry_on_status': [500, 503, 504],
+            'retry_on_timeouts': True,
+            'timeout': (3.0, 5.0)
+        }
     )
 
 
@@ -117,7 +125,7 @@ def get_end_date_value_of_batch_period(
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
-) -> Any:
+) -> Iterable[dict]:
     if source_config.api_query_parameters:
         api_query_parameters_config = source_config.api_query_parameters
         dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
