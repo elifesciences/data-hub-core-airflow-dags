@@ -163,6 +163,8 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 assert period_batch_size_in_days
                 for placement_value in placement_value_list:
                     start_date_value = initial_start_date_value
+                    LOGGER.debug('start_date_value: %r', start_date_value)
+                    LOGGER.debug('final_end_date_value: %r', final_end_date_value)
                     while start_date_value < final_end_date_value:
                         end_date_value = get_end_date_value_of_batch_period(
                             start_date=start_date_value,

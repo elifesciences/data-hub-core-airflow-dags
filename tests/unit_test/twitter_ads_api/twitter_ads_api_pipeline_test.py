@@ -490,6 +490,25 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
 
+    def test_should_pass_campaign_start_date_from_bq_to_get_current_final_end_date(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_current_final_end_date_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
+        get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
+        ))
+        get_current_final_end_date_mock.assert_called_with(
+            api_query_parameters_config=API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
+            initial_start_date=date.fromisoformat(CAMPAIGN_START_DATE_1)
+        )
+
     def test_should_call_get_param_dict_for_each_placement_value(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
