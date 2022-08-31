@@ -136,12 +136,13 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         for dict_value_from_bq in dict_value_list_from_bq:
             entity_id_from_bq = dict_value_from_bq['entity_id']
             start_date_str_from_bq = dict_value_from_bq['start_date']
-            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
+            campaign_start_date_str_from_bq = dict_value_from_bq['campaign_start_date']
+            # final_and_date should be calculated from campaign_start_date:
             final_end_date_value = get_current_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
-                initial_start_date=initial_start_date_value
+                initial_start_date=date.fromisoformat(campaign_start_date_str_from_bq)
             )
-
+            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
             placement_value_list = api_query_parameters_config.parameter_values.placement_value
             period_batch_size_in_days = (
                 api_query_parameters_config.parameter_values.period_batch_size_in_days

@@ -125,6 +125,8 @@ API_QUERY_PARAMETERS_DICT = {
     'apiQueryParameterName': 'api_query_parameter_value_1'
 }
 
+CAMPAIGN_START_DATE_1 = '2022-07-30'
+START_DATE_1 = '2022-08-01'
 
 @pytest.fixture(name='datetime_mock', autouse=True)
 def _datetime_mock():
@@ -402,9 +404,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
@@ -423,18 +427,20 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_current_final_end_date_mock: MagicMock
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
-        get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
+        get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-03')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS
         ))
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS,
             entity_id='id_1',
-            start_date='2022-08-01',
-            end_date='2022-08-02'
+            start_date=START_DATE_1,
+            end_date='2022-08-03'
         )
 
     def test_sould_pass_params_dict_with_placement_defined(
@@ -444,9 +450,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-10')
         get_param_dict_from_api_query_parameters_mock.return_value = (
             API_QUERY_PARAMETERS_DICT
@@ -465,9 +473,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_current_final_end_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock,
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
             SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
@@ -475,7 +485,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
             entity_id='id_1',
-            start_date='2022-08-01',
+            start_date=START_DATE_1,
             end_date='2022-08-02',
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
@@ -486,10 +496,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_param_dict_from_api_query_parameters_mock: MagicMock,
         get_current_final_end_date_mock: MagicMock
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
-
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 placement_value=['placement_value_1', 'placement_value_2'],
@@ -506,14 +517,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
-                start_date='2022-08-01',
+                start_date=START_DATE_1,
                 end_date='2022-08-02',
                 placement='placement_value_1'
             ),
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
-                start_date='2022-08-01',
+                start_date=START_DATE_1,
                 end_date='2022-08-02',
                 placement='placement_value_2'
             )
@@ -525,9 +536,11 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         get_current_final_end_date_mock: MagicMock,
         get_param_dict_from_api_query_parameters_mock: MagicMock
     ):
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = (
-            [{'entity_id': 'id_1', 'start_date': '2022-08-01'}]
-        )
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
+            'entity_id': 'id_1',
+            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'start_date': START_DATE_1
+        }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-17')
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
@@ -544,7 +557,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             call(
                 api_query_parameters_config=api_query_parameters,
                 entity_id='id_1',
-                start_date='2022-08-01',
+                start_date=START_DATE_1,
                 end_date='2022-08-08',
                 placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
             ),

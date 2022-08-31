@@ -98,6 +98,7 @@ twitterAdsApi:
               )
               SELECT 
                 t_campaing.entity_id,
+                t_campaing.start_date AS campaign_start_date,
                 CAST(IFNULL(t_calculated_date.start_date, t_campaing.start_date)  AS STRING) AS start_date
               FROM t_all_campaigns AS t_campaing
               LEFT JOIN t_min_start_time_per_entity AS t_calculated_date
