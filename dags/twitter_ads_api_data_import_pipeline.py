@@ -53,7 +53,7 @@ TWITTER_ADS_API_DAG = create_dag(
         default_value=None
     ),
     dagrun_timeout=timedelta(days=1),
-    retries=24, # beacuse of memory issues dag will probably fail every hour
+    retries=24,  # beacuse of memory issues dag will probably fail every hour
     concurrency=1
 )
 
