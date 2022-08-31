@@ -89,3 +89,4 @@ twitterAdsApi:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'
       tableName: test_twitter_campaign_clicks_and_impressions_elife_journal
+    batchSize: 250  # because the API ratelimit is 250 requests per 15 min
