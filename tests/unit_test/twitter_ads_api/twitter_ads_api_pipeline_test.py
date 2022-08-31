@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import ANY, patch, MagicMock, call
 import pytest
 
 from data_pipeline.twitter_ads_api import (
@@ -7,6 +7,7 @@ from data_pipeline.twitter_ads_api import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
+    fetch_twitter_ads_api_data_and_load_into_bq,
     get_param_dict_from_api_query_parameters,
     get_provenance,
     get_bq_compatible_json_response_from_resource_with_provenance,
@@ -21,6 +22,7 @@ from data_pipeline.utils.pipeline_config import (
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiApiQueryParametersConfig,
+    TwitterAdsApiConfig,
     TwitterAdsApiParameterNamesForConfig,
     TwitterAdsApiParameterValuesConfig,
     TwitterAdsApiSourceConfig
@@ -97,9 +99,19 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     table_name='table1'
 )
 
+CONFIG_1 = TwitterAdsApiConfig(
+    source=SOURCE_CONFIG_1,
+    target=TARGET_CONFIG_1
+)
+
 RESPONSE_JSON_1 = {
-    'response_key_1': 'response_value_1',
-    'response_key_2': 'response_value_2'
+    'response_key_1': 'response_value_1_1',
+    'response_key_2': 'response_value_1_2'
+}
+
+RESPONSE_JSON_2 = {
+    'response_key_1': 'response_value_2_1',
+    'response_key_2': 'response_value_2_2'
 }
 
 MOCK_UTC_NOW_STR = '2022-08-03T16:35:56'
@@ -196,6 +208,30 @@ def _get_current_final_end_date_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
         'get_current_final_end_date'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(
+    name='load_given_json_list_data_from_tempdir_to_bq_mock',
+    autouse=True
+)
+def _load_given_json_list_data_from_tempdir_to_bq_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'load_given_json_list_data_from_tempdir_to_bq'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(
+    name='iter_bq_compatible_json_response_from_resource_with_provenance_mock',
+    autouse=True
+)
+def _iter_bq_compatible_json_response_from_resource_with_provenance_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'iter_bq_compatible_json_response_from_resource_with_provenance'
     ) as mock:
         yield mock
 
@@ -528,3 +564,73 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
                 placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
             )
         ], any_order=True)
+
+
+class TestFetchTwitterAdsApiDataAndLoadIntoBq:
+    def test_should_pass_project_dataset_and_table_to_bq_load_method(
+        self,
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        json_list = [RESPONSE_JSON_1]
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
+        fetch_twitter_ads_api_data_and_load_into_bq(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=TARGET_CONFIG_1.project_name,
+            dataset_name=TARGET_CONFIG_1.dataset_name,
+            table_name=TARGET_CONFIG_1.table_name,
+            json_list=ANY
+        )
+
+    def test_should_pass_json_list_to_bq_load_method(
+        self,
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        json_list = [
+            RESPONSE_JSON_1,
+            RESPONSE_JSON_2
+        ]
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
+        fetch_twitter_ads_api_data_and_load_into_bq(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=ANY,
+            dataset_name=ANY,
+            table_name=ANY,
+            json_list=json_list
+        )
+
+    def test_should_pass_batched_json_list_to_bq_load_method(
+        self,
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        json_list = [
+            RESPONSE_JSON_1,
+            RESPONSE_JSON_2
+        ]
+        iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
+        fetch_twitter_ads_api_data_and_load_into_bq(
+            CONFIG_1._replace(batch_size=1)
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([
+            call(
+                project_name=ANY,
+                dataset_name=ANY,
+                table_name=ANY,
+                json_list=[json_list[0]]
+            ),
+            call(
+                project_name=ANY,
+                dataset_name=ANY,
+                table_name=ANY,
+                json_list=[json_list[1]]
+            )
+        ])

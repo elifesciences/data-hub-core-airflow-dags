@@ -9,6 +9,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiConfig,
     TwitterAdsApiSourceConfig
 )
+from data_pipeline.utils.collections import iter_batches_iterable
 from data_pipeline.utils.data_pipeline_timestamp import get_yesterdays_date
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -191,17 +192,24 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
 def fetch_twitter_ads_api_data_and_load_into_bq(
     config: TwitterAdsApiConfig
 ):
+    batch_size = config.batch_size
     iterable_data_from_twitter_ads_api = (
         iter_bq_compatible_json_response_from_resource_with_provenance(
             source_config=config.source
         )
     )
-    load_given_json_list_data_from_tempdir_to_bq(
-        project_name=config.target.project_name,
-        dataset_name=config.target.dataset_name,
-        table_name=config.target.table_name,
-        json_list=iterable_data_from_twitter_ads_api
-    )
+    for batch_data_iterable in iter_batches_iterable(
+        iterable_data_from_twitter_ads_api,
+        batch_size
+    ):
+        batch_data_list = list(batch_data_iterable)
+        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=config.target.project_name,
+            dataset_name=config.target.dataset_name,
+            table_name=config.target.table_name,
+            json_list=batch_data_list
+        )
 
 
 def fetch_twitter_ads_api_data_and_load_into_bq_from_config_list(
