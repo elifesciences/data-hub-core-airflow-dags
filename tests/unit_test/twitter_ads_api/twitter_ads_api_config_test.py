@@ -1,5 +1,6 @@
 from typing import Sequence
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
+    DEFAULT_BATCH_SIZE,
     TwitterAdsApiConfig
 )
 
@@ -93,6 +94,24 @@ class TestTwitterAdsApiConfig:
         assert config[0].target.project_name == PROJECT_NAME
         assert config[0].target.dataset_name == DATASET_NAME
         assert config[0].target.table_name == TABLE_NAME
+
+    def test_should_read_batch_size(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([{
+                **ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS,
+                'batchSize': 123
+            }])
+        )
+        assert config[0].batch_size == 123
+
+    def test_should_use_default_batch_size(self):
+        assert 'batchSize' not in ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict([
+                ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS
+            ])
+        )
+        assert config[0].batch_size == DEFAULT_BATCH_SIZE
 
     def test_should_read_api_secrets(self):
         secrets = {'key1': 'value1', 'key2': 'value2'}
