@@ -1,5 +1,6 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
+from datetime import timedelta
 import logging
 from typing import Sequence
 
@@ -50,7 +51,10 @@ TWITTER_ADS_API_DAG = create_dag(
     schedule_interval=get_environment_variable_value(
         TwitterAdsApiEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
-    )
+    ),
+    dagrun_timeout=timedelta(days=1),
+    retries=24, # beacuse of memory issues dag will probably fail every hour
+    concurrency=1
 )
 
 create_python_task(
