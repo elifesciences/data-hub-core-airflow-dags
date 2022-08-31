@@ -128,6 +128,7 @@ API_QUERY_PARAMETERS_DICT = {
 CAMPAIGN_START_DATE_1 = '2022-07-30'
 START_DATE_1 = '2022-08-01'
 
+
 @pytest.fixture(name='datetime_mock', autouse=True)
 def _datetime_mock():
     with patch.object(twitter_ads_api_pipeline_module, 'datetime') as mock:
