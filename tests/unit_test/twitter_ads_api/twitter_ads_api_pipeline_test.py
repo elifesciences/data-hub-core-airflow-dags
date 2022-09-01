@@ -125,7 +125,7 @@ API_QUERY_PARAMETERS_DICT = {
     'apiQueryParameterName': 'api_query_parameter_value_1'
 }
 
-CAMPAIGN_START_DATE_1 = '2022-07-30'
+ENTITY_CREATION_DATE_1 = '2022-07-30'
 START_DATE_1 = '2022-08-01'
 
 
@@ -407,7 +407,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': START_DATE_1
         }])
         get_param_dict_from_api_query_parameters_mock.return_value = (
@@ -429,7 +429,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': '2022-08-01'
         }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-03')
@@ -451,7 +451,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': START_DATE_1
         }])
         get_param_dict_from_api_query_parameters_mock.return_value = (
@@ -473,7 +473,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': '2022-08-01'
         }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-02')
@@ -488,14 +488,14 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             placement=SINGLE_PLACEMENT_PARAM_VALUE[0]
         )
 
-    def test_should_pass_campaign_start_date_from_bq_to_get_current_final_end_date(
+    def test_should_pass_entity_creation_date_from_bq_to_get_current_final_end_date(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
         get_current_final_end_date_mock: MagicMock
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': START_DATE_1
         }])
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
@@ -503,7 +503,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_current_final_end_date_mock.assert_called_with(
             api_query_parameters_config=API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
-            initial_start_date=date.fromisoformat(CAMPAIGN_START_DATE_1)
+            initial_start_date=date.fromisoformat(ENTITY_CREATION_DATE_1)
         )
 
     def test_should_call_get_param_dict_for_each_placement_value(
@@ -513,7 +513,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': CAMPAIGN_START_DATE_1,
+            'entity_creation_date': ENTITY_CREATION_DATE_1,
             'start_date': START_DATE_1
         }])
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
@@ -552,7 +552,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
     ):
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = ([{
             'entity_id': 'id_1',
-            'campaign_start_date': '2022-08-01',
+            'entity_creation_date': '2022-08-01',
             'start_date': '2022-08-01'
         }])
         get_current_final_end_date_mock.return_value = date.fromisoformat('2022-08-17')

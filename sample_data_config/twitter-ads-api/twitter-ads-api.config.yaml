@@ -106,9 +106,9 @@ twitterAdsApi:
                 ON t_campaign.entity_id = t_calculated_date.entity_id
               )
               SELECT 
-              entity_id, 
-              CAST(entity_creation_date AS STRING) AS entity_creation_date,
-              CAST(start_date AS STRING) AS start_date
+                entity_id, 
+                CAST(entity_creation_date AS STRING) AS entity_creation_date,
+                CAST(start_date AS STRING) AS start_date
               FROM t_campaign_and_dates
               WHERE ABS(DATE_DIFF(entity_creation_date, start_date, DAY)) < 91  --(maxPeriodInDays)
           maxPeriodInDays: 91 # 7*13
