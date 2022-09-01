@@ -69,7 +69,6 @@ twitterAdsApi:
         parameterValues:
           fromBigQuery:
             projectName: 'elife-data-pipeline'
-            # query has been filtered for now because of api rate limit 
             sqlQuery: |-
               WITH t_all_campaigns AS(
                 SELECT 
