@@ -110,7 +110,7 @@ twitterAdsApi:
               CAST(start_date AS STRING) AS start_date
               FROM t_campaign_and_dates
               WHERE ABS(DATE_DIFF(campaign_start_date, start_date, DAY)) <= 91 -- (maxPeriodInDays - 7)
-          maxPeriodInDays: 98 # 7 * 14
+          maxPeriodInDays: 98  # 7 * 14 (7*13 enough but for getting all data we need one more week)
           periodBatchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
         parameterNamesFor:
