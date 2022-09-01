@@ -136,8 +136,10 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         for dict_value_from_bq in dict_value_list_from_bq:
             entity_id_from_bq = dict_value_from_bq['entity_id']
             start_date_str_from_bq = dict_value_from_bq['start_date']
-            if (api_query_parameters_config.parameter_values.max_period_in_days
-                and api_query_parameters_config.parameter_values.period_batch_size_in_days):
+            if (
+                api_query_parameters_config.parameter_values.max_period_in_days
+                and api_query_parameters_config.parameter_values.period_batch_size_in_days
+            ):
                 campaign_start_date_str_from_bq = dict_value_from_bq['campaign_start_date']
             else:
                 campaign_start_date_str_from_bq = start_date_str_from_bq
