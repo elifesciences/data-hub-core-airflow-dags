@@ -89,21 +89,29 @@ twitterAdsApi:
                 `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_clicks_and_impressions_elife_journal`
                 JOIN UNNEST(data) AS t_data
               ),
-              t_min_start_time_per_entity AS (
+              t_min_start_time_per_campaign AS (
                 SELECT 
                   entity_id,
                   CAST(MIN(max_start_time) AS DATE) AS start_date,
                 FROM t_max_start_time_by_campaign_and_placement 
                 GROUP BY entity_id
+              ),
+              t_campaign_and_dates AS (
+                SELECT 
+                  t_campaing.entity_id,
+                  t_campaing.start_date AS campaign_start_date,
+                  IFNULL(t_calculated_date.start_date, t_campaing.start_date) AS start_date
+                FROM t_all_campaigns AS t_campaing
+                LEFT JOIN t_min_start_time_per_campaign AS t_calculated_date
+                ON t_campaing.entity_id = t_calculated_date.entity_id
               )
               SELECT 
-                t_campaing.entity_id,
-                CAST(t_campaing.start_date AS STRING) AS campaign_start_date,
-                CAST(IFNULL(t_calculated_date.start_date, t_campaing.start_date) AS STRING) AS start_date
-              FROM t_all_campaigns AS t_campaing
-              LEFT JOIN t_min_start_time_per_entity AS t_calculated_date
-              ON t_campaing.entity_id = t_calculated_date.entity_id
-          maxPeriodInDays: 90
+              entity_id, 
+              CAST(campaign_start_date AS STRING) AS campaign_start_date,
+              CAST(start_date AS STRING) AS start_date
+              FROM t_campaign_and_dates
+              WHERE ABS(DATE_DIFF(campaign_start_date, start_date, DAY)) <= 91 -- (maxPeriodInDays - 7)
+          maxPeriodInDays: 98 # 7 * 14
           periodBatchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
         parameterNamesFor:
