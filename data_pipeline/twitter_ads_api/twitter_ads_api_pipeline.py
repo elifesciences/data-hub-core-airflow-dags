@@ -107,6 +107,7 @@ def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     initial_start_date: date
 ) -> date:
+    # we are using today because of API is already getting 1 day before of the given date
     today_date = get_todays_date()
     period_max_end_date = add_days_to_date(
         initial_start_date,
