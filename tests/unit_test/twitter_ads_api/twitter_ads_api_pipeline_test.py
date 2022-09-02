@@ -137,9 +137,9 @@ def _datetime_mock():
         yield mock
 
 
-@pytest.fixture(name='get_yesterdays_date_mock', autouse=True)
-def _get_yesterdays_date_mock():
-    with patch.object(twitter_ads_api_pipeline_module, 'get_yesterdays_date') as mock:
+@pytest.fixture(name='get_todays_date_mock', autouse=True)
+def _get_todays_date_mock():
+    with patch.object(twitter_ads_api_pipeline_module, 'get_todays_date') as mock:
         mock.utcnow.return_value = datetime.fromisoformat(MOCK_UTC_NOW_STR)
         yield mock
 
@@ -335,32 +335,32 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
 
 
 class TestGetCurrentFinalEndDate:
-    def test_should_return_final_end_date_as_yesterday_if_max_period_in_days_is_in_future(
+    def test_should_return_final_end_date_as_today_if_max_period_in_days_is_in_future(
         self,
-        get_yesterdays_date_mock: MagicMock
+        get_todays_date_mock: MagicMock
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 max_period_in_days=10  # in 10 days
             )
         )
-        get_yesterdays_date_mock.return_value = date.fromisoformat('2022-08-05')  # in 4 days
+        get_todays_date_mock.return_value = date.fromisoformat('2022-08-05')  # in 4 days
         actual_return_value = get_current_final_end_date(
             api_query_parameters_config=api_query_parameters,
             initial_start_date=date.fromisoformat('2022-08-01')
         )
         assert actual_return_value == date.fromisoformat('2022-08-05')
 
-    def test_should_return_final_end_date_of_given_period_if_ending_period_days_is_before_yesterday(
+    def test_should_return_final_end_date_of_given_period_if_ending_period_days_is_before_today(
         self,
-        get_yesterdays_date_mock: MagicMock
+        get_todays_date_mock: MagicMock
     ):
         api_query_parameters = API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE._replace(
             parameter_values=PARAMETER_VALUES_WITH_PLACEMENT._replace(
                 max_period_in_days=10  # in 10 days
             )
         )
-        get_yesterdays_date_mock.return_value = date.fromisoformat('2022-08-31')  # in 30 days
+        get_todays_date_mock.return_value = date.fromisoformat('2022-08-31')  # in 30 days
         actual_return_value = get_current_final_end_date(
             api_query_parameters_config=api_query_parameters,
             initial_start_date=date.fromisoformat('2022-08-01')

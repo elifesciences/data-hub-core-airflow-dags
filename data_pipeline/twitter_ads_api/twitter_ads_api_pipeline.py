@@ -10,7 +10,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiSourceConfig
 )
 from data_pipeline.utils.collections import iter_batches_iterable
-from data_pipeline.utils.data_pipeline_timestamp import get_yesterdays_date
+from data_pipeline.utils.data_pipeline_timestamp import get_todays_date
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -107,12 +107,12 @@ def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     initial_start_date: date
 ) -> date:
-    yesterday_date = get_yesterdays_date()
+    today_date = get_todays_date()
     period_max_end_date = add_days_to_date(
         initial_start_date,
         api_query_parameters_config.parameter_values.max_period_in_days
     )
-    return get_min_date(yesterday_date, period_max_end_date)
+    return get_min_date(today_date, period_max_end_date)
 
 
 def get_end_date_value_of_batch_period(
