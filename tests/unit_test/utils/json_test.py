@@ -45,6 +45,9 @@ class TestIsEmptyValue:
     def test_should_return_false_for_a_number_zero(self):
         assert not is_empty_value(0)
 
+    def test_should_return_false_for_a_float_zero(self):
+        assert not is_empty_value(0.0)
+
 
 class TestGetJsonCompatibleValue:
     def test_should_not_change_str(self):
