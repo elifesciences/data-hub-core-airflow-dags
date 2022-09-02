@@ -74,7 +74,7 @@ twitterAdsApi:
                 SELECT 
                   DISTINCT 
                   t_data.id AS entity_id,
-                  CAST(t_data.created_at AS DATE) AS campaign_creation_date
+                  CAST(t_data.created_at AS DATE) AS entity_creation_date
                 FROM `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_details_elife_journal`
                 JOIN UNNEST(data) AS t_data
                 WHERE  -- the campaigns before '2015-01-02' has to be filtered because of api limits
@@ -99,8 +99,8 @@ twitterAdsApi:
               t_campaign_and_dates AS (
                 SELECT 
                   t_campaign.entity_id,
-                  t_campaign.campaign_creation_date AS entity_creation_date,
-                  IFNULL(t_calculated_date.end_date, t_campaign.campaign_creation_date) AS start_date
+                  t_campaign.entity_creation_date,
+                  IFNULL(t_calculated_date.end_date, t_campaign.entity_creation_date) AS start_date
                 FROM t_all_campaigns AS t_campaign
                 LEFT JOIN t_min_end_time_per_campaign AS t_calculated_date
                 ON t_campaign.entity_id = t_calculated_date.entity_id
