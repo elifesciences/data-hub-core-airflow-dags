@@ -6,7 +6,8 @@ from data_pipeline.utils.json import (
     get_json_compatible_value,
     get_recursive_json_compatible_value,
     get_recursively_transformed_object,
-    remove_key_with_null_value
+    remove_key_with_null_value,
+    is_empty_value
 )
 
 
@@ -14,6 +15,35 @@ from data_pipeline.utils.json import (
 DATETIME_STR_1 = datetime.fromisoformat('2021-02-03T04:05:06+00:00').isoformat()
 
 DATE_STR_1 = date.fromisoformat('2021-02-03').isoformat()
+
+
+class TestIsEmptyValue:
+    def test_should_return_false_for_a_non_empty_string(self):
+        assert not is_empty_value('string')
+
+    def test_should_return_true_for_an_empty_string(self):
+        assert is_empty_value('')
+
+    def test_should_return_false_for_a_number(self):
+        assert not is_empty_value(123)
+
+    def test_should_return_false_for_a_non_empty_list(self):
+        assert not is_empty_value([1, 2, 3])
+
+    def test_should_return_true_for_an_empty_list(self):
+        assert is_empty_value([])
+
+    def test_should_return_false_for_a_non_empty_dict(self):
+        assert not is_empty_value({'key': 1})
+
+    def test_should_return_true_for_an_empty_dict(self):
+        assert is_empty_value({})
+
+    def test_shoul_return_false_for_a_list_with_value_number_zero(self):
+        assert not is_empty_value([0])
+
+    def test_should_return_false_for_a_number_zero(self):
+        assert not is_empty_value(0)
 
 
 class TestGetJsonCompatibleValue:

@@ -72,6 +72,8 @@ def is_empty_value(value) -> bool:
             return True
     except TypeError:
         pass
+    if isinstance(value, int) and value == 0:
+        return False
     return (
         (value is None or np.isscalar(value))
         and (
