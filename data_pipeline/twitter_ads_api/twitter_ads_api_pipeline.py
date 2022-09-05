@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta
 import logging
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Iterable, Mapping, Optional, Sequence
 from twitter_ads.http import Request
 from twitter_ads.client import Client
 
@@ -9,7 +9,8 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiConfig,
     TwitterAdsApiSourceConfig
 )
-from data_pipeline.utils.data_pipeline_timestamp import get_yesterdays_date
+from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.data_pipeline_timestamp import get_todays_date
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -28,7 +29,15 @@ def get_client_from_twitter_ads_api(
         consumer_key=source_config.secrets.mapping['api_key'],
         consumer_secret=source_config.secrets.mapping['api_secret'],
         access_token=source_config.secrets.mapping['access_token'],
-        access_token_secret=source_config.secrets.mapping['access_token_secret']
+        access_token_secret=source_config.secrets.mapping['access_token_secret'],
+        options={
+            'handle_rate_limit': True,
+            'retry_max': 10,
+            'retry_delay': 5000,
+            'retry_on_status': [500, 503, 504],
+            'retry_on_timeouts': True,
+            'timeout': (3.0, 5.0)
+        }
     )
 
 
@@ -98,12 +107,13 @@ def get_current_final_end_date(
     api_query_parameters_config: TwitterAdsApiApiQueryParametersConfig,
     initial_start_date: date
 ) -> date:
-    yesterday_date = get_yesterdays_date()
+    # we are using today because of API is already getting 1 day before of the given date
+    today_date = get_todays_date()
     period_max_end_date = add_days_to_date(
         initial_start_date,
         api_query_parameters_config.parameter_values.max_period_in_days
     )
-    return get_min_date(yesterday_date, period_max_end_date)
+    return get_min_date(today_date, period_max_end_date)
 
 
 def get_end_date_value_of_batch_period(
@@ -117,7 +127,7 @@ def get_end_date_value_of_batch_period(
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig
-) -> Any:
+) -> Iterable[dict]:
     if source_config.api_query_parameters:
         api_query_parameters_config = source_config.api_query_parameters
         dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
@@ -127,12 +137,18 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
         for dict_value_from_bq in dict_value_list_from_bq:
             entity_id_from_bq = dict_value_from_bq['entity_id']
             start_date_str_from_bq = dict_value_from_bq['start_date']
-            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
+            if (
+                api_query_parameters_config.parameter_values.max_period_in_days
+                and api_query_parameters_config.parameter_values.period_batch_size_in_days
+            ):
+                entity_creation_date_str_from_bq = dict_value_from_bq['entity_creation_date']
+            else:
+                entity_creation_date_str_from_bq = start_date_str_from_bq
             final_end_date_value = get_current_final_end_date(
                 api_query_parameters_config=api_query_parameters_config,
-                initial_start_date=initial_start_date_value
+                initial_start_date=date.fromisoformat(entity_creation_date_str_from_bq)
             )
-
+            initial_start_date_value = date.fromisoformat(start_date_str_from_bq)
             placement_value_list = api_query_parameters_config.parameter_values.placement_value
             period_batch_size_in_days = (
                 api_query_parameters_config.parameter_values.period_batch_size_in_days
@@ -153,6 +169,8 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 assert period_batch_size_in_days
                 for placement_value in placement_value_list:
                     start_date_value = initial_start_date_value
+                    LOGGER.debug('start_date_value: %r', start_date_value)
+                    LOGGER.debug('final_end_date_value: %r', final_end_date_value)
                     while start_date_value < final_end_date_value:
                         end_date_value = get_end_date_value_of_batch_period(
                             start_date=start_date_value,
@@ -183,17 +201,24 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
 def fetch_twitter_ads_api_data_and_load_into_bq(
     config: TwitterAdsApiConfig
 ):
+    batch_size = config.batch_size
     iterable_data_from_twitter_ads_api = (
         iter_bq_compatible_json_response_from_resource_with_provenance(
             source_config=config.source
         )
     )
-    load_given_json_list_data_from_tempdir_to_bq(
-        project_name=config.target.project_name,
-        dataset_name=config.target.dataset_name,
-        table_name=config.target.table_name,
-        json_list=iterable_data_from_twitter_ads_api
-    )
+    for batch_data_iterable in iter_batches_iterable(
+        iterable_data_from_twitter_ads_api,
+        batch_size
+    ):
+        batch_data_list = list(batch_data_iterable)
+        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=config.target.project_name,
+            dataset_name=config.target.dataset_name,
+            table_name=config.target.table_name,
+            json_list=batch_data_list
+        )
 
 
 def fetch_twitter_ads_api_data_and_load_into_bq_from_config_list(

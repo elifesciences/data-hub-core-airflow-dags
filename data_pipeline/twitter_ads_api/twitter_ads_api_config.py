@@ -6,6 +6,8 @@ from data_pipeline.utils.pipeline_config import (
     MappingConfig
 )
 
+DEFAULT_BATCH_SIZE = 1000
+
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig = {}
@@ -81,6 +83,7 @@ class TwitterAdsApiSourceConfig(NamedTuple):
 class TwitterAdsApiConfig(NamedTuple):
     source: TwitterAdsApiSourceConfig
     target: BigQueryTargetConfig
+    batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
     def _from_item_dict(item_config_dict) -> 'TwitterAdsApiConfig':
@@ -90,7 +93,8 @@ class TwitterAdsApiConfig(NamedTuple):
             ),
             target=BigQueryTargetConfig.from_dict(
                 item_config_dict['target']
-            )
+            ),
+            batch_size=item_config_dict.get('batchSize', DEFAULT_BATCH_SIZE)
         )
 
     @staticmethod

@@ -52,3 +52,7 @@ def get_tz_aware_datetime(datetime_obj: datetime):
 def get_yesterdays_date() -> datetime.date:
     today = date.today()
     return today - timedelta(days=1)
+
+
+def get_todays_date() -> datetime.date:
+    return date.today()
