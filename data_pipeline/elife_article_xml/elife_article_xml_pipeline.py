@@ -144,7 +144,6 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
                 SELECT articles.article_xml.article_xml_url
                 FROM
                 `{project_name}.{dataset_name}.{table_name}` AS articles
-                LIMIT 100
             '''
         )
     else:
