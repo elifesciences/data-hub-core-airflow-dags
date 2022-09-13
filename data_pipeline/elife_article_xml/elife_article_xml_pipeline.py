@@ -117,7 +117,7 @@ def get_article_json_data_from_xml_string_content(
                 )
                 if article_meta_dict:
                     for key in article_meta_dict.copy().keys():
-                        if key not in ('related_article', 'article_id'):
+                        if key not in ('related_article', 'article_id', 'article_categories'):
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
                 return {
@@ -144,6 +144,7 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
                 SELECT articles.article_xml.article_xml_url
                 FROM
                 `{project_name}.{dataset_name}.{table_name}` AS articles
+                LIMIT 100
             '''
         )
     else:

@@ -369,12 +369,16 @@ class TestGetArticleJsonDataFromXmlStringContent:
         return_value = get_article_json_data_from_xml_string_content(xml_string)
         assert return_value == {}
 
-    def test_should_return_dict_with_related_article_article_id_and_type_if_they_exist(self):
+    def test_should_return_dict_with_related_article_article_id_type_and_categories_if_they_exist(self):
         xml_string = ''.join([
             '<article article-type="article_type_1" xmlns:xlink="http://www.w3.org/1999/xlink">',
             '<front><article-meta>',
             '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
             '<article-id pub-id-type="doi">doi_1</article-id>',
+            '<article-categories>',
+            '<subj-group subj-group-type="subj_group_type_1"><subject>subject_1</subject>',
+            '</subj-group><subj-group subj-group-type="subj_group_type_2"><subject>subject_2</subject></subj-group>',
+            '</article-categories>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '</article-meta></front>',
@@ -394,6 +398,16 @@ class TestGetArticleJsonDataFromXmlStringContent:
                     'value_text': 'doi_1'
                 }
             ],
+            'article_categories': [{
+                'subj_group': [{
+                    'subj_group_type': 'subj_group_type_1',
+                    'subject': [{'value_text': 'subject_1'}]
+                },
+                {
+                    'subj_group_type': 'subj_group_type_2',
+                    'subject': [{'value_text': 'subject_2'}]
+                }]}
+            ],
             'related_article': [{
                 'ext_link_type': 'doi',
                 'id': 'ra1',
@@ -408,6 +422,10 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '<front><article-meta>',
             '<article-id pub-id-type="publisher-id">publisher_id_1</article-id>',
             '<article-id pub-id-type="doi">doi_1</article-id>',
+            '<article-categories>',
+            '<subj-group subj-group-type="subj_group_type_1"><subject>subject_1</subject>',
+            '</subj-group><subj-group subj-group-type="subj_group_type_2"><subject>subject_2</subject></subj-group>',
+            '</article-categories>',
             '<related-article ext-link-type="doi" id="ra1" ',
             'related-article-type="related_article_type_1" xlink:href="related_article_doi_1"/>',
             '<other>"other"</other>',
@@ -429,6 +447,16 @@ class TestGetArticleJsonDataFromXmlStringContent:
                     'pub_id_type': 'doi',
                     'value_text': 'doi_1'
                 }
+            ],
+            'article_categories': [{
+                'subj_group': [{
+                    'subj_group_type': 'subj_group_type_1',
+                    'subject': [{'value_text': 'subject_1'}]
+                },
+                {
+                    'subj_group_type': 'subj_group_type_2',
+                    'subject': [{'value_text': 'subject_2'}]
+                }]}
             ],
             'related_article': [{
                 'ext_link_type': 'doi',
