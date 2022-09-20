@@ -347,7 +347,6 @@ def get_next_cursor_from_data(data, web_config: WebApiConfig):
 
 def get_items_list(page_data, web_config):
     item_list = page_data
-    LOGGER.info('page_data: %r', page_data)
     if isinstance(page_data, dict):
         item_list = get_dict_values_from_path_as_list(
             page_data,
