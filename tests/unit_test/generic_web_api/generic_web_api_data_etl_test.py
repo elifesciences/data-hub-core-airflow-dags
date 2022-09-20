@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch, ANY
 import pytest
 
 from data_pipeline.generic_web_api import (
@@ -11,6 +11,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_next_cursor_from_data,
     get_next_page_number,
     get_next_offset,
+    generic_web_api_data_etl
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
@@ -20,6 +21,54 @@ from data_pipeline.generic_web_api.module_constants import ModuleConstant
 def _upload_s3_object():
     with patch.object(
             generic_web_api_data_etl_module, 'upload_s3_object'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='process_downloaded_data_mock')
+def _process_downloaded_data_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'process_downloaded_data'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_stored_state_mock', autouse=True)
+def _get_stored_state_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'get_stored_state'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_data_single_page_mock', autouse=True)
+def _get_data_single_page_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'get_data_single_page'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='load_written_data_to_bq_mock', autouse=True)
+def _load_written_data_to_bq_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'load_written_data_to_bq'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='upload_latest_timestamp_as_pipeline_state_mock', autouse=True)
+def _upload_latest_timestamp_as_pipeline_state_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'upload_latest_timestamp_as_pipeline_state'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_items_list_mock')
+def _get_items_list_mock():
+    with patch.object(
+            generic_web_api_data_etl_module, 'get_items_list'
     ) as mock:
         yield mock
 
@@ -96,6 +145,17 @@ class TestGetItemList:
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key_1': ['first', 'second', 'third']}
+        actual_response = get_items_list(
+            data,
+            data_config,
+        )
+        assert actual_response == [data]
+
+    def test_should_return_key_list_even_the_list_is_empty(
+            self
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = {'key_1': []}
         actual_response = get_items_list(
             data,
             data_config,
@@ -312,3 +372,35 @@ class TestNextOffset:
             get_next_offset(current_item_count, current_offset, data_config) ==
             (current_offset + current_item_count)
         )
+
+
+class TestGenericWebApiDataEtl:
+    def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(
+        self,
+        get_items_list_mock: MagicMock,
+        process_downloaded_data_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        get_items_list_mock.return_value = [{'key_1': ['value1'], 'key_2': []}]
+        generic_web_api_data_etl(data_config)
+        process_downloaded_data_mock.assert_called_with(
+            data_config=data_config,
+            record_list=[{'key_1': ['value1']}],
+            data_etl_timestamp=ANY,
+            file_location=ANY,
+            prev_page_latest_timestamp=ANY
+        )
+
+    def test_should_not_fail_with_empty_list_in_response(
+        self,
+        get_data_single_page_mock: MagicMock
+    ):
+        conf_dict = {
+            ** WEB_API_CONFIG,
+            'response': {
+                'itemsKeyFromResponseRoot': ['rows']
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        get_data_single_page_mock.return_value = {'rows': []}
+        generic_web_api_data_etl(data_config)
