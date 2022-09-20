@@ -166,10 +166,10 @@ def generic_web_api_data_etl(
             items_list = get_items_list(
                 page_data, data_config
             )
-
+            items_list = remove_key_with_null_value(items_list)
             latest_record_timestamp = process_downloaded_data(
                 data_config=data_config,
-                record_list=remove_key_with_null_value(items_list),
+                record_list=items_list,
                 data_etl_timestamp=imported_timestamp,
                 file_location=full_temp_file_location,
                 prev_page_latest_timestamp=latest_record_timestamp
