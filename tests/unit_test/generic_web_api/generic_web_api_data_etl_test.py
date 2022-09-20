@@ -381,7 +381,7 @@ class TestGenericWebApiDataEtl:
         process_downloaded_data_mock: MagicMock
     ):
         data_config = get_data_config(WEB_API_CONFIG)
-        get_items_list_mock.return_value=[{'key_1': ['value1'], 'key_2': []}]
+        get_items_list_mock.return_value = [{'key_1': ['value1'], 'key_2': []}]
         generic_web_api_data_etl(data_config)
         process_downloaded_data_mock.assert_called_with(
             data_config=data_config,
@@ -402,5 +402,5 @@ class TestGenericWebApiDataEtl:
             }
         }
         data_config = get_data_config(conf_dict)
-        get_data_single_page_mock.return_value={'rows': []}
+        get_data_single_page_mock.return_value = {'rows': []}
         generic_web_api_data_etl(data_config)
