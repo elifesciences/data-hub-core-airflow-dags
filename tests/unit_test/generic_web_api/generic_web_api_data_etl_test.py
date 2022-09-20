@@ -102,6 +102,17 @@ class TestGetItemList:
         )
         assert actual_response == [data]
 
+    def test_should_return_key_list_even_the_list_is_empty(
+            self
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = {'key_1': []}
+        actual_response = get_items_list(
+            data,
+            data_config,
+        )
+        assert actual_response == [data]
+
     def test_should_get_data_when_path_keys_are_all_dict_keys_in_data(
             self
     ):
