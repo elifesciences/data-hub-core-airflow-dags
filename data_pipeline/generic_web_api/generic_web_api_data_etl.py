@@ -163,10 +163,13 @@ def generic_web_api_data_etl(
                 page_number=page_number,
                 page_offset=offset
             )
+            LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(
                 page_data, data_config
             )
+            LOGGER.debug('items_list: %r', items_list)
             items_list = remove_key_with_null_value(items_list)
+            LOGGER.debug('items_list after removed null values: %r', items_list)
             latest_record_timestamp = process_downloaded_data(
                 data_config=data_config,
                 record_list=items_list,
