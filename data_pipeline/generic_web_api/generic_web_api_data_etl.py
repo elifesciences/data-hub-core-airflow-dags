@@ -114,7 +114,7 @@ def get_data_single_page(
             json_resp = get_newline_delimited_json_string_as_json_list(
                 resp.decode("utf-8")
             )
-    return remove_key_with_null_value(json_resp)
+    return json_resp
 
 
 # pylint: disable=too-many-locals
@@ -154,62 +154,59 @@ def generic_web_api_data_etl(
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
-        try:
-            while True:
-                page_data = get_data_single_page(
-                    data_config=data_config,
-                    from_date=from_date_to_advance or initial_from_date,
-                    until_date=variable_until_date,
-                    cursor=cursor,
-                    page_number=page_number,
-                    page_offset=offset
-                )
-                items_list = get_items_list(
-                    page_data, data_config
-                )
+        while True:
+            page_data = get_data_single_page(
+                data_config=data_config,
+                from_date=from_date_to_advance or initial_from_date,
+                until_date=variable_until_date,
+                cursor=cursor,
+                page_number=page_number,
+                page_offset=offset
+            )
+            items_list = get_items_list(
+                page_data, data_config
+            )
 
-                latest_record_timestamp = process_downloaded_data(
-                    data_config=data_config,
-                    record_list=items_list,
-                    data_etl_timestamp=imported_timestamp,
-                    file_location=full_temp_file_location,
-                    prev_page_latest_timestamp=latest_record_timestamp
-                )
-                items_count = len(items_list)
-                cursor = get_next_cursor_from_data(page_data, data_config)
+            latest_record_timestamp = process_downloaded_data(
+                data_config=data_config,
+                record_list=remove_key_with_null_value(items_list),
+                data_etl_timestamp=imported_timestamp,
+                file_location=full_temp_file_location,
+                prev_page_latest_timestamp=latest_record_timestamp
+            )
+            items_count = len(items_list)
+            cursor = get_next_cursor_from_data(page_data, data_config)
 
-                from_date_to_advance, to_reset_page_or_offset_param = (
-                    get_next_start_date(
-                        items_count, from_date_to_advance,
-                        latest_record_timestamp, data_config,
-                        cursor, page_number, offset
-                    )
+            from_date_to_advance, to_reset_page_or_offset_param = (
+                get_next_start_date(
+                    items_count, from_date_to_advance,
+                    latest_record_timestamp, data_config,
+                    cursor, page_number, offset
                 )
-                page_number = get_next_page_number(
-                    items_count, page_number,
-                    data_config, to_reset_page_or_offset_param
-                )
-                offset = get_next_offset(
-                    items_count, offset, data_config,
-                    to_reset_page_or_offset_param
-                )
+            )
+            page_number = get_next_page_number(
+                items_count, page_number,
+                data_config, to_reset_page_or_offset_param
+            )
+            offset = get_next_offset(
+                items_count, offset, data_config,
+                to_reset_page_or_offset_param
+            )
 
-                variable_until_date = get_next_until_date(
-                    from_date_to_advance, data_config, until_date
-                )
+            variable_until_date = get_next_until_date(
+                from_date_to_advance, data_config, until_date
+            )
 
-                if (
-                        cursor is None and page_number is None and
-                        from_date_to_advance is None and offset is None
-                ):
-                    break
-        except ValueError:
-            LOGGER.info('ValueError is accured: %r', ValueError)
+            if (
+                    cursor is None and page_number is None and
+                    from_date_to_advance is None and offset is None
+            ):
+                break
 
         load_written_data_to_bq(data_config, full_temp_file_location)
-        # upload_latest_timestamp_as_pipeline_state(
-        #     data_config, latest_record_timestamp
-        # )
+        upload_latest_timestamp_as_pipeline_state(
+            data_config, latest_record_timestamp
+        )
 
 
 def load_written_data_to_bq(
@@ -350,7 +347,7 @@ def get_next_cursor_from_data(data, web_config: WebApiConfig):
 
 def get_items_list(page_data, web_config):
     item_list = page_data
-    LOGGER.info('page_data for get_items_list func: %r', page_data)
+    LOGGER.info('page_data: %r', page_data)
     if isinstance(page_data, dict):
         item_list = get_dict_values_from_path_as_list(
             page_data,
