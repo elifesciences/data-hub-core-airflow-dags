@@ -80,7 +80,7 @@ class EuropePmcConfig(NamedTuple):
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'EuropePmcConfig':
-        return EuropePmcConfig(
+        config = EuropePmcConfig(
             source=EuropePmcSourceConfig.from_dict(
                 item_config_dict['source']
             ),
@@ -96,6 +96,11 @@ class EuropePmcConfig(NamedTuple):
                 DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
             )
         )
+        assert (
+            config.extract_individual_results_from_response
+            or not config.source.fields_to_return
+        ), 'writing whole response does not support fields_to_return'
+        return config
 
     @staticmethod
     def from_dict(config_dict: dict) -> 'EuropePmcConfig':

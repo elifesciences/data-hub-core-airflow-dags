@@ -1,3 +1,5 @@
+import pytest
+
 from data_pipeline.europepmc.europepmc_config import (
     DEFAULT_BATCH_SIZE,
     EuropePmcConfig
@@ -171,3 +173,11 @@ class TestEuropePmcConfig:
             'extractIndividualResultsFromResponse': False
         }))
         assert config.extract_individual_results_from_response is False
+
+    def test_should_raise_error_if_writing_whole_response_and_using_fields_to_return(self):
+        with pytest.raises(AssertionError):
+            EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+                **ITEM_CONFIG_DICT_1,
+                'source': SOURCE_WITH_FIELDS_TO_RETURN_1,
+                'extractIndividualResultsFromResponse': False
+            }))
