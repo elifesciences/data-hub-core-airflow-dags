@@ -66,11 +66,17 @@ class EuropePmcStateConfig(NamedTuple):
         )
 
 
+DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE = True
+
+
 class EuropePmcConfig(NamedTuple):
     source: EuropePmcSourceConfig
     target: BigQueryTargetConfig
     state: EuropePmcStateConfig
     batch_size: int = DEFAULT_BATCH_SIZE
+    extract_individual_results_from_response: bool = (
+        DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
+    )
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'EuropePmcConfig':
@@ -84,7 +90,11 @@ class EuropePmcConfig(NamedTuple):
             state=EuropePmcStateConfig.from_dict(
                 item_config_dict['state']
             ),
-            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE
+            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE,
+            extract_individual_results_from_response=item_config_dict.get(
+                'extractIndividualResultsFromResponse',
+                DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
+            )
         )
 
     @staticmethod

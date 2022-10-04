@@ -158,3 +158,16 @@ class TestEuropePmcConfig:
         ))
         assert config.state.state_file.bucket_name == BUCKET_NAME_1
         assert config.state.state_file.object_name == OBJECT_NAME_1
+
+    def test_should_default_extract_individual_results_from_response_config_to_true(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict(
+            ITEM_CONFIG_DICT_1
+        ))
+        assert config.extract_individual_results_from_response is True
+
+    def test_should_read_extract_individual_results_from_response_config(self):
+        config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
+            **ITEM_CONFIG_DICT_1,
+            'extractIndividualResultsFromResponse': False
+        }))
+        assert config.extract_individual_results_from_response is False
