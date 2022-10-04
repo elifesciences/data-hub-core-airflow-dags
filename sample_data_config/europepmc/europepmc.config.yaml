@@ -9,12 +9,12 @@ europePmc:
       fieldsToReturn:
         - title
         - doi
+      extractIndividualResultsFromResponse: True
       maxDays: 1000  # limit the number of days to process from start date
     target:
       projectName: 'elife-data-pipeline'
       datasetName: '{ENV}'
       tableName: test_europepmc_responses_v1
-    extractIndividualResultsFromResponse: True
     state:
       initialState:
         startDate: '2020-01-01'

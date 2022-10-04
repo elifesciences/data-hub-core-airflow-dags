@@ -165,19 +165,24 @@ class TestEuropePmcConfig:
         config = EuropePmcConfig.from_dict(get_config_for_item_config_dict(
             ITEM_CONFIG_DICT_1
         ))
-        assert config.extract_individual_results_from_response is True
+        assert config.source.extract_individual_results_from_response is True
 
     def test_should_read_extract_individual_results_from_response_config(self):
         config = EuropePmcConfig.from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT_1,
-            'extractIndividualResultsFromResponse': False
+            'source': {
+                **SOURCE_WITHOUT_FIELDS_TO_RETURN_1,
+                'extractIndividualResultsFromResponse': False
+            }
         }))
-        assert config.extract_individual_results_from_response is False
+        assert config.source.extract_individual_results_from_response is False
 
     def test_should_raise_error_if_writing_whole_response_and_using_fields_to_return(self):
         with pytest.raises(AssertionError):
             EuropePmcConfig.from_dict(get_config_for_item_config_dict({
                 **ITEM_CONFIG_DICT_1,
-                'source': SOURCE_WITH_FIELDS_TO_RETURN_1,
-                'extractIndividualResultsFromResponse': False
+                'source': {
+                    **SOURCE_WITH_FIELDS_TO_RETURN_1,
+                    'extractIndividualResultsFromResponse': False
+                }
             }))

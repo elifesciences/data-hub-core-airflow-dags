@@ -22,22 +22,37 @@ class EuropePmcSearchConfig(NamedTuple):
         )
 
 
+DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE = True
+
+
 class EuropePmcSourceConfig(NamedTuple):
     api_url: str
     search: EuropePmcSearchConfig
     fields_to_return: Optional[Sequence[str]] = None
+    extract_individual_results_from_response: bool = (
+        DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
+    )
     max_days: Optional[int] = None
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'EuropePmcSourceConfig':
-        return EuropePmcSourceConfig(
+        source_config = EuropePmcSourceConfig(
             api_url=source_config_dict['apiUrl'],
             search=EuropePmcSearchConfig.from_dict(
                 source_config_dict['search']
             ),
             fields_to_return=source_config_dict.get('fieldsToReturn'),
+            extract_individual_results_from_response=source_config_dict.get(
+                'extractIndividualResultsFromResponse',
+                DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
+            ),
             max_days=source_config_dict.get('maxDays')
         )
+        assert (
+            source_config.extract_individual_results_from_response
+            or not source_config.fields_to_return
+        ), 'writing whole response does not support fields_to_return'
+        return source_config
 
 
 class EuropePmcInitialStateConfig(NamedTuple):
@@ -66,17 +81,11 @@ class EuropePmcStateConfig(NamedTuple):
         )
 
 
-DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE = True
-
-
 class EuropePmcConfig(NamedTuple):
     source: EuropePmcSourceConfig
     target: BigQueryTargetConfig
     state: EuropePmcStateConfig
     batch_size: int = DEFAULT_BATCH_SIZE
-    extract_individual_results_from_response: bool = (
-        DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
-    )
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'EuropePmcConfig':
@@ -90,16 +99,8 @@ class EuropePmcConfig(NamedTuple):
             state=EuropePmcStateConfig.from_dict(
                 item_config_dict['state']
             ),
-            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE,
-            extract_individual_results_from_response=item_config_dict.get(
-                'extractIndividualResultsFromResponse',
-                DEFAULT_EXTRACT_INDIVIDUAL_RESULTS_FROM_RESPONSE
-            )
+            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE
         )
-        assert (
-            config.extract_individual_results_from_response
-            or not config.source.fields_to_return
-        ), 'writing whole response does not support fields_to_return'
         return config
 
     @staticmethod
