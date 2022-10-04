@@ -325,6 +325,24 @@ class TestIterArticleData:
             provenance=PROVENANCE_1
         )
 
+    def test_should_call_api_and_return_whole_response_when_not_extracting_indivdual_results(
+        self,
+        get_article_response_json_from_api_mock: MagicMock
+    ):
+        response_json = get_response_json_for_items([
+            ITEM_RESPONSE_JSON_1
+        ], provenance=PROVENANCE_1)
+        get_article_response_json_from_api_mock.return_value = response_json
+        result = list(iter_article_data(
+            SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False,
+                fields_to_return=[]
+            ),
+            SEARCH_CONTEXT_1,
+            provenance=PROVENANCE_1
+        ))
+        assert result == [response_json]
+
     def test_should_filter_returned_response_fields(
         self,
         get_article_response_json_from_api_mock: MagicMock
