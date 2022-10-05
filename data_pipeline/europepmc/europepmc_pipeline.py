@@ -214,6 +214,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
     config: EuropePmcConfig
 ):
+    LOGGER.info('processing config: %r', config)
     start_date_str = load_state_from_s3_for_config(
         config.state
     )
