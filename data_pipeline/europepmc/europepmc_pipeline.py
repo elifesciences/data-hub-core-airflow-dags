@@ -235,3 +235,10 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         )
         save_state_to_s3_for_config(config.state, next_start_date_str)
         start_date_str = next_start_date_str
+
+
+def fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list(
+    config_list: Sequence[EuropePmcConfig]
+):
+    for config in config_list:
+        fetch_article_data_from_europepmc_and_load_into_bigquery(config)
