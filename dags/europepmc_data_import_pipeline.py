@@ -1,10 +1,11 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
 import logging
+from typing import Sequence
 
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
 from data_pipeline.europepmc.europepmc_pipeline import (
-    fetch_article_data_from_europepmc_and_load_into_bigquery
+    fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list
 )
 from data_pipeline.utils.pipeline_config import (
     get_environment_variable_value,
@@ -28,16 +29,16 @@ DAG_ID = 'EuropePmc_Pipeline'
 LOGGER = logging.getLogger(__name__)
 
 
-def get_pipeline_config() -> 'EuropePmcConfig':
+def get_pipeline_config_list() -> Sequence['EuropePmcConfig']:
     return get_pipeline_config_for_env_name_and_config_parser(
         EuropePmcPipelineEnvironmentVariables.CONFIG_FILE_PATH,
-        EuropePmcConfig.from_dict
+        EuropePmcConfig.parse_config_list_from_dict
     )
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery_task(**_kwargs):
-    fetch_article_data_from_europepmc_and_load_into_bigquery(
-        get_pipeline_config()
+    fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list(
+        get_pipeline_config_list()
     )
 
 

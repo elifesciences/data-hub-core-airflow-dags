@@ -22,6 +22,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     DEFAULT_CURSOR,
     EuropePmcSearchContext,
     fetch_article_data_from_europepmc_and_load_into_bigquery,
+    fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list,
     get_article_response_json_from_api,
     get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
@@ -159,6 +160,15 @@ def _iter_article_data_mock():
 @pytest.fixture(name='save_state_to_s3_for_config_mock')
 def _save_state_to_s3_for_config_mock():
     with patch.object(europepmc_pipeline_module, 'save_state_to_s3_for_config') as mock:
+        yield mock
+
+
+@pytest.fixture(name='fetch_article_data_from_europepmc_and_load_into_bigquery_mock')
+def _fetch_article_data_from_europepmc_and_load_into_bigquery_mock():
+    with patch.object(
+        europepmc_pipeline_module,
+        'fetch_article_data_from_europepmc_and_load_into_bigquery'
+    ) as mock:
         yield mock
 
 
@@ -716,4 +726,20 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         save_state_to_s3_for_config_mock.assert_has_calls([
             call(CONFIG_1.state, MOCK_YESTERDAY_STR),
             call(CONFIG_1.state, MOCK_TODAY_STR)
+        ])
+
+
+class TestFetchArticleDataFromEuropepmcAndLoadIntoBigqueryFromConfigList:
+    def test_should_call_fetch_article_data_function_for_each_item_in_config_list(
+        self,
+        fetch_article_data_from_europepmc_and_load_into_bigquery_mock: MagicMock
+    ):
+        config_list = [CONFIG_1, CONFIG_1]
+        fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list(
+            config_list
+        )
+        assert fetch_article_data_from_europepmc_and_load_into_bigquery_mock.call_count == 2
+        fetch_article_data_from_europepmc_and_load_into_bigquery_mock.assert_has_calls([
+            call(config_list[0]),
+            call(config_list[1])
         ])

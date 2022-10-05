@@ -1,6 +1,6 @@
 from dags.europepmc_data_import_pipeline import (
     DAG_ID,
-    get_pipeline_config,
+    get_pipeline_config_list,
 )
 
 from tests.end2end_test import (
@@ -13,8 +13,9 @@ from tests.end2end_test.end_to_end_test_helper import (
 
 
 def get_data_pipeline_cloud_resource():
-    config = get_pipeline_config()
-
+    config_list = get_pipeline_config_list()
+    assert len(config_list) == 1
+    config = config_list[0]
     return DataPipelineCloudResource(
         project_name=config.target.project_name,
         dataset_name=config.target.dataset_name,
