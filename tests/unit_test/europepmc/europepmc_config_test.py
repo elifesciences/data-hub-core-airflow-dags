@@ -58,14 +58,24 @@ ITEM_CONFIG_DICT_1 = {
 }
 
 
+def get_config_for_item_config_dict_list(item_dict_list: list) -> dict:
+    return {'europePmc': item_dict_list}
+
+
 def get_config_for_item_config_dict(item_dict: dict) -> dict:
-    return {'europePmc': [item_dict]}
+    return get_config_for_item_config_dict_list([item_dict])
 
 
 CONFIG_DICT_1 = get_config_for_item_config_dict(ITEM_CONFIG_DICT_1)
 
 
 class TestEuropePmcConfig:
+    def test_should_read_multible_config(self):
+        config_list = EuropePmcConfig.parse_config_list_from_dict(
+            get_config_for_item_config_dict_list([ITEM_CONFIG_DICT_1, ITEM_CONFIG_DICT_1])
+        )
+        assert len(config_list) == 2
+
     def test_should_read_api_url(self):
         config = EuropePmcConfig.from_dict(CONFIG_DICT_1)
         assert config.source.api_url == API_URL_1

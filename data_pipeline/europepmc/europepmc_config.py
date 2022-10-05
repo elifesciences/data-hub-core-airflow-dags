@@ -109,3 +109,11 @@ class EuropePmcConfig(NamedTuple):
         return EuropePmcConfig._from_item_dict(
             item_config_list[0]
         )
+
+    @staticmethod
+    def parse_config_list_from_dict(config_dict: dict) -> Sequence['EuropePmcConfig']:
+        item_config_dict_list = config_dict['europePmc']
+        return [
+            EuropePmcConfig._from_item_dict(item_config_dict)
+            for item_config_dict in item_config_dict_list
+        ]
