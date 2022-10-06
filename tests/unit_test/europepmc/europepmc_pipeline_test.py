@@ -669,6 +669,30 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             )
         ])
 
+    def test_should_remove_empty_list_before_loading_into_bigquery(
+        self,
+        iter_article_data_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        raw_json_list = [{
+            'not_empty': ['a', 'b'],
+            'empty_list': []
+        }]
+        non_empty_value_json_list = [{
+            'not_empty': ['a', 'b']
+        }]
+        iter_article_data_mock.return_value = raw_json_list
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=ANY,
+            dataset_name=ANY,
+            table_name=ANY,
+            json_list=non_empty_value_json_list
+        )
+
     def test_should_call_save_state_for_config(
         self,
         download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,

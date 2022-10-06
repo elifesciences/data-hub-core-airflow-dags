@@ -15,6 +15,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import get_response_json_with_provenance_from_api
 
 
@@ -200,7 +201,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
         provenance=provenance
     )
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
-        batch_data_list = list(batch_data_iterable)
+        batch_data_list = remove_key_with_null_value(list(batch_data_iterable))
         LOGGER.debug('batch_data_list: %r', batch_data_list)
         LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
         load_given_json_list_data_from_tempdir_to_bq(
