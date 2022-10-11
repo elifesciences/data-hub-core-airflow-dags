@@ -777,7 +777,7 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         )
         iter_article_data_mock.assert_not_called()
 
-    def test_should_load_data_in_batches_until_yesterday(
+    def test_should_load_data_into_bigquery_in_batches_and_update_state_for_each_batch(
         self,
         download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
         iter_article_data_mock: MagicMock,
