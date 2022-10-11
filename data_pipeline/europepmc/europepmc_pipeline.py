@@ -208,7 +208,7 @@ def get_latest_index_date_from_article_data_list(
     ))
 
 
-def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext
 ) -> date:
@@ -258,7 +258,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             LOGGER.info('empty period, skip processing')
             return
         latest_index_date = (
-            fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+            fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
                 config,
                 search_context=search_context
             )
