@@ -46,11 +46,13 @@ CURSOR_2 = 'cursor2'
 
 
 ITEM_RESPONSE_JSON_1 = {
-    'doi': DOI_1
+    'doi': DOI_1,
+    'firstIndexDate': '2001-02-03'
 }
 
 ITEM_RESPONSE_JSON_2 = {
-    'doi': DOI_2
+    'doi': DOI_2,
+    'firstIndexDate': '2001-02-03'
 }
 
 PROVENANCE_1 = {'provenance_key': 'provenance1'}
@@ -63,6 +65,11 @@ SINGLE_ITEM_RESPONSE_JSON_1 = {
     }
 }
 
+EMPTY_PAGE_RESPONSE_JSON = {
+    'resultList': {
+        'result': []
+    }
+}
 
 API_URL_1 = 'https://api1'
 
@@ -72,7 +79,7 @@ SOURCE_CONFIG_1 = EuropePmcSourceConfig(
     search=EuropePmcSearchConfig(
         query='query1'
     ),
-    fields_to_return=['title', 'doi']
+    fields_to_return=['title', 'doi', 'firstIndexDate']
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -742,6 +749,23 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
                 json_list=[json_list[1]]
             )
         ])
+
+    def test_should_not_call_save_state_for_empty_result(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            STATE_CONFIG_1.initial_state.start_date_str
+        )
+        iter_article_data_mock.return_value = [EMPTY_PAGE_RESPONSE_JSON]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1._replace(
+                source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=False)
+            )
+        )
+        save_state_to_s3_for_config_mock.assert_not_called()
 
     def test_should_call_save_state_for_config(
         self,
