@@ -73,6 +73,7 @@ SINGLE_ITEM_RESPONSE_JSON_1 = {
 }
 
 EMPTY_PAGE_RESPONSE_JSON = {
+    'hitCount': 0,
     'resultList': {
         'result': []
     }
@@ -833,6 +834,28 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
                     source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
                 )
             )
+
+    def test_should_remove_empty_list_before_loading_into_bigquery(
+        self,
+        iter_article_data_mock: MagicMock,
+        load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
+    ):
+        non_empty_value_json_list = [ITEM_RESPONSE_JSON_1]
+        raw_json_list = [{
+            **ITEM_RESPONSE_JSON_1,
+            'empty_list': []
+        }]
+        iter_article_data_mock.return_value = raw_json_list
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1
+        )
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
+            project_name=ANY,
+            dataset_name=ANY,
+            table_name=ANY,
+            json_list=non_empty_value_json_list
+        )
 
     def test_should_call_save_state_for_config(
         self,

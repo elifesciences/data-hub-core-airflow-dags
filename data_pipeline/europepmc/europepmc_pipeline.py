@@ -15,6 +15,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import get_response_json_with_provenance_from_api
 
 
@@ -234,7 +235,7 @@ def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_ind
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=batch_data_list
+            json_list=remove_key_with_null_value(batch_data_list)
         )
     if latest_index_date_list:
         return max(latest_index_date_list)
