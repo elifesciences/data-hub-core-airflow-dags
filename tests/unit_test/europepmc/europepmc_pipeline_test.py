@@ -44,15 +44,20 @@ DOI_2 = 'doi2'
 CURSOR_1 = 'cursor1'
 CURSOR_2 = 'cursor2'
 
+MOCK_TODAY_STR = '2021-01-02'
+MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
+
+MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
+
 
 ITEM_RESPONSE_JSON_1 = {
     'doi': DOI_1,
-    'firstIndexDate': '2001-02-03'
+    'firstIndexDate': MOCK_YESTERDAY_STR
 }
 
 ITEM_RESPONSE_JSON_2 = {
     'doi': DOI_2,
-    'firstIndexDate': '2001-02-03'
+    'firstIndexDate': MOCK_YESTERDAY_STR
 }
 
 PROVENANCE_1 = {'provenance_key': 'provenance1'}
@@ -87,11 +92,6 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     dataset_name='dataset1',
     table_name='table1'
 )
-
-MOCK_TODAY_STR = '2021-01-02'
-MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
-
-MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
 
 
 INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
@@ -767,6 +767,32 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         )
         save_state_to_s3_for_config_mock.assert_not_called()
 
+    def test_should_update_state_with_latest_index_date_plus_one(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        yesterday_date = date.fromisoformat(MOCK_YESTERDAY_STR)
+        latest_first_index_date = yesterday_date - timedelta(days=9)
+        expected_next_start_date = latest_first_index_date + timedelta(days=1)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            (yesterday_date - timedelta(days=10)).isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (latest_first_index_date).isoformat()
+        }]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1._replace(
+                source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+            )
+        )
+        save_state_to_s3_for_config_mock.assert_called_with(
+            CONFIG_1.state,
+            expected_next_start_date.isoformat()
+        )
+
     def test_should_call_save_state_for_config(
         self,
         download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
@@ -807,12 +833,15 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         iter_article_data_mock: MagicMock,
         save_state_to_s3_for_config_mock: MagicMock
     ):
-        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+        initial_start_date_str = (
             (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=2)).isoformat()
         )
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date_str
+        )
         iter_article_data_mock.side_effect = [
-            [ITEM_RESPONSE_JSON_1],
-            [ITEM_RESPONSE_JSON_2]
+            [{**ITEM_RESPONSE_JSON_1, 'firstIndexDate': initial_start_date_str}],
+            [{**ITEM_RESPONSE_JSON_2, 'firstIndexDate': MOCK_YESTERDAY_STR}]
         ]
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1._replace(

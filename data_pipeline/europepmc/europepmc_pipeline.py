@@ -211,7 +211,7 @@ def get_latest_index_date_from_article_data_list(
 def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext
-) -> bool:
+) -> date:
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     data_iterable = iter_article_data(
@@ -219,7 +219,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
         search_context,
         provenance=provenance
     )
-    is_empty = True
+    latest_index_date_list = []
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)
@@ -228,7 +228,7 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
             config.source
         )
         if latest_index_date:
-            is_empty = False
+            latest_index_date_list.append(latest_index_date)
         LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
@@ -236,7 +236,9 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
             table_name=config.target.table_name,
             json_list=batch_data_list
         )
-    return is_empty
+    if latest_index_date_list:
+        return max(latest_index_date_list)
+    return None
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
@@ -255,15 +257,21 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         if search_context.is_empty_period():
             LOGGER.info('empty period, skip processing')
             return
-        is_empty = fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
-            config,
-            search_context=search_context
+        latest_index_date = (
+            fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+                config,
+                search_context=search_context
+            )
         )
+        LOGGER.debug('latest_index_date: %r', latest_index_date)
         next_start_date_str = get_next_start_date_str_for_end_date_str(
             search_context.end_date_str
         )
-        if not is_empty:
-            save_state_to_s3_for_config(config.state, next_start_date_str)
+        if latest_index_date:
+            save_state_to_s3_for_config(
+                config.state,
+                (latest_index_date + timedelta(days=1)).isoformat()
+            )
         start_date_str = next_start_date_str
 
 
