@@ -188,6 +188,26 @@ def load_state_from_s3_for_config(
         return state_config.initial_state.start_date_str
 
 
+def get_latest_index_date_from_article_data_list(
+    article_data_list: Sequence[dict],
+    source_config: EuropePmcSourceConfig
+) -> Optional[date]:
+    if source_config.extract_individual_results_from_response:
+        item_list = article_data_list
+    else:
+        item_list = [
+            item
+            for article_data in article_data_list
+            for item in article_data['resultList']['result']
+        ]
+    if not item_list:
+        return None
+    return max((
+        date.fromisoformat(item['firstIndexDate'])
+        for item in item_list
+    ))
+
+
 def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext

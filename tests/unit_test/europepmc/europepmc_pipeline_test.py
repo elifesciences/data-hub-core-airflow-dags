@@ -24,6 +24,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list,
     get_article_response_json_from_api,
+    get_latest_index_date_from_article_data_list,
     get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
     get_request_query_for_source_config_and_start_date_str,
@@ -583,6 +584,79 @@ class TestGetNextStartDateStrForEndDateStr:
         assert get_next_start_date_str_for_end_date_str(
             '2001-02-03'
         ) == '2001-02-04'
+
+
+class TestGetLatestIndexDateFromArticleDataList:
+    def test_should_return_none_if_the_list_is_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=True
+            )
+        ) is None
+
+    def test_should_return_none_if_the_nested_list_is_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': []
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) is None
+
+    def test_should_raise_an_error_if_first_index_date_not_found_in_data(self):
+        with pytest.raises(KeyError):
+            get_latest_index_date_from_article_data_list(
+                [{'other': 'other value'}],
+                source_config=SOURCE_CONFIG_1
+            )
+
+    def test_should_return_latest_first_index_date_from_list_with_multiple_dates(self):
+        assert get_latest_index_date_from_article_data_list(
+            [
+                {'firstIndexDate': '2001-02-03'},
+                {'firstIndexDate': '2001-02-05'},
+                {'firstIndexDate': '2001-02-04'}
+            ],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=True
+            )
+        ) == date.fromisoformat('2001-02-05')
+
+    def test_should_return_latest_first_index_date_from_nested_list_with_multiple_dates(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': [
+                        {'firstIndexDate': '2001-02-03'},
+                        {'firstIndexDate': '2001-02-05'},
+                        {'firstIndexDate': '2001-02-04'}
+                    ]
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) == date.fromisoformat('2001-02-05')
+
+    def test_should_not_return_none_if_one_of_the_nested_lists_is_not_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': [{'firstIndexDate': '2001-02-03'}]
+                }
+            }, {
+                'resultList': {
+                    'result': []
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) == date.fromisoformat('2001-02-03')
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
