@@ -24,6 +24,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list,
     get_article_response_json_from_api,
+    get_latest_index_date_from_article_data_list,
     get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
     get_request_query_for_source_config_and_start_date_str,
@@ -43,13 +44,22 @@ DOI_2 = 'doi2'
 CURSOR_1 = 'cursor1'
 CURSOR_2 = 'cursor2'
 
+MOCK_TODAY_STR = '2021-01-02'
+MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
+
+MOCK_YESTERDAY_DATE = date.fromisoformat(MOCK_YESTERDAY_STR)
+
+MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
+
 
 ITEM_RESPONSE_JSON_1 = {
-    'doi': DOI_1
+    'doi': DOI_1,
+    'firstIndexDate': MOCK_YESTERDAY_STR
 }
 
 ITEM_RESPONSE_JSON_2 = {
-    'doi': DOI_2
+    'doi': DOI_2,
+    'firstIndexDate': MOCK_YESTERDAY_STR
 }
 
 PROVENANCE_1 = {'provenance_key': 'provenance1'}
@@ -62,6 +72,12 @@ SINGLE_ITEM_RESPONSE_JSON_1 = {
     }
 }
 
+EMPTY_PAGE_RESPONSE_JSON = {
+    'hitCount': 0,
+    'resultList': {
+        'result': []
+    }
+}
 
 API_URL_1 = 'https://api1'
 
@@ -71,7 +87,7 @@ SOURCE_CONFIG_1 = EuropePmcSourceConfig(
     search=EuropePmcSearchConfig(
         query='query1'
     ),
-    fields_to_return=['title', 'doi']
+    fields_to_return=['title', 'doi', 'firstIndexDate']
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -79,11 +95,6 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
     dataset_name='dataset1',
     table_name='table1'
 )
-
-MOCK_TODAY_STR = '2021-01-02'
-MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
-
-MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
 
 
 INITIAL_STATE_CONFIG_1 = EuropePmcInitialStateConfig(
@@ -585,6 +596,79 @@ class TestGetNextStartDateStrForEndDateStr:
         ) == '2001-02-04'
 
 
+class TestGetLatestIndexDateFromArticleDataList:
+    def test_should_return_none_if_the_list_is_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=True
+            )
+        ) is None
+
+    def test_should_return_none_if_the_nested_list_is_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': []
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) is None
+
+    def test_should_raise_an_error_if_first_index_date_not_found_in_data(self):
+        with pytest.raises(KeyError):
+            get_latest_index_date_from_article_data_list(
+                [{'other': 'other value'}],
+                source_config=SOURCE_CONFIG_1
+            )
+
+    def test_should_return_latest_first_index_date_from_list_with_multiple_dates(self):
+        assert get_latest_index_date_from_article_data_list(
+            [
+                {'firstIndexDate': '2001-02-03'},
+                {'firstIndexDate': '2001-02-05'},
+                {'firstIndexDate': '2001-02-04'}
+            ],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=True
+            )
+        ) == date.fromisoformat('2001-02-05')
+
+    def test_should_return_latest_first_index_date_from_nested_list_with_multiple_dates(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': [
+                        {'firstIndexDate': '2001-02-03'},
+                        {'firstIndexDate': '2001-02-05'},
+                        {'firstIndexDate': '2001-02-04'}
+                    ]
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) == date.fromisoformat('2001-02-05')
+
+    def test_should_not_return_none_if_one_of_the_nested_lists_is_not_empty(self):
+        assert get_latest_index_date_from_article_data_list(
+            [{
+                'resultList': {
+                    'result': [{'firstIndexDate': '2001-02-03'}]
+                }
+            }, {
+                'resultList': {
+                    'result': []
+                }
+            }],
+            source_config=SOURCE_CONFIG_1._replace(
+                extract_individual_results_from_response=False
+            )
+        ) == date.fromisoformat('2001-02-03')
+
+
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
     def test_should_pass_provenance_to_iter_article_data(
         self,
@@ -669,17 +753,97 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             )
         ])
 
+    def test_should_not_call_save_state_for_empty_result(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            STATE_CONFIG_1.initial_state.start_date_str
+        )
+        iter_article_data_mock.return_value = [EMPTY_PAGE_RESPONSE_JSON]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1._replace(
+                source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=False)
+            )
+        )
+        save_state_to_s3_for_config_mock.assert_not_called()
+
+    def test_should_update_state_with_latest_index_date_plus_one(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        latest_first_index_date = MOCK_YESTERDAY_DATE - timedelta(days=9)
+        expected_next_start_date = latest_first_index_date + timedelta(days=1)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            (MOCK_YESTERDAY_DATE - timedelta(days=10)).isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (latest_first_index_date).isoformat()
+        }]
+        fetch_article_data_from_europepmc_and_load_into_bigquery(
+            CONFIG_1._replace(
+                source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+            )
+        )
+        save_state_to_s3_for_config_mock.assert_called_with(
+            CONFIG_1.state,
+            expected_next_start_date.isoformat()
+        )
+
+    def test_should_reject_index_date_before_start_date(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        initial_start_date = MOCK_YESTERDAY_DATE - timedelta(days=10)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date.isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (initial_start_date - timedelta(days=1)).isoformat()
+        }]
+        with pytest.raises(AssertionError):
+            fetch_article_data_from_europepmc_and_load_into_bigquery(
+                CONFIG_1._replace(
+                    source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+                )
+            )
+
+    def test_should_reject_index_date_after_end_date(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        initial_start_date = MOCK_YESTERDAY_DATE - timedelta(days=10)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date.isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (MOCK_YESTERDAY_DATE + timedelta(days=1)).isoformat()
+        }]
+        with pytest.raises(AssertionError):
+            fetch_article_data_from_europepmc_and_load_into_bigquery(
+                CONFIG_1._replace(
+                    source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+                )
+            )
+
     def test_should_remove_empty_list_before_loading_into_bigquery(
         self,
         iter_article_data_mock: MagicMock,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
     ):
+        non_empty_value_json_list = [ITEM_RESPONSE_JSON_1]
         raw_json_list = [{
-            'not_empty': ['a', 'b'],
+            **ITEM_RESPONSE_JSON_1,
             'empty_list': []
-        }]
-        non_empty_value_json_list = [{
-            'not_empty': ['a', 'b']
         }]
         iter_article_data_mock.return_value = raw_json_list
         fetch_article_data_from_europepmc_and_load_into_bigquery(
@@ -727,18 +891,21 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         )
         iter_article_data_mock.assert_not_called()
 
-    def test_should_load_data_in_batches_until_yesterday(
+    def test_should_load_data_into_bigquery_in_batches_and_update_state_for_each_batch(
         self,
         download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
         iter_article_data_mock: MagicMock,
         save_state_to_s3_for_config_mock: MagicMock
     ):
-        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+        initial_start_date_str = (
             (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=2)).isoformat()
         )
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date_str
+        )
         iter_article_data_mock.side_effect = [
-            [ITEM_RESPONSE_JSON_1],
-            [ITEM_RESPONSE_JSON_2]
+            [{**ITEM_RESPONSE_JSON_1, 'firstIndexDate': initial_start_date_str}],
+            [{**ITEM_RESPONSE_JSON_2, 'firstIndexDate': MOCK_YESTERDAY_STR}]
         ]
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1._replace(

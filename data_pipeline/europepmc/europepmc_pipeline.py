@@ -189,10 +189,30 @@ def load_state_from_s3_for_config(
         return state_config.initial_state.start_date_str
 
 
-def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
+def get_latest_index_date_from_article_data_list(
+    article_data_list: Sequence[dict],
+    source_config: EuropePmcSourceConfig
+) -> Optional[date]:
+    if source_config.extract_individual_results_from_response:
+        item_list = article_data_list
+    else:
+        item_list = [
+            item
+            for article_data in article_data_list
+            for item in article_data['resultList']['result']
+        ]
+    if not item_list:
+        return None
+    return max((
+        date.fromisoformat(item['firstIndexDate'])
+        for item in item_list
+    ))
+
+
+def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext
-):
+) -> date:
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     data_iterable = iter_article_data(
@@ -200,16 +220,26 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
         search_context,
         provenance=provenance
     )
+    latest_index_date_list = []
     for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
-        batch_data_list = remove_key_with_null_value(list(batch_data_iterable))
+        batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)
+        latest_index_date = get_latest_index_date_from_article_data_list(
+            batch_data_list,
+            config.source
+        )
+        if latest_index_date:
+            latest_index_date_list.append(latest_index_date)
         LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=batch_data_list
+            json_list=remove_key_with_null_value(batch_data_list)
         )
+    if latest_index_date_list:
+        return max(latest_index_date_list)
+    return None
 
 
 def fetch_article_data_from_europepmc_and_load_into_bigquery(
@@ -228,14 +258,23 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
         if search_context.is_empty_period():
             LOGGER.info('empty period, skip processing')
             return
-        fetch_article_data_from_europepmc_and_load_into_bigquery_for_search_context(
-            config,
-            search_context=search_context
+        latest_index_date = (
+            fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
+                config,
+                search_context=search_context
+            )
         )
+        LOGGER.debug('latest_index_date: %r', latest_index_date)
         next_start_date_str = get_next_start_date_str_for_end_date_str(
             search_context.end_date_str
         )
-        save_state_to_s3_for_config(config.state, next_start_date_str)
+        if latest_index_date:
+            assert latest_index_date >= date.fromisoformat(search_context.start_date_str)
+            assert latest_index_date <= date.fromisoformat(search_context.end_date_str)
+            save_state_to_s3_for_config(
+                config.state,
+                (latest_index_date + timedelta(days=1)).isoformat()
+            )
         start_date_str = next_start_date_str
 
 
