@@ -47,6 +47,8 @@ CURSOR_2 = 'cursor2'
 MOCK_TODAY_STR = '2021-01-02'
 MOCK_YESTERDAY_STR = (date.fromisoformat(MOCK_TODAY_STR) - timedelta(days=1)).isoformat()
 
+MOCK_YESTERDAY_DATE = date.fromisoformat(MOCK_YESTERDAY_STR)
+
 MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
 
 
@@ -773,12 +775,11 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         iter_article_data_mock: MagicMock,
         save_state_to_s3_for_config_mock: MagicMock
     ):
-        yesterday_date = date.fromisoformat(MOCK_YESTERDAY_STR)
-        latest_first_index_date = yesterday_date - timedelta(days=9)
+        latest_first_index_date = MOCK_YESTERDAY_DATE - timedelta(days=9)
         expected_next_start_date = latest_first_index_date + timedelta(days=1)
 
         download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
-            (yesterday_date - timedelta(days=10)).isoformat()
+            (MOCK_YESTERDAY_DATE - timedelta(days=10)).isoformat()
         )
         iter_article_data_mock.return_value = [{
             'firstIndexDate': (latest_first_index_date).isoformat()
@@ -792,6 +793,46 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
             CONFIG_1.state,
             expected_next_start_date.isoformat()
         )
+
+    def test_should_reject_index_date_before_start_date(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        initial_start_date = MOCK_YESTERDAY_DATE - timedelta(days=10)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date.isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (initial_start_date - timedelta(days=1)).isoformat()
+        }]
+        with pytest.raises(AssertionError):
+            fetch_article_data_from_europepmc_and_load_into_bigquery(
+                CONFIG_1._replace(
+                    source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+                )
+            )
+
+    def test_should_reject_index_date_after_end_date(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        iter_article_data_mock: MagicMock
+    ):
+        initial_start_date = MOCK_YESTERDAY_DATE - timedelta(days=10)
+
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
+            initial_start_date.isoformat()
+        )
+        iter_article_data_mock.return_value = [{
+            'firstIndexDate': (MOCK_YESTERDAY_DATE + timedelta(days=1)).isoformat()
+        }]
+        with pytest.raises(AssertionError):
+            fetch_article_data_from_europepmc_and_load_into_bigquery(
+                CONFIG_1._replace(
+                    source=SOURCE_CONFIG_1._replace(extract_individual_results_from_response=True)
+                )
+            )
 
     def test_should_call_save_state_for_config(
         self,

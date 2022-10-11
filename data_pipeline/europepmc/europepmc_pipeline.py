@@ -268,6 +268,8 @@ def fetch_article_data_from_europepmc_and_load_into_bigquery(
             search_context.end_date_str
         )
         if latest_index_date:
+            assert latest_index_date >= date.fromisoformat(search_context.start_date_str)
+            assert latest_index_date <= date.fromisoformat(search_context.end_date_str)
             save_state_to_s3_for_config(
                 config.state,
                 (latest_index_date + timedelta(days=1)).isoformat()
