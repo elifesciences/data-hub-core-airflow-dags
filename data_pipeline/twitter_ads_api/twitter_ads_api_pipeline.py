@@ -211,13 +211,12 @@ def fetch_twitter_ads_api_data_and_load_into_bq(
         iterable_data_from_twitter_ads_api,
         batch_size
     ):
-        batch_data_list = list(batch_data_iterable)
-        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
+        LOGGER.debug('batch_data_iterable: %r', batch_data_iterable)
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=batch_data_list
+            json_list=batch_data_iterable
         )
 
 
