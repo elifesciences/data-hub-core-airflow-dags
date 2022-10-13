@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Sequence
+from typing import Iterable, Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
@@ -159,6 +159,14 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         europepmc_pipeline_module,
         'load_given_json_list_data_from_tempdir_to_bq'
     ) as mock:
+        mock.calls_json_lists = []
+
+        def _mock_side_effect(*_args, json_list: Iterable[dict], **_kwargs):
+            consumed_json_list = list(json_list)
+            mock.calls_json_lists.append(consumed_json_list)
+            mock.latest_call_json_list = consumed_json_list
+
+        mock.side_effect = _mock_side_effect
         yield mock
 
 
@@ -716,12 +724,9 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=ANY,
-            dataset_name=ANY,
-            table_name=ANY,
-            json_list=json_list
+        assert (
+            load_given_json_list_data_from_tempdir_to_bq_mock.latest_call_json_list
+            == json_list
         )
 
     def test_should_pass_batched_json_list_to_bq_load_method(
@@ -737,21 +742,10 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1._replace(batch_size=1)
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[0]]
-            ),
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[1]]
-            )
-        ])
+        assert load_given_json_list_data_from_tempdir_to_bq_mock.calls_json_lists == [
+            [json_list[0]],
+            [json_list[1]]
+        ]
 
     def test_should_not_call_save_state_for_empty_result(
         self,
@@ -849,12 +843,9 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=ANY,
-            dataset_name=ANY,
-            table_name=ANY,
-            json_list=non_empty_value_json_list
+        assert (
+            load_given_json_list_data_from_tempdir_to_bq_mock.latest_call_json_list
+            == non_empty_value_json_list
         )
 
     def test_should_call_save_state_for_config(

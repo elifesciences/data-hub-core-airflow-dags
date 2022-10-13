@@ -209,6 +209,18 @@ def get_latest_index_date_from_article_data_list(
     ))
 
 
+def iter_article_data_for_bq_and_collect_latest_index_dates(
+    data_iterable: Iterable[dict],
+    source_config: EuropePmcSourceConfig,
+    latest_index_date_list: list
+) -> Iterable[dict]:
+    for item in data_iterable:
+        latest_index_date = get_latest_index_date_from_article_data_list([item], source_config)
+        if latest_index_date:
+            latest_index_date_list.append(latest_index_date)
+        yield remove_key_with_null_value(item)
+
+
 def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext
@@ -222,20 +234,16 @@ def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_ind
     )
     latest_index_date_list = []
     for batch_data_iterable in iter_batch_iterable(data_iterable, batch_size):
-        batch_data_list = list(batch_data_iterable)
-        LOGGER.debug('batch_data_list: %r', batch_data_list)
-        latest_index_date = get_latest_index_date_from_article_data_list(
-            batch_data_list,
-            config.source
+        batch_data_iterable = iter_article_data_for_bq_and_collect_latest_index_dates(
+            data_iterable=batch_data_iterable,
+            source_config=config.source,
+            latest_index_date_list=latest_index_date_list
         )
-        if latest_index_date:
-            latest_index_date_list.append(latest_index_date)
-        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=remove_key_with_null_value(batch_data_list)
+            json_list=batch_data_iterable
         )
     if latest_index_date_list:
         return max(latest_index_date_list)
