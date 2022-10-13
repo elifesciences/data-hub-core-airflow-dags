@@ -7,7 +7,7 @@ from data_pipeline.europepmc.europepmc_config import (
     EuropePmcSourceConfig,
     EuropePmcStateConfig
 )
-from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -221,7 +221,7 @@ def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_ind
         provenance=provenance
     )
     latest_index_date_list = []
-    for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
+    for batch_data_iterable in iter_batch_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)
         latest_index_date = get_latest_index_date_from_article_data_list(

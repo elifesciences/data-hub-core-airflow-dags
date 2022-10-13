@@ -9,7 +9,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiConfig,
     TwitterAdsApiSourceConfig
 )
-from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_pipeline_timestamp import get_todays_date
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -207,7 +207,7 @@ def fetch_twitter_ads_api_data_and_load_into_bq(
             source_config=config.source
         )
     )
-    for batch_data_iterable in iter_batches_iterable(
+    for batch_data_iterable in iter_batch_iterable(
         iterable_data_from_twitter_ads_api,
         batch_size
     ):

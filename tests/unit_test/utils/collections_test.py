@@ -2,7 +2,7 @@ from typing import Iterable, Sequence, Union, T
 
 import pytest
 from data_pipeline.utils.collections import (
-    iter_batches_iterable,
+    iter_batch_iterable,
     iter_item_until_exception
 )
 
@@ -22,21 +22,21 @@ def _to_list_of_batch_list(
     return [list(batch_iterable) for batch_iterable in iterable_of_batch_iterable]
 
 
-class TestIterBatchesIterable:
+class TestIterBatchIterable:
     def test_should_batch_list(self):
-        assert _to_list_of_batch_list(iter_batches_iterable(
+        assert _to_list_of_batch_list(iter_batch_iterable(
             [0, 1, 2, 3, 4],
             2
         )) == [[0, 1], [2, 3], [4]]
 
     def test_should_batch_iterable(self):
-        assert _to_list_of_batch_list(iter_batches_iterable(
+        assert _to_list_of_batch_list(iter_batch_iterable(
             iter([0, 1, 2, 3, 4]),
             2
         )) == [[0, 1], [2, 3], [4]]
 
     def test_should_not_yield_empty_iterable(self):
-        assert _to_list_of_batch_list(iter_batches_iterable(
+        assert _to_list_of_batch_list(iter_batch_iterable(
             iter([]),
             2
         )) == []

@@ -13,7 +13,7 @@ def chain_queue_and_iterable(queue: deque, iterable):
     yield from iterable
 
 
-def iter_batches_iterable(
+def iter_batch_iterable(
     iterable: Iterable[T],
     batch_size: int
 ) -> Iterable[Iterable[T]]:
