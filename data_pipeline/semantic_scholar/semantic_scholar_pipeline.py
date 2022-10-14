@@ -4,7 +4,7 @@ from typing import Iterable, Mapping, Optional
 
 import requests
 
-from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -130,13 +130,11 @@ def fetch_article_data_from_semantic_scholar_and_load_into_bigquery(
             provenance=provenance,
             session=session
         )
-    for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
-        batch_data_list = list(batch_data_iterable)
-        LOGGER.debug('batch_data_list: %r', batch_data_list)
-        LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))
+    for batch_data_iterable in iter_batch_iterable(data_iterable, batch_size):
+        LOGGER.debug('batch_data_iterable: %r', batch_data_iterable)
         load_given_json_list_data_from_tempdir_to_bq(
             project_name=config.target.project_name,
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
-            json_list=batch_data_list
+            json_list=batch_data_iterable
         )

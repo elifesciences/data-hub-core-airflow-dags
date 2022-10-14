@@ -5,7 +5,7 @@ from typing import Any, Iterable, Mapping, Optional, Sequence
 
 import requests
 
-from data_pipeline.utils.collections import iter_batches_iterable
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.json import get_recursive_json_compatible_value
 from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -202,7 +202,7 @@ def fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigque
             provenance=provenance,
             session=session
         )
-    for batch_data_iterable in iter_batches_iterable(data_iterable, batch_size):
+    for batch_data_iterable in iter_batch_iterable(data_iterable, batch_size):
         batch_data_list = list(batch_data_iterable)
         LOGGER.debug('batch_data_list: %r', batch_data_list)
         LOGGER.info('loading batch into bigquery: %d', len(batch_data_list))

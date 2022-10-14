@@ -1,5 +1,7 @@
+import logging
 from datetime import date, datetime
 from unittest.mock import ANY, patch, MagicMock, call
+
 import pytest
 
 from data_pipeline.twitter_ads_api import (
@@ -27,6 +29,12 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiParameterValuesConfig,
     TwitterAdsApiSourceConfig
 )
+
+from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
+    create_load_given_json_list_data_from_tempdir_to_bq_mock
+)
+
+LOGGER = logging.getLogger(__name__)
 
 RESOURCE = 'resource_1'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
@@ -223,7 +231,8 @@ def _get_current_final_end_date_mock():
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
-        'load_given_json_list_data_from_tempdir_to_bq'
+        'load_given_json_list_data_from_tempdir_to_bq',
+        create_load_given_json_list_data_from_tempdir_to_bq_mock()
     ) as mock:
         yield mock
 
@@ -626,11 +635,9 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             CONFIG_1
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=ANY,
-            dataset_name=ANY,
-            table_name=ANY,
-            json_list=json_list
+        assert (
+            load_given_json_list_data_from_tempdir_to_bq_mock.latest_call_json_list
+            == json_list
         )
 
     def test_should_pass_batched_json_list_to_bq_load_method(
@@ -647,17 +654,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             CONFIG_1._replace(batch_size=1)
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[0]]
-            ),
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[1]]
-            )
-        ])
+        assert load_given_json_list_data_from_tempdir_to_bq_mock.calls_json_lists == [
+            [json_list[0]],
+            [json_list[1]]
+        ]

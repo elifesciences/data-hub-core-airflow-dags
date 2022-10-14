@@ -24,7 +24,7 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery,
     fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list,
     get_article_response_json_from_api,
-    get_latest_index_date_from_article_data_list,
+    get_latest_index_date_from_article_data,
     get_next_start_date_str_for_end_date_str,
     get_request_params_for_source_config,
     get_request_query_for_source_config_and_start_date_str,
@@ -35,6 +35,9 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     save_state_to_s3_for_config
 )
 from tests.unit_test.europepmc.europepmc_config_test import INITIAL_START_DATE_STR_1
+from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
+    create_load_given_json_list_data_from_tempdir_to_bq_mock
+)
 
 
 DOI_1 = 'doi1'
@@ -157,7 +160,8 @@ def _get_response_json_with_provenance_from_api_mock():
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         europepmc_pipeline_module,
-        'load_given_json_list_data_from_tempdir_to_bq'
+        'load_given_json_list_data_from_tempdir_to_bq',
+        create_load_given_json_list_data_from_tempdir_to_bq_mock()
     ) as mock:
         yield mock
 
@@ -596,22 +600,14 @@ class TestGetNextStartDateStrForEndDateStr:
         ) == '2001-02-04'
 
 
-class TestGetLatestIndexDateFromArticleDataList:
-    def test_should_return_none_if_the_list_is_empty(self):
-        assert get_latest_index_date_from_article_data_list(
-            [],
-            source_config=SOURCE_CONFIG_1._replace(
-                extract_individual_results_from_response=True
-            )
-        ) is None
-
+class TestGetLatestIndexDateFromArticleData:
     def test_should_return_none_if_the_nested_list_is_empty(self):
-        assert get_latest_index_date_from_article_data_list(
-            [{
+        assert get_latest_index_date_from_article_data(
+            {
                 'resultList': {
                     'result': []
                 }
-            }],
+            },
             source_config=SOURCE_CONFIG_1._replace(
                 extract_individual_results_from_response=False
             )
@@ -619,26 +615,14 @@ class TestGetLatestIndexDateFromArticleDataList:
 
     def test_should_raise_an_error_if_first_index_date_not_found_in_data(self):
         with pytest.raises(KeyError):
-            get_latest_index_date_from_article_data_list(
-                [{'other': 'other value'}],
+            get_latest_index_date_from_article_data(
+                {'other': 'other value'},
                 source_config=SOURCE_CONFIG_1
             )
 
-    def test_should_return_latest_first_index_date_from_list_with_multiple_dates(self):
-        assert get_latest_index_date_from_article_data_list(
-            [
-                {'firstIndexDate': '2001-02-03'},
-                {'firstIndexDate': '2001-02-05'},
-                {'firstIndexDate': '2001-02-04'}
-            ],
-            source_config=SOURCE_CONFIG_1._replace(
-                extract_individual_results_from_response=True
-            )
-        ) == date.fromisoformat('2001-02-05')
-
     def test_should_return_latest_first_index_date_from_nested_list_with_multiple_dates(self):
-        assert get_latest_index_date_from_article_data_list(
-            [{
+        assert get_latest_index_date_from_article_data(
+            {
                 'resultList': {
                     'result': [
                         {'firstIndexDate': '2001-02-03'},
@@ -646,27 +630,11 @@ class TestGetLatestIndexDateFromArticleDataList:
                         {'firstIndexDate': '2001-02-04'}
                     ]
                 }
-            }],
+            },
             source_config=SOURCE_CONFIG_1._replace(
                 extract_individual_results_from_response=False
             )
         ) == date.fromisoformat('2001-02-05')
-
-    def test_should_not_return_none_if_one_of_the_nested_lists_is_not_empty(self):
-        assert get_latest_index_date_from_article_data_list(
-            [{
-                'resultList': {
-                    'result': [{'firstIndexDate': '2001-02-03'}]
-                }
-            }, {
-                'resultList': {
-                    'result': []
-                }
-            }],
-            source_config=SOURCE_CONFIG_1._replace(
-                extract_individual_results_from_response=False
-            )
-        ) == date.fromisoformat('2001-02-03')
 
 
 class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
@@ -716,12 +684,9 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=ANY,
-            dataset_name=ANY,
-            table_name=ANY,
-            json_list=json_list
+        assert (
+            load_given_json_list_data_from_tempdir_to_bq_mock.latest_call_json_list
+            == json_list
         )
 
     def test_should_pass_batched_json_list_to_bq_load_method(
@@ -737,21 +702,10 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1._replace(batch_size=1)
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_has_calls([
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[0]]
-            ),
-            call(
-                project_name=ANY,
-                dataset_name=ANY,
-                table_name=ANY,
-                json_list=[json_list[1]]
-            )
-        ])
+        assert load_given_json_list_data_from_tempdir_to_bq_mock.calls_json_lists == [
+            [json_list[0]],
+            [json_list[1]]
+        ]
 
     def test_should_not_call_save_state_for_empty_result(
         self,
@@ -849,12 +803,9 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         fetch_article_data_from_europepmc_and_load_into_bigquery(
             CONFIG_1
         )
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
-        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=ANY,
-            dataset_name=ANY,
-            table_name=ANY,
-            json_list=non_empty_value_json_list
+        assert (
+            load_given_json_list_data_from_tempdir_to_bq_mock.latest_call_json_list
+            == non_empty_value_json_list
         )
 
     def test_should_call_save_state_for_config(
