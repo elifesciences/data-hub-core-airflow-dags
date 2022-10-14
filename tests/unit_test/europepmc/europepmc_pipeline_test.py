@@ -1,5 +1,5 @@
 from datetime import date, datetime, timedelta
-from typing import Iterable, Sequence
+from typing import Sequence
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
@@ -35,6 +35,9 @@ from data_pipeline.europepmc.europepmc_pipeline import (
     save_state_to_s3_for_config
 )
 from tests.unit_test.europepmc.europepmc_config_test import INITIAL_START_DATE_STR_1
+from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
+    create_load_given_json_list_data_from_tempdir_to_bq_mock
+)
 
 
 DOI_1 = 'doi1'
@@ -157,16 +160,9 @@ def _get_response_json_with_provenance_from_api_mock():
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         europepmc_pipeline_module,
-        'load_given_json_list_data_from_tempdir_to_bq'
+        'load_given_json_list_data_from_tempdir_to_bq',
+        create_load_given_json_list_data_from_tempdir_to_bq_mock()
     ) as mock:
-        mock.calls_json_lists = []
-
-        def _mock_side_effect(*_args, json_list: Iterable[dict], **_kwargs):
-            consumed_json_list = list(json_list)
-            mock.calls_json_lists.append(consumed_json_list)
-            mock.latest_call_json_list = consumed_json_list
-
-        mock.side_effect = _mock_side_effect
         yield mock
 
 

@@ -1,6 +1,5 @@
 import logging
 from datetime import date, datetime
-from typing import Iterable
 from unittest.mock import ANY, patch, MagicMock, call
 
 import pytest
@@ -29,6 +28,10 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
     TwitterAdsApiParameterNamesForConfig,
     TwitterAdsApiParameterValuesConfig,
     TwitterAdsApiSourceConfig
+)
+
+from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
+    create_load_given_json_list_data_from_tempdir_to_bq_mock
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -228,16 +231,9 @@ def _get_current_final_end_date_mock():
 def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
-        'load_given_json_list_data_from_tempdir_to_bq'
+        'load_given_json_list_data_from_tempdir_to_bq',
+        create_load_given_json_list_data_from_tempdir_to_bq_mock()
     ) as mock:
-        mock.calls_json_lists = []
-
-        def _mock_side_effect(*_args, json_list: Iterable[dict], **_kwargs):
-            consumed_json_list = list(json_list)
-            mock.calls_json_lists.append(consumed_json_list)
-            mock.latest_call_json_list = consumed_json_list
-
-        mock.side_effect = _mock_side_effect
         yield mock
 
 
