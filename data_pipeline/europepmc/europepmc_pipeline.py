@@ -1,6 +1,6 @@
 import logging
 from datetime import date, datetime, timedelta
-from typing import Iterable, NamedTuple, Optional, Sequence
+from typing import Iterable, List, NamedTuple, Optional, Sequence
 
 from data_pipeline.europepmc.europepmc_config import (
     EuropePmcConfig,
@@ -212,7 +212,7 @@ def get_latest_index_date_from_article_data_list(
 def iter_article_data_for_bq_and_collect_latest_index_dates(
     data_iterable: Iterable[dict],
     source_config: EuropePmcSourceConfig,
-    latest_index_date_list: list
+    latest_index_date_list: List[date]
 ) -> Iterable[dict]:
     for item in data_iterable:
         latest_index_date = get_latest_index_date_from_article_data_list([item], source_config)
