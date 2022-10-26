@@ -167,7 +167,7 @@ twitterAdsApi:
                   MAX(request.params.start_time) OVER (PARTITION BY id, request.params.placement) AS max_start_time,
                   MAX(request.params.end_time) OVER (PARTITION BY id, request.params.placement) AS max_end_time
                 FROM
-                `elife-data-pipeline.{ENV}.v_latest_twitter_campaign_costs`
+                `elife-data-pipeline.hc_dev.v_latest_twitter_campaign_costs`
               ),
               t_min_start_and_end_time_per_campaign AS (
                 SELECT 
