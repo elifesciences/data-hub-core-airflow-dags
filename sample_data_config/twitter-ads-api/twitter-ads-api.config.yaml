@@ -1,7 +1,8 @@
 twitterAdsApi:
   - dataPipelineId: twitter_ads_api_campaign_details
     source:
-      resource: '/11/accounts/18ce53up4ko/campaigns'
+      accountIds: ['18ce53up4ko']
+      resource: '/11/accounts/{account_id}/campaigns'
       secrets:
         parametersFromFile:
           - parameterName: api_key
@@ -19,7 +20,8 @@ twitterAdsApi:
 
   - dataPipelineId: twitter_ads_api_campaign_audience_reach
     source:
-      resource: '/11/stats/accounts/18ce53up4ko/reach/campaigns'
+      accountIds: ['18ce53up4ko']
+      resource: '/11/stats/{account_id}/18ce53up4ko/reach/campaigns'
       secrets:
         parametersFromFile:
           - parameterName: api_key
@@ -56,7 +58,8 @@ twitterAdsApi:
 
   - dataPipelineId: twitter_ads_api_campaign_clicks_and_impressions
     source:
-      resource: '/11/stats/accounts/18ce53up4ko?entity=CAMPAIGN&granularity=DAY&metric_groups=ENGAGEMENT'
+      accountIds: ['18ce53up4ko']
+      resource: '/11/stats/accounts/{account_id}?entity=CAMPAIGN&granularity=DAY&metric_groups=ENGAGEMENT'
       secrets:
         parametersFromFile:
           - parameterName: api_key
@@ -118,6 +121,7 @@ twitterAdsApi:
                 CAST(calculated_date AS STRING) AS start_date,
               FROM t_campaign_and_dates
               WHERE ABS(DATE_DIFF(entity_creation_date, calculated_date, DAY)) < 91 --(maxPeriodInDays-1)
+                  AND account_id = {account_id}
           maxPeriodInDays: 92  # 7*13+1 (+1 is for getting out from periodBatchSizeInDays for final end_date because of using start_time )
           periodBatchSizeInDays: 7  # 7 days is the max batch size for this api endpoint
           placementValue: ['PUBLISHER_NETWORK','ALL_ON_TWITTER']
@@ -134,7 +138,8 @@ twitterAdsApi:
 
   - dataPipelineId: twitter_ads_api_campaign_costs
     source:
-      resource: '/11/stats/accounts/18ce53up4ko?entity=CAMPAIGN&granularity=DAY&metric_groups=BILLING'
+      accountIds: ['18ce53up4ko']
+      resource: '/11/stats/accounts/{account_id}?entity=CAMPAIGN&granularity=DAY&metric_groups=BILLING'
       secrets:
         parametersFromFile:
           - parameterName: api_key

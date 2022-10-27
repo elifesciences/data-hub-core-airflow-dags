@@ -40,14 +40,26 @@ def fetch_single_column_value_list_for_bigquery_source_config(
     return value_list
 
 
+def replace_placeholders(value: str, placeholders: Optional[dict] = None) -> str:
+    if placeholders:
+        return value.format(**placeholders)
+        # for key, _value in placeholders.items():
+        #     value = value.replace('{' + key + '}', _value)
+    return value
+
+
 def iter_dict_from_bq_query_for_bigquery_source_config(
-    bigquery_source_config: BigQuerySourceConfig
+    bigquery_source_config: BigQuerySourceConfig,
+    placeholders: Optional[dict] = None
 ) -> Iterable[dict]:
     LOGGER.debug('bigquery_source: %r', bigquery_source_config)
     try:
         yield from iter_dict_from_bq_query(
             project_name=bigquery_source_config.project_name,
-            query=bigquery_source_config.sql_query
+            query=replace_placeholders(
+                bigquery_source_config.sql_query,
+                placeholders=placeholders
+            )
         )
     except google.cloud.exceptions.NotFound:
         if bigquery_source_config.ignore_not_found:
