@@ -7,6 +7,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
 RESOURCE_1 = 'resource_1'
 RESOURCE_2 = 'resource_2'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
+ACCOUNT_IDS = ['account_id_1']
 
 SQL_QUERY = 'query_1'
 
@@ -47,7 +48,8 @@ API_QUERY_PARAMETERS_DICT = {
 
 SOURCE_CONFIG_WITHOUT_API_QUERY_PARAMETERS = {
     'resource': RESOURCE_1,
-    'secrets': SECRETS
+    'secrets': SECRETS,
+    'accountIds': ACCOUNT_IDS
 }
 
 SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS = {
@@ -84,6 +86,11 @@ CONFIG_DICT = get_config_for_item_config_dict([
 
 
 class TestTwitterAdsApiConfig:
+    def test_should_read_account_ids_if_defined(self):
+        config = TwitterAdsApiConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].source.account_ids == ACCOUNT_IDS
+        assert not config[1].source.account_ids
+
     def test_should_read_resource(self):
         config = TwitterAdsApiConfig.parse_config_list_from_dict(CONFIG_DICT)
         assert config[0].source.resource == RESOURCE_1
