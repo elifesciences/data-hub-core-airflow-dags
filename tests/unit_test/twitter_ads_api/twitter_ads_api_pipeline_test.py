@@ -405,7 +405,8 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_1,
-            params_dict=None
+            params_dict=None,
+            placeholders=ANY
         )
 
     def test_should_pass_params_dict_if_api_query_parameters_defined(
@@ -427,7 +428,8 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
-            params_dict=API_QUERY_PARAMETERS_DICT
+            params_dict=API_QUERY_PARAMETERS_DICT,
+            placeholders=ANY
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
@@ -471,7 +473,8 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
-            params_dict=API_QUERY_PARAMETERS_DICT
+            params_dict=API_QUERY_PARAMETERS_DICT,
+            placeholders=ANY
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_placement_defined(
