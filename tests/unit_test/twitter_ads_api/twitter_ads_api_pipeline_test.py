@@ -10,6 +10,7 @@ from data_pipeline.twitter_ads_api import (
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
     fetch_twitter_ads_api_data_and_load_into_bq,
+    fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders,
     get_param_dict_from_api_query_parameters,
     get_provenance,
     get_bq_compatible_json_response_from_resource_with_provenance,
@@ -38,6 +39,8 @@ LOGGER = logging.getLogger(__name__)
 
 RESOURCE = 'resource_1'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
+
+PLACEHOLDERS_1 = {'account_id': 'account_id_1'}
 
 SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
@@ -132,7 +135,7 @@ PROVENANCE_1 = {
 API_QUERY_PARAMETERS_DICT = {
     'apiQueryParameterName': 'api_query_parameter_value_1'
 }
-
+# api_query_parameters_config.parameter_values.from_bigquery
 ENTITY_CREATION_DATE_1 = '2022-07-30'
 START_DATE_1 = '2022-08-01'
 
@@ -249,6 +252,17 @@ def _iter_bq_compatible_json_response_from_resource_with_provenance_mock():
         yield mock
 
 
+@pytest.fixture(
+    name='fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock',
+)
+def _fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders'
+    ) as mock:
+        yield mock
+
+
 class TestGetProvenance:
     def test_should_return_provenance_dict(self):
         actual_return_dict = get_provenance(source_config=SOURCE_CONFIG_1)
@@ -298,18 +312,19 @@ class TestGetParamDictFromApiQueryParameters:
 
 
 class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
-    def test_should_pass_resource_to_request(
+    def test_should_pass_resource_with_replaced_placeholders_to_request(
         self,
         request_class_mock: MagicMock,
         get_client_from_twitter_ads_api_mock: MagicMock
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_1._replace(resource='/resource/{placeholder}'),
+            placeholders={'placeholder': 'replaced_placeholder'}
         )
         request_class_mock.assert_called_with(
             client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_1),
             method="GET",
-            resource=RESOURCE,
+            resource='/resource/replaced_placeholder',
             params=None
         )
 
@@ -396,16 +411,31 @@ class TestGetEndDateValueOfBatchPeriod:
 
 
 class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
+    def test_should_call_iter_dict_from_bq_query_func_if_api_query_parameters_defined(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
+    ):
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+            PLACEHOLDERS_1
+        ))
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
+            FROM_BIGQUERY_PARAM_VALUE,
+            placeholders=PLACEHOLDERS_1
+        )
+
     def test_should_pass_none_to_params_dict_if_api_query_parameters_not_defined(
         self,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock
     ):
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_1,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_1,
-            params_dict=None
+            params_dict=None,
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_params_dict_if_api_query_parameters_defined(
@@ -423,11 +453,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
-            params_dict=API_QUERY_PARAMETERS_DICT
+            params_dict=API_QUERY_PARAMETERS_DICT,
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
@@ -467,11 +499,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
-            params_dict=API_QUERY_PARAMETERS_DICT
+            params_dict=API_QUERY_PARAMETERS_DICT,
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_placement_defined(
@@ -602,7 +636,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ], any_order=True)
 
 
-class TestFetchTwitterAdsApiDataAndLoadIntoBq:
+class TestFetchTwitterAdsApiDataAndLoadIntoBqWithPlaceholders:
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
         iter_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
@@ -610,7 +644,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
     ):
         json_list = [RESPONSE_JSON_1]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
@@ -631,7 +665,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             RESPONSE_JSON_2
         ]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
@@ -650,7 +684,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             RESPONSE_JSON_2
         ]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1._replace(batch_size=1)
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
@@ -658,3 +692,36 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             [json_list[0]],
             [json_list[1]]
         ]
+
+
+class TestFetchTwitterAdsApiDataAndLoadIntoBq:
+    def test_should_call_the_function_with_empty_placeholder_when_account_ids_not_defined(
+        self,
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock: MagicMock
+    ):
+        fetch_twitter_ads_api_data_and_load_into_bq(CONFIG_1)
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.assert_called_with(
+            config=CONFIG_1,
+            placeholders={}
+        )
+
+    def test_should_call_the_function_with_multiple_account_ids_defined_in_config(
+        self,
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock: MagicMock
+    ):
+        new_config = CONFIG_1._replace(
+            source=CONFIG_1.source._replace(
+                account_ids=['account_id_1', 'account_id_2']
+            )
+        )
+        fetch_twitter_ads_api_data_and_load_into_bq(new_config)
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.has_calls(call=[
+            call(
+                config=new_config,
+                placeholders={'account_id': 'account_id_1'}
+            ),
+            call(
+                config=new_config,
+                placeholders={'account_id': 'account_id_2'}
+            )
+        ])

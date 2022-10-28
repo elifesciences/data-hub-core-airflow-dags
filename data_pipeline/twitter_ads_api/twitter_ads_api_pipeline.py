@@ -16,7 +16,8 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import (
-    iter_dict_from_bq_query_for_bigquery_source_config
+    iter_dict_from_bq_query_for_bigquery_source_config,
+    replace_placeholders
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -59,14 +60,16 @@ def get_provenance(
 
 def get_bq_compatible_json_response_from_resource_with_provenance(
     source_config: TwitterAdsApiSourceConfig,
-    params_dict: Optional[Mapping[str, str]] = None
+    params_dict: Optional[Mapping[str, str]] = None,
+    placeholders: Optional[dict] = None
 ) -> Any:
-    LOGGER.info("Getting data for resource: %s", source_config.resource)
+    resource = replace_placeholders(source_config.resource, placeholders=placeholders)
+    LOGGER.info("Getting data for resource: %s", resource)
     LOGGER.info('params_dict: %r', params_dict)
     req = Request(
         client=get_client_from_twitter_ads_api(source_config=source_config),
         method="GET",
-        resource=source_config.resource,
+        resource=resource,
         params=params_dict
     )
     response = req.perform()
@@ -126,12 +129,14 @@ def get_end_date_value_of_batch_period(
 
 
 def iter_bq_compatible_json_response_from_resource_with_provenance(
-    source_config: TwitterAdsApiSourceConfig
+    source_config: TwitterAdsApiSourceConfig,
+    placeholders: Optional[dict] = None
 ) -> Iterable[dict]:
     if source_config.api_query_parameters:
         api_query_parameters_config = source_config.api_query_parameters
         dict_value_list_from_bq = list(iter_dict_from_bq_query_for_bigquery_source_config(
-            api_query_parameters_config.parameter_values.from_bigquery
+            api_query_parameters_config.parameter_values.from_bigquery,
+            placeholders=placeholders
         ))
         LOGGER.debug("dict_value_list_from_bq: %r", dict_value_list_from_bq)
         for dict_value_from_bq in dict_value_list_from_bq:
@@ -162,7 +167,8 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
                 )
                 yield get_bq_compatible_json_response_from_resource_with_provenance(
                     source_config=source_config,
-                    params_dict=params_dict
+                    params_dict=params_dict,
+                    placeholders=placeholders
                 )
             else:
                 assert placement_value_list
@@ -189,22 +195,26 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
 
                         yield get_bq_compatible_json_response_from_resource_with_provenance(
                                 source_config=source_config,
-                                params_dict=params_dict
+                                params_dict=params_dict,
+                                placeholders=placeholders
                             )
     else:
         yield get_bq_compatible_json_response_from_resource_with_provenance(
                 source_config=source_config,
-                params_dict=None
+                params_dict=None,
+                placeholders=placeholders
             )
 
 
-def fetch_twitter_ads_api_data_and_load_into_bq(
-    config: TwitterAdsApiConfig
+def fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
+    config: TwitterAdsApiConfig,
+    placeholders: Optional[dict] = None
 ):
     batch_size = config.batch_size
     iterable_data_from_twitter_ads_api = (
         iter_bq_compatible_json_response_from_resource_with_provenance(
-            source_config=config.source
+            source_config=config.source,
+            placeholders=placeholders
         )
     )
     for batch_data_iterable in iter_batch_iterable(
@@ -217,6 +227,24 @@ def fetch_twitter_ads_api_data_and_load_into_bq(
             dataset_name=config.target.dataset_name,
             table_name=config.target.table_name,
             json_list=batch_data_iterable
+        )
+
+
+def fetch_twitter_ads_api_data_and_load_into_bq(
+    config: TwitterAdsApiConfig
+):
+    if not config.source.account_ids:
+        # backwards compatibility
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
+            config=config,
+            placeholders={}
+        )
+        return
+    for account_id in config.source.account_ids:
+        LOGGER.info('Request data for the account_id: %s', account_id)
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
+            config=config,
+            placeholders={'account_id': account_id}
         )
 
 
