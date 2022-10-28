@@ -69,6 +69,7 @@ class TwitterAdsApiSourceConfig(NamedTuple):
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':
         if source_config_dict.get('apiQueryParameters'):
             return TwitterAdsApiSourceConfig(
+                account_ids=source_config_dict.get('accountIds'),
                 resource=source_config_dict['resource'],
                 secrets=MappingConfig.from_dict(source_config_dict['secrets']),
                 api_query_parameters=TwitterAdsApiApiQueryParametersConfig.from_dict(
@@ -76,6 +77,7 @@ class TwitterAdsApiSourceConfig(NamedTuple):
                 )
             )
         return TwitterAdsApiSourceConfig(
+                account_ids=source_config_dict.get('accountIds'),
                 resource=source_config_dict['resource'],
                 secrets=MappingConfig.from_dict(source_config_dict['secrets'])
             )
