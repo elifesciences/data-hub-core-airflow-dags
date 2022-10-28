@@ -147,8 +147,8 @@ class TestIterDictFromBqQueryForBigquerySourceConfig:
         iter_dict_from_bq_query_mock: MagicMock
     ):
         list(iter_dict_from_bq_query_for_bigquery_source_config(
-            BIGQUERY_SOURCE_CONFIG_1._replace(sql_query= 'sql_query_with_{placeholder}'),
-            placeholders={'placeholder':'replaced_placeholder'}
+            BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='sql_query_with_{placeholder}'),
+            placeholders={'placeholder': 'replaced_placeholder'}
         ))
         iter_dict_from_bq_query_mock.assert_called_with(
             project_name=BIGQUERY_SOURCE_CONFIG_1.project_name,

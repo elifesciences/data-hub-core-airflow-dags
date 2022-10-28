@@ -318,7 +318,7 @@ class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
         get_client_from_twitter_ads_api_mock: MagicMock
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1._replace(resource = '/resource/{placeholder}'),
+            SOURCE_CONFIG_1._replace(resource='/resource/{placeholder}'),
             placeholders={'placeholder': 'replaced_placeholder'}
         )
         request_class_mock.assert_called_with(
@@ -715,7 +715,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             )
         )
         fetch_twitter_ads_api_data_and_load_into_bq(new_config)
-        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.has_calls(call = [
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.has_calls(call=[
             call(
                 config=new_config,
                 placeholders={'account_id': 'account_id_1'}
