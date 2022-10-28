@@ -1,8 +1,6 @@
-from distutils.command.config import config
 import logging
 from datetime import date, datetime
 from unittest.mock import ANY, patch, MagicMock, call
-from numpy import source
 
 import pytest
 
@@ -314,18 +312,19 @@ class TestGetParamDictFromApiQueryParameters:
 
 
 class TestGetBqCompatibleJsonResponseFromResourceWithProvenance:
-    def test_should_pass_resource_to_request(
+    def test_should_pass_resource_with_replaced_placeholders_to_request(
         self,
         request_class_mock: MagicMock,
         get_client_from_twitter_ads_api_mock: MagicMock
     ):
         get_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_1._replace(resource = '/resource/{placeholder}'),
+            placeholders={'placeholder': 'replaced_placeholder'}
         )
         request_class_mock.assert_called_with(
             client=get_client_from_twitter_ads_api_mock(SOURCE_CONFIG_1),
             method="GET",
-            resource=RESOURCE,
+            resource='/resource/replaced_placeholder',
             params=None
         )
 
