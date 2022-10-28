@@ -236,14 +236,14 @@ def fetch_twitter_ads_api_data_and_load_into_bq(
     if not config.source.account_ids:
         # backwards compatibility
         fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
-            config,
+            config=config,
             placeholders={}
         )
         return
     for account_id in config.source.account_ids:
         LOGGER.info('Request data for the account_id: %s', account_id)
         fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
-            config,
+            config=config,
             placeholders={'account_id': account_id}
         )
 

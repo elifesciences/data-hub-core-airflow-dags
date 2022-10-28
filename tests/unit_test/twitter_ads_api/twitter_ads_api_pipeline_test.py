@@ -1,6 +1,8 @@
+from distutils.command.config import config
 import logging
 from datetime import date, datetime
 from unittest.mock import ANY, patch, MagicMock, call
+from numpy import source
 
 import pytest
 
@@ -9,6 +11,7 @@ from data_pipeline.twitter_ads_api import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
+    fetch_twitter_ads_api_data_and_load_into_bq,
     fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders,
     get_param_dict_from_api_query_parameters,
     get_provenance,
@@ -245,6 +248,17 @@ def _iter_bq_compatible_json_response_from_resource_with_provenance_mock():
     with patch.object(
         twitter_ads_api_pipeline_module,
         'iter_bq_compatible_json_response_from_resource_with_provenance'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(
+    name='fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock',
+)
+def _fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock():
+    with patch.object(
+        twitter_ads_api_pipeline_module,
+        'fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders'
     ) as mock:
         yield mock
 
@@ -661,3 +675,36 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBqWithPlaceholders:
             [json_list[0]],
             [json_list[1]]
         ]
+
+
+class TestFetchTwitterAdsApiDataAndLoadIntoBq:
+    def test_should_call_the_function_with_empty_placeholder_when_account_ids_not_defined(
+        self,
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock: MagicMock
+    ):
+        fetch_twitter_ads_api_data_and_load_into_bq(CONFIG_1)
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.assert_called_with(
+            config=CONFIG_1,
+            placeholders={}
+        )
+
+    def test_should_call_the_function_with_multiple_account_ids_defined_in_config(
+        self,
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock: MagicMock
+    ):
+        new_config = CONFIG_1._replace(
+            source=CONFIG_1.source._replace(
+                account_ids=['account_id_1', 'account_id_2']
+            )
+        )
+        fetch_twitter_ads_api_data_and_load_into_bq(new_config)
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders_mock.has_calls(call = [
+            call(
+                config=new_config,
+                placeholders={'account_id': 'account_id_1'}
+            ),
+            call(
+                config=new_config,
+                placeholders={'account_id': 'account_id_2'}
+            )
+        ])
