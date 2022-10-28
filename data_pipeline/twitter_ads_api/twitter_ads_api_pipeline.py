@@ -63,15 +63,13 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
     params_dict: Optional[Mapping[str, str]] = None,
     placeholders: Optional[dict] = None
 ) -> Any:
-    LOGGER.info("Getting data for resource: %s", source_config.resource)
+    resource = replace_placeholders(source_config.resource, placeholders=placeholders)
+    LOGGER.info("Getting data for resource: %s", resource)
     LOGGER.info('params_dict: %r', params_dict)
     req = Request(
         client=get_client_from_twitter_ads_api(source_config=source_config),
         method="GET",
-        resource=replace_placeholders(
-            source_config.resource,
-            placeholders=placeholders
-        ),
+        resource=resource,
         params=params_dict
     )
     response = req.perform()
@@ -197,12 +195,14 @@ def iter_bq_compatible_json_response_from_resource_with_provenance(
 
                         yield get_bq_compatible_json_response_from_resource_with_provenance(
                                 source_config=source_config,
-                                params_dict=params_dict
+                                params_dict=params_dict,
+                                placeholders=placeholders
                             )
     else:
         yield get_bq_compatible_json_response_from_resource_with_provenance(
                 source_config=source_config,
-                params_dict=None
+                params_dict=None,
+                placeholders=placeholders
             )
 
 
@@ -241,6 +241,7 @@ def fetch_twitter_ads_api_data_and_load_into_bq(
         )
         return
     for account_id in config.source.account_ids:
+        LOGGER.info('Request data for the account_id: %s', account_id)
         fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             config,
             placeholders={'account_id': account_id}
