@@ -43,8 +43,6 @@ def fetch_single_column_value_list_for_bigquery_source_config(
 def replace_placeholders(value: str, placeholders: Optional[dict] = None) -> str:
     if placeholders:
         return value.format(**placeholders)
-        # for key, _value in placeholders.items():
-        #     value = value.replace('{' + key + '}', _value)
     return value
 
 
