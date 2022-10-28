@@ -42,6 +42,8 @@ LOGGER = logging.getLogger(__name__)
 RESOURCE = 'resource_1'
 SECRETS = {'key1': 'value1', 'key2': 'value2'}
 
+PLACEHOLDERS_1 = {'account_id': 'account_id_1'}
+
 SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     resource=RESOURCE,
     secrets=SECRETS
@@ -135,7 +137,7 @@ PROVENANCE_1 = {
 API_QUERY_PARAMETERS_DICT = {
     'apiQueryParameterName': 'api_query_parameter_value_1'
 }
-
+# api_query_parameters_config.parameter_values.from_bigquery
 ENTITY_CREATION_DATE_1 = '2022-07-30'
 START_DATE_1 = '2022-08-01'
 
@@ -410,17 +412,31 @@ class TestGetEndDateValueOfBatchPeriod:
 
 
 class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
+    def test_should_call_iter_dict_from_bq_query_func_if_api_query_parameters_defined(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
+    ):
+        list(iter_bq_compatible_json_response_from_resource_with_provenance(
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+            PLACEHOLDERS_1
+        ))
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
+            FROM_BIGQUERY_PARAM_VALUE,
+            placeholders=PLACEHOLDERS_1
+        )
+
     def test_should_pass_none_to_params_dict_if_api_query_parameters_not_defined(
         self,
         get_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock
     ):
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_1
+            SOURCE_CONFIG_1,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_1,
             params_dict=None,
-            placeholders=ANY
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_params_dict_if_api_query_parameters_defined(
@@ -438,12 +454,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS,
             params_dict=API_QUERY_PARAMETERS_DICT,
-            placeholders=ANY
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_api_query_parameters_defined(
@@ -483,12 +500,13 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
             API_QUERY_PARAMETERS_DICT
         )
         list(iter_bq_compatible_json_response_from_resource_with_provenance(
-            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE
+            SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
+            PLACEHOLDERS_1
         ))
         get_bq_compatible_json_response_from_resource_with_provenance_mock.assert_called_with(
             source_config=SOURCE_CONFIG_WITH_API_QUERY_PARAMETERS_WITH_SINGLE_PLACEMENT_VALUE,
             params_dict=API_QUERY_PARAMETERS_DICT,
-            placeholders=ANY
+            placeholders=PLACEHOLDERS_1
         )
 
     def test_should_pass_correct_values_to_get_param_dict_func_if_placement_defined(
