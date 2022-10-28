@@ -9,7 +9,7 @@ from data_pipeline.twitter_ads_api import (
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
-    fetch_twitter_ads_api_data_and_load_into_bq,
+    fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders,
     get_param_dict_from_api_query_parameters,
     get_provenance,
     get_bq_compatible_json_response_from_resource_with_provenance,
@@ -605,7 +605,7 @@ class TestIterBqCompatibleJsonResponseFromResourceWithProvenance:
         ], any_order=True)
 
 
-class TestFetchTwitterAdsApiDataAndLoadIntoBq:
+class TestFetchTwitterAdsApiDataAndLoadIntoBqWithPlaceholders:
     def test_should_pass_project_dataset_and_table_to_bq_load_method(
         self,
         iter_bq_compatible_json_response_from_resource_with_provenance_mock: MagicMock,
@@ -613,7 +613,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
     ):
         json_list = [RESPONSE_JSON_1]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
@@ -634,7 +634,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             RESPONSE_JSON_2
         ]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
@@ -653,7 +653,7 @@ class TestFetchTwitterAdsApiDataAndLoadIntoBq:
             RESPONSE_JSON_2
         ]
         iter_bq_compatible_json_response_from_resource_with_provenance_mock.return_value = json_list
-        fetch_twitter_ads_api_data_and_load_into_bq(
+        fetch_twitter_ads_api_data_and_load_into_bq_with_placeholders(
             CONFIG_1._replace(batch_size=1)
         )
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
