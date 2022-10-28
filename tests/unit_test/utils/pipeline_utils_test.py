@@ -142,6 +142,19 @@ class TestIterDictFromBqQueryForBigquerySourceConfig:
             query=BIGQUERY_SOURCE_CONFIG_1.sql_query
         )
 
+    def test_should_pass_replaced_placeholder_query_to_iter_dict_from_bq_query(
+        self,
+        iter_dict_from_bq_query_mock: MagicMock
+    ):
+        list(iter_dict_from_bq_query_for_bigquery_source_config(
+            BIGQUERY_SOURCE_CONFIG_1._replace(sql_query= 'sql_query_with_{placeholder}'),
+            placeholders={'placeholder':'replaced_placeholder'}
+        ))
+        iter_dict_from_bq_query_mock.assert_called_with(
+            project_name=BIGQUERY_SOURCE_CONFIG_1.project_name,
+            query='sql_query_with_replaced_placeholder'
+        )
+
     def test_should_return_dict_list_from_bq_query(
         self,
         iter_dict_from_bq_query_mock: MagicMock
