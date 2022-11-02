@@ -1,7 +1,7 @@
 import os
 
 import pytest
-from airflow import models as af_models
+from airflow.models import dagbag
 
 DAG_PATH = os.path.join(os.path.dirname(__file__), "../..", "dags")
 DAG_FILES = [
@@ -12,5 +12,5 @@ DAG_FILES = [
 
 
 @pytest.fixture(name="dagbag", scope="session")
-def _airflow_dagbag() -> af_models.dagbag:
-    return af_models.DagBag(dag_folder=DAG_PATH, include_examples=False)
+def _airflow_dagbag() -> dagbag:
+    return dagbag.DagBag(dag_folder=DAG_PATH, include_examples=False)

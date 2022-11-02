@@ -146,7 +146,6 @@ airflow-initdb:
 
 end2end-test:
 	$(MAKE) clean
-	$(MAKE) airflow-db-check-migrations
 	$(MAKE) airflow-db-upgrade
 	$(MAKE) airflow-initdb
 	$(MAKE) test-ftpserver-start
