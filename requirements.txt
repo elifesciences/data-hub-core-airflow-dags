@@ -1,24 +1,24 @@
-apache-airflow[crypto,celery,postgres,jdbc,ssh]==2.3.0
+apache-airflow[crypto,celery,postgres,jdbc,ssh]==2.4.2
 apache-airflow-providers-amazon==6.0.0
 backoff==2.2.1
 bigquery-schema-generator==1.5
-bigquery-views-manager>=1.0.3
+bigquery-views-manager>=1.0.4
 boto3==1.24.59
 aiobotocore==2.4.0
 botocore==1.27.59
-cattrs==1.10.0
+cattrs==22.1.0
 cloudpickle==2.2.0
 dateparser==1.1.0
 regex==2022.9.13
 fsspec==2022.8.2
 lxml>=4.8.0, <4.10.0
 google-api-python-client==2.65.0
-google-cloud-bigquery>=1.27.2
+google-cloud-bigquery!=2.4.*, >=1.27.2, <=3.3.3
 google-oauth==1.0.1
 jinjasql==0.1.8
-PyYAML>=5.4
+PyYAML>=5.4, <=5.4.1
 s3fs==2022.8.2
 six==1.16.0
 oauth2client==4.1.3
-MarkupSafe==2.0.1
+MarkupSafe==2.1.1
 twitter-ads==11.0.0
