@@ -3,7 +3,7 @@ import json
 from datetime import timedelta
 
 import airflow
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.utils import timezone
 

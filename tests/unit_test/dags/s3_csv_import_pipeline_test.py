@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from airflow import models as airflow_models
 from airflow.models import DAG
-from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.utils import timezone
 
 from dags import s3_csv_import_pipeline
@@ -72,7 +72,7 @@ class TaskContext:
     }
     dag = DAG(dag_id='mock_xcom', start_date=timezone.utcnow())
     exec_date = timezone.utcnow()
-    task1 = DummyOperator(task_id='Should_Remaining_Tasks_Execute', dag=dag)
+    task1 = EmptyOperator(task_id='Should_Remaining_Tasks_Execute', dag=dag)
     task_instance = MagicMock(name='mock_task_instance')
 
     @staticmethod

@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from airflow.models import Variable
 from airflow.models.dagrun import DagRun
-from airflow.operators.python_operator import ShortCircuitOperator
+from airflow.operators.python import ShortCircuitOperator
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
