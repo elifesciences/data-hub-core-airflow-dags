@@ -134,6 +134,9 @@ test-exclude-e2e: build-dev
 clean:
 	$(DOCKER_COMPOSE) down -v
 
+airflow-db-check-migrations:
+	$(DOCKER_COMPOSE) run --rm  webserver db check-migrations
+
 airflow-db-upgrade:
 	$(DOCKER_COMPOSE) run --rm  webserver db upgrade
 

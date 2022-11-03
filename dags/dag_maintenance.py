@@ -18,7 +18,7 @@ from airflow.models import (
 from airflow.utils import timezone
 from airflow.jobs.base_job import BaseJob
 from airflow import settings
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from sqlalchemy import func, and_
 from sqlalchemy.orm import load_only
 

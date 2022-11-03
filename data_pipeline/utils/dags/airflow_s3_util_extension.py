@@ -4,8 +4,8 @@ from collections import defaultdict
 
 from typing import Iterable
 
-from airflow.hooks.S3_hook import S3Hook
-from airflow.sensors.base_sensor_operator import BaseSensorOperator
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from airflow.sensors.base import BaseSensorOperator
 from airflow.utils.decorators import apply_defaults
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
