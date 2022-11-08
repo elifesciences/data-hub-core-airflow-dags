@@ -13,7 +13,7 @@ regex==2022.9.13
 fsspec==2022.8.2
 lxml>=4.8.0, <4.10.0
 google-api-python-client==2.65.0
-google-cloud-bigquery!=2.4.*, >=1.27.2, <=3.3.3
+google-cloud-bigquery>=1.27.2, !=2.4.0.a, <3.3.7
 google-oauth==1.0.1
 jinjasql==0.1.8
 PyYAML>=5.4, <=5.4.1
