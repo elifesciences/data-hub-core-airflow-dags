@@ -68,7 +68,7 @@ class MultiCsvSheet:
         )
         self.gcp_project = multi_sheet_config.get("gcpProjectName")
         self.sheets_config = {
-            sheet.get("sheetName"): BaseCsvSheetConfig(
+            sheet["sheetName"]: BaseCsvSheetConfig(
                 sheet,
                 self.spreadsheet_id,
                 self.gcp_project,
@@ -103,5 +103,5 @@ class BaseCsvSheetConfig(BaseCsvConfig):
         )
         self.spreadsheet_id = spreadsheet_id
 
-        self.sheet_name = csv_sheet_config.get("sheetName")
-        self.sheet_range = csv_sheet_config.get("sheetRange")
+        self.sheet_name = csv_sheet_config["sheetName"]
+        self.sheet_range = csv_sheet_config.get("sheetRange", '')
