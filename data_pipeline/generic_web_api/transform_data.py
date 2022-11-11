@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 import dateparser
 
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
@@ -47,7 +47,7 @@ def extract_content_from_response(
 
 def process_record_in_list(
         record_list,
-        provenance: dict = None,
+        provenance: Optional[dict] = None,
         bq_schema=None
 ) -> Iterable:
     for record in record_list:

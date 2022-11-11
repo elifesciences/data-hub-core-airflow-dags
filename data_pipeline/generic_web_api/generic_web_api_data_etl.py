@@ -298,9 +298,9 @@ def get_next_start_date(
         current_start_timestamp,
         latest_record_timestamp,
         web_config: WebApiConfig,
-        cursor: str = None,
-        page_number: int = None,
-        offset: int = None
+        cursor: Optional[str] = None,
+        page_number: Optional[int] = None,
+        offset: Optional[int] = None
 
 ):
     # pylint: disable=too-many-boolean-expressions

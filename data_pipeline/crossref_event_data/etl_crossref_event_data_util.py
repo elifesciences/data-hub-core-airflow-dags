@@ -264,7 +264,7 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         imported_timestamp,
         full_temp_file_location: str,
         schema: list,
-        until_date_as_string: str = None,
+        until_date_as_string: Optional[str] = None,
 ) -> datetime:
     latest_collected_record_timestamp = parse_datetime_from_str(
         from_date_as_string
