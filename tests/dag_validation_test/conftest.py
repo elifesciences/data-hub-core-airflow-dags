@@ -12,5 +12,5 @@ DAG_FILES = [
 
 
 @pytest.fixture(name="dagbag", scope="session")
-def _airflow_dagbag() -> dagbag:
+def _airflow_dagbag() -> dagbag.DagBag:
     return dagbag.DagBag(dag_folder=DAG_PATH, include_examples=False)
