@@ -3,7 +3,7 @@ import json
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Tuple
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -93,7 +93,7 @@ def get_crossref_data_single_page(
         from_date_collected_as_string: Optional[str] = None,
         until_collected_date_as_string: Optional[str] = None,
         message_key: str = "message",
-) -> (str, dict):
+) -> Tuple(str, dict):
     # TODO : specify all static url parameter via config
     LOGGER.info('base_crossref_url: %s', base_crossref_url)
     url = (
