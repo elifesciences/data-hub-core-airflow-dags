@@ -2,7 +2,7 @@ import fnmatch
 import re
 from collections import defaultdict
 
-from typing import Iterable
+from typing import Iterable, Tuple
 
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.sensors.base import BaseSensorOperator
@@ -96,7 +96,7 @@ class S3HookNewFileMonitor(S3Hook):
             delimiter="",
             page_size=None,
             max_items=None,
-    ) -> Iterable[dict]:
+    ) -> Iterable[Tuple[str, dict]]:
 
         config = {
             "PageSize": page_size,
