@@ -55,12 +55,12 @@ MOCK_YESTERDAY_DATE = date.fromisoformat(MOCK_YESTERDAY_STR)
 MOCK_UTC_NOW_STR = MOCK_TODAY_STR + 'T12:34:56'
 
 
-ITEM_RESPONSE_JSON_1 = {
+ITEM_RESPONSE_JSON_1: dict = {
     'doi': DOI_1,
     'firstIndexDate': MOCK_YESTERDAY_STR
 }
 
-ITEM_RESPONSE_JSON_2 = {
+ITEM_RESPONSE_JSON_2: dict = {
     'doi': DOI_2,
     'firstIndexDate': MOCK_YESTERDAY_STR
 }
@@ -203,7 +203,7 @@ def _datetime_mock():
         yield mock
 
 
-def get_response_json_for_items(items: Sequence[str], **kwargs) -> dict:
+def get_response_json_for_items(items: Sequence[dict], **kwargs) -> dict:
     return {
         **kwargs,
         'resultList': {
@@ -411,7 +411,7 @@ class TestIterArticleData:
         self,
         get_article_response_json_from_api_mock: MagicMock
     ):
-        item_response_1 = {
+        item_response_1: dict = {
             'doi': DOI_1,
             'other': 'other1'
         }
@@ -795,7 +795,7 @@ class TestFetchArticleDataFromEuropepmcAndLoadIntoBigQuery:
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock
     ):
         non_empty_value_json_list = [ITEM_RESPONSE_JSON_1]
-        raw_json_list = [{
+        raw_json_list: Sequence[dict] = [{
             **ITEM_RESPONSE_JSON_1,
             'empty_list': []
         }]
