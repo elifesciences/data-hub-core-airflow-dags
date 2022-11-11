@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Iterable
+from typing import Iterable, Sequence
 import logging
 import pandas as pd
 import backoff
@@ -30,7 +30,7 @@ def refresh_gmail_token(
     client_id: str,
     client_secret: str,
     refresh_token: str,
-    scopes: str
+    scopes: Sequence[str]
 ) -> Resource:
     credentials = client.OAuth2Credentials(
         # access_token expires in 1 hour
