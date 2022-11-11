@@ -96,7 +96,7 @@ class TestLoadRemoteViewListConfig:
             '- view2'
         ]))
         view_list_config = load_remote_view_list_config(
-            view_list_config_path
+            str(view_list_config_path)
         )
         LOGGER.debug('view_list_config: %s', view_list_config)
         assert set(view_list_config.view_names) == {
