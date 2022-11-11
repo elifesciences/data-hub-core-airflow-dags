@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 from data_pipeline.utils.pipeline_file_io import read_file_content
 
@@ -7,7 +8,7 @@ class WebApiAuthentication:
     def __init__(
             self,
             auth_type: str,
-            auth_param_val_list: list = None,
+            auth_param_val_list: Optional[list] = None,
     ):
         self.authentication_type = auth_type.lower()
 

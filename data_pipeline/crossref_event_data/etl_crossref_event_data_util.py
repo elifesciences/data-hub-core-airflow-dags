@@ -3,7 +3,7 @@ import json
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Iterable
+from typing import Iterable, Optional
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -89,9 +89,9 @@ def get_new_journal_download_start_date_as_str(
 def get_crossref_data_single_page(
         base_crossref_url: str,
         cursor=None,
-        journal_doi_prefix: str = None,
-        from_date_collected_as_string: str = None,
-        until_collected_date_as_string: str = None,
+        journal_doi_prefix: Optional[str] = None,
+        from_date_collected_as_string: Optional[str] = None,
+        until_collected_date_as_string: Optional[str] = None,
         message_key: str = "message",
 ) -> (str, dict):
     # TODO : specify all static url parameter via config
@@ -302,7 +302,7 @@ def etl_crossref_data_return_latest_timestamp(
         imported_timestamp,
         full_temp_file_location: str,
         schema: list,
-        until_date_as_string: str = None,
+        until_date_as_string: Optional[str] = None,
 ) -> str:
 
     journal_latest_timestamp = {}

@@ -4,6 +4,7 @@ from datetime import (
     date,
     timedelta
 )
+from typing import Optional
 import dateparser
 import pytz
 
@@ -16,13 +17,13 @@ def get_current_timestamp_as_string(
 
 
 def datetime_to_string(
-        datetime_obj: datetime = None,
-        datetime_format: str = None
+        datetime_obj: Optional[datetime] = None,
+        datetime_format: Optional[str] = None
 ):
     return datetime_obj.strftime(datetime_format) if datetime_obj else None
 
 
-def parse_timestamp_from_str(timestamp_as_str, time_format: str = None):
+def parse_timestamp_from_str(timestamp_as_str, time_format: Optional[str] = None):
     if time_format:
         timestamp_obj = datetime.strptime(
             timestamp_as_str.strip(), time_format

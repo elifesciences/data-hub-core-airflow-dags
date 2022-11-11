@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
     update_deployment_env_placeholder
@@ -38,9 +39,9 @@ class GmailDataConfig:
     def __init__(
         self,
         data_config: dict,
-        project_name: str = None,
-        dataset_name: str = None,
-        deployment_env: str = None,
+        project_name: Optional[str] = None,
+        dataset_name: Optional[str] = None,
+        deployment_env: Optional[str] = None,
         env_placeholder: str = "{ENV}"
     ):
         LOGGER.info("deployment_env: %s", deployment_env)

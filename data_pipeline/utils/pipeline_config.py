@@ -1,7 +1,7 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, T, Mapping, NamedTuple, Sequence
+from typing import Any, Callable, T, Mapping, NamedTuple, Optional, Sequence
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
@@ -138,7 +138,7 @@ def str_to_bool(value: str, default_value=None) -> bool:
 
 def get_environment_variable_value(
         key: str,
-        value_converter: Callable[[str], T] = None,
+        value_converter: Optional[Callable[[str], T]] = None,
         required: bool = False,
         default_value: T = None) -> T:
     value = os.getenv(key)

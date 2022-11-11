@@ -1,6 +1,7 @@
 import os
 import json
 from datetime import datetime
+from typing import Optional
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
@@ -30,12 +31,12 @@ class UrlComposeParam:
     # pylint: disable=too-many-arguments
     def __init__(
             self,
-            from_date: datetime = None,
-            to_date: datetime = None,
-            page_number: int = None,
-            cursor: str = None,
-            page_size: int = None,
-            page_offset: int = None
+            from_date: Optional[datetime] = None,
+            to_date: Optional[datetime] = None,
+            page_number: Optional[int] = None,
+            cursor: Optional[str] = None,
+            page_size: Optional[int] = None,
+            page_offset: Optional[int] = None
     ):
         self.from_date = from_date
         self.to_date = to_date
@@ -50,17 +51,17 @@ class DynamicURLBuilder:
     def __init__(
             self,
             url_excluding_configurable_parameters: str,
-            from_date_param: str = None,
-            to_date_param: str = None,
-            date_format: str = None,
-            next_page_cursor: str = None,
-            page_number_param: str = None,
-            offset_param: str = None,
-            page_size_param: str = None,
-            page_size: int = None,
-            compose_able_url_key_val: dict = None,
-            sort_key: str = None,
-            sort_key_val: str = None,
+            from_date_param: Optional[str] = None,
+            to_date_param: Optional[str] = None,
+            date_format: Optional[str] = None,
+            next_page_cursor: Optional[str] = None,
+            page_number_param: Optional[str] = None,
+            offset_param: Optional[str] = None,
+            page_size_param: Optional[str] = None,
+            page_size: Optional[int] = None,
+            compose_able_url_key_val: Optional[dict] = None,
+            sort_key: Optional[str] = None,
+            sort_key_val: Optional[str] = None,
             **kwargs
     ):
         self.url_excluding_configurable_parameters = (

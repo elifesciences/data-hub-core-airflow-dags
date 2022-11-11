@@ -1,5 +1,6 @@
 import os
 from collections import OrderedDict
+from typing import Optional
 from unittest.mock import patch
 import pytest
 import botocore
@@ -109,7 +110,7 @@ def _write_to_file():
 
 class TestSheetRecordMetadata:
     @staticmethod
-    def get_s3_csv_config(update_dict: dict = None):
+    def get_s3_csv_config(update_dict: Optional[dict] = None):
         original_csv_config_dict = {
             "dataPipelineId": "data-pipeline-id-1",
             "importedTimestampFieldName": "imported_timestamp",
@@ -310,7 +311,7 @@ class TestCsvHeader:
 
 class TestTransformAndLoadData:
     @staticmethod
-    def get_csv_config(update_dict: dict = None):
+    def get_csv_config(update_dict: Optional[dict] = None):
         if update_dict is None:
             update_dict = {}
         config_dict = {
@@ -361,7 +362,7 @@ class TestTransformAndLoadData:
 
 class TestProcessData:
     @staticmethod
-    def get_csv_config(update_dict: dict = None):
+    def get_csv_config(update_dict: Optional[dict] = None):
         if update_dict is None:
             update_dict = {}
         config_dict = {

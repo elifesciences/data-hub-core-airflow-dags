@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from apiclient import discovery
 from data_pipeline.utils.data_store.google_service_client import (
     MemoryCache, get_credentials
@@ -25,7 +26,7 @@ class GoogleAnalyticsClient:
             date_ranges: list,
             metrics: list,
             dimensions: list,
-            page_token: str = None,
+            page_token: Optional[str] = None,
             page_size: int = 5000
     ):
         # pylint: disable=no-member

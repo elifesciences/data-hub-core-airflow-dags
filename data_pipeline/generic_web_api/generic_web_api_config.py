@@ -1,3 +1,4 @@
+from typing import Optional
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.url_builder import (
@@ -52,9 +53,9 @@ class WebApiConfig:
     def __init__(
             self,
             web_api_config: dict,
-            gcp_project: str = None,
-            imported_timestamp_field_name: str = None,
-            deployment_env: str = None,
+            gcp_project: Optional[str] = None,
+            imported_timestamp_field_name: Optional[str] = None,
+            deployment_env: Optional[str] = None,
             deployment_env_placeholder: str = "{ENV}"
     ):
         api_config = update_deployment_env_placeholder(

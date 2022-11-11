@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest.mock import patch, call
 import pytest
 
@@ -120,7 +121,7 @@ def _extend_nested_table_schema_if_new_fields_exist():
 
 class TestRecordMetadata:
     @staticmethod
-    def get_csv_config(update_dict: dict = None):
+    def get_csv_config(update_dict: Optional[dict] = None):
 
         csv_config_dict = {
             **TestRecordMetadata.csv_config_dict,
@@ -310,7 +311,7 @@ class TestCsvHeader:
 
 class TestTransformAndLoadData:
     @staticmethod
-    def get_csv_config(update_dict: dict = None):
+    def get_csv_config(update_dict: Optional[dict] = None):
         if update_dict is None:
             update_dict = {}
         config_dict = {
