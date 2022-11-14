@@ -94,7 +94,7 @@ def change_or_create_ftp_directory(
     ftp: FTP,
     directory_name: str,
     create_directory: bool
-) -> FTP:
+):
     LOGGER.info('changing directory')
     try:
         ftp.cwd(directory_name)
