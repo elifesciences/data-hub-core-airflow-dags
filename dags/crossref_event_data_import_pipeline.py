@@ -172,6 +172,7 @@ def crossref_data_etl(**kwargs):
 
         load_file_into_bq(
             filename=full_temp_file_location,
+            project_name=data_config.project_name,
             dataset_name=dataset, table_name=table,
         )
 
