@@ -252,7 +252,7 @@ def get_new_merged_schema(
 
 def generate_schema_from_file(
         full_file_location: str,
-        quoted_values_are_strings: str = True
+        quoted_values_are_strings: bool = True
 ):
     with open(full_file_location, encoding='UTF-8') as file_reader:
         generator = SchemaGenerator(
