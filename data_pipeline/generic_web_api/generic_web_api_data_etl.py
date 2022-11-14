@@ -102,7 +102,7 @@ def get_data_single_page(
                 data_config.authentication and
                 data_config.authentication.authentication_type == "basic"
         ):
-            session.auth = tuple(data_config.authentication.auth_val_list)
+            session.auth = (data_config.authentication.auth_val_list)
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
         session_response = session.get(url, headers=data_config.headers.mapping)
