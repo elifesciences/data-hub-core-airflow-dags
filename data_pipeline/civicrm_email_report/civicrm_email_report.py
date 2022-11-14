@@ -108,7 +108,7 @@ def transform_email_report(
 
 def iter_email_report(
     url: str,
-    mail_id_list: Sequence[str],
+    mail_id_list: Sequence[int],
     api_key: str,
     site_key: str
 ) -> Iterable[dict]:
