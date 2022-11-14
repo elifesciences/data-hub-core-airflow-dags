@@ -19,13 +19,13 @@ def get_current_timestamp_as_string(
 def datetime_to_string(
         datetime_obj: Optional[datetime] = None,
         datetime_format: Optional[str] = None
-):
+) -> Optional[str]:
     return datetime_obj.strftime(datetime_format) if datetime_obj else None
 
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: Optional[str] = None):
     if time_format:
-        timestamp_obj = datetime.strptime(
+        timestamp_obj: Optional[datetime] = datetime.strptime(
             timestamp_as_str.strip(), time_format
         )
     else:
@@ -50,10 +50,10 @@ def get_tz_aware_datetime(datetime_obj: datetime):
     return datetime_obj
 
 
-def get_yesterdays_date() -> datetime.date:
+def get_yesterdays_date() -> date:
     today = date.today()
     return today - timedelta(days=1)
 
 
-def get_todays_date() -> datetime.date:
+def get_todays_date() -> date:
     return date.today()
