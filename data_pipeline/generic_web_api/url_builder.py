@@ -133,7 +133,7 @@ class DynamicURLBuilder:
         return self.compose_url(param_dict)
 
 
-def get_url_builder_class(url_source_type: str = None):
+def get_url_builder_class(url_source_type: str = ''):
     url_builder = DynamicURLBuilder
 
     if url_source_type.strip().lower() == 'civi':
@@ -164,7 +164,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
         } if start_date else {}
 
         field_to_return_param = self.get_fields_to_return()
-        url_query_json_arg = {
+        url_query_json_arg: dict = {
             "sequential": 1,
             **start_date_param,
             **field_to_return_param,
