@@ -271,7 +271,7 @@ def create_or_extend_table_schema(
         dataset_name,
         table_name,
         full_file_location,
-        quoted_values_are_strings: True
+        quoted_values_are_strings: bool = True
 ):
     schema = generate_schema_from_file(
         full_file_location,
