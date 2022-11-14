@@ -227,8 +227,8 @@ def get_new_merged_schema(
     fields_to_recurse = [
         obj_key
         for obj_key in set_intersection
-        if existing_schema_dict.get(obj_key).get("fields") and
-        isinstance(existing_schema_dict.get(obj_key).get("fields"), list)
+        if existing_schema_dict[obj_key].get("fields") and
+        isinstance(existing_schema_dict[obj_key].get("fields"), list)
     ]
     new_schema.extend(
         [
@@ -238,10 +238,10 @@ def get_new_merged_schema(
         ]
     )
     for field_to_recurse in fields_to_recurse:
-        field = existing_schema_dict.get(field_to_recurse).copy()
+        field = existing_schema_dict[field_to_recurse].copy()
         field["fields"] = get_new_merged_schema(
-            existing_schema_dict.get(field_to_recurse).get("fields", []),
-            update_schema_dict.get(field_to_recurse).get("fields", []),
+            existing_schema_dict[field_to_recurse].get("fields", []),
+            update_schema_dict[field_to_recurse].get("fields", []),
         )
         new_schema.append(
             field
