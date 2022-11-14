@@ -143,7 +143,7 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
             )[-max_paper_ids:]
         )
     }
-    extended_provenance = {
+    extended_provenance: dict = {
         **(provenance or {}),
         'list_key': excludable_list_with_meta.list_key,
         'list_meta': excludable_list_with_meta.list_meta,

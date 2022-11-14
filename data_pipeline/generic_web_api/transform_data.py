@@ -157,7 +157,7 @@ def process_downloaded_data(
         data_config: WebApiConfig,
         data_etl_timestamp,
         file_location,
-        prev_page_latest_timestamp: datetime = None
+        prev_page_latest_timestamp: Optional[datetime] = None
 ):
     provenance = {
         data_config.import_timestamp_field_name:
