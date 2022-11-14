@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Any, Optional
 from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
     update_deployment_env_placeholder
@@ -8,7 +8,7 @@ from data_pipeline.utils.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
-def get_gmail_config_id(gmail_config_props: dict) -> str:
+def get_gmail_config_id(gmail_config_props: dict) -> Optional[Any]:
     return gmail_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
 
 
