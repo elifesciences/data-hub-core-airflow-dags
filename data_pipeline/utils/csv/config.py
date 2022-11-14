@@ -10,10 +10,10 @@ class BaseCsvConfig:
             gcp_project: Optional[str] = None,
             imported_timestamp_field_name: Optional[str] = None
     ):
-        self.gcp_project = (
+        self.gcp_project = str((
             gcp_project or
             csv_sheet_config.get("gcpProjectName")
-        )
+        ))
         self.import_timestamp_field_name = (
             imported_timestamp_field_name or
             csv_sheet_config.get(
