@@ -26,13 +26,13 @@ def get_bq_client(project: str):
 # pylint: disable=too-many-arguments
 def load_file_into_bq(
         filename: str,
+        project_name: str,
         dataset_name: str,
         table_name: str,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
         write_mode=WriteDisposition.WRITE_APPEND,
         auto_detect_schema=False,
-        rows_to_skip=0,
-        project_name: Optional[str] = None,
+        rows_to_skip=0
 ):
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
