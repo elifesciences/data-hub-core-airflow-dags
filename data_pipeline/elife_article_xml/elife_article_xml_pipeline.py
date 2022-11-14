@@ -51,6 +51,7 @@ def get_url_of_xml_file_directory_from_repo(
     for folder in response_json['tree']:
         if folder['path'] == source_config.directory_name:
             return folder['url']
+    return ''
 
 
 def iter_unprocessed_xml_file_url_and_path_from_git_directory(

@@ -11,7 +11,7 @@ def get_current_timestamp():
     return datetime.datetime.utcnow().isoformat()
 
 
-def get_mailing_id_dict(mail_id: int) -> str(dict):
+def get_mailing_id_dict(mail_id: int) -> str:
     return json.dumps({'mailing_id': mail_id})
 
 
