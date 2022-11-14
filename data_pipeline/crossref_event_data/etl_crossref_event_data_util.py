@@ -43,7 +43,7 @@ def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
 
 
 def convert_datetime_to_date_string(
-        datetime_obj: datetime,
+        datetime_obj: datetime.datetime,
         time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT
 ) -> str:
 
@@ -224,10 +224,10 @@ def per_doi_download_page_etl(
         message_key: str,
         event_key: str,
         imported_timestamp_key: str,
-        imported_timestamp: datetime,
+        imported_timestamp: datetime.datetime,
         full_temp_file_location: str,
         schema: list,
-        journal_previous_timestamp: datetime,
+        journal_previous_timestamp: datetime.datetime,
         until_collected_date_as_string: Optional[str] = None,
         cursor: Optional[str] = None
 ):
@@ -265,7 +265,7 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         full_temp_file_location: str,
         schema: list,
         until_date_as_string: Optional[str] = None,
-) -> datetime:
+) -> datetime.datetime:
     latest_collected_record_timestamp = parse_datetime_from_str(
         from_date_as_string
     )
