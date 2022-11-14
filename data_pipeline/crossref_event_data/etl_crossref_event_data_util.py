@@ -220,7 +220,6 @@ def transform_record(
 def per_doi_download_page_etl(
         base_crossref_url: str,
         from_date_collected_as_string: str,
-        until_collected_date_as_string: str,
         journal_doi_prefix: str,
         message_key: str,
         event_key: str,
@@ -229,6 +228,7 @@ def per_doi_download_page_etl(
         full_temp_file_location: str,
         schema: list,
         journal_previous_timestamp: datetime,
+        until_collected_date_as_string: Optional[str] = None,
         cursor: Optional[str] = None
 ):
     cursor, downloaded_data = get_crossref_data_single_page(
@@ -275,7 +275,6 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         journal_latest_timestamp, cursor = per_doi_download_page_etl(
             base_crossref_url=base_crossref_url,
             from_date_collected_as_string=from_date_as_string,
-            until_collected_date_as_string=until_date_as_string,
             journal_doi_prefix=journal_doi_prefix,
             message_key=message_key,
             event_key=event_key,
@@ -284,6 +283,7 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
             full_temp_file_location=full_temp_file_location,
             schema=schema,
             journal_previous_timestamp=journal_latest_timestamp,
+            until_collected_date_as_string=until_date_as_string,
             cursor=cursor
         )
         if not cursor:
