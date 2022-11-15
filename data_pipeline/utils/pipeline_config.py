@@ -186,9 +186,7 @@ def get_pipeline_config_for_env_name_and_config_parser(
 ) -> T:
     deployment_env = get_deployment_env()
     LOGGER.info('deployment_env: %s', deployment_env)
-    conf_file_path = os.getenv(
-        config_file_path_env_name
-    )
+    conf_file_path = os.environ[config_file_path_env_name]
     pipeline_config_dict = update_deployment_env_placeholder(
         get_yaml_file_as_dict(conf_file_path),
         deployment_env=deployment_env
