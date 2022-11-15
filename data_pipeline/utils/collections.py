@@ -1,6 +1,6 @@
 from itertools import islice
 from collections import deque
-from typing import Iterable, Type, TypeVar
+from typing import Deque, Iterable, Type, TypeVar
 
 import logging
 
@@ -23,7 +23,7 @@ def iter_batch_iterable(
     while True:
         batch_iterable = islice(iterator, batch_size)
         try:
-            peeked_value_queue = deque()
+            peeked_value_queue: Deque[T] = deque()
             peeked_value_queue.append(next(batch_iterable))
             # by using and consuming a queue we are allowing the memory
             # for the peeked value to be released
