@@ -45,7 +45,7 @@ class ExcludableListWithMeta:
     list_meta: Mapping[str, Any] = field(default_factory=dict)
 
     @property
-    def json_data(self) -> Sequence[dict]:
+    def json_data(self) -> Sequence[Mapping[str, Any]]:
         return [item.json_data for item in self.item_list]
 
 
