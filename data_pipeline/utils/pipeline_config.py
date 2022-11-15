@@ -140,9 +140,9 @@ def str_to_bool(value: str, default_value=None) -> bool:
 
 def get_environment_variable_value(
         key: str,
-        value_converter: Optional[Callable[[str], T]] = None,
+        value_converter: Optional[Callable[[str], str]] = None,
         required: bool = False,
-        default_value: T = None) -> T:
+        default_value: Optional[str] = None) -> Optional[str]:
     value = os.getenv(key)
     if not value:
         if required:
