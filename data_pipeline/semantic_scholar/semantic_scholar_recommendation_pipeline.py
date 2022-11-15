@@ -166,7 +166,7 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
 
 
 def iter_recommendation_data(
-    list_iterable: Iterable[ExcludableListWithMeta],
+    list_iterable: Iterable,
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None
