@@ -10,10 +10,8 @@ class MultiS3CsvConfig:
     def __init__(self,
                  multi_s3_csv_config: dict,
                  ):
-        self.gcp_project = multi_s3_csv_config.get("gcpProjectName")
-        self.import_timestamp_field_name = multi_s3_csv_config.get(
-            "importedTimestampFieldName"
-        )
+        self.gcp_project = multi_s3_csv_config["gcpProjectName"]
+        self.import_timestamp_field_name = multi_s3_csv_config["importedTimestampFieldName"]
         self.s3_csv_config = [
             extend_s3_csv_config_with_state_file_info(
                 extend_s3_csv_config_dict(
