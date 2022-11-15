@@ -41,7 +41,8 @@ LOGGER = logging.getLogger(__name__)
 RESOURCE = 'resource_1'
 
 SECRETS = MappingConfig(
-            mapping={'key1': 'value1', 'key2': 'value2'}
+            mapping={'key1': 'value1', 'key2': 'value2'},
+            printable_mapping={'key1': '***', 'key2': '***'}
         )
 
 PLACEHOLDERS_1 = {'account_id': 'account_id_1'}
