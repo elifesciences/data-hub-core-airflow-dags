@@ -49,7 +49,11 @@ dev-pylint:
 	$(PYTHON) -m pylint data_pipeline dags tests
 
 
-dev-lint: dev-flake8 dev-pylint
+dev-mypy:
+	$(PYTHON) -m mypy data_pipeline
+
+
+dev-lint: dev-flake8 dev-pylint dev-mypy
 
 
 dev-unittest:
