@@ -168,7 +168,7 @@ def get_resolved_parameter_values_from_file_path_env_name(
     parameters_from_file: Sequence[dict]
 ) -> dict:
     params = {
-        param["parameterName"]: read_file_content(os.getenv(param["filePathEnvName"]))
+        param["parameterName"]: read_file_content(os.environ[param["filePathEnvName"]])
         for param in parameters_from_file
         if os.getenv(param["filePathEnvName"])
     }
