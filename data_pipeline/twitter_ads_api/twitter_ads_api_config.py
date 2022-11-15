@@ -10,7 +10,7 @@ DEFAULT_BATCH_SIZE = 1000
 
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
-    from_bigquery: Optional[BigQuerySourceConfig] = None
+    from_bigquery: BigQuerySourceConfig
     max_period_in_days: Optional[int] = 0
     placement_value: Optional[Sequence[str]] = None
     period_batch_size_in_days: Optional[int] = 0
@@ -19,7 +19,7 @@ class TwitterAdsApiParameterValuesConfig(NamedTuple):
     def from_dict(parameter_values_config_dict: dict) -> 'TwitterAdsApiParameterValuesConfig':
         return TwitterAdsApiParameterValuesConfig(
             from_bigquery=BigQuerySourceConfig.from_dict(
-                parameter_values_config_dict.get('fromBigQuery', {})
+                parameter_values_config_dict['fromBigQuery']
             ),
             max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
             period_batch_size_in_days=parameter_values_config_dict.get('periodBatchSizeInDays', 0),
