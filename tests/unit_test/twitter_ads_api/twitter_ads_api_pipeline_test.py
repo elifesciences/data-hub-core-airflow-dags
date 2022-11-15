@@ -124,7 +124,7 @@ CONFIG_1 = TwitterAdsApiConfig(
     target=TARGET_CONFIG_1
 )
 
-RESPONSE_JSON_1 = {
+RESPONSE_JSON_1: dict = {
     'response_key_1': 'response_value_1_1',
     'response_key_2': 'response_value_1_2'
 }
