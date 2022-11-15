@@ -20,7 +20,7 @@ def datetime_to_string(
         datetime_obj: Optional[datetime] = None,
         datetime_format: Optional[str] = None
 ) -> Optional[str]:
-    return datetime_obj.strftime(datetime_format) if datetime_obj else None
+    return datetime_obj.strftime(datetime_format) if datetime_obj and datetime_format else None
 
 
 def parse_timestamp_from_str(timestamp_as_str, time_format: Optional[str] = None):
