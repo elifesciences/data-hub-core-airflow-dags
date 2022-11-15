@@ -20,7 +20,7 @@ class BaseCsvConfig:
                 "importedTimestampFieldName"
             )
         )
-        self.header_line_index = csv_sheet_config.get("headerLineIndex")
+        self.header_line_index = csv_sheet_config["headerLineIndex"]
         self.data_values_start_line_index = csv_sheet_config.get(
             "dataValuesStartLineIndex"
         )
