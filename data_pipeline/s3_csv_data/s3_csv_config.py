@@ -21,7 +21,7 @@ class MultiS3CsvConfig:
                     self.gcp_project,
                     self.import_timestamp_field_name,
                 ),
-                multi_s3_csv_config.get("stateFile")
+                multi_s3_csv_config["stateFile"]
             )
             for s3_csv in multi_s3_csv_config["s3Csv"]
         ]
