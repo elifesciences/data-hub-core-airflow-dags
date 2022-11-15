@@ -2,6 +2,7 @@ import ftplib
 import logging
 import gzip
 from pathlib import Path
+from typing import Iterable
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
@@ -68,7 +69,7 @@ DOI_LIST = ['doi1', 'doi2']
 
 
 @pytest.fixture(name='ftp_class_mock', autouse=True)
-def _ftp_class_mock() -> MagicMock:
+def _ftp_class_mock() -> Iterable[MagicMock]:
     with patch.object(europepmc_labslink_pipeline_module, 'FTP') as mock:
         yield mock
 
@@ -79,7 +80,7 @@ def _ftp_mock(ftp_class_mock: MagicMock) -> MagicMock:
 
 
 @pytest.fixture(name='fetch_single_column_value_list_for_bigquery_source_config_mock', autouse=True)
-def _fetch_single_column_value_list_for_bigquery_source_config_mock() -> MagicMock:
+def _fetch_single_column_value_list_for_bigquery_source_config_mock() -> Iterable[MagicMock]:
     with patch.object(
         europepmc_labslink_pipeline_module,
         'fetch_single_column_value_list_for_bigquery_source_config'
@@ -88,7 +89,7 @@ def _fetch_single_column_value_list_for_bigquery_source_config_mock() -> MagicMo
 
 
 @pytest.fixture(name='generate_labslink_links_xml_to_file_from_doi_list_mock')
-def _generate_labslink_links_xml_to_file_from_doi_list_mock() -> MagicMock:
+def _generate_labslink_links_xml_to_file_from_doi_list_mock() -> Iterable[MagicMock]:
     with patch.object(
         europepmc_labslink_pipeline_module,
         'generate_labslink_links_xml_to_file_from_doi_list'
@@ -97,7 +98,7 @@ def _generate_labslink_links_xml_to_file_from_doi_list_mock() -> MagicMock:
 
 
 @pytest.fixture(name='update_labslink_ftp_mock')
-def _update_labslink_ftp_mock() -> MagicMock:
+def _update_labslink_ftp_mock() -> Iterable[MagicMock]:
     with patch.object(
         europepmc_labslink_pipeline_module,
         'update_labslink_ftp'
