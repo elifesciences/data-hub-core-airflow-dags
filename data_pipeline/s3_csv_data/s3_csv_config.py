@@ -23,7 +23,7 @@ class MultiS3CsvConfig:
                 ),
                 multi_s3_csv_config.get("stateFile")
             )
-            for s3_csv in multi_s3_csv_config.get("s3Csv")
+            for s3_csv in multi_s3_csv_config["s3Csv"]
         ]
 
 
