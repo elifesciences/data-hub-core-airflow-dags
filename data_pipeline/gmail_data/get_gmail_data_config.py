@@ -19,8 +19,8 @@ class MultiGmailDataConfig:
             self,
             multi_gmail_data_config: dict,
     ):
-        self.project_name = multi_gmail_data_config.get("projectName")
-        self.dataset_name = multi_gmail_data_config.get("datasetName")
+        self.project_name = multi_gmail_data_config["projectName"]
+        self.dataset_name = multi_gmail_data_config["datasetName"]
         self.gmail_data_config = {
             ind: {
                 **gmail,
@@ -29,7 +29,7 @@ class MultiGmailDataConfig:
                 "datasetName": self.dataset_name
             }
             for ind, gmail in enumerate(
-                multi_gmail_data_config.get("gmailData")
+                multi_gmail_data_config["gmailData"]
             )
         }
 
