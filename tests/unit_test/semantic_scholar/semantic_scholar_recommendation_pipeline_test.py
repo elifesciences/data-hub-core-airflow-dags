@@ -2,14 +2,15 @@ from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-
+from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config import (
+    SemanticScholarRecommendationConfig
+)
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig
 )
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
-    SemanticScholarConfig,
     SemanticScholarMatrixConfig,
     SemanticScholarMatrixVariableConfig,
     SemanticScholarMatrixVariableSourceConfig,
@@ -112,7 +113,7 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
 )
 
 
-CONFIG_1 = SemanticScholarConfig(
+CONFIG_1 = SemanticScholarRecommendationConfig(
     matrix=MATRIX_CONFIG_1,
     source=SOURCE_CONFIG_1,
     target=TARGET_CONFIG_1
