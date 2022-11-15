@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+from typing import Iterable
 
 import pytest
 
@@ -48,7 +49,7 @@ def _mock_load_view_list_config() -> MagicMock:
 
 
 @pytest.fixture(name='mock_get_client', autouse=False)
-def _mock_get_client() -> MagicMock:
+def _mock_get_client() -> Iterable[MagicMock]:
     with patch.object(target_module, 'get_client') as mock:
         yield mock
 
