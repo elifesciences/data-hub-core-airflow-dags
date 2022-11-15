@@ -11,7 +11,7 @@ DEFAULT_BATCH_SIZE = 1000
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
     from_bigquery: BigQuerySourceConfig
-    max_period_in_days: Optional[int] = 0
+    max_period_in_days: int = 0
     placement_value: Optional[Sequence[str]] = None
     period_batch_size_in_days: Optional[int] = 0
 
