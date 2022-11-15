@@ -50,7 +50,7 @@ dev-pylint:
 
 
 dev-mypy:
-	$(PYTHON) -m mypy data_pipeline
+	$(PYTHON) -m mypy data_pipeline dags tests
 
 
 dev-lint: dev-flake8 dev-pylint dev-mypy
