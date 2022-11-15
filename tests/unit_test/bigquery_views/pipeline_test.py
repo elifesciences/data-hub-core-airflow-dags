@@ -31,19 +31,19 @@ OUTPUT_TABLE_1 = 'output_table1'
 
 
 @pytest.fixture(name='bigquery', autouse=True)
-def _bigquery() -> MagicMock:
+def _bigquery() -> Iterable[MagicMock]:
     with patch.object(target_module, 'bigquery') as mock:
         yield mock
 
 
 @pytest.fixture(name='mock_materialize_views', autouse=True)
-def _mock_materialize_views() -> MagicMock:
+def _mock_materialize_views() -> Iterable[MagicMock]:
     with patch.object(target_module, 'materialize_views') as mock:
         yield mock
 
 
 @pytest.fixture(name='mock_load_view_list_config', autouse=False)
-def _mock_load_view_list_config() -> MagicMock:
+def _mock_load_view_list_config() -> Iterable[MagicMock]:
     with patch.object(target_module, 'load_view_list_config') as mock:
         yield mock
 
