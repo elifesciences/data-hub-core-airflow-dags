@@ -3,7 +3,7 @@ import os
 from contextlib import contextmanager
 from shutil import copyfileobj
 from tempfile import TemporaryDirectory
-from typing import Iterable
+from typing import Iterable, Iterator
 
 import fsspec
 
@@ -58,7 +58,7 @@ def download_file(urlpath: str, local_path: str):
 
 
 @contextmanager
-def get_temp_local_file_if_remote(urlpath: str) -> str:
+def get_temp_local_file_if_remote(urlpath: str) -> Iterator[str]:
     if not is_remote_path(urlpath):
         yield urlpath
         return
