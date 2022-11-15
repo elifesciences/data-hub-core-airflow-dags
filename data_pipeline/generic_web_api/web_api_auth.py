@@ -13,10 +13,13 @@ class WebApiAuthentication:
         self.authentication_type = auth_type.lower()
         if auth_type == 'basic':
             assert len(auth_param_val_list) == 2
-        self.auth_val_list = cast([
-            get_auth_param_value(auth_val_conf)
-            for auth_val_conf in auth_param_val_list
-        ], Tuple[str, str]) if auth_type == 'basic' else None
+        self.auth_val_list = cast(
+            Tuple[str, str],
+            [
+                get_auth_param_value(auth_val_conf)
+                for auth_val_conf in auth_param_val_list
+            ]
+        ) if auth_type == 'basic' else None
 
 
 def get_auth_param_value(auth_val_conf: dict):
