@@ -88,10 +88,10 @@ def get_new_journal_download_start_date_as_str(
 # pylint: disable=fixme,too-many-arguments
 def get_crossref_data_single_page(
         base_crossref_url: str,
-        cursor=None,
-        journal_doi_prefix: Optional[str] = None,
-        from_date_collected_as_string: Optional[str] = None,
+        journal_doi_prefix: str,
+        from_date_collected_as_string: str,
         until_collected_date_as_string: Optional[str] = None,
+        cursor=None,
         message_key: str = "message",
 ) -> Tuple[str, dict]:
     # TODO : specify all static url parameter via config
