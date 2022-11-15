@@ -20,7 +20,8 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
 )
 
 from data_pipeline.utils.pipeline_config import (
-    BigQueryTargetConfig
+    BigQueryTargetConfig,
+    MappingConfig
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
@@ -38,7 +39,10 @@ from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
 LOGGER = logging.getLogger(__name__)
 
 RESOURCE = 'resource_1'
-SECRETS = {'key1': 'value1', 'key2': 'value2'}
+
+SECRETS = MappingConfig(
+            mapping={'key1': 'value1', 'key2': 'value2'}
+        )
 
 PLACEHOLDERS_1 = {'account_id': 'account_id_1'}
 
