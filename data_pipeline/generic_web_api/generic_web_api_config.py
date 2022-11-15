@@ -165,18 +165,18 @@ class WebApiConfig:
             )
         )
         self.url_builder = url_builder_class(
-            url_excluding_configurable_parameters,
-            from_date_param,
-            to_date_param,
-            url_date_format,
-            next_page_cursor,
-            page_number_param,
-            offset_param,
-            page_size_param,
-            self.page_size,
-            composeable_static_parameters,
-            result_sort_param,
-            result_sort_param_value,
+            url_excluding_configurable_parameters=url_excluding_configurable_parameters,
+            from_date_param=from_date_param,
+            to_date_param=to_date_param,
+            date_format=url_date_format,
+            next_page_cursor=next_page_cursor,
+            page_number_param=page_number_param,
+            offset_param=offset_param,
+            page_size_param=page_size_param,
+            page_size=self.page_size,
+            compose_able_url_key_val=composeable_static_parameters,
+            sort_key=result_sort_param,
+            sort_key_val=result_sort_param_value,
             **type_specific_param
         )
         self.start_till_end_date_diff_in_days = (
