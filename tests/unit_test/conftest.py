@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from unittest.mock import patch
-from typing import ContextManager
+from typing import ContextManager, Iterable
 
 import pytest
 from py._path.local import LocalPath
@@ -20,6 +20,6 @@ def temp_dir(tmpdir: LocalPath) -> Path:
 
 
 @pytest.fixture()
-def mock_env() -> ContextManager[dict]:
+def mock_env() -> Iterable[ContextManager[dict]]:
     with patch('os.environ', {}) as env_dict:
         yield env_dict
