@@ -28,7 +28,7 @@ def get_auth_param_value(auth_val_conf: dict):
         )
     if not val:
         val = read_file_content(
-            os.getenv(auth_val_conf["envVariableContainingPathToAuthFile"])
+            os.environ[auth_val_conf["envVariableContainingPathToAuthFile"]]
         )
 
     return val
