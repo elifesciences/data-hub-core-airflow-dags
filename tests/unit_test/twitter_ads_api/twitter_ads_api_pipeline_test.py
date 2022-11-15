@@ -20,6 +20,7 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
 )
 
 from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig
 )
@@ -52,7 +53,10 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     secrets=SECRETS
 )
 
-FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
+FROM_BIGQUERY_PARAM_VALUE = BigQuerySourceConfig(
+    project_name='project_name_1',
+    sql_query='sql_query_1'
+)
 SINGLE_PLACEMENT_PARAM_VALUE = ['placement_value_1']
 MAX_PERIOD_IN_DAYS = 10
 PERIOD_BATCH_SIZE_IN_DAYS = 7
