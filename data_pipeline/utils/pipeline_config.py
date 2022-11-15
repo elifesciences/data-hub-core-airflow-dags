@@ -1,12 +1,14 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, T, Mapping, NamedTuple, Optional, Sequence
+from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, TypeVar
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
 
 LOGGER = logging.getLogger(__name__)
+
+T = TypeVar('T')
 
 
 class ConfigKeys:

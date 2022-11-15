@@ -1,10 +1,12 @@
 from itertools import islice
 from collections import deque
-from typing import Iterable, T
+from typing import Iterable, Type, TypeVar
 
 import logging
 
 LOGGER = logging.getLogger(__name__)
+
+T = TypeVar('T')
 
 
 def chain_queue_and_iterable(queue: deque, iterable):
@@ -34,7 +36,7 @@ def iter_batch_iterable(
 
 def iter_item_until_exception(
     iterable: Iterable[T],
-    exception_type: BaseException
+    exception_type: Type[BaseException]
 ) -> Iterable[T]:
     try:
         yield from iterable
