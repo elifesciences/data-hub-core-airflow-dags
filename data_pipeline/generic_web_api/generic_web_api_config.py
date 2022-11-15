@@ -44,7 +44,7 @@ class MultiWebApiConfig:
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
             for ind, web_api in enumerate(
-                multi_web_api_etl_config.get("webApi")
+                multi_web_api_etl_config["webApi"]
             )
         }
 
