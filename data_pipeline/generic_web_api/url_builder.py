@@ -51,6 +51,7 @@ class DynamicURLBuilder:
     def __init__(
             self,
             url_excluding_configurable_parameters: str,
+            compose_able_url_key_val: dict,
             from_date_param: Optional[str] = None,
             to_date_param: Optional[str] = None,
             date_format: Optional[str] = None,
@@ -59,7 +60,6 @@ class DynamicURLBuilder:
             offset_param: Optional[str] = None,
             page_size_param: Optional[str] = None,
             page_size: Optional[int] = None,
-            compose_able_url_key_val: Optional[dict] = None,
             sort_key: Optional[str] = None,
             sort_key_val: Optional[str] = None,
             **kwargs
