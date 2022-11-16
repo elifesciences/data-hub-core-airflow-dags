@@ -21,5 +21,6 @@ def temp_dir(tmpdir: LocalPath) -> Path:
 
 @pytest.fixture()
 def mock_env() -> Iterable[dict]:
-    with patch('os.environ', {}) as env_dict:
+    env_dict: dict = {}
+    with patch('os.environ', env_dict):
         yield env_dict
