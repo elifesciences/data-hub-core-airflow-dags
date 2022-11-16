@@ -380,6 +380,8 @@ class TestTransformAndLoadData:
 
 class TestProcessData:
     multi_csv_config_dict = {
+        "gcpProjectName": "gcpProjectName_1",
+        "importedTimestampFieldName": "imported_timestamp_1",
         "spreadsheetId": "spreadsheet_id",
         "sheets": [
             {
