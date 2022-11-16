@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 from unittest.mock import patch
-from typing import ContextManager, Iterable
+from typing import Iterable
 
 import pytest
 from py._path.local import LocalPath
