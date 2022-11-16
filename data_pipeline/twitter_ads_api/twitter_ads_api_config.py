@@ -10,16 +10,16 @@ DEFAULT_BATCH_SIZE = 1000
 
 
 class TwitterAdsApiParameterValuesConfig(NamedTuple):
-    from_bigquery: BigQuerySourceConfig = {}
-    max_period_in_days: Optional[int] = 0
-    placement_value: Optional[Sequence[str]] = []
+    from_bigquery: BigQuerySourceConfig
+    max_period_in_days: int = 0
+    placement_value: Optional[Sequence[str]] = None
     period_batch_size_in_days: Optional[int] = 0
 
     @staticmethod
     def from_dict(parameter_values_config_dict: dict) -> 'TwitterAdsApiParameterValuesConfig':
         return TwitterAdsApiParameterValuesConfig(
             from_bigquery=BigQuerySourceConfig.from_dict(
-                parameter_values_config_dict.get('fromBigQuery', {})
+                parameter_values_config_dict['fromBigQuery']
             ),
             max_period_in_days=parameter_values_config_dict.get('maxPeriodInDays', 0),
             period_batch_size_in_days=parameter_values_config_dict.get('periodBatchSizeInDays', 0),
@@ -44,17 +44,17 @@ class TwitterAdsApiParameterNamesForConfig(NamedTuple):
 
 
 class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
-    parameter_values: TwitterAdsApiParameterValuesConfig = {}
-    parameter_names_for: TwitterAdsApiParameterNamesForConfig = {}
+    parameter_values: TwitterAdsApiParameterValuesConfig
+    parameter_names_for: TwitterAdsApiParameterNamesForConfig
 
     @staticmethod
     def from_dict(api_query_parameters_config: dict) -> 'TwitterAdsApiApiQueryParametersConfig':
         return TwitterAdsApiApiQueryParametersConfig(
             parameter_values=TwitterAdsApiParameterValuesConfig.from_dict(
-                api_query_parameters_config.get('parameterValues', {})
+                api_query_parameters_config['parameterValues']
             ),
             parameter_names_for=TwitterAdsApiParameterNamesForConfig.from_dict(
-                api_query_parameters_config.get('parameterNamesFor', {})
+                api_query_parameters_config['parameterNamesFor']
             )
         )
 
@@ -62,8 +62,8 @@ class TwitterAdsApiApiQueryParametersConfig(NamedTuple):
 class TwitterAdsApiSourceConfig(NamedTuple):
     resource: str
     secrets: MappingConfig = MappingConfig.from_dict({})
-    api_query_parameters: TwitterAdsApiApiQueryParametersConfig = {}
-    account_ids: Optional[Sequence[str]] = []
+    api_query_parameters: Optional[TwitterAdsApiApiQueryParametersConfig] = None
+    account_ids: Optional[Sequence[str]] = None
 
     @staticmethod
     def from_dict(source_config_dict: dict) -> 'TwitterAdsApiSourceConfig':

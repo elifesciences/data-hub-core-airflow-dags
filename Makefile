@@ -49,7 +49,11 @@ dev-pylint:
 	$(PYTHON) -m pylint data_pipeline dags tests
 
 
-dev-lint: dev-flake8 dev-pylint
+dev-mypy:
+	$(PYTHON) -m mypy data_pipeline dags tests
+
+
+dev-lint: dev-flake8 dev-pylint dev-mypy
 
 
 dev-unittest:
@@ -88,7 +92,11 @@ pylint:
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \
 		python -m pylint data_pipeline dags tests
 
-lint: flake8 pylint
+mypy:
+	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \
+		python -m mypy data_pipeline dags tests
+
+lint: flake8 pylint mypy
 
 dagtest:
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev \

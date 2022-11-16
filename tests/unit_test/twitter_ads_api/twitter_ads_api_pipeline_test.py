@@ -20,7 +20,9 @@ from data_pipeline.twitter_ads_api.twitter_ads_api_pipeline import (
 )
 
 from data_pipeline.utils.pipeline_config import (
-    BigQueryTargetConfig
+    BigQuerySourceConfig,
+    BigQueryTargetConfig,
+    MappingConfig
 )
 
 from data_pipeline.twitter_ads_api.twitter_ads_api_config import (
@@ -38,7 +40,11 @@ from tests.unit_test.utils.data_store.bq_data_service_test_utils import (
 LOGGER = logging.getLogger(__name__)
 
 RESOURCE = 'resource_1'
-SECRETS = {'key1': 'value1', 'key2': 'value2'}
+
+SECRETS = MappingConfig(
+            mapping={'key1': 'value1', 'key2': 'value2'},
+            printable_mapping={'key1': '***', 'key2': '***'}
+        )
 
 PLACEHOLDERS_1 = {'account_id': 'account_id_1'}
 
@@ -47,7 +53,10 @@ SOURCE_CONFIG_1 = TwitterAdsApiSourceConfig(
     secrets=SECRETS
 )
 
-FROM_BIGQUERY_PARAM_VALUE = ['bq_param_1']
+FROM_BIGQUERY_PARAM_VALUE = BigQuerySourceConfig(
+    project_name='project_name_1',
+    sql_query='sql_query_1'
+)
 SINGLE_PLACEMENT_PARAM_VALUE = ['placement_value_1']
 MAX_PERIOD_IN_DAYS = 10
 PERIOD_BATCH_SIZE_IN_DAYS = 7
@@ -115,7 +124,7 @@ CONFIG_1 = TwitterAdsApiConfig(
     target=TARGET_CONFIG_1
 )
 
-RESPONSE_JSON_1 = {
+RESPONSE_JSON_1: dict = {
     'response_key_1': 'response_value_1_1',
     'response_key_2': 'response_value_1_2'
 }

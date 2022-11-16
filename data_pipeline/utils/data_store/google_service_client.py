@@ -7,7 +7,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class MemoryCache(Cache):
-    _CACHE = {}
+    _CACHE: dict = {}
 
     def get(self, url):
         return MemoryCache._CACHE.get(url)

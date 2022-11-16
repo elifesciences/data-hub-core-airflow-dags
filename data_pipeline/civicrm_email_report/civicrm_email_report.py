@@ -11,7 +11,7 @@ def get_current_timestamp():
     return datetime.datetime.utcnow().isoformat()
 
 
-def get_mailing_id_dict(mail_id: int) -> str(dict):
+def get_mailing_id_dict(mail_id: int) -> str:
     return json.dumps({'mailing_id': mail_id})
 
 
@@ -108,7 +108,7 @@ def transform_email_report(
 
 def iter_email_report(
     url: str,
-    mail_id_list: Sequence[str],
+    mail_id_list: Sequence[int],
     api_key: str,
     site_key: str
 ) -> Iterable[dict]:

@@ -11,7 +11,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 
 
 DAG_ID_1 = 'dag1'
-DAG_CONFIG_1 = {}
+DAG_CONFIG_1: dict = {}
 
 
 @pytest.fixture(name="mock_simple_trigger_dag")

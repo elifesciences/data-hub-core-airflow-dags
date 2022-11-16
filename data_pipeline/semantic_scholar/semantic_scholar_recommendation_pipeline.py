@@ -45,7 +45,7 @@ class ExcludableListWithMeta:
     list_meta: Mapping[str, Any] = field(default_factory=dict)
 
     @property
-    def json_data(self) -> Sequence[dict]:
+    def json_data(self) -> Sequence[Mapping[str, Any]]:
         return [item.json_data for item in self.item_list]
 
 
@@ -143,7 +143,7 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
             )[-max_paper_ids:]
         )
     }
-    extended_provenance = {
+    extended_provenance: dict = {
         **(provenance or {}),
         'list_key': excludable_list_with_meta.list_key,
         'list_meta': excludable_list_with_meta.list_meta,
@@ -166,7 +166,7 @@ def get_recommendation_response_json_from_api(  # pylint: disable=too-many-argum
 
 
 def iter_recommendation_data(
-    list_iterable: Iterable[str],
+    list_iterable: Iterable,
     source_config: SemanticScholarSourceConfig,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None

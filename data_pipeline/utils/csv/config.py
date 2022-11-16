@@ -1,23 +1,26 @@
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
+from typing import Optional
+
+
 class BaseCsvConfig:
 
     def __init__(
             self,
             csv_sheet_config: dict,
-            gcp_project: str = None,
-            imported_timestamp_field_name: str = None
+            gcp_project: Optional[str] = None,
+            imported_timestamp_field_name: Optional[str] = None
     ):
-        self.gcp_project = (
+        self.gcp_project = str((
             gcp_project or
             csv_sheet_config.get("gcpProjectName")
-        )
+        ))
         self.import_timestamp_field_name = (
             imported_timestamp_field_name or
             csv_sheet_config.get(
                 "importedTimestampFieldName"
             )
         )
-        self.header_line_index = csv_sheet_config.get("headerLineIndex")
+        self.header_line_index = csv_sheet_config.get("headerLineIndex", 0)
         self.data_values_start_line_index = csv_sheet_config.get(
             "dataValuesStartLineIndex"
         )

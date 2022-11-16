@@ -1,3 +1,4 @@
+from typing import Optional
 from unittest.mock import patch
 import pytest
 from data_pipeline.utils.csv import (
@@ -40,7 +41,7 @@ class TestData:
     }
 
     @staticmethod
-    def get_config(additional_config: dict = None):
+    def get_config(additional_config: Optional[dict] = None):
         additional_config = (
             additional_config
             if additional_config else {}

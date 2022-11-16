@@ -92,10 +92,12 @@ def test_should_load_file_into_bq(
         mock_bq_client):
 
     file_name = "file_name"
+    project_name = "project_name"
     dataset_name = "dataset_name"
     table_name = "table_name"
     load_file_into_bq(
         filename=file_name,
+        project_name=project_name,
         dataset_name=dataset_name,
         table_name=table_name
     )

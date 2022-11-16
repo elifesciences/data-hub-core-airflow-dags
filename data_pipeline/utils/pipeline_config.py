@@ -1,12 +1,14 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, T, Mapping, NamedTuple, Sequence
+from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, TypeVar
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
 
 LOGGER = logging.getLogger(__name__)
+
+T = TypeVar('T')
 
 
 class ConfigKeys:
@@ -138,9 +140,9 @@ def str_to_bool(value: str, default_value=None) -> bool:
 
 def get_environment_variable_value(
         key: str,
-        value_converter: Callable[[str], T] = None,
+        value_converter: Optional[Callable[[str], str]] = None,
         required: bool = False,
-        default_value: T = None) -> T:
+        default_value: Optional[str] = None) -> Optional[str]:
     value = os.getenv(key)
     if not value:
         if required:
@@ -166,14 +168,9 @@ def get_resolved_parameter_values_from_file_path_env_name(
     parameters_from_file: Sequence[dict]
 ) -> dict:
     params = {
-        param.get("parameterName"):
-            read_file_content(
-                os.getenv(
-                    param.get("filePathEnvName")
-                )
-            )
+        param["parameterName"]: read_file_content(os.environ[param["filePathEnvName"]])
         for param in parameters_from_file
-        if os.getenv(param.get("filePathEnvName"))
+        if os.getenv(param["filePathEnvName"])
     }
     return params
 
@@ -184,9 +181,7 @@ def get_pipeline_config_for_env_name_and_config_parser(
 ) -> T:
     deployment_env = get_deployment_env()
     LOGGER.info('deployment_env: %s', deployment_env)
-    conf_file_path = os.getenv(
-        config_file_path_env_name
-    )
+    conf_file_path = os.environ[config_file_path_env_name]
     pipeline_config_dict = update_deployment_env_placeholder(
         get_yaml_file_as_dict(conf_file_path),
         deployment_env=deployment_env

@@ -62,7 +62,7 @@ def get_request_query_for_source_config_and_start_date_str(
 def get_request_params_for_source_config(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext,
-    cursor: str = DEFAULT_CURSOR
+    cursor: Optional[str] = DEFAULT_CURSOR
 ) -> dict:
     return {
         **(source_config.search.extra_params or {}),
@@ -79,7 +79,7 @@ def get_request_params_for_source_config(
 def get_article_response_json_from_api(
     source_config: EuropePmcSourceConfig,
     search_context: EuropePmcSearchContext,
-    cursor: str = DEFAULT_CURSOR,
+    cursor: Optional[str] = DEFAULT_CURSOR,
     provenance: Optional[dict] = None
 ) -> dict:
     url = source_config.api_url
@@ -117,7 +117,7 @@ def iter_article_data(
     provenance: Optional[dict] = None
 ) -> Iterable[dict]:
     LOGGER.info('source_config: %r', source_config)
-    cursor = DEFAULT_CURSOR
+    cursor: Optional[str] = DEFAULT_CURSOR
     while cursor:
         response_json = get_article_response_json_from_api(
             source_config,
@@ -220,7 +220,7 @@ def iter_article_data_for_bq_and_collect_latest_index_dates(
 def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_index_date(
     config: EuropePmcConfig,
     search_context: EuropePmcSearchContext
-) -> date:
+) -> Optional[date]:
     batch_size = config.batch_size
     provenance = {'imported_timestamp': datetime.utcnow().isoformat()}
     data_iterable = iter_article_data(
@@ -228,7 +228,7 @@ def fetch_article_data_and_load_into_bq_for_search_context_and_return_latest_ind
         search_context,
         provenance=provenance
     )
-    latest_index_date_list = []
+    latest_index_date_list: List = []
     for batch_data_iterable in iter_batch_iterable(data_iterable, batch_size):
         batch_data_iterable = iter_article_data_for_bq_and_collect_latest_index_dates(
             data_iterable=batch_data_iterable,

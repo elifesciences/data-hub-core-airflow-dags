@@ -1,3 +1,4 @@
+from typing import Optional
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.url_builder import (
@@ -43,7 +44,7 @@ class MultiWebApiConfig:
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
             for ind, web_api in enumerate(
-                multi_web_api_etl_config.get("webApi")
+                multi_web_api_etl_config["webApi"]
             )
         }
 
@@ -52,9 +53,9 @@ class WebApiConfig:
     def __init__(
             self,
             web_api_config: dict,
-            gcp_project: str = None,
-            imported_timestamp_field_name: str = None,
-            deployment_env: str = None,
+            gcp_project: Optional[str] = None,
+            imported_timestamp_field_name: Optional[str] = None,
+            deployment_env: Optional[str] = None,
             deployment_env_placeholder: str = "{ENV}"
     ):
         api_config = update_deployment_env_placeholder(
@@ -164,18 +165,18 @@ class WebApiConfig:
             )
         )
         self.url_builder = url_builder_class(
-            url_excluding_configurable_parameters,
-            from_date_param,
-            to_date_param,
-            url_date_format,
-            next_page_cursor,
-            page_number_param,
-            offset_param,
-            page_size_param,
-            self.page_size,
-            composeable_static_parameters,
-            result_sort_param,
-            result_sort_param_value,
+            url_excluding_configurable_parameters=url_excluding_configurable_parameters,
+            from_date_param=from_date_param,
+            to_date_param=to_date_param,
+            date_format=url_date_format,
+            next_page_cursor=next_page_cursor,
+            page_number_param=page_number_param,
+            offset_param=offset_param,
+            page_size_param=page_size_param,
+            page_size=self.page_size,
+            compose_able_url_key_val=composeable_static_parameters,
+            sort_key=result_sort_param,
+            sort_key_val=result_sort_param_value,
             **type_specific_param
         )
         self.start_till_end_date_diff_in_days = (

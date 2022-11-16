@@ -1,10 +1,12 @@
-from typing import Iterable, Sequence, Union, T
+from typing import Iterable, Sequence, Union, TypeVar
 
 import pytest
 from data_pipeline.utils.collections import (
     iter_batch_iterable,
     iter_item_until_exception
 )
+
+T = TypeVar('T')
 
 
 def _iter_item_or_raise_exception(

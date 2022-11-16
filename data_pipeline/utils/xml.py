@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from xml.etree.ElementTree import Element
 
 
@@ -10,7 +11,7 @@ def parse_xml_and_return_it_as_dict(
             xml_root,
             is_root=False
         )}
-    dict_of_xml = xml_root.attrib
+    dict_of_xml: Dict[Any, Any] = xml_root.attrib
     if xml_root.text:
         dict_of_xml["value_text"] = xml_root.text
     for xml_child in xml_root:

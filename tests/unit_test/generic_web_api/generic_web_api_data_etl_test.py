@@ -395,7 +395,7 @@ class TestGenericWebApiDataEtl:
         self,
         get_data_single_page_mock: MagicMock
     ):
-        conf_dict = {
+        conf_dict: dict = {
             ** WEB_API_CONFIG,
             'response': {
                 'itemsKeyFromResponseRoot': ['rows']

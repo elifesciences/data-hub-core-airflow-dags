@@ -2,14 +2,15 @@ from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
-
+from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config import (
+    SemanticScholarRecommendationConfig
+)
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig
 )
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
-    SemanticScholarConfig,
     SemanticScholarMatrixConfig,
     SemanticScholarMatrixVariableConfig,
     SemanticScholarMatrixVariableSourceConfig,
@@ -112,7 +113,7 @@ TARGET_CONFIG_1 = BigQueryTargetConfig(
 )
 
 
-CONFIG_1 = SemanticScholarConfig(
+CONFIG_1 = SemanticScholarRecommendationConfig(
     matrix=MATRIX_CONFIG_1,
     source=SOURCE_CONFIG_1,
     target=TARGET_CONFIG_1
@@ -223,6 +224,7 @@ class TestIterListForMatrixConfig:
         iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
     ):
         iter_list_for_matrix_config(MATRIX_WITH_EXCLUDE_CONFIG_1)
+        assert MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.exclude is not None
         iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
             MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.include.bigquery,
             key_field_name='list_key',

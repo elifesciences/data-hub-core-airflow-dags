@@ -54,7 +54,7 @@ def get_resolved_api_url(api_url: str, **kwargs) -> str:
 
 def get_request_params_for_source_config(
     source_config: SemanticScholarSourceConfig
-) -> dict:
+) -> Mapping[str, str]:
     return source_config.params
 
 

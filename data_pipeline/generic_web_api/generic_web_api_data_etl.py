@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
-from typing import Any
+from typing import Any, Optional
 
 from botocore.exceptions import ClientError
 
@@ -79,11 +79,11 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 # pylint: disable=fixme,too-many-arguments
 def get_data_single_page(
         data_config: WebApiConfig,
-        cursor: str = None,
-        from_date: datetime = None,
-        until_date: datetime = None,
-        page_number: int = None,
-        page_offset: int = None
+        cursor: Optional[str] = None,
+        from_date: Optional[datetime] = None,
+        until_date: Optional[datetime] = None,
+        page_number: Optional[int] = None,
+        page_offset: Optional[int] = None
 ) -> Any:
     url_compose_arg = UrlComposeParam(
         from_date=from_date,
@@ -102,7 +102,7 @@ def get_data_single_page(
                 data_config.authentication and
                 data_config.authentication.authentication_type == "basic"
         ):
-            session.auth = tuple(data_config.authentication.auth_val_list)
+            session.auth = data_config.authentication.auth_val_list
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
         session_response = session.get(url, headers=data_config.headers.mapping)
@@ -120,8 +120,8 @@ def get_data_single_page(
 # pylint: disable=too-many-locals
 def generic_web_api_data_etl(
         data_config: WebApiConfig,
-        from_date: datetime = None,
-        until_date: datetime = None,
+        from_date: Optional[datetime] = None,
+        until_date: Optional[datetime] = None,
 ):
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
@@ -298,9 +298,9 @@ def get_next_start_date(
         current_start_timestamp,
         latest_record_timestamp,
         web_config: WebApiConfig,
-        cursor: str = None,
-        page_number: int = None,
-        offset: int = None
+        cursor: Optional[str] = None,
+        page_number: Optional[int] = None,
+        offset: Optional[int] = None
 
 ):
     # pylint: disable=too-many-boolean-expressions

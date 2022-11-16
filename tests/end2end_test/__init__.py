@@ -85,7 +85,7 @@ def trigger_run_test_pipeline(
         airflow_api,
         pipeline_cloud_resource: DataPipelineCloudResource,
         dag_id, target_dag=None,
-        dag_trigger_conf: dict = None
+        dag_trigger_conf: Optional[dict] = None
 ):
 
     truncate_table(

@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Optional
 from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
     update_deployment_env_placeholder
@@ -7,7 +8,7 @@ from data_pipeline.utils.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
-def get_gmail_config_id(gmail_config_props: dict) -> str:
+def get_gmail_config_id(gmail_config_props: dict) -> Optional[Any]:
     return gmail_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
 
 
@@ -18,8 +19,8 @@ class MultiGmailDataConfig:
             self,
             multi_gmail_data_config: dict,
     ):
-        self.project_name = multi_gmail_data_config.get("projectName")
-        self.dataset_name = multi_gmail_data_config.get("datasetName")
+        self.project_name = multi_gmail_data_config["projectName"]
+        self.dataset_name = multi_gmail_data_config["datasetName"]
         self.gmail_data_config = {
             ind: {
                 **gmail,
@@ -28,7 +29,7 @@ class MultiGmailDataConfig:
                 "datasetName": self.dataset_name
             }
             for ind, gmail in enumerate(
-                multi_gmail_data_config.get("gmailData")
+                multi_gmail_data_config["gmailData"]
             )
         }
 
@@ -38,9 +39,9 @@ class GmailDataConfig:
     def __init__(
         self,
         data_config: dict,
-        project_name: str = None,
-        dataset_name: str = None,
-        deployment_env: str = None,
+        project_name: Optional[str] = None,
+        dataset_name: Optional[str] = None,
+        deployment_env: Optional[str] = None,
         env_placeholder: str = "{ENV}"
     ):
         LOGGER.info("deployment_env: %s", deployment_env)

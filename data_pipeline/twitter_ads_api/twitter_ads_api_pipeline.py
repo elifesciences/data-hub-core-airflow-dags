@@ -46,7 +46,7 @@ def get_provenance(
     source_config: TwitterAdsApiSourceConfig,
     params_dict: Optional[Mapping[str, str]] = None
 ) -> dict:
-    provenance = {
+    provenance: dict = {
         'imported_timestamp': datetime.utcnow().isoformat(),
         'request_resource': source_config.resource
     }

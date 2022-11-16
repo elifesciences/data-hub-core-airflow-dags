@@ -149,7 +149,7 @@ class TestTwitterAdsApiConfig:
                 ITEM_CONFIG_DICT_WITHOUT_API_QUERY_PARAMETERS
             ])
         )
-        assert config[0].source.api_query_parameters == {}
+        assert not config[0].source.api_query_parameters
 
     def test_should_read_defined_parameter_values_and_default_value_for_not_defined(
         self

@@ -41,7 +41,7 @@ class MultiSpreadsheetConfig:
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
-            for index, spreadsheet in enumerate(multi_spreadsheet_config.get("spreadsheets"))
+            for index, spreadsheet in enumerate(multi_spreadsheet_config["spreadsheets"])
         }
 
 
@@ -62,20 +62,18 @@ class MultiCsvSheet:
     def __init__(self, multi_sheet_config: dict,
                  deployment_env: str,
                  ):
-        self.spreadsheet_id = multi_sheet_config.get("spreadsheetId")
-        self.import_timestamp_field_name = multi_sheet_config.get(
-            "importedTimestampFieldName"
-        )
-        self.gcp_project = multi_sheet_config.get("gcpProjectName")
+        self.spreadsheet_id = multi_sheet_config["spreadsheetId"]
+        self.import_timestamp_field_name = multi_sheet_config["importedTimestampFieldName"]
+        self.gcp_project = multi_sheet_config["gcpProjectName"]
         self.sheets_config = {
-            sheet.get("sheetName"): BaseCsvSheetConfig(
+            sheet["sheetName"]: BaseCsvSheetConfig(
                 sheet,
                 self.spreadsheet_id,
                 self.gcp_project,
                 self.import_timestamp_field_name,
                 deployment_env,
             )
-            for sheet in multi_sheet_config.get("sheets")
+            for sheet in multi_sheet_config["sheets"]
         }
 
 
@@ -103,5 +101,5 @@ class BaseCsvSheetConfig(BaseCsvConfig):
         )
         self.spreadsheet_id = spreadsheet_id
 
-        self.sheet_name = csv_sheet_config.get("sheetName")
-        self.sheet_range = csv_sheet_config.get("sheetRange")
+        self.sheet_name = csv_sheet_config["sheetName"]
+        self.sheet_range = csv_sheet_config.get("sheetRange", '')

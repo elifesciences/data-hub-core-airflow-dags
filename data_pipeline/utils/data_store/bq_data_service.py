@@ -26,13 +26,13 @@ def get_bq_client(project: str):
 # pylint: disable=too-many-arguments
 def load_file_into_bq(
         filename: str,
+        project_name: str,
         dataset_name: str,
         table_name: str,
         source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON,
         write_mode=WriteDisposition.WRITE_APPEND,
         auto_detect_schema=False,
-        rows_to_skip=0,
-        project_name: str = None,
+        rows_to_skip=0
 ):
     if os.path.isfile(filename) and os.path.getsize(filename) == 0:
         LOGGER.info("File %s is empty.", filename)
@@ -227,8 +227,8 @@ def get_new_merged_schema(
     fields_to_recurse = [
         obj_key
         for obj_key in set_intersection
-        if existing_schema_dict.get(obj_key).get("fields") and
-        isinstance(existing_schema_dict.get(obj_key).get("fields"), list)
+        if existing_schema_dict[obj_key].get("fields") and
+        isinstance(existing_schema_dict[obj_key].get("fields"), list)
     ]
     new_schema.extend(
         [
@@ -238,10 +238,10 @@ def get_new_merged_schema(
         ]
     )
     for field_to_recurse in fields_to_recurse:
-        field = existing_schema_dict.get(field_to_recurse).copy()
+        field = existing_schema_dict[field_to_recurse].copy()
         field["fields"] = get_new_merged_schema(
-            existing_schema_dict.get(field_to_recurse).get("fields", []),
-            update_schema_dict.get(field_to_recurse).get("fields", []),
+            existing_schema_dict[field_to_recurse].get("fields", []),
+            update_schema_dict[field_to_recurse].get("fields", []),
         )
         new_schema.append(
             field
@@ -252,7 +252,7 @@ def get_new_merged_schema(
 
 def generate_schema_from_file(
         full_file_location: str,
-        quoted_values_are_strings: str = True
+        quoted_values_are_strings: bool = True
 ):
     with open(full_file_location, encoding='UTF-8') as file_reader:
         generator = SchemaGenerator(
@@ -271,7 +271,7 @@ def create_or_extend_table_schema(
         dataset_name,
         table_name,
         full_file_location,
-        quoted_values_are_strings: True
+        quoted_values_are_strings: bool = True
 ):
     schema = generate_schema_from_file(
         full_file_location,
@@ -405,9 +405,9 @@ def get_distinct_values_from_bq(
             dataset_name: str,
             column_name: str,
             table_name_source: str,
-            table_name_for_exclusion: str = None,
-            array_column_for_exclusion: str = None,
-            array_table_name: str = None,
+            table_name_for_exclusion: Optional[str] = None,
+            array_column_for_exclusion: Optional[str] = None,
+            array_table_name: Optional[str] = None,
         ) -> pd.DataFrame:
 
     sql = """

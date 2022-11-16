@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+from typing import Iterable
 
 import pytest
 
@@ -30,25 +31,25 @@ OUTPUT_TABLE_1 = 'output_table1'
 
 
 @pytest.fixture(name='bigquery', autouse=True)
-def _bigquery() -> MagicMock:
+def _bigquery() -> Iterable[MagicMock]:
     with patch.object(target_module, 'bigquery') as mock:
         yield mock
 
 
 @pytest.fixture(name='mock_materialize_views', autouse=True)
-def _mock_materialize_views() -> MagicMock:
+def _mock_materialize_views() -> Iterable[MagicMock]:
     with patch.object(target_module, 'materialize_views') as mock:
         yield mock
 
 
 @pytest.fixture(name='mock_load_view_list_config', autouse=False)
-def _mock_load_view_list_config() -> MagicMock:
+def _mock_load_view_list_config() -> Iterable[MagicMock]:
     with patch.object(target_module, 'load_view_list_config') as mock:
         yield mock
 
 
 @pytest.fixture(name='mock_get_client', autouse=False)
-def _mock_get_client() -> MagicMock:
+def _mock_get_client() -> Iterable[MagicMock]:
     with patch.object(target_module, 'get_client') as mock:
         yield mock
 
@@ -96,7 +97,7 @@ class TestLoadRemoteViewListConfig:
             '- view2'
         ]))
         view_list_config = load_remote_view_list_config(
-            view_list_config_path
+            str(view_list_config_path)
         )
         LOGGER.debug('view_list_config: %s', view_list_config)
         assert set(view_list_config.view_names) == {

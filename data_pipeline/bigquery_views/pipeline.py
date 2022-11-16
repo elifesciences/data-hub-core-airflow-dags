@@ -50,7 +50,7 @@ def materialize_bigquery_views(config: BigQueryViewsConfig):
     )
     client = get_client(config)
     view_list_config = load_remote_view_list_config(
-        views_config_file_path
+        str(views_config_file_path)
     ).resolve_conditions({
         'project': client.project,
         'dataset': config.dataset

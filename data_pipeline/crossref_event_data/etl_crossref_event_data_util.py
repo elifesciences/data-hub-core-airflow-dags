@@ -3,7 +3,7 @@ import json
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Iterable
+from typing import Iterable, Optional, Tuple
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -43,7 +43,7 @@ def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
 
 
 def convert_datetime_to_date_string(
-        datetime_obj: datetime,
+        datetime_obj: datetime.datetime,
         time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT
 ) -> str:
 
@@ -88,12 +88,12 @@ def get_new_journal_download_start_date_as_str(
 # pylint: disable=fixme,too-many-arguments
 def get_crossref_data_single_page(
         base_crossref_url: str,
+        journal_doi_prefix: str,
+        from_date_collected_as_string: str,
+        until_collected_date_as_string: Optional[str] = None,
         cursor=None,
-        journal_doi_prefix: str = None,
-        from_date_collected_as_string: str = None,
-        until_collected_date_as_string: str = None,
         message_key: str = "message",
-) -> (str, dict):
+) -> Tuple[str, dict]:
     # TODO : specify all static url parameter via config
     LOGGER.info('base_crossref_url: %s', base_crossref_url)
     url = (
@@ -220,16 +220,16 @@ def transform_record(
 def per_doi_download_page_etl(
         base_crossref_url: str,
         from_date_collected_as_string: str,
-        until_collected_date_as_string: str,
         journal_doi_prefix: str,
-        cursor: str,
         message_key: str,
         event_key: str,
         imported_timestamp_key: str,
-        imported_timestamp: datetime,
+        imported_timestamp: datetime.datetime,
         full_temp_file_location: str,
         schema: list,
-        journal_previous_timestamp: datetime,
+        journal_previous_timestamp: datetime.datetime,
+        until_collected_date_as_string: Optional[str] = None,
+        cursor: Optional[str] = None
 ):
     cursor, downloaded_data = get_crossref_data_single_page(
         base_crossref_url=base_crossref_url,
@@ -264,8 +264,8 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         imported_timestamp,
         full_temp_file_location: str,
         schema: list,
-        until_date_as_string: str = None,
-) -> datetime:
+        until_date_as_string: Optional[str] = None,
+) -> datetime.datetime:
     latest_collected_record_timestamp = parse_datetime_from_str(
         from_date_as_string
     )
@@ -275,9 +275,7 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         journal_latest_timestamp, cursor = per_doi_download_page_etl(
             base_crossref_url=base_crossref_url,
             from_date_collected_as_string=from_date_as_string,
-            until_collected_date_as_string=until_date_as_string,
             journal_doi_prefix=journal_doi_prefix,
-            cursor=cursor,
             message_key=message_key,
             event_key=event_key,
             imported_timestamp_key=imported_timestamp_key,
@@ -285,6 +283,8 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
             full_temp_file_location=full_temp_file_location,
             schema=schema,
             journal_previous_timestamp=journal_latest_timestamp,
+            until_collected_date_as_string=until_date_as_string,
+            cursor=cursor
         )
         if not cursor:
             break
@@ -302,7 +302,7 @@ def etl_crossref_data_return_latest_timestamp(
         imported_timestamp,
         full_temp_file_location: str,
         schema: list,
-        until_date_as_string: str = None,
+        until_date_as_string: Optional[str] = None,
 ) -> str:
 
     journal_latest_timestamp = {}

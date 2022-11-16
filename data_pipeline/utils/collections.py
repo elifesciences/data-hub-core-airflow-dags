@@ -1,10 +1,12 @@
 from itertools import islice
 from collections import deque
-from typing import Iterable, T
+from typing import Deque, Iterable, Type, TypeVar
 
 import logging
 
 LOGGER = logging.getLogger(__name__)
+
+T = TypeVar('T')
 
 
 def chain_queue_and_iterable(queue: deque, iterable):
@@ -21,7 +23,7 @@ def iter_batch_iterable(
     while True:
         batch_iterable = islice(iterator, batch_size)
         try:
-            peeked_value_queue = deque()
+            peeked_value_queue: Deque[T] = deque()
             peeked_value_queue.append(next(batch_iterable))
             # by using and consuming a queue we are allowing the memory
             # for the peeked value to be released
@@ -34,7 +36,7 @@ def iter_batch_iterable(
 
 def iter_item_until_exception(
     iterable: Iterable[T],
-    exception_type: BaseException
+    exception_type: Type[BaseException]
 ) -> Iterable[T]:
     try:
         yield from iterable

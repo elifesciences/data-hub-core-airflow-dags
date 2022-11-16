@@ -31,7 +31,7 @@ class GitHubRateLimitError(requests.RequestException):
 
 def get_json_response_from_url(
     url: str,
-    headers: Mapping[str, str] = None,
+    headers: Optional[Mapping[str, str]] = None,
 ) -> Any:
     response = requests.get(url=url, headers=headers)
     if response.status_code == 403:
@@ -51,6 +51,7 @@ def get_url_of_xml_file_directory_from_repo(
     for folder in response_json['tree']:
         if folder['path'] == source_config.directory_name:
             return folder['url']
+    return ''
 
 
 def iter_unprocessed_xml_file_url_and_path_from_git_directory(

@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Iterable
+from typing import Iterable, Sequence
 import logging
 import pandas as pd
 import backoff
@@ -30,7 +30,7 @@ def refresh_gmail_token(
     client_id: str,
     client_secret: str,
     refresh_token: str,
-    scopes: str
+    scopes: Sequence[str]
 ) -> Resource:
     credentials = client.OAuth2Credentials(
         # access_token expires in 1 hour
@@ -109,7 +109,7 @@ def get_link_message_thread_ids(
 
 
 @backoff.on_exception(backoff.expo, TimeoutError, max_tries=10)
-def get_one_thread(service: str, user_id: str, thread_id: str) -> pd.DataFrame:
+def get_one_thread(service: Resource, user_id: str, thread_id: str) -> pd.DataFrame:
     imported_timestamp = get_current_timestamp()
     thread_response = service.users().threads().get(userId=user_id, id=thread_id).execute()
     LOGGER.info('Getting details for threadId: %s', thread_id)

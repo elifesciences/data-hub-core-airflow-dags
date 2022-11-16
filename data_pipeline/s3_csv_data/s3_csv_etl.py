@@ -7,6 +7,7 @@ import csv
 from csv import DictReader
 import json
 from datetime import datetime
+from typing import Optional
 
 from botocore.exceptions import ClientError
 from dateutil import tz
@@ -272,7 +273,7 @@ def skip_stream_till_line(text_stream, till_line_index):
 def process_record_list(
         reader: DictReader,
         record_metadata: dict,
-        value_processing_function_steps: list = None
+        value_processing_function_steps: Optional[list] = None
 ):
     for record in reader:
         n_record = merge_record_with_metadata(

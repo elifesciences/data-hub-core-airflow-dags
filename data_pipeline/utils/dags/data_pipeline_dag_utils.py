@@ -1,6 +1,7 @@
 import logging
 import json
 from datetime import timedelta
+from typing import Optional
 
 import airflow
 from airflow.operators.python import PythonOperator
@@ -23,7 +24,7 @@ def get_default_args():
 
 
 def create_dag(
-        default_args: dict = None,
+        default_args: Optional[dict] = None,
         catchup: bool = False,
         **kwargs):
     if default_args is None:
