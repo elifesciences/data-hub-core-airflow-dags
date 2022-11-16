@@ -224,6 +224,7 @@ class TestIterListForMatrixConfig:
         iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
     ):
         iter_list_for_matrix_config(MATRIX_WITH_EXCLUDE_CONFIG_1)
+        assert MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.exclude is not None
         iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
             MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.include.bigquery,
             key_field_name='list_key',
