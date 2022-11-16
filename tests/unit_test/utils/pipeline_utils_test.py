@@ -1,4 +1,5 @@
 from datetime import datetime
+from email.message import Message
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
@@ -74,7 +75,7 @@ def _http_error() -> HTTPError:
         url='/test',
         code=404,
         msg='Test',
-        hdrs=tuple(),
+        hdrs=Message(),
         fp=None
     )
 
