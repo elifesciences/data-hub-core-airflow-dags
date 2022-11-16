@@ -47,6 +47,10 @@ class TestData:
     TEST_DATA_SINGLE_S3_CSV_PATTERN_SET = {
         "gcpProjectName": "test_proj",
         "importedTimestampFieldName": "imported_timestamp",
+        "stateFile": {
+            "bucketName": "{ENV}_bucket_name",
+            "objectName": "{ENV}_object_prefix_1"
+        },
         "s3Csv": [S3_CSV_CONFIG_1]
     }
 
