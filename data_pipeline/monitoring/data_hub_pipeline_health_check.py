@@ -60,7 +60,7 @@ def get_out_dated_status(
 
 def send_slack_message(message: str, webhook_url: str):
     LOGGER.info('slack webhook url: %s', webhook_url)
-    response = requests.post(webhook_url, json={
+    response = requests.post(webhook_url, timeout=5, json={
         'text': message
     })
     response.raise_for_status()

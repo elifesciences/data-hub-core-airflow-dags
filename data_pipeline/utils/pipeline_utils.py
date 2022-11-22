@@ -152,7 +152,9 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
     if session:
         response = session.request(method, url, params=params, headers=headers, json=json_data)
     else:
-        response = requests.request(method, url, params=params, headers=headers, json=json_data)
+        response = requests.request(
+            method, url, params=params, headers=headers, json=json_data, timeout=10
+        )
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)
     response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
