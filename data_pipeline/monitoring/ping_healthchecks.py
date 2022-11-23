@@ -15,7 +15,7 @@ def ping():
         HEALTH_CHECK_URL_ENV, DEFAULT_HEALTH_CHECK_URL)
     LOGGER.info('[healthcheck] pinging url: %s', url)
     try:
-        response = requests.post(url)
+        response = requests.post(url, timeout=5)
         LOGGER.info(response.raise_for_status())
     except socket.error as err:
         LOGGER.info("Ping failed: %s", err)

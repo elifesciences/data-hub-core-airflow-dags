@@ -6,7 +6,6 @@ extension-pkg-whitelist=
 disable=
     missing-docstring,
     too-few-public-methods,
-    no-self-use,
     duplicate-code
 
 [IMPORTS]

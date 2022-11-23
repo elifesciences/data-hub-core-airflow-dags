@@ -305,7 +305,8 @@ class TestGetResponseJsonWithProvenanceFromApi:
             API_URL_1,
             params=API_PARAMS_1,
             headers=API_HEADERS_1,
-            json=JSON_DATA_1
+            json=JSON_DATA_1,
+            timeout=10
         )
 
     def test_should_pass_url_params_and_headers_to_session_request_if_provided(
