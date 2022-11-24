@@ -314,7 +314,7 @@ def get_next_start_date(
     )
     if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp
-    elif(
+    elif (
             current_start_timestamp == latest_record_timestamp
             and not next_page_number and not next_offset
     ):
