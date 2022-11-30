@@ -106,9 +106,9 @@ MAINTENANCE_DAG = create_dag(
 )
 
 
-DEFAULT_MAX_DATA_AGE_IN_DAYS = "30"
+DEFAULT_AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS = "30"
 MAX_CLEANUP_DATA_AGE_NAME = (
-    "MAX_CLEANUP_DATA_AGE_IN_DAYS"
+    "AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS"
 )
 
 
@@ -118,7 +118,7 @@ def get_max_data_cleanup_configuration_function(**context):
             MAX_CLEANUP_DATA_AGE_NAME,
             os.getenv(
                 MAX_CLEANUP_DATA_AGE_NAME,
-                DEFAULT_MAX_DATA_AGE_IN_DAYS
+                DEFAULT_AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS
             )
         )
     )
