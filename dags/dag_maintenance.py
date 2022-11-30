@@ -12,7 +12,7 @@ from datetime import timedelta
 import dateutil.parser
 import airflow
 from airflow.models import (
-    DAG, DagRun, TaskInstance, Log, XCom, SlaMiss,
+    DagRun, TaskInstance, Log, XCom, SlaMiss,
     DagModel, Variable
 )
 from airflow.utils import timezone
@@ -22,10 +22,14 @@ from airflow.operators.python import PythonOperator
 from sqlalchemy import func, and_
 from sqlalchemy.orm import load_only
 
+from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
+
 
 DAG_ID = "Airflow_DB_Maintenance"
 START_DATE = airflow.utils.dates.days_ago(1)
-SCHEDULE_INTERVAL = "@weekly"
+DB_MAINTENANCE_SCHEDULE_INTERVAL_ENV_NAME = (
+    "DB_MAINTENANCE_SCHEDULE_INTERVAL"
+)
 # Whether the job should delete the db entries or not. Included if you want to
 # temporarily avoid deleting the db entries.
 ENABLE_DELETE = True
@@ -93,18 +97,18 @@ DEFAULT_ARGS = {
     'retry_delay': timedelta(minutes=1)
 }
 
-maintenance_dag = DAG(
-    DAG_ID,
-    default_args=DEFAULT_ARGS,
-    schedule_interval=SCHEDULE_INTERVAL,
-    start_date=START_DATE,
-    catchup=False
+MAINTENANCE_DAG = create_dag(
+    dag_id=DAG_ID,
+    schedule_interval=os.getenv(
+        DB_MAINTENANCE_SCHEDULE_INTERVAL_ENV_NAME
+    ),
+    dagrun_timeout=timedelta(days=1)
 )
 
 
-DEFAULT_MAX_DATA_AGE_IN_DAYS = "30"
+DEFAULT_AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS = "30"
 MAX_CLEANUP_DATA_AGE_NAME = (
-    "MAX_CLEANUP_DATA_AGE_IN_DAYS"
+    "AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS"
 )
 
 
@@ -114,7 +118,7 @@ def get_max_data_cleanup_configuration_function(**context):
             MAX_CLEANUP_DATA_AGE_NAME,
             os.getenv(
                 MAX_CLEANUP_DATA_AGE_NAME,
-                DEFAULT_MAX_DATA_AGE_IN_DAYS
+                DEFAULT_AIRFLOW_DB_MAINTENANCE_MAX_CLEANUP_DATA_AGE_IN_DAYS
             )
         )
     )
@@ -125,7 +129,7 @@ def get_max_data_cleanup_configuration_function(**context):
 get_configuration = PythonOperator(
     task_id='get_configuration',
     python_callable=get_max_data_cleanup_configuration_function,
-    dag=maintenance_dag
+    dag=MAINTENANCE_DAG
 )
 
 
@@ -182,7 +186,7 @@ for db_object in DATABASE_OBJECTS:
         task_id='cleanup_' + str(db_object["airflow_db_model"].__name__),
         python_callable=cleanup_function,
         params=db_object,
-        dag=maintenance_dag
+        dag=MAINTENANCE_DAG
     )
     # pylint: disable=pointless-statement
     get_configuration >> cleanup_op
