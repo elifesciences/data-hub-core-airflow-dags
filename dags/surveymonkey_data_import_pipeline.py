@@ -22,7 +22,6 @@ from data_pipeline.utils.pipeline_file_io import (
 )
 
 from data_pipeline.utils.data_store.bq_data_service import (
-    get_distinct_values_from_bq,
     load_given_json_list_data_from_tempdir_to_bq
 )
 
