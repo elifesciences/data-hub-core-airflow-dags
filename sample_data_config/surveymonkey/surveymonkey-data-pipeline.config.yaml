@@ -2,7 +2,8 @@ projectName: 'elife-data-pipeline'
 datasetName: '{ENV}'
 surveyMonkeySurveyList:
   table: 'surveymonkey_survey_list'
-  survey_id_column_name: 'id'
+surveyIdListToRequest:
+  - '120828849'  # Reviewer Feedback Opportunity
 surveyMonkeySurveyQuestions:
   table: 'surveymonkey_survey_questions'
 surveyMonkeySurveyAnswers:
