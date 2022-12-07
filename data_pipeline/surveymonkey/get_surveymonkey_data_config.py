@@ -25,6 +25,9 @@ class SurveyMonkeyDataConfig:
         self.survey_id_column_name = (
             self.data_config.get("surveyMonkeySurveyList").get("survey_id_column_name")
         )
+        # survey ids to request
+        self.survey_id_list = self.data_config.get("surveyIdListToRequest")
+
         # survey details
         self.survey_questions_table_name = (
             self.data_config.get("surveyMonkeySurveyQuestions").get("table")

@@ -22,7 +22,6 @@ from data_pipeline.utils.pipeline_file_io import (
 )
 
 from data_pipeline.utils.data_store.bq_data_service import (
-    get_distinct_values_from_bq,
     load_given_json_list_data_from_tempdir_to_bq
 )
 
@@ -95,19 +94,14 @@ def surveymonkey_survey_list_etl(**kwargs):
 
 def surveymonkey_survey_questions_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    survey_id_list = get_distinct_values_from_bq(
-        project_name=data_config.project_name,
-        dataset_name=data_config.dataset_name,
-        table_name_source=data_config.survey_list_table_name,
-        column_name=data_config.survey_id_column_name
-    ).values.tolist()
+    survey_id_list = data_config.survey_id_list
 
     for survey_id in survey_id_list:
-        LOGGER.info("questions for survey_id: %s", str(survey_id[1]))
+        LOGGER.info("questions for survey_id: %s", str(survey_id))
         survey_questions_list = [get_bq_json_for_survey_questions_response_json(
             get_survey_question_details(
                 access_token=get_surveymonkey_access_token(),
-                survey_id=str(survey_id[1])
+                survey_id=str(survey_id)
             )
         )]
         load_given_json_list_data_from_tempdir_to_bq(
@@ -120,15 +114,10 @@ def surveymonkey_survey_questions_etl(**kwargs):
 
 def surveymonkey_survey_answers_etl(**kwargs):
     data_config = data_config_from_xcom(kwargs)
-    survey_id_list_from_df = get_distinct_values_from_bq(
-        project_name=data_config.project_name,
-        dataset_name=data_config.dataset_name,
-        table_name_source=data_config.survey_list_table_name,
-        column_name=data_config.survey_id_column_name
-    ).values.tolist()
+    survey_id_list = data_config.survey_id_list
 
-    for survey_id_list in survey_id_list_from_df:
-        survey_id = str(survey_id_list[1])
+    for survey_id in survey_id_list:
+        survey_id = str(survey_id)
         LOGGER.info("answers for survey_id: %s", survey_id)
         iterable_of_answers_of_one_survey = iter_formated_survey_user_answers(
             access_token=get_surveymonkey_access_token(),
