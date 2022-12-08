@@ -53,7 +53,7 @@ CROSSREF_DAG = create_dag(
     schedule_interval=get_env_var_or_use_default(
         CROSS_REF_IMPORT_SCHEDULE_INTERVAL_ENV_NAME
     ),
-    dagrun_timeout=timedelta(minutes=60)
+    dagrun_timeout=timedelta(days=1)
 )
 
 
