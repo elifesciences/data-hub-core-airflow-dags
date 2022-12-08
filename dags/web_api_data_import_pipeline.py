@@ -26,7 +26,7 @@ DAG_ID = "Generic_Web_Api_Data_Pipeline"
 GENERIC_WEB_API_DATA = create_dag(
     dag_id=DAG_ID,
     schedule_interval=None,
-    dagrun_timeout=timedelta(minutes=60)
+    dagrun_timeout=timedelta(days=1)
 )
 
 
