@@ -27,8 +27,8 @@ def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
     test_download_exception: bool = False
 ):
     with patch.object(
-            etl_crossref_event_data_util_module,
-            "download_s3_object_as_string_or_file_not_found_error"
+        etl_crossref_event_data_util_module,
+        "download_s3_object_as_string_or_file_not_found_error"
     ) as mock:
         mock.return_value = publisher_latest_date_dict
         if test_download_exception:
