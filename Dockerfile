@@ -40,7 +40,7 @@ COPY dags ./dags
 COPY setup.py ./setup.py
 RUN pip install -e . --user --no-dependencies
 
-COPY .flake8 .pylintrc run_test.sh ./
+COPY .flake8 .pylintrc mypy.ini run_test.sh ./
 COPY tests ./tests
 
 RUN mkdir -p $AIRFLOW_HOME/serve
