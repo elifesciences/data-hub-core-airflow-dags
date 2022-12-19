@@ -129,24 +129,26 @@ def test_should_download_crossref_event_data(
 
 
 # pylint: disable=unused-argument
-@pytest.mark.parametrize(
-    "publisher_latest_date, number_of_prv_days, "
-    "data_download_start_date",
-    [
-        ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
-        ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
-    ],
-)
-def test_should_get_last_data_collection_date_from_cloud_storage(
+class TestGetNewDataDownloadStartDateFromCloudStorage:    
+    @pytest.mark.parametrize(
+        "publisher_latest_date, number_of_prv_days, "
+        "data_download_start_date",
+        [
+            ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
+            ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
+        ],
+    )
+    def test_should_get_last_data_collection_date_from_cloud_storage(
+        self,
         mock_download_s3_object,
         number_of_prv_days,
         data_download_start_date,
-):
-    from_date = get_new_data_download_start_date_from_cloud_storage(
-        "bucket", "object_key", number_of_prv_days
-    )
-    mock_download_s3_object.assert_called_with("bucket", "object_key")
-    assert from_date == data_download_start_date
+    ):
+        from_date = get_new_data_download_start_date_from_cloud_storage(
+            "bucket", "object_key", number_of_prv_days
+        )
+        mock_download_s3_object.assert_called_with("bucket", "object_key")
+        assert from_date == data_download_start_date
 
 
 def test_should_convert_bq_schema_field_list_to_dict():
