@@ -1,6 +1,6 @@
 import datetime
 import json
-from unittest.mock import patch
+from unittest.mock import patch,  MagicMock
 
 import pytest
 
@@ -26,7 +26,7 @@ def _download_s3_object(publisher_latest_date,
                         test_download_exception: bool = False):
     with patch.object(
             etl_crossref_event_data_util_module,
-            "download_s3_json_object"
+            "download_s3_object_as_string_or_file_not_found_error"
     ) as mock:
         mock.return_value = publisher_latest_date
         if test_download_exception:
@@ -148,6 +148,21 @@ class TestGetNewDataDownloadStartDateFromCloudStorage:
         )
         mock_download_s3_object.assert_called_with("bucket", "object_key")
         assert from_date == data_download_start_date
+
+    # parameter required because mock_download_s3_object depends on it
+    @pytest.mark.parametrize(
+        "publisher_latest_date",
+        [{"A": "2019-10-23"}],
+    )
+    def test_should_return_empty_dict_if_state_file_not_found(
+        self,
+        mock_download_s3_object: MagicMock
+    ):
+        mock_download_s3_object.side_effect = FileNotFoundError()
+        from_date = get_new_data_download_start_date_from_cloud_storage(
+            "bucket", "object_key", 1
+        )
+        assert from_date == {}
 
 
 def test_should_convert_bq_schema_field_list_to_dict():
