@@ -391,9 +391,27 @@ class TestGenericWebApiDataEtl:
             prev_page_latest_timestamp=ANY
         )
 
-    def test_should_not_fail_with_empty_list_in_response(
+    def test_should_update_state_file(
         self,
-        get_data_single_page_mock: MagicMock
+        get_items_list_mock: MagicMock,
+        process_downloaded_data_mock: MagicMock,
+        upload_latest_timestamp_as_pipeline_state_mock: MagicMock
+    ):
+        timestamp_string = '2020-01-01T01:01:01+00:00'
+        timestamp = datetime.fromisoformat(timestamp_string)
+        data_config = get_data_config(WEB_API_CONFIG)
+        get_items_list_mock.return_value = [{'timestamp': timestamp}]
+        process_downloaded_data_mock.return_value = timestamp
+        generic_web_api_data_etl(data_config)
+        upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
+            data_config,
+            process_downloaded_data_mock.return_value
+        )
+
+    def test_should_not_update_state_with_empty_list_in_response(
+        self,
+        get_data_single_page_mock: MagicMock,
+        upload_latest_timestamp_as_pipeline_state_mock: MagicMock
     ):
         conf_dict: dict = {
             ** WEB_API_CONFIG,
@@ -404,3 +422,4 @@ class TestGenericWebApiDataEtl:
         data_config = get_data_config(conf_dict)
         get_data_single_page_mock.return_value = {'rows': []}
         generic_web_api_data_etl(data_config)
+        upload_latest_timestamp_as_pipeline_state_mock.assert_not_called()

@@ -207,9 +207,13 @@ def generic_web_api_data_etl(
                 break
 
         load_written_data_to_bq(data_config, full_temp_file_location)
-        upload_latest_timestamp_as_pipeline_state(
-            data_config, latest_record_timestamp
-        )
+        if latest_record_timestamp:
+            LOGGER.info('updating state to: %r', latest_record_timestamp)
+            upload_latest_timestamp_as_pipeline_state(
+                data_config, latest_record_timestamp
+            )
+        else:
+            LOGGER.info('not updating state due to no latest record timestamp')
 
 
 def load_written_data_to_bq(
