@@ -142,7 +142,7 @@ def get_environment_variable_value(
         key: str,
         value_converter: Optional[Type] = None,
         required: bool = False,
-        default_value: Optional[str] = None) -> Optional[str]:
+        default_value: Optional[str] = None):
     value = os.getenv(key)
     if not value:
         if required:
