@@ -2,8 +2,8 @@ projectName: 'elife-data-pipeline'
 dataset: '{ENV}'
 table: 'crossref_event'
 stateFile:
-  bucket: '{ENV}-elife-data-pipeline'
-  objectName: 'airflow-config/crossref-event/{ENV}-date-state.json'
+  bucket: 'ci-elife-data-pipeline'
+  objectName: 'by-env/{ENV}/airflow-config/crossref-event/{ENV}-date-state.json'
 # schema for the resulting transformed crossref event data which is loaded to bigquery
 # note that this is not just used to create the bigquery table alone, but it is also used to filter the some
 # fields out of the input crossref event data
@@ -12,7 +12,7 @@ stateFile:
 # the standardization assumed is that any non-conforming character is replaced with underscore
 schemaFile:
   url:
-  bucket: '{ENV}-elife-data-pipeline'
+  bucket: 'ci-elife-data-pipeline'
   objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
 # the list doi prefixes of the diferent journal that needs to be extracted and loaded int
 # the bigquery data warehouse
