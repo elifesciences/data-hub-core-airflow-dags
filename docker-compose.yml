@@ -17,7 +17,8 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
     - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
-    - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=5
+    - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
+    - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
     - AIRFLOW__WEBSERVER__SECRET_KEY='WmZHRmJwd1dCUEp6Xl4zVA=='
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
