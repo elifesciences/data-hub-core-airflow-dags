@@ -13,7 +13,7 @@ stateFile:
 schemaFile:
   url:
   bucket: 'ci-elife-data-pipeline'
-  objectName: 'airflow-config/crossref-event/data-schema/crossref-event-schema.json'
+  objectName: 'by-env/{ENV}/airflow-config/crossref-event/data-schema/crossref-event-schema.json'
 # the list doi prefixes of the diferent journal that needs to be extracted and loaded int
 # the bigquery data warehouse
 publisherIdPrefixes:
