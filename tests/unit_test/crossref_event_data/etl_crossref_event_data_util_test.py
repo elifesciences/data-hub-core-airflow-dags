@@ -1,6 +1,6 @@
 import datetime
 import json
-from unittest.mock import patch
+from unittest.mock import patch,  MagicMock
 
 import pytest
 
@@ -21,19 +21,15 @@ from data_pipeline.utils.pipeline_file_io import (
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
 
-@pytest.fixture(name="mock_download_s3_object")
-def _download_s3_object(publisher_latest_date,
-                        test_download_exception: bool = False):
+@pytest.fixture(name="download_s3_object_as_string_or_file_not_found_error_mock")
+def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
+    publisher_latest_date_dict: dict
+):
     with patch.object(
-            etl_crossref_event_data_util_module,
-            "download_s3_json_object"
+        etl_crossref_event_data_util_module,
+        "download_s3_object_as_string_or_file_not_found_error"
     ) as mock:
-        mock.return_value = publisher_latest_date
-        if test_download_exception:
-            mock.side_effect = BaseException
-            mock.return_value = (
-                etl_crossref_event_data_util_module.
-                EtlModuleConstant.DEFAULT_DATA_COLLECTION_START_DATE)
+        mock.return_value = publisher_latest_date_dict
         yield mock
 
 
@@ -128,25 +124,45 @@ def test_should_download_crossref_event_data(
     )
 
 
-# pylint: disable=unused-argument
-@pytest.mark.parametrize(
-    "publisher_latest_date, number_of_prv_days, "
-    "data_download_start_date",
-    [
-        ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
-        ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
-    ],
-)
-def test_should_get_last_data_collection_date_from_cloud_storage(
-        mock_download_s3_object,
-        number_of_prv_days,
-        data_download_start_date,
-):
-    from_date = get_new_data_download_start_date_from_cloud_storage(
-        "bucket", "object_key", number_of_prv_days
+class TestGetNewDataDownloadStartDateFromCloudStorage:
+    @pytest.mark.parametrize(
+        "publisher_latest_date_dict, number_of_prv_days, "
+        "data_download_start_date_dict",
+        [
+            ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
+            ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
+        ],
     )
-    mock_download_s3_object.assert_called_with("bucket", "object_key")
-    assert from_date == data_download_start_date
+    def test_should_get_last_data_collection_date_from_cloud_storage(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        number_of_prv_days: int,
+        data_download_start_date_dict: dict,
+    ):
+        from_date = get_new_data_download_start_date_from_cloud_storage(
+            "bucket", "object_key", number_of_prv_days
+        )
+        (
+            download_s3_object_as_string_or_file_not_found_error_mock
+            .assert_called_with("bucket", "object_key")
+        )
+        assert from_date == data_download_start_date_dict
+
+    # parameter required because
+    # download_s3_object_as_string_or_file_not_found_error_mock depends on it
+    @pytest.mark.parametrize(
+        "publisher_latest_date_dict",
+        [{"A": "2019-10-23"}],
+    )
+    def test_should_return_empty_dict_if_state_file_not_found(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError()
+        from_date = get_new_data_download_start_date_from_cloud_storage(
+            "bucket", "object_key", 1
+        )
+        assert from_date == {}
 
 
 def test_should_convert_bq_schema_field_list_to_dict():
