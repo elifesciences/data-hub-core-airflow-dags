@@ -21,9 +21,11 @@ from data_pipeline.utils.pipeline_file_io import (
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
 
-@pytest.fixture(name="mock_download_s3_object")
-def _download_s3_object(publisher_latest_date,
-                        test_download_exception: bool = False):
+@pytest.fixture(name="download_s3_object_as_string_or_file_not_found_error_mock")
+def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
+    publisher_latest_date,
+    test_download_exception: bool = False
+):
     with patch.object(
             etl_crossref_event_data_util_module,
             "download_s3_object_as_string_or_file_not_found_error"
@@ -139,26 +141,30 @@ class TestGetNewDataDownloadStartDateFromCloudStorage:
     )
     def test_should_get_last_data_collection_date_from_cloud_storage(
         self,
-        mock_download_s3_object,
+        download_s3_object_as_string_or_file_not_found_error_mock,
         number_of_prv_days,
         data_download_start_date,
     ):
         from_date = get_new_data_download_start_date_from_cloud_storage(
             "bucket", "object_key", number_of_prv_days
         )
-        mock_download_s3_object.assert_called_with("bucket", "object_key")
+        (
+            download_s3_object_as_string_or_file_not_found_error_mock
+            .assert_called_with("bucket", "object_key")
+        )
         assert from_date == data_download_start_date
 
-    # parameter required because mock_download_s3_object depends on it
+    # parameter required because
+    # download_s3_object_as_string_or_file_not_found_error_mock depends on it
     @pytest.mark.parametrize(
         "publisher_latest_date",
         [{"A": "2019-10-23"}],
     )
     def test_should_return_empty_dict_if_state_file_not_found(
         self,
-        mock_download_s3_object: MagicMock
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
     ):
-        mock_download_s3_object.side_effect = FileNotFoundError()
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError()
         from_date = get_new_data_download_start_date_from_cloud_storage(
             "bucket", "object_key", 1
         )
