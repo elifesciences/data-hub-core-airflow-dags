@@ -129,7 +129,7 @@ def test_should_download_crossref_event_data(
 
 
 # pylint: disable=unused-argument
-class TestGetNewDataDownloadStartDateFromCloudStorage:    
+class TestGetNewDataDownloadStartDateFromCloudStorage:
     @pytest.mark.parametrize(
         "publisher_latest_date, number_of_prv_days, "
         "data_download_start_date",
