@@ -178,7 +178,7 @@ def get_search_context_for_start_date_str(
 
 def load_state_from_s3_for_config(
     state_config: EuropePmcStateConfig
-) -> str:
+):
     try:
         return download_s3_object_as_string_or_file_not_found_error(
             bucket=state_config.state_file.bucket_name,
