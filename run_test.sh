@@ -25,6 +25,9 @@ PYLINTHOME=/tmp/datahub-dags-pylint \
 echo "running flake8"
 flake8 tests/ data_pipeline/ dags/
 
+echo "running mypy"
+mypy tests/ data_pipeline/ dags/
+
 
 if [[ $1  &&  $1 == "with-end-to-end" ]]; then
     echo "running end to end tests"
