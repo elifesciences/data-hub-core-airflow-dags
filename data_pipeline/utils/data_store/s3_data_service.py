@@ -33,7 +33,7 @@ def download_s3_json_object(bucket: str, object_key: str) -> dict:
 
 def download_s3_object_as_string(
         bucket: str, object_key: str
-) -> str:
+) -> dict:
     with s3_open_binary_read(
             bucket=bucket, object_key=object_key
     ) as streaming_body:
@@ -43,7 +43,7 @@ def download_s3_object_as_string(
 
 def download_s3_object_as_string_or_file_not_found_error(
     bucket: str, object_key: str
-) -> str:
+) -> dict:
     try:
         return download_s3_object_as_string(bucket, object_key)
     except ClientError as ex:
