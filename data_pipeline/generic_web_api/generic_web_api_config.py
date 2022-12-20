@@ -176,8 +176,8 @@ class WebApiConfig:
             page_size=self.page_size,
             compose_able_url_key_val=composeable_static_parameters,
             sort_key=result_sort_param,
-            sort_key_val=result_sort_param_value,
-            **type_specific_param
+            sort_key_value=result_sort_param_value,
+            type_specific_params=type_specific_param
         )
         self.start_till_end_date_diff_in_days = (
             start_to_end_date_diff_in_days
