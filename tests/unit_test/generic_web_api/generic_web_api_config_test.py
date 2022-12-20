@@ -50,17 +50,17 @@ class TestMultiWebApiConfig:
 
 class TestWebApiConfig:
     def test_should_parse_dataset_and_table(self):
-        web_api_config = WebApiConfig(MINIMAL_WEB_API_CONFIG_DICT)
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
         assert web_api_config.dataset_name == DATASET_1
         assert web_api_config.table_name == TABLE_1
 
     def test_should_set_headers_field_to_empty_dict_if_headers_not_defined(self):
-        web_api_config = WebApiConfig(MINIMAL_WEB_API_CONFIG_DICT)
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
         assert web_api_config.headers.mapping == {}
 
     def test_should_read_api_headers(self):
         headers = {'key1': 'value1'}
-        web_api_config = WebApiConfig({
+        web_api_config = WebApiConfig.from_dict({
             **MINIMAL_WEB_API_CONFIG_DICT,
             'headers': headers
         })

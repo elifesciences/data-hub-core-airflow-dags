@@ -92,7 +92,7 @@ def get_data_config(
 ):
     if conf_dict is None:
         conf_dict = WEB_API_CONFIG
-    data_config = WebApiConfig(
+    data_config = WebApiConfig.from_dict(
         conf_dict, '',
         deployment_env=dep_env
     )

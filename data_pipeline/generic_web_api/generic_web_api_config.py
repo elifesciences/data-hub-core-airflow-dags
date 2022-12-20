@@ -1,10 +1,13 @@
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, Sequence
+
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
     compose_url_param_from_param_vals_filepath_in_env_var,
-    get_url_builder_class
+    get_url_builder_class,
+    DynamicURLBuilder
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
@@ -49,9 +52,31 @@ class MultiWebApiConfig:
         }
 
 
+@dataclass(frozen=True)
 class WebApiConfig:
-    def __init__(
-            self,
+    config_as_dict: dict
+    import_timestamp_field_name: str
+    dataset_name: str
+    table_name: str
+    table_write_disposition: str
+    headers: MappingConfig
+    url_builder: DynamicURLBuilder
+    gcp_project: str
+    schema_file_s3_bucket: Optional[str] = None
+    schema_file_object_name: Optional[str] = None
+    state_file_bucket_name: Optional[str] = None
+    state_file_object_name: Optional[str] = None
+    default_start_date: Optional[str] = None
+    start_to_end_date_diff_in_days: Optional[int] = None
+    page_size: Optional[int] = None
+    items_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    total_item_count_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
+    authentication: Optional[WebApiAuthentication] = None
+
+    @staticmethod
+    def from_dict(
             web_api_config: dict,
             gcp_project: Optional[str] = None,
             imported_timestamp_field_name: Optional[str] = None,
@@ -62,53 +87,14 @@ class WebApiConfig:
             web_api_config, deployment_env,
             deployment_env_placeholder
         ) if deployment_env else web_api_config
-        self.config_as_dict = api_config
-        self.gcp_project = (
-            gcp_project or
-            api_config.get("gcpProjectName")
-        )
-        self.import_timestamp_field_name = (
-            api_config.get(
-                "importedTimestampFieldName",
-                imported_timestamp_field_name
-            )
-        )
-        self.dataset_name = api_config.get(
-            "dataset", ""
-        )
-        self.table_name = api_config.get(
-            "table", ""
-        )
-        self.table_write_disposition = (
-            WriteDisposition.WRITE_APPEND
-            if api_config.get("tableWriteAppend", True)
-            else WriteDisposition.WRITE_TRUNCATE
-        )
 
-        self.schema_file_s3_bucket = (
-            api_config.get("schemaFile", {}).get("bucketName")
-        )
-        self.schema_file_object_name = api_config.get(
-            "schemaFile", {}
-        ).get("objectName")
-        self.state_file_bucket_name = api_config.get(
-            "stateFile", {}).get("bucketName")
-        self.state_file_object_name = api_config.get(
-            "stateFile", {}).get("objectName")
         url_excluding_configurable_parameters = api_config.get(
             "dataUrl"
         ).get("urlExcludingConfigurableParameters")
         configurable_parameters = api_config.get(
             "dataUrl"
         ).get("configurableParameters", {})
-        self.headers = MappingConfig.from_dict(api_config.get('headers', {}))
-        self.default_start_date = configurable_parameters.get(
-            "defaultStartDate", None)
-        start_to_end_date_diff_in_days = (
-            configurable_parameters.get(
-                "daysDiffFromStartTillEnd", None
-            )
-        )
+
         page_number_param = configurable_parameters.get(
             "pageParameterName", None
         )
@@ -138,11 +124,6 @@ class WebApiConfig:
                 )),
             }
         )
-        self.default_start_date = configurable_parameters.get(
-            "defaultStartDate", None)
-        self.page_size = configurable_parameters.get(
-            "defaultPageSize", None
-        )
         from_date_param = configurable_parameters.get(
             "fromDateParameterName", None)
         to_date_param = configurable_parameters.get(
@@ -164,7 +145,12 @@ class WebApiConfig:
                 'name', ''
             )
         )
-        self.url_builder = url_builder_class(
+
+        page_size = (
+            configurable_parameters.get("defaultPageSize", None)
+        )
+
+        url_builder = url_builder_class(
             url_excluding_configurable_parameters=url_excluding_configurable_parameters,
             from_date_param=from_date_param,
             to_date_param=to_date_param,
@@ -173,41 +159,75 @@ class WebApiConfig:
             page_number_param=page_number_param,
             offset_param=offset_param,
             page_size_param=page_size_param,
-            page_size=self.page_size,
+            page_size=page_size,
             compose_able_url_key_val=composeable_static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
             type_specific_params=type_specific_param
         )
-        self.start_till_end_date_diff_in_days = (
-            start_to_end_date_diff_in_days
-        )
-        self.items_key_path_from_response_root = (
-            api_config.get("response", {}).get(
-                "itemsKeyFromResponseRoot", [])
-        )
-        self.total_item_count_key_path_from_response_root = (
-            api_config.get("response", {}).get(
-                "totalItemsCountKeyFromResponseRoot", [])
-        )
 
-        self.next_page_cursor_key_path_from_response_root = (
-            api_config.get("response", {}).get(
-                "nextPageCursorKeyFromResponseRoot", [])
-        )
-
-        self.item_timestamp_key_path_from_item_root = (
-            api_config.get("response", {}).get(
-                "recordTimestamp", {}).get(
-                    "itemTimestampKeyFromItemRoot", []
-                )
-        )
         auth_type = api_config.get("authentication", {}).get(
             "auth_type", None
         )
         auth_conf_list = api_config.get("authentication", {}).get(
             "orderedAuthenticationParamValues", []
         )
-        self.authentication = WebApiAuthentication(
+        authentication = WebApiAuthentication(
             auth_type, auth_conf_list
         ) if auth_type and auth_conf_list else None
+
+        return WebApiConfig(
+            config_as_dict=api_config,
+            gcp_project=(
+                gcp_project or
+                api_config.get("gcpProjectName")
+            ),
+            import_timestamp_field_name=(
+                api_config.get(
+                    "importedTimestampFieldName",
+                    imported_timestamp_field_name
+                )
+            ),
+            dataset_name=api_config.get("dataset", ""),
+            table_name=api_config.get("table", ""),
+            table_write_disposition=(
+                WriteDisposition.WRITE_APPEND
+                if api_config.get("tableWriteAppend", True)
+                else WriteDisposition.WRITE_TRUNCATE
+            ),
+            schema_file_s3_bucket=(
+                api_config.get("schemaFile", {}).get("bucketName")
+            ),
+            schema_file_object_name=(
+                api_config.get("schemaFile", {}).get("objectName")
+            ),
+            state_file_bucket_name=(
+                api_config.get("stateFile", {}).get("bucketName")
+            ),
+            state_file_object_name=(
+                api_config.get("stateFile", {}).get("objectName")
+            ),
+            headers=MappingConfig.from_dict(api_config.get('headers', {})),
+            default_start_date=(
+                configurable_parameters.get("defaultStartDate", None)
+            ),
+            page_size=page_size,
+            url_builder=url_builder,
+            start_to_end_date_diff_in_days=(
+                configurable_parameters.get("daysDiffFromStartTillEnd", None)
+            ),
+            items_key_path_from_response_root=(
+                api_config.get("response", {}).get("itemsKeyFromResponseRoot", [])
+            ),
+            total_item_count_key_path_from_response_root=(
+                api_config.get("response", {}).get("totalItemsCountKeyFromResponseRoot", [])
+            ),
+            next_page_cursor_key_path_from_response_root=(
+                api_config.get("response", {}).get("nextPageCursorKeyFromResponseRoot", [])
+            ),
+            item_timestamp_key_path_from_item_root=(
+                api_config.get("response", {}).get("recordTimestamp", {})
+                .get("itemTimestampKeyFromItemRoot", [])
+            ),
+            authentication=authentication
+        )
