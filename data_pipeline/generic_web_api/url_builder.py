@@ -1,13 +1,18 @@
+import logging
 import os
 import json
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import NamedTuple, Optional
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.pipeline_config import (
     get_resolved_parameter_values_from_file_path_env_name
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def compose_url_param_from_parameter_values_in_env_var(
@@ -27,58 +32,31 @@ def compose_url_param_from_param_vals_filepath_in_env_var(
     )
 
 
-class UrlComposeParam:
-    # pylint: disable=too-many-arguments
-    def __init__(
-            self,
-            from_date: Optional[datetime] = None,
-            to_date: Optional[datetime] = None,
-            page_number: Optional[int] = None,
-            cursor: Optional[str] = None,
-            page_size: Optional[int] = None,
-            page_offset: Optional[int] = None
-    ):
-        self.from_date = from_date
-        self.to_date = to_date
-        self.page_number = page_number
-        self.cursor = cursor
-        self.page_size = page_size
-        self.page_offset = page_offset
+class UrlComposeParam(NamedTuple):
+    from_date: Optional[datetime] = None
+    to_date: Optional[datetime] = None
+    page_number: Optional[int] = None
+    cursor: Optional[str] = None
+    page_size: Optional[int] = None
+    page_offset: Optional[int] = None
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
+@dataclass(frozen=True)
 class DynamicURLBuilder:
-    def __init__(
-            self,
-            url_excluding_configurable_parameters: str,
-            compose_able_url_key_val: dict,
-            from_date_param: Optional[str] = None,
-            to_date_param: Optional[str] = None,
-            date_format: Optional[str] = None,
-            next_page_cursor: Optional[str] = None,
-            page_number_param: Optional[str] = None,
-            offset_param: Optional[str] = None,
-            page_size_param: Optional[str] = None,
-            page_size: Optional[int] = None,
-            sort_key: Optional[str] = None,
-            sort_key_val: Optional[str] = None,
-            **kwargs
-    ):
-        self.url_excluding_configurable_parameters = (
-            url_excluding_configurable_parameters
-        )
-        self.from_date_param = from_date_param
-        self.to_date_param = to_date_param
-        self.date_format = date_format
-        self.next_page_cursor = next_page_cursor
-        self.page_number_param = page_number_param
-        self.offset_param = offset_param
-        self.page_size_param = page_size_param
-        self.page_size = page_size
-        self.compose_able_url_key_val = compose_able_url_key_val
-        self.sort_key = sort_key
-        self.sort_key_value = sort_key_val
-        self.type_specific_params = kwargs
+    url_excluding_configurable_parameters: str
+    compose_able_url_key_val: dict
+    from_date_param: Optional[str] = None
+    to_date_param: Optional[str] = None
+    date_format: Optional[str] = None
+    next_page_cursor: Optional[str] = None
+    page_number_param: Optional[str] = None
+    offset_param: Optional[str] = None
+    page_size_param: Optional[str] = None
+    page_size: Optional[int] = None
+    sort_key: Optional[str] = None
+    sort_key_value: Optional[str] = None
+    type_specific_params: Optional[dict] = None
 
     def _get_url_separator(self):
         url = self.url_excluding_configurable_parameters

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Iterable, List, Optional
+from typing import Iterable, Optional, Sequence
 import dateparser
 
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
@@ -22,7 +22,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
 
 
 def get_dict_values_from_path_as_list(
-        page_data, path_keys: List[str]
+        page_data, path_keys: Sequence[str]
 ):
     data_value = page_data
     for list_element in path_keys:

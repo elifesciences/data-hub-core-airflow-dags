@@ -123,6 +123,7 @@ def generic_web_api_data_etl(
         from_date: Optional[datetime] = None,
         until_date: Optional[datetime] = None,
 ):
+    LOGGER.info('data_config: %r', data_config)
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
@@ -239,17 +240,21 @@ def load_written_data_to_bq(
         )
 
 
-def get_next_until_date(from_date: datetime, data_config, fixed_until_date):
+def get_next_until_date(
+    from_date: datetime,
+    data_config: WebApiConfig,
+    fixed_until_date
+):
     until_date = None
     if fixed_until_date:
         until_date = fixed_until_date
     elif (
             from_date
-            and data_config.start_till_end_date_diff_in_days
+            and data_config.start_to_end_date_diff_in_days
     ):
         until_date = (
             from_date +
-            timedelta(days=data_config.start_till_end_date_diff_in_days)
+            timedelta(days=data_config.start_to_end_date_diff_in_days)
         )
 
     return until_date

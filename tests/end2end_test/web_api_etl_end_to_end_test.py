@@ -49,7 +49,7 @@ def get_etl_pipeline_cloud_resource():
     single_web_api_config_dict = list(
         multi_data_config.web_api_config.values()
     )[0]
-    single_web_api_config = WebApiConfig(
+    single_web_api_config = WebApiConfig.from_dict(
         web_api_config=single_web_api_config_dict,
         deployment_env=dep_env
     )
