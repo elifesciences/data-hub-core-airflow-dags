@@ -228,11 +228,11 @@ def generic_web_api_data_etl(
     data_config: WebApiConfig,
     end_timestamp: Optional[datetime] = None
 ):
-    if not end_timestamp:
-        end_timestamp = get_current_timestamp()
-    LOGGER.info('end_timestamp (if used): %r', end_timestamp)
     stored_state = get_stored_state(data_config)
     current_from_timestamp = stored_state
+    if not end_timestamp and current_from_timestamp:
+        end_timestamp = get_current_timestamp()
+    LOGGER.info('end_timestamp: %r', end_timestamp)
     while True:
         next_from_timestamp = get_next_batch_from_timestamp_for_config(
             data_config=data_config,
