@@ -424,7 +424,7 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_not_called()
 
-    def test_should_pass_until_date_to_get_data_single_page(
+    def test_should_retrieve_data_in_date_range_batches(
         self,
         get_stored_state_mock: MagicMock,
         get_data_single_page_mock: MagicMock
