@@ -243,7 +243,11 @@ def generic_web_api_data_etl(
             initial_from_date=current_from_timestamp,
             until_date=next_from_timestamp
         )
-        if not next_from_timestamp or next_from_timestamp >= end_timestamp:
+        if (
+            not next_from_timestamp
+            or not end_timestamp
+            or next_from_timestamp >= end_timestamp
+        ):
             LOGGER.debug(
                 'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
                 current_from_timestamp, next_from_timestamp
