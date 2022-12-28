@@ -461,3 +461,20 @@ class TestGenericWebApiDataEtl:
             for call_args in get_data_single_page_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
+
+    def test_should_pass_none_from_and_until_dates_if_not_configured(
+        self,
+        get_stored_state_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        expected_from_and_until_date_list = [(None, None)]
+        data_config = get_data_config(WEB_API_CONFIG)
+        get_stored_state_mock.return_value = None
+        item_list = [{'key': 'value'}]
+        get_data_single_page_mock.return_value = item_list
+        generic_web_api_data_etl(data_config)
+        actual_from_and_until_date_list = [
+            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            for call_args in get_data_single_page_mock.call_args_list
+        ]
+        assert actual_from_and_until_date_list == expected_from_and_until_date_list
