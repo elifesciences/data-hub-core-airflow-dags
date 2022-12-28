@@ -42,7 +42,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
 LOGGER = logging.getLogger(__name__)
 
 
-def get_stored_state(
+def get_start_timestamp_from_state_file_or_optional_default_value(
         data_config: WebApiConfig,
 ):
     try:
@@ -228,7 +228,7 @@ def generic_web_api_data_etl(
     data_config: WebApiConfig,
     end_timestamp: Optional[datetime] = None
 ):
-    stored_state = get_stored_state(data_config)
+    stored_state = get_start_timestamp_from_state_file_or_optional_default_value(data_config)
     current_from_timestamp = stored_state
     if not end_timestamp and current_from_timestamp:
         end_timestamp = get_current_timestamp()

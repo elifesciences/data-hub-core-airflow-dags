@@ -33,10 +33,14 @@ def _process_downloaded_data_mock():
         yield mock
 
 
-@pytest.fixture(name='get_stored_state_mock', autouse=True)
-def _get_stored_state_mock():
+@pytest.fixture(
+    name='get_start_timestamp_from_state_file_or_optional_default_value_mock',
+    autouse=True
+)
+def _get_start_timestamp_from_state_file_or_optional_default_value_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'get_stored_state'
+        generic_web_api_data_etl_module,
+        'get_start_timestamp_from_state_file_or_optional_default_value'
     ) as mock:
         yield mock
 
@@ -426,7 +430,7 @@ class TestGenericWebApiDataEtl:
 
     def test_should_retrieve_data_in_date_range_batches(
         self,
-        get_stored_state_mock: MagicMock,
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
         timestamp_string_1 = '2020-01-01+00:00'
@@ -452,7 +456,9 @@ class TestGenericWebApiDataEtl:
                 default_start_date=timestamp_string_1
             )
         )
-        get_stored_state_mock.return_value = initial_timestamp
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = (
+            initial_timestamp
+        )
         item_list = [{'timestamp': timestamp_string_2}]
         get_data_single_page_mock.return_value = item_list
         generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
@@ -464,12 +470,12 @@ class TestGenericWebApiDataEtl:
 
     def test_should_pass_none_from_and_until_dates_if_not_configured(
         self,
-        get_stored_state_mock: MagicMock,
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
         expected_from_and_until_date_list = [(None, None)]
         data_config = get_data_config(WEB_API_CONFIG)
-        get_stored_state_mock.return_value = None
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = None
         item_list = [{'key': 'value'}]
         get_data_single_page_mock.return_value = item_list
         generic_web_api_data_etl(data_config)
