@@ -429,11 +429,11 @@ class TestGenericWebApiDataEtl:
         get_stored_state_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
-        timestamp_string_1 = '2020-01-01'
-        timestamp_string_2 = '2020-01-02'
+        timestamp_string_1 = '2020-01-01+00:00'
+        timestamp_string_2 = '2020-01-02+00:00'
         initial_timestamp = datetime.fromisoformat(timestamp_string_1)
         batch_size_in_days = 10
-        end_timestamp = datetime.fromisoformat('2020-01-20')
+        end_timestamp = datetime.fromisoformat('2020-01-20+00:00')
         expected_from_and_until_date_list = [
             (
                 initial_timestamp,

@@ -232,13 +232,14 @@ def generic_web_api_data_etl(
     stored_state = get_stored_state(data_config)
     current_from_timestamp = stored_state
     while True:
-        process_web_api_data_etl_batch(
-            data_config=data_config,
-            initial_from_date=current_from_timestamp
-        )
         next_from_timestamp = get_next_batch_from_timestamp_for_config(
             data_config=data_config,
             current_from_timestamp=current_from_timestamp
+        )
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=current_from_timestamp,
+            until_date=next_from_timestamp
         )
         if not next_from_timestamp or next_from_timestamp >= end_timestamp:
             LOGGER.debug(
