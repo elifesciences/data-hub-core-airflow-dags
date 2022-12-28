@@ -431,43 +431,33 @@ class TestGenericWebApiDataEtl:
     ):
         timestamp_string_1 = '2020-01-01'
         timestamp_string_2 = '2020-01-02'
+        initial_timestamp = datetime.fromisoformat(timestamp_string_1)
+        batch_size_in_days = 10
+        end_timestamp = datetime.fromisoformat('2020-01-20')
+        expected_from_and_until_date_list = [
+            (
+                initial_timestamp,
+                initial_timestamp + timedelta(days=batch_size_in_days)
+            ),
+            (
+                initial_timestamp + timedelta(days=batch_size_in_days),
+                initial_timestamp + timedelta(days=2 * batch_size_in_days)
+            )
+        ]
         data_config = (
             get_data_config(WEB_API_CONFIG)
             ._replace(
                 item_timestamp_key_path_from_item_root=['timestamp'],
-                start_to_end_date_diff_in_days=10,
+                start_to_end_date_diff_in_days=batch_size_in_days,
                 default_start_date=timestamp_string_1
             )
         )
-        get_stored_state_mock.return_value = datetime.fromisoformat(
-            data_config.default_start_date
-        )
+        get_stored_state_mock.return_value = initial_timestamp
         item_list = [{'timestamp': timestamp_string_2}]
         get_data_single_page_mock.return_value = item_list
-        generic_web_api_data_etl(data_config, end_timestamp=datetime.fromisoformat('2020-01-20'))
-        assert get_data_single_page_mock.call_count > 1
-        assert (
-            get_data_single_page_mock.call_args_list[0].kwargs['from_date']
-            == datetime.fromisoformat(timestamp_string_1)
-        )
-        assert (
-            get_data_single_page_mock.call_args_list[0].kwargs['until_date']
-            == (
-                datetime.fromisoformat(timestamp_string_1)
-                + timedelta(days=data_config.start_to_end_date_diff_in_days)
-            )
-        )
-        assert (
-            get_data_single_page_mock.call_args_list[1].kwargs['from_date']
-            == (
-                datetime.fromisoformat(timestamp_string_1)
-                + timedelta(days=data_config.start_to_end_date_diff_in_days)
-            )
-        )
-        assert (
-            get_data_single_page_mock.call_args_list[1].kwargs['until_date']
-            == (
-                datetime.fromisoformat(timestamp_string_1)
-                + timedelta(days=2 * data_config.start_to_end_date_diff_in_days)
-            )
-        )
+        generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
+        actual_from_and_until_date_list = [
+            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            for call_args in get_data_single_page_mock.call_args_list
+        ]
+        assert actual_from_and_until_date_list == expected_from_and_until_date_list
