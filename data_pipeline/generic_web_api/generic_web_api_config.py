@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Optional, Sequence
 
 from google.cloud.bigquery import WriteDisposition
@@ -231,3 +231,7 @@ class WebApiConfig:
             ),
             authentication=authentication
         )
+
+    def _replace(self, **kwargs) -> 'WebApiConfig':
+        # Similar method to namedtuple._replace
+        return replace(self, **kwargs)

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -33,10 +33,14 @@ def _process_downloaded_data_mock():
         yield mock
 
 
-@pytest.fixture(name='get_stored_state_mock', autouse=True)
-def _get_stored_state_mock():
+@pytest.fixture(
+    name='get_start_timestamp_from_state_file_or_optional_default_value_mock',
+    autouse=True
+)
+def _get_start_timestamp_from_state_file_or_optional_default_value_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'get_stored_state'
+        generic_web_api_data_etl_module,
+        'get_start_timestamp_from_state_file_or_optional_default_value'
     ) as mock:
         yield mock
 
@@ -423,3 +427,60 @@ class TestGenericWebApiDataEtl:
         get_data_single_page_mock.return_value = {'rows': []}
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_not_called()
+
+    def test_should_retrieve_data_in_date_range_batches(
+        self,
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        timestamp_string_1 = '2020-01-01+00:00'
+        timestamp_string_2 = '2020-01-02+00:00'
+        initial_timestamp = datetime.fromisoformat(timestamp_string_1)
+        batch_size_in_days = 10
+        end_timestamp = datetime.fromisoformat('2020-01-20+00:00')
+        expected_from_and_until_date_list = [
+            (
+                initial_timestamp,
+                initial_timestamp + timedelta(days=batch_size_in_days)
+            ),
+            (
+                initial_timestamp + timedelta(days=batch_size_in_days),
+                initial_timestamp + timedelta(days=2 * batch_size_in_days)
+            )
+        ]
+        data_config = (
+            get_data_config(WEB_API_CONFIG)
+            ._replace(
+                item_timestamp_key_path_from_item_root=['timestamp'],
+                start_to_end_date_diff_in_days=batch_size_in_days,
+                default_start_date=timestamp_string_1
+            )
+        )
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = (
+            initial_timestamp
+        )
+        item_list = [{'timestamp': timestamp_string_2}]
+        get_data_single_page_mock.return_value = item_list
+        generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
+        actual_from_and_until_date_list = [
+            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            for call_args in get_data_single_page_mock.call_args_list
+        ]
+        assert actual_from_and_until_date_list == expected_from_and_until_date_list
+
+    def test_should_pass_none_from_and_until_dates_if_not_configured(
+        self,
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        expected_from_and_until_date_list = [(None, None)]
+        data_config = get_data_config(WEB_API_CONFIG)
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = None
+        item_list = [{'key': 'value'}]
+        get_data_single_page_mock.return_value = item_list
+        generic_web_api_data_etl(data_config)
+        actual_from_and_until_date_list = [
+            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            for call_args in get_data_single_page_mock.call_args_list
+        ]
+        assert actual_from_and_until_date_list == expected_from_and_until_date_list

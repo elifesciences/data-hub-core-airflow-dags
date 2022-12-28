@@ -9,11 +9,14 @@ import dateparser
 import pytz
 
 
+def get_current_timestamp() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 def get_current_timestamp_as_string(
         time_format: str = "%Y-%m-%dT%H:%M:%SZ"
 ):
-    dtobj = datetime.now(timezone.utc)
-    return dtobj.strftime(time_format)
+    return get_current_timestamp().strftime(time_format)
 
 
 def datetime_to_string(
