@@ -124,7 +124,6 @@ def process_web_api_data_etl_batch(
         initial_from_date: Optional[datetime] = None,
         until_date: Optional[datetime] = None,
 ):
-    LOGGER.info('data_config: %r', data_config)
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
@@ -228,6 +227,7 @@ def generic_web_api_data_etl(
     data_config: WebApiConfig,
     end_timestamp: Optional[datetime] = None
 ):
+    LOGGER.info('data_config: %r', data_config)
     stored_state = get_start_timestamp_from_state_file_or_optional_default_value(data_config)
     current_from_timestamp = stored_state
     if not end_timestamp and current_from_timestamp:
