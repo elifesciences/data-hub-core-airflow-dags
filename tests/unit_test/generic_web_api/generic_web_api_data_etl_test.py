@@ -444,12 +444,30 @@ class TestGenericWebApiDataEtl:
         )
         item_list = [{'timestamp': timestamp_string_2}]
         get_data_single_page_mock.return_value = item_list
-        generic_web_api_data_etl(data_config)
-        get_data_single_page_mock.assert_called()
+        generic_web_api_data_etl(data_config, end_timestamp=datetime.fromisoformat('2020-01-20'))
+        assert get_data_single_page_mock.call_count > 1
+        assert (
+            get_data_single_page_mock.call_args_list[0].kwargs['from_date']
+            == datetime.fromisoformat(timestamp_string_1)
+        )
         assert (
             get_data_single_page_mock.call_args_list[0].kwargs['until_date']
             == (
                 datetime.fromisoformat(timestamp_string_1)
                 + timedelta(days=data_config.start_to_end_date_diff_in_days)
+            )
+        )
+        assert (
+            get_data_single_page_mock.call_args_list[1].kwargs['from_date']
+            == (
+                datetime.fromisoformat(timestamp_string_1)
+                + timedelta(days=data_config.start_to_end_date_diff_in_days)
+            )
+        )
+        assert (
+            get_data_single_page_mock.call_args_list[1].kwargs['until_date']
+            == (
+                datetime.fromisoformat(timestamp_string_1)
+                + timedelta(days=2 * data_config.start_to_end_date_diff_in_days)
             )
         )

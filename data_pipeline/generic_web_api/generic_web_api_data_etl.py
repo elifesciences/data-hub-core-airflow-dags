@@ -118,9 +118,9 @@ def get_data_single_page(
 
 
 # pylint: disable=too-many-locals
-def generic_web_api_data_etl(
+def process_web_api_data_etl_batch(
         data_config: WebApiConfig,
-        from_date: Optional[datetime] = None,
+        initial_from_date: Optional[datetime] = None,
         until_date: Optional[datetime] = None,
 ):
     LOGGER.info('data_config: %r', data_config)
@@ -128,10 +128,6 @@ def generic_web_api_data_etl(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
 
-    stored_state = get_stored_state(
-        data_config
-    )
-    initial_from_date = from_date or stored_state
     from_date_to_advance = initial_from_date
     LOGGER.info(
         "Running ETL from date %s, to date %s",
@@ -218,6 +214,41 @@ def generic_web_api_data_etl(
             LOGGER.info('not updating state due to no latest record timestamp')
 
 
+def get_next_batch_from_timestamp_for_config(
+    data_config: WebApiConfig,
+    current_from_timestamp: Optional[datetime]
+) -> Optional[datetime]:
+    if data_config.start_to_end_date_diff_in_days and current_from_timestamp:
+        return current_from_timestamp + timedelta(days=data_config.start_to_end_date_diff_in_days)
+    return None
+
+
+def generic_web_api_data_etl(
+    data_config: WebApiConfig,
+    end_timestamp: Optional[datetime] = None
+):
+    if not end_timestamp:
+        end_timestamp = datetime.utcnow()
+    stored_state = get_stored_state(data_config)
+    current_from_timestamp = stored_state
+    while True:
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=current_from_timestamp
+        )
+        next_from_timestamp = get_next_batch_from_timestamp_for_config(
+            data_config=data_config,
+            current_from_timestamp=current_from_timestamp
+        )
+        if not next_from_timestamp or next_from_timestamp >= end_timestamp:
+            LOGGER.debug(
+                'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
+                current_from_timestamp, next_from_timestamp
+            )
+            break
+        current_from_timestamp = next_from_timestamp
+
+
 def load_written_data_to_bq(
         data_config: WebApiConfig,
         full_temp_file_location: str
@@ -242,9 +273,9 @@ def load_written_data_to_bq(
 
 
 def get_next_until_date(
-    from_date: datetime,
+    from_date: Optional[datetime],
     data_config: WebApiConfig,
-    fixed_until_date
+    fixed_until_date: Optional[datetime]
 ):
     until_date = None
     if fixed_until_date:
