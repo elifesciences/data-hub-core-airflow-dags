@@ -32,6 +32,7 @@ from data_pipeline.generic_web_api.url_builder import (
     UrlComposeParam
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
+    get_current_timestamp,
     get_current_timestamp_as_string,
     datetime_to_string,
     parse_timestamp_from_str,
@@ -228,7 +229,8 @@ def generic_web_api_data_etl(
     end_timestamp: Optional[datetime] = None
 ):
     if not end_timestamp:
-        end_timestamp = datetime.utcnow()
+        end_timestamp = get_current_timestamp()
+    LOGGER.info('end_timestamp (if used): %r', end_timestamp)
     stored_state = get_stored_state(data_config)
     current_from_timestamp = stored_state
     while True:
