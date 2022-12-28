@@ -156,6 +156,7 @@ def generic_web_api_data_etl(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         while True:
+            LOGGER.debug('variable_until_date=%r', variable_until_date)
             page_data = get_data_single_page(
                 data_config=data_config,
                 from_date=from_date_to_advance or initial_from_date,

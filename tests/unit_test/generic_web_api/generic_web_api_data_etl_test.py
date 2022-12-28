@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -423,3 +423,33 @@ class TestGenericWebApiDataEtl:
         get_data_single_page_mock.return_value = {'rows': []}
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_not_called()
+
+    def test_should_pass_until_date_to_get_data_single_page(
+        self,
+        get_stored_state_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        timestamp_string_1 = '2020-01-01'
+        timestamp_string_2 = '2020-01-02'
+        data_config = (
+            get_data_config(WEB_API_CONFIG)
+            ._replace(
+                item_timestamp_key_path_from_item_root=['timestamp'],
+                start_to_end_date_diff_in_days=10,
+                default_start_date=timestamp_string_1
+            )
+        )
+        get_stored_state_mock.return_value = datetime.fromisoformat(
+            data_config.default_start_date
+        )
+        item_list = [{'timestamp': timestamp_string_2}]
+        get_data_single_page_mock.return_value = item_list
+        generic_web_api_data_etl(data_config)
+        get_data_single_page_mock.assert_called()
+        assert (
+            get_data_single_page_mock.call_args_list[0].kwargs['until_date']
+            == (
+                datetime.fromisoformat(timestamp_string_1)
+                + timedelta(days=data_config.start_to_end_date_diff_in_days)
+            )
+        )
