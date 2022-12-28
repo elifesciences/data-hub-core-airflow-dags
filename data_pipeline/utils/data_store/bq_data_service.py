@@ -8,7 +8,7 @@ from jinjasql import JinjaSql
 from google.cloud import bigquery
 from google.cloud.bigquery import LoadJobConfig, Client, table as bq_table
 from google.cloud.bigquery.schema import SchemaField
-from google.cloud.exceptions import NotFound
+from google.cloud.exceptions import BadRequest, NotFound
 from google.cloud.bigquery import WriteDisposition
 from google.cloud.bigquery.table import RowIterator
 from bigquery_schema_generator.generate_schema import SchemaGenerator
@@ -21,6 +21,27 @@ MAX_ROWS_INSERTABLE = 1000
 
 def get_bq_client(project: str):
     return Client(project=project)
+
+
+def get_improved_bad_request_exception(
+    job: bigquery.job.LoadJob
+) -> BadRequest:
+    errors = job.errors
+    result = BadRequest(
+        '; '.join([error['message'] for error in errors]),
+        errors=errors
+    )
+    setattr(result, '_job', job)
+    return result
+
+
+def wait_for_load_job(
+    job: bigquery.job.LoadJob
+):
+    try:
+        job.result()
+    except BadRequest as exc:
+        raise get_improved_bad_request_exception(job) from exc
 
 
 # pylint: disable=too-many-arguments
@@ -52,8 +73,7 @@ def load_file_into_bq(
             source_file, destination=table_ref, job_config=job_config
         )
 
-        # Waits for table cloud_data_store to complete
-        job.result()
+        wait_for_load_job(job)
         LOGGER.info(
             "Loaded %s rows into %s:%s.",
             job.output_rows,
