@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Iterable, Optional, Sequence
 import dateparser
@@ -19,6 +20,9 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_dict_values_from_path_as_list(
@@ -84,6 +88,27 @@ def standardize_record_keys(record_object):
         return new_list
 
 
+def _is_valid_timestamp_string(timestamp_str: str) -> bool:
+    try:
+        if dateparser.parse(timestamp_str):
+            return True
+    except BaseException:
+        pass
+    return False
+
+
+def _get_valid_timestamp_string_or_none(
+    timestamp_str: str,
+    key: str
+) -> Optional[str]:
+    if timestamp_str is None:
+        return None
+    if _is_valid_timestamp_string(timestamp_str):
+        return timestamp_str
+    LOGGER.warning('ignoring invalid timestamp value (key: %r): %r', key, timestamp_str)
+    return None
+
+
 # pylint: disable=inconsistent-return-statements,broad-except,no-else-return
 def filter_record_by_schema(record_object, record_object_schema):
     if isinstance(record_object, dict):
@@ -106,12 +131,7 @@ def filter_record_by_schema(record_object, record_object_schema):
                         .get(ModuleConstant.BQ_SCHEMA_FIELD_TYPE_KEY)
                         .lower() == "timestamp"
                 ):
-                    try:
-                        dateparser.parse(
-                            item_val
-                        )
-                    except BaseException:
-                        item_val = None
+                    item_val = _get_valid_timestamp_string_or_none(item_val, key=item_key)
                 new_dict[item_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
