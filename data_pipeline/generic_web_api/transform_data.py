@@ -89,8 +89,10 @@ def standardize_record_keys(record_object):
 
 
 def _get_valid_timestamp_string_or_none(timestamp_str: str) -> Optional[str]:
+    if timestamp_str is None:
+        return None
     try:
-        if timestamp_str is not None and not dateparser.parse(timestamp_str):
+        if not dateparser.parse(timestamp_str):
             LOGGER.warning('ignoring invalid timestamp value: %r', timestamp_str)
             return None
     except BaseException:
