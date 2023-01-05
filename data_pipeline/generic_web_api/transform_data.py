@@ -88,17 +88,23 @@ def standardize_record_keys(record_object):
         return new_list
 
 
+def _is_valid_timestamp_string(timestamp_str: str) -> bool:
+    try:
+        if dateparser.parse(timestamp_str):
+            return True
+    except BaseException:
+        pass
+    return False
+
+
 def _get_valid_timestamp_string_or_none(
     timestamp_str: str,
     key: str
 ) -> Optional[str]:
     if timestamp_str is None:
         return None
-    try:
-        if dateparser.parse(timestamp_str):
-            return timestamp_str
-    except BaseException:
-        pass
+    if _is_valid_timestamp_string(timestamp_str):
+        return timestamp_str
     LOGGER.warning('ignoring invalid timestamp value (key: %r): %r', key, timestamp_str)
     return None
 
