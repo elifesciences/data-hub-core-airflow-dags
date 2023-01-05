@@ -12,7 +12,7 @@ dateparser==1.1.4
 regex==2022.10.31
 fsspec==2022.8.2
 lxml>=4.8.0, <4.10.0
-google-api-python-client==2.70.0
+google-api-python-client==2.71.0
 google-cloud-bigquery>=1.27.2, !=2.4.0.a, <3.4.2
 google-oauth==1.0.1
 jinjasql==0.1.8
