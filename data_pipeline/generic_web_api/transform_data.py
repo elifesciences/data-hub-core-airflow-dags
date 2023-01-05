@@ -88,7 +88,10 @@ def standardize_record_keys(record_object):
         return new_list
 
 
-def _get_valid_timestamp_string_or_none(timestamp_str: str) -> Optional[str]:
+def _get_valid_timestamp_string_or_none(
+    timestamp_str: str,
+    key: str
+) -> Optional[str]:
     if timestamp_str is None:
         return None
     try:
@@ -96,7 +99,7 @@ def _get_valid_timestamp_string_or_none(timestamp_str: str) -> Optional[str]:
             return timestamp_str
     except BaseException:
         pass
-    LOGGER.warning('ignoring invalid timestamp value: %r', timestamp_str)
+    LOGGER.warning('ignoring invalid timestamp value (key: %r): %r', key, timestamp_str)
     return None
 
 
@@ -122,7 +125,7 @@ def filter_record_by_schema(record_object, record_object_schema):
                         .get(ModuleConstant.BQ_SCHEMA_FIELD_TYPE_KEY)
                         .lower() == "timestamp"
                 ):
-                    item_val = _get_valid_timestamp_string_or_none(item_val)
+                    item_val = _get_valid_timestamp_string_or_none(item_val, key=item_key)
                 new_dict[item_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
