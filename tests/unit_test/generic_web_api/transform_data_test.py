@@ -42,3 +42,16 @@ class TestFilterRecordBySchema:
             ]
         )
         assert result == {'ts': None}
+
+    def test_should_set_timestamp_to_none_if_invalid_type(self):
+        result = filter_record_by_schema(
+            record_object={'ts': -123},
+            record_object_schema=[
+                {
+                    "mode": "NULLABLE",
+                    "name": "ts",
+                    "type": "TIMESTAMP"
+                }
+            ]
+        )
+        assert result == {'ts': None}
