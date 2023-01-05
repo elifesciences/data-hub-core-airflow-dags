@@ -133,6 +133,8 @@ def filter_record_by_schema(record_object, record_object_schema):
                 ):
                     item_val = _get_valid_timestamp_string_or_none(item_val, key=item_key)
                 new_dict[item_key] = item_val
+            else:
+                LOGGER.info('ignoring field not in schema: %r', item_key)
         return new_dict
     elif isinstance(record_object, list):
         new_list = []
@@ -144,6 +146,8 @@ def filter_record_by_schema(record_object, record_object_schema):
             if elem is not None:
                 new_list.append(elem)
         return new_list
+    else:
+        LOGGER.info('ignoring other value type: %r', record_object)
 
 
 def get_latest_record_list_timestamp(
