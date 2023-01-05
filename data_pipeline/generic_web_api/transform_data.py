@@ -92,12 +92,12 @@ def _get_valid_timestamp_string_or_none(timestamp_str: str) -> Optional[str]:
     if timestamp_str is None:
         return None
     try:
-        if not dateparser.parse(timestamp_str):
-            LOGGER.warning('ignoring invalid timestamp value: %r', timestamp_str)
-            return None
+        if dateparser.parse(timestamp_str):
+            return timestamp_str
     except BaseException:
-        return None
-    return timestamp_str
+        pass
+    LOGGER.warning('ignoring invalid timestamp value: %r', timestamp_str)
+    return None
 
 
 # pylint: disable=inconsistent-return-statements,broad-except,no-else-return
