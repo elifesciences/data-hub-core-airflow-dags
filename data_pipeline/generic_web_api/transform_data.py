@@ -88,9 +88,19 @@ def standardize_record_keys(record_object):
         return new_list
 
 
+def _get_valid_timestamp_string_or_none(timestamp_str: str) -> Optional[str]:
+    try:
+        if timestamp_str is not None and not dateparser.parse(timestamp_str):
+            LOGGER.warning('ignoring invalid timestamp value: %r', timestamp_str)
+            return None
+    except BaseException:
+        return None
+    return timestamp_str
+
+
 # pylint: disable=inconsistent-return-statements,broad-except,no-else-return
 def filter_record_by_schema(record_object, record_object_schema):
-    if isinstance(record_object, dict):  # pylint: disable=too-many-nested-blocks
+    if isinstance(record_object, dict):
         list_as_p_dict = convert_bq_schema_field_list_to_dict(
             record_object_schema
         )
@@ -110,12 +120,7 @@ def filter_record_by_schema(record_object, record_object_schema):
                         .get(ModuleConstant.BQ_SCHEMA_FIELD_TYPE_KEY)
                         .lower() == "timestamp"
                 ):
-                    try:
-                        if item_val is not None and not dateparser.parse(item_val):
-                            LOGGER.warning('ignoring invalid timestamp value: %r', item_val)
-                            item_val = None
-                    except BaseException:
-                        item_val = None
+                    item_val = _get_valid_timestamp_string_or_none(item_val)
                 new_dict[item_key] = item_val
         return new_dict
     elif isinstance(record_object, list):
