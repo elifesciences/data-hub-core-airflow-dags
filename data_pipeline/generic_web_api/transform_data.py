@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Iterable, Optional, Sequence
 import dateparser
@@ -19,6 +20,9 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_dict_values_from_path_as_list(
@@ -86,7 +90,7 @@ def standardize_record_keys(record_object):
 
 # pylint: disable=inconsistent-return-statements,broad-except,no-else-return
 def filter_record_by_schema(record_object, record_object_schema):
-    if isinstance(record_object, dict):
+    if isinstance(record_object, dict):  # pylint: disable=too-many-nested-blocks
         list_as_p_dict = convert_bq_schema_field_list_to_dict(
             record_object_schema
         )
@@ -107,9 +111,9 @@ def filter_record_by_schema(record_object, record_object_schema):
                         .lower() == "timestamp"
                 ):
                     try:
-                        dateparser.parse(
-                            item_val
-                        )
+                        if item_val is not None and not dateparser.parse(item_val):
+                            LOGGER.warning('ignoring invalid timestamp value: %r', item_val)
+                            item_val = None
                     except BaseException:
                         item_val = None
                 new_dict[item_key] = item_val
