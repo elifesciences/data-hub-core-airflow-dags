@@ -171,4 +171,16 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
 
 
 class DynamicBioRxivURLBuilder(DynamicURLBuilder):
-    pass
+    def get_url(
+        self,
+        url_compose_param: UrlComposeParam
+    ):
+        assert url_compose_param.from_date is not None
+        assert url_compose_param.to_date is not None
+        assert url_compose_param.page_offset is not None
+        return '/'.join([
+            self.url_excluding_configurable_parameters,
+            url_compose_param.from_date.strftime(r'%Y-%m-%d'),
+            url_compose_param.to_date.strftime(r'%Y-%m-%d'),
+            str(url_compose_param.page_offset)
+        ])
