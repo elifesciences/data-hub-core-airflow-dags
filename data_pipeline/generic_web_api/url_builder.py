@@ -116,8 +116,8 @@ def get_url_builder_class(url_source_type: str = ''):
 
     if url_source_type.strip().lower() == 'civi':
         url_builder = DynamicCiviURLBuilder
-    if url_source_type == 'biorxiv_api':
-        url_builder = DynamicBioRxivURLBuilder
+    if url_source_type == 'biorxiv_medrxiv_api':
+        url_builder = DynamicBioRxivMedRxivURLBuilder
     return url_builder
 
 
@@ -170,7 +170,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
         return field_to_return_param
 
 
-class DynamicBioRxivURLBuilder(DynamicURLBuilder):
+class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
     def get_url(
         self,
         url_compose_param: UrlComposeParam
