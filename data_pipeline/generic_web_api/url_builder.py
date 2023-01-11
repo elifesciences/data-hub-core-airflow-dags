@@ -112,11 +112,11 @@ class DynamicURLBuilder:
 
 
 def get_url_builder_class(url_source_type: str = ''):
-    url_builder = DynamicURLBuilder
-
     if url_source_type.strip().lower() == 'civi':
-        url_builder = DynamicCiviURLBuilder
-    return url_builder
+        return DynamicCiviURLBuilder
+    if url_source_type == 'biorxiv_medrxiv_api':
+        return DynamicBioRxivMedRxivURLBuilder
+    return DynamicURLBuilder
 
 
 class DynamicCiviURLBuilder(DynamicURLBuilder):
@@ -166,3 +166,28 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
                 "return": ",".join(field_to_return_list)
             }
         return field_to_return_param
+
+
+class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
+    #  setting none configurable parameters with dummy values
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'offset_param': 'dummy-offset',
+            'from_date_param': 'dummy-from-interval-date',
+            'to_date_param': 'dummy-until-interval-date'
+        })
+
+    def get_url(
+        self,
+        url_compose_param: UrlComposeParam
+    ):
+        assert url_compose_param.from_date is not None
+        assert url_compose_param.to_date is not None
+        assert url_compose_param.page_offset is not None
+        return '/'.join([
+            self.url_excluding_configurable_parameters,
+            url_compose_param.from_date.strftime(r'%Y-%m-%d'),
+            url_compose_param.to_date.strftime(r'%Y-%m-%d'),
+            str(url_compose_param.page_offset)
+        ])
