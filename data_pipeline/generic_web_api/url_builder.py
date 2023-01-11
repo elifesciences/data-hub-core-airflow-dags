@@ -112,13 +112,11 @@ class DynamicURLBuilder:
 
 
 def get_url_builder_class(url_source_type: str = ''):
-    url_builder = DynamicURLBuilder
-
     if url_source_type.strip().lower() == 'civi':
-        url_builder = DynamicCiviURLBuilder
+        return DynamicCiviURLBuilder
     if url_source_type == 'biorxiv_medrxiv_api':
-        url_builder = DynamicBioRxivMedRxivURLBuilder
-    return url_builder
+        return DynamicBioRxivMedRxivURLBuilder
+    return DynamicURLBuilder
 
 
 class DynamicCiviURLBuilder(DynamicURLBuilder):
