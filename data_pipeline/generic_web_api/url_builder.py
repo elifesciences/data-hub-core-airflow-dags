@@ -175,7 +175,7 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
             **kwargs,
-            'offset_param':'dummy-offset',
+            'offset_param': 'dummy-offset',
             'from_date_param': 'dummy-from-interval-date',
             'to_date_param': 'dummy-until-interval-date'
         })
