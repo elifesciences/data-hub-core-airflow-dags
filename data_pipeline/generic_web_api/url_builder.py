@@ -171,6 +171,15 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
 
 
 class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
+    #  setting none configurable parameters with dummy values
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'offset_param':'dummy-offset',
+            'from_date_param': 'dummy-from-interval-date',
+            'to_date_param': 'dummy-until-interval-date'
+        })
+
     def get_url(
         self,
         url_compose_param: UrlComposeParam

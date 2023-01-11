@@ -12,11 +12,20 @@ TEST_BIORXIV_API_URL = 'https://test.api.biorxiv.org/details/server'
 
 class TestGetUrlBuilderClass:
     def test_should_return_biorxiv_api_class(self):
-        url_builder_class = get_url_builder_class('biorxiv_api')
+        url_builder_class = get_url_builder_class('biorxiv_medrxiv_api')
         assert url_builder_class == DynamicBioRxivMedRxivURLBuilder
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
+    def test_should_initialize_dummy_parameteres(self):
+        url_builder = DynamicBioRxivMedRxivURLBuilder(
+            url_excluding_configurable_parameters=TEST_BIORXIV_API_URL,
+            compose_able_url_key_val={}
+        )
+        assert url_builder.from_date_param
+        assert url_builder.to_date_param
+        assert url_builder.offset_param
+
     def test_should_include_interval_and_offset_in_url(self):
         url_builder = DynamicBioRxivMedRxivURLBuilder(
             url_excluding_configurable_parameters=TEST_BIORXIV_API_URL,
