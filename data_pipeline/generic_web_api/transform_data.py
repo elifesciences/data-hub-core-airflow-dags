@@ -4,6 +4,7 @@ from typing import Any, Iterable, List, Optional, Sequence
 import dateparser
 
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.utils.collections import consume_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
 )
@@ -176,7 +177,7 @@ def iter_record_timestamp_from_record_list(
 def get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
     record_list: Iterable[Any],
     previous_latest_timestamp: Optional[datetime],
-    item_timestamp_key_path_from_item_root: Sequence[str]
+    item_timestamp_key_path_from_item_root: Optional[Sequence[str]]
 ) -> Optional[datetime]:
     latest_collected_record_timestamp_list: List[datetime] = []
     if previous_latest_timestamp:
@@ -188,6 +189,8 @@ def get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
                 item_timestamp_key_path_from_item_root
             )
         )
+    else:
+        consume_iterable(record_list)
     latest_timestamp = max(
         latest_collected_record_timestamp_list
     ) if latest_collected_record_timestamp_list else None

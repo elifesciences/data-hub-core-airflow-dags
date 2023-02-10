@@ -94,6 +94,19 @@ class TestGetLatestRecordListTimestampForItemTimestampKeyPathFromItemRoot:
         )
         assert result == parse_timestamp_from_str(TIMESTAMP_STR_4)
 
+    def test_should_consume_iterable_even_without_item_timestamp_key_path_from_item_root(self):
+        # currently, the function is expected to consume the iterable in any case
+        # this will ensure the records are written to a file
+        record_list = [{'key': 'value'}]
+        record_iterable = iter(record_list)
+        get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
+            record_iterable,
+            previous_latest_timestamp=None,
+            item_timestamp_key_path_from_item_root=None
+        )
+        remaining_items = list(record_iterable)
+        assert not remaining_items
+
     def test_should_raise_error_if_key_was_not_found(self):
         with pytest.raises(KeyError):
             get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
