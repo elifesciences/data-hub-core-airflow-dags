@@ -1,6 +1,6 @@
 from itertools import islice
 from collections import deque
-from typing import Deque, Iterable, Type, TypeVar
+from typing import Any, Deque, Iterable, Type, TypeVar
 
 import logging
 
@@ -13,6 +13,11 @@ def chain_queue_and_iterable(queue: deque, iterable):
     while queue:
         yield queue.popleft()
     yield from iterable
+
+
+def consume_iterable(iterable: Iterable[Any]) -> None:
+    for _ in iterable:
+        pass
 
 
 def iter_batch_iterable(

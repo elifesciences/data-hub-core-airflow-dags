@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
-from typing import Iterable, Optional, Sequence
+from typing import Any, Iterable, List, Optional, Sequence
 import dateparser
 
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.utils.collections import consume_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
 )
@@ -146,30 +147,66 @@ def filter_record_by_schema(record_object, record_object_schema):
         return new_list
 
 
-def get_latest_record_list_timestamp(
-        record_list, previous_latest_timestamp, data_config: WebApiConfig
-):
-    latest_collected_record_timestamp_list = [previous_latest_timestamp]
-
+def iter_record_timestamp_from_record_list(
+    record_list: Iterable[Any],
+    item_timestamp_key_path_from_item_root: Sequence[str]
+) -> Iterable[datetime]:
+    if not item_timestamp_key_path_from_item_root:
+        return
     for record in record_list:
-
-        if data_config.item_timestamp_key_path_from_item_root:
-            record_timestamp = parse_timestamp_from_str(
-                get_dict_values_from_path_as_list(
-                    record,
-                    data_config.item_timestamp_key_path_from_item_root
-                )
+        record_timestamp_str_or_list = get_dict_values_from_path_as_list(
+            record,
+            item_timestamp_key_path_from_item_root
+        )
+        if record_timestamp_str_or_list is None:
+            raise KeyError(
+                f'record timestamp not found, path={repr(item_timestamp_key_path_from_item_root)}'
+                f', record={repr(record)}'
             )
-            latest_collected_record_timestamp_list.append(record_timestamp)
-    latest_collected_record_timestamp_list = [
-        timestamp for
-        timestamp in latest_collected_record_timestamp_list
-        if timestamp
-    ]
+        LOGGER.debug('record_timestamp_str_or_list: %r', record_timestamp_str_or_list)
+        record_timestamp_str_list = (
+            record_timestamp_str_or_list if isinstance(record_timestamp_str_or_list, list)
+            else [record_timestamp_str_or_list]
+        )
+        for timestamp_str in record_timestamp_str_list:
+            timestamp = parse_timestamp_from_str(timestamp_str)
+            if timestamp:
+                yield timestamp
+
+
+def get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
+    record_list: Iterable[Any],
+    previous_latest_timestamp: Optional[datetime],
+    item_timestamp_key_path_from_item_root: Optional[Sequence[str]]
+) -> Optional[datetime]:
+    latest_collected_record_timestamp_list: List[datetime] = []
+    if previous_latest_timestamp:
+        latest_collected_record_timestamp_list.append(previous_latest_timestamp)
+    if item_timestamp_key_path_from_item_root:
+        latest_collected_record_timestamp_list.extend(
+            iter_record_timestamp_from_record_list(
+                record_list,
+                item_timestamp_key_path_from_item_root
+            )
+        )
+    else:
+        consume_iterable(record_list)
     latest_timestamp = max(
         latest_collected_record_timestamp_list
     ) if latest_collected_record_timestamp_list else None
     return latest_timestamp
+
+
+def get_latest_record_list_timestamp(
+    record_list: Iterable[Any],
+    previous_latest_timestamp: Optional[datetime],
+    data_config: WebApiConfig
+):
+    return get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
+        record_list,
+        previous_latest_timestamp=previous_latest_timestamp,
+        item_timestamp_key_path_from_item_root=data_config.item_timestamp_key_path_from_item_root
+    )
 
 
 def process_downloaded_data(
