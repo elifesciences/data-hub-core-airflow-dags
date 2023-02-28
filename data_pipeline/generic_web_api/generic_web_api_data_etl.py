@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
-from typing import Any, Optional
+from typing import Any, Optional, Tuple, cast
 
 from botocore.exceptions import ClientError
 
@@ -99,11 +99,10 @@ def get_data_single_page(
     LOGGER.info("Request URL: %s", url)
 
     with requests_retry_session() as session:
-        if (
-                data_config.authentication and
-                data_config.authentication.authentication_type == "basic"
-        ):
-            session.auth = data_config.authentication.auth_val_list
+        if (data_config.authentication and data_config.authentication.authentication_type):
+            assert data_config.authentication.authentication_type == "basic"
+            assert data_config.authentication.auth_val_list
+            session.auth = cast(Tuple[str, str], tuple(data_config.authentication.auth_val_list))
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
         session_response = session.get(url, headers=data_config.headers.mapping)
