@@ -55,8 +55,8 @@ def _mock_get_client() -> Iterable[MagicMock]:
 
 
 @pytest.fixture(name='sample_config_path')
-def _views_sample_config_path(temp_dir: Path) -> Path:
-    sample_config_path = temp_dir / 'sample_config'
+def _views_sample_config_path(tmp_path: Path) -> Path:
+    sample_config_path = tmp_path / 'sample_config'
     sample_config_path.mkdir()
     view_list_config_path = sample_config_path / 'views.yml'
     view_list_config_path.write_text('\n'.join([
@@ -90,8 +90,8 @@ class TestGetClient:
 
 
 class TestLoadRemoteViewListConfig:
-    def test_can_load_local_view_list_config(self, temp_dir: Path):
-        view_list_config_path = temp_dir / 'views.yml'
+    def test_can_load_local_view_list_config(self, tmp_path: Path):
+        view_list_config_path = tmp_path / 'views.yml'
         view_list_config_path.write_text('\n'.join([
             '- view1',
             '- view2'
