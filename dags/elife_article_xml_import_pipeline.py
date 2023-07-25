@@ -43,7 +43,7 @@ def fetch_article_data_from_elife_article_xml_and_load_into_bigquery_task(**_kwa
     )
 
 
-EUROPEPMC_DAG = create_dag(
+ARTICLE_XML_DAG = create_dag(
     dag_id=DAG_ID,
     schedule_interval=get_environment_variable_value(
         ElifeArticleXmlEnvironmentVariables.SCHEDULE_INTERVAL,
@@ -52,7 +52,7 @@ EUROPEPMC_DAG = create_dag(
 )
 
 create_python_task(
-    EUROPEPMC_DAG,
+    ARTICLE_XML_DAG,
     "fetch_article_data_from_elife_article_xml_and_load_into_bigquery_task",
     fetch_article_data_from_elife_article_xml_and_load_into_bigquery_task,
     retries=5
