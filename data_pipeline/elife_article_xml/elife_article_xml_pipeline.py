@@ -105,6 +105,7 @@ def get_bq_compatible_json_dict(json_dict: dict) -> dict:
 
 
 def get_article_json_data_from_xml_string_content(
+    source_config: ElifeArticleXmlSourceConfig,
     xml_string: str
 ) -> dict:
     xml_root = ET.fromstring(xml_string)
@@ -118,7 +119,7 @@ def get_article_json_data_from_xml_string_content(
                 )
                 if article_meta_dict:
                     for key in article_meta_dict.copy().keys():
-                        if key not in ('related_article', 'article_id', 'article_categories'):
+                        if key not in source_config.searched_xml_elements:
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
                 return {
@@ -164,7 +165,10 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
             'article_xml': {
                 'article_xml_url': xml_file_url,
                 'article_xml_path': xml_file_path,
-                'article_xml_content': get_article_json_data_from_xml_string_content(xml_content)
+                'article_xml_content': get_article_json_data_from_xml_string_content(
+                    source_config=config.source,
+                    xml_string=xml_content
+                )
             },
             'imported_timestamp': get_current_timestamp_as_string()
         }

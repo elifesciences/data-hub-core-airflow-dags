@@ -4,10 +4,12 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 
 GIT_REPO_URL = 'git_repo_url_1'
 DIRECTORY_NAME = 'directory_name_1'
+SEARCHED_XML_ELEMENTS = ['searched_xml_elements_1', 'searched_xml_elements_2']
 
 SOURCE_CONFIG = {
     'gitRepoUrl': GIT_REPO_URL,
-    'directoryName': DIRECTORY_NAME
+    'directoryName': DIRECTORY_NAME,
+    'searchedXmlElements': SEARCHED_XML_ELEMENTS
 }
 
 PROJECT_NAME = 'project_1'
@@ -41,6 +43,10 @@ class TestElifeArticleXmlConfig:
     def test_should_read_directory_name(self):
         config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
         assert config.source.directory_name == DIRECTORY_NAME
+
+    def test_should_read_searched_xml_elements(self):
+        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
+        assert config.source.searched_xml_elements == SEARCHED_XML_ELEMENTS
 
     def test_should_read_target_project_dataset_and_table_name(self):
         config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
