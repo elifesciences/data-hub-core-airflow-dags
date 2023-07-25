@@ -11,7 +11,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     GitHubRateLimitError,
-    fetch_related_article_from_elife_article_xml_repo_and_load_into_bq,
+    fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq,
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
@@ -76,11 +76,11 @@ def _parse_xml_and_return_it_as_dict_mock():
         yield mock
 
 
-@pytest.fixture(name='fetch_and_iter_related_article_from_elife_article_xml_repo_mock')
-def _fetch_and_iter_related_article_from_elife_article_xml_repomock():
+@pytest.fixture(name='fetch_and_iter_article_data_from_elife_article_xml_repo_mock')
+def _fetch_and_iter_article_data_from_elife_article_xml_repomock():
     with patch.object(
         elife_article_xml_pipeline_module,
-        'fetch_and_iter_related_article_from_elife_article_xml_repo'
+        'fetch_and_iter_article_data_from_elife_article_xml_repo'
     ) as mock:
         yield mock
 
@@ -511,13 +511,13 @@ class TestFetchRelatedArticleFromElifeArticleXmlRepoAndLoadIntoBq:
     def test_should_load_data_until_rate_limit_exception(
         self,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock,
-        fetch_and_iter_related_article_from_elife_article_xml_repo_mock: MagicMock
+        fetch_and_iter_article_data_from_elife_article_xml_repo_mock: MagicMock
     ):
-        fetch_and_iter_related_article_from_elife_article_xml_repo_mock.return_value = (
+        fetch_and_iter_article_data_from_elife_article_xml_repo_mock.return_value = (
             _iter_item_or_raise_exception([1, 2, 3, GitHubRateLimitError()])
         )
 
-        fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(CONFIG_1)
+        fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq(CONFIG_1)
 
         _args, kwargs = load_given_json_list_data_from_tempdir_to_bq_mock.call_args
         assert list(kwargs['json_list']) == [1, 2, 3]

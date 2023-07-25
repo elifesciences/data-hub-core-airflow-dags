@@ -129,7 +129,7 @@ def get_article_json_data_from_xml_string_content(
     return {}
 
 
-def fetch_and_iter_related_article_from_elife_article_xml_repo(
+def fetch_and_iter_article_data_from_elife_article_xml_repo(
     config: ElifeArticleXmlConfig
 ) -> Iterable[dict]:
     dataset_name = config.target.dataset_name
@@ -174,11 +174,11 @@ def fetch_and_iter_related_article_from_elife_article_xml_repo(
         }
 
 
-def fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(
+def fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq(
     config: ElifeArticleXmlConfig
 ):
     article_data_iterable = iter_item_until_exception(
-        fetch_and_iter_related_article_from_elife_article_xml_repo(config),
+        fetch_and_iter_article_data_from_elife_article_xml_repo(config),
         GitHubRateLimitError
     )
     load_given_json_list_data_from_tempdir_to_bq(
@@ -187,3 +187,10 @@ def fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(
             table_name=config.target.table_name,
             json_list=article_data_iterable
         )
+
+
+def fetch_elife_article_data_and_load_into_bq_from_config_list(
+    config_list: Sequence[ElifeArticleXmlConfig]
+):
+    for config in config_list:
+        fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq(config)

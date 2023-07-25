@@ -37,30 +37,30 @@ CONFIG_DICT = get_config_for_item_config_dict(ITEM_CONFIG_DICT)
 
 class TestElifeArticleXmlConfig:
     def test_should_read_git_repo_url(self):
-        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
-        assert config.source.git_repo_url == GIT_REPO_URL
+        config = ElifeArticleXmlConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].source.git_repo_url == GIT_REPO_URL
 
     def test_should_read_directory_name(self):
-        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
-        assert config.source.directory_name == DIRECTORY_NAME
+        config = ElifeArticleXmlConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].source.directory_name == DIRECTORY_NAME
 
     def test_should_read_searched_xml_elements(self):
-        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
-        assert config.source.searched_xml_elements == SEARCHED_XML_ELEMENTS
+        config = ElifeArticleXmlConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].source.searched_xml_elements == SEARCHED_XML_ELEMENTS
 
     def test_should_read_target_project_dataset_and_table_name(self):
-        config = ElifeArticleXmlConfig.from_dict(CONFIG_DICT)
-        assert config.target.project_name == PROJECT_NAME
-        assert config.target.dataset_name == DATASET_NAME
-        assert config.target.table_name == TABLE_NAME
+        config = ElifeArticleXmlConfig.parse_config_list_from_dict(CONFIG_DICT)
+        assert config[0].target.project_name == PROJECT_NAME
+        assert config[0].target.dataset_name == DATASET_NAME
+        assert config[0].target.table_name == TABLE_NAME
 
     def test_should_read_api_headers(self):
         headers = {'key1': 'value1'}
-        config = ElifeArticleXmlConfig.from_dict(get_config_for_item_config_dict({
+        config = ElifeArticleXmlConfig.parse_config_list_from_dict(get_config_for_item_config_dict({
             **ITEM_CONFIG_DICT,
             'source': {
                 **SOURCE_CONFIG,
                 'headers': headers
             }
         }))
-        assert config.source.headers.mapping == headers
+        assert config[0].source.headers.mapping == headers

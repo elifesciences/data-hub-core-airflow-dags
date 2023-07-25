@@ -35,8 +35,9 @@ class ElifeArticleXmlConfig(NamedTuple):
         )
 
     @staticmethod
-    def from_dict(config_dict: dict) -> 'ElifeArticleXmlConfig':
-        item_config_list = config_dict['elifeArticleXml']
-        return ElifeArticleXmlConfig._from_item_dict(
-            item_config_list[0]
-        )
+    def parse_config_list_from_dict(config_dict: dict) -> Sequence['ElifeArticleXmlConfig']:
+        item_config_dict_list = config_dict['elifeArticleXml']
+        return [
+            ElifeArticleXmlConfig._from_item_dict(item_config_dict)
+            for item_config_dict in item_config_dict_list
+        ]
