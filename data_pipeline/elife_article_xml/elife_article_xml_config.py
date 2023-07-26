@@ -6,7 +6,7 @@ from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingCon
 class ElifeArticleXmlSourceConfig(NamedTuple):
     git_repo_url: str
     directory_name: str
-    searched_xml_elements: Sequence[str]
+    selected_xml_elements: Sequence[str]
     headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
@@ -15,7 +15,7 @@ class ElifeArticleXmlSourceConfig(NamedTuple):
             git_repo_url=source_config_dict['gitRepoUrl'],
             directory_name=source_config_dict['directoryName'],
             headers=MappingConfig.from_dict(source_config_dict.get('headers', {})),
-            searched_xml_elements=source_config_dict['searchedXmlElements']
+            selected_xml_elements=source_config_dict['selectedXmlElements']
         )
 
 

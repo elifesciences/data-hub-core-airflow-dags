@@ -155,7 +155,7 @@ GIT_REPO_URL = 'git_repo_url_1'
 SOURCE_CONFIG_1 = ElifeArticleXmlSourceConfig(
     git_repo_url=GIT_REPO_URL,
     directory_name=MATCHING_DIRECTORY_NAME,
-    searched_xml_elements=['related_article', 'article_id', 'article_categories']
+    selected_xml_elements=['related_article', 'article_id', 'article_categories']
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(

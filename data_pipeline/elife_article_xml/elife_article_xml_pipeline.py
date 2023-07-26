@@ -119,7 +119,7 @@ def get_article_json_data_from_xml_string_content(
                 )
                 if article_meta_dict:
                     for key in article_meta_dict.copy().keys():
-                        if key not in source_config.searched_xml_elements:
+                        if key not in source_config.selected_xml_elements:
                             article_meta_dict.pop(key, None)
                     LOGGER.info(article_meta_dict)
                 return {
