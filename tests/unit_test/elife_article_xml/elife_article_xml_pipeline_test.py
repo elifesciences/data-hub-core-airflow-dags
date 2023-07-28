@@ -11,7 +11,7 @@ from data_pipeline.elife_article_xml.elife_article_xml_config import (
 
 from data_pipeline.elife_article_xml.elife_article_xml_pipeline import (
     GitHubRateLimitError,
-    fetch_related_article_from_elife_article_xml_repo_and_load_into_bq,
+    fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq,
     get_bq_compatible_json_dict,
     get_json_response_from_url,
     get_url_of_xml_file_directory_from_repo,
@@ -76,11 +76,11 @@ def _parse_xml_and_return_it_as_dict_mock():
         yield mock
 
 
-@pytest.fixture(name='fetch_and_iter_related_article_from_elife_article_xml_repo_mock')
-def _fetch_and_iter_related_article_from_elife_article_xml_repomock():
+@pytest.fixture(name='fetch_and_iter_article_data_from_elife_article_xml_repo_mock')
+def _fetch_and_iter_article_data_from_elife_article_xml_repomock():
     with patch.object(
         elife_article_xml_pipeline_module,
-        'fetch_and_iter_related_article_from_elife_article_xml_repo'
+        'fetch_and_iter_article_data_from_elife_article_xml_repo'
     ) as mock:
         yield mock
 
@@ -154,7 +154,8 @@ GIT_REPO_URL = 'git_repo_url_1'
 
 SOURCE_CONFIG_1 = ElifeArticleXmlSourceConfig(
     git_repo_url=GIT_REPO_URL,
-    directory_name=MATCHING_DIRECTORY_NAME
+    directory_name=MATCHING_DIRECTORY_NAME,
+    selected_xml_elements=['related_article', 'article_id', 'article_categories']
 )
 
 TARGET_CONFIG_1 = BigQueryTargetConfig(
@@ -341,12 +342,12 @@ class TestIterBqCompatibleJson:
 class TestGetArticleJsonDataFromXmlStringContent:
     def test_should_return_empty_dict_if_the_xml_with_empty_root(self):
         xml_string = '<article></article>'
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {}
 
     def test_should_return_empty_dict_if_the_xml_has_empty_article_meta(self):
         xml_string = '<article><front><article-meta></article-meta></front></article>'
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {}
 
     def test_should_not_return_empty_dict_if_the_xml_has_no_article_meta_section(self):
@@ -357,7 +358,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '</front>',
             '</article>'
         ])
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {}
 
     def test_should_return_empty_dict_if_the_xml_has_no_front_section(self):
@@ -366,7 +367,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '<other2>"other2"</other2>',
             '</article>'
         ])
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {}
 
     def test_should_return_related_article_article_id_type_and_categories_dict_if_they_exist(self):
@@ -386,7 +387,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '</article>'
         ])
 
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {
             'article_type': 'article_type_1',
             'article_id': [
@@ -434,7 +435,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '<other3>"other3"</other3>',
             '</article>'
         ])
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {
             'article_type': 'article_type_1',
             'article_id': [
@@ -476,7 +477,7 @@ class TestGetArticleJsonDataFromXmlStringContent:
             '</article>'
         ])
 
-        return_value = get_article_json_data_from_xml_string_content(xml_string)
+        return_value = get_article_json_data_from_xml_string_content(SOURCE_CONFIG_1, xml_string)
         assert return_value == {
             'article_type': 'article_type_1',
             'article_id': [
@@ -510,13 +511,13 @@ class TestFetchRelatedArticleFromElifeArticleXmlRepoAndLoadIntoBq:
     def test_should_load_data_until_rate_limit_exception(
         self,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock,
-        fetch_and_iter_related_article_from_elife_article_xml_repo_mock: MagicMock
+        fetch_and_iter_article_data_from_elife_article_xml_repo_mock: MagicMock
     ):
-        fetch_and_iter_related_article_from_elife_article_xml_repo_mock.return_value = (
+        fetch_and_iter_article_data_from_elife_article_xml_repo_mock.return_value = (
             _iter_item_or_raise_exception([1, 2, 3, GitHubRateLimitError()])
         )
 
-        fetch_related_article_from_elife_article_xml_repo_and_load_into_bq(CONFIG_1)
+        fetch_elife_article_data_from_elife_article_xml_repo_and_load_into_bq(CONFIG_1)
 
         _args, kwargs = load_given_json_list_data_from_tempdir_to_bq_mock.call_args
         assert list(kwargs['json_list']) == [1, 2, 3]
