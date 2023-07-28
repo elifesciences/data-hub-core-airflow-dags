@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Sequence
 
 from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingConfig
 
@@ -6,6 +6,7 @@ from data_pipeline.utils.pipeline_config import BigQueryTargetConfig, MappingCon
 class ElifeArticleXmlSourceConfig(NamedTuple):
     git_repo_url: str
     directory_name: str
+    selected_xml_elements: Sequence[str]
     headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
@@ -13,7 +14,8 @@ class ElifeArticleXmlSourceConfig(NamedTuple):
         return ElifeArticleXmlSourceConfig(
             git_repo_url=source_config_dict['gitRepoUrl'],
             directory_name=source_config_dict['directoryName'],
-            headers=MappingConfig.from_dict(source_config_dict.get('headers', {}))
+            headers=MappingConfig.from_dict(source_config_dict.get('headers', {})),
+            selected_xml_elements=source_config_dict['selectedXmlElements']
         )
 
 
@@ -33,8 +35,9 @@ class ElifeArticleXmlConfig(NamedTuple):
         )
 
     @staticmethod
-    def from_dict(config_dict: dict) -> 'ElifeArticleXmlConfig':
-        item_config_list = config_dict['elifeArticleXml']
-        return ElifeArticleXmlConfig._from_item_dict(
-            item_config_list[0]
-        )
+    def parse_config_list_from_dict(config_dict: dict) -> Sequence['ElifeArticleXmlConfig']:
+        item_config_dict_list = config_dict['elifeArticleXml']
+        return [
+            ElifeArticleXmlConfig._from_item_dict(item_config_dict)
+            for item_config_dict in item_config_dict_list
+        ]
