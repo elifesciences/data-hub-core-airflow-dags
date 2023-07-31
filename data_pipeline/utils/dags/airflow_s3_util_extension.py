@@ -12,7 +12,7 @@ from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import NamedLiterals
 
 
-# pylint: disable=abstract-method,too-many-arguments
+# pylint: disable=abstract-method,too-many-arguments,too-many-ancestors
 class S3NewKeyFromLastDataDownloadDateSensor(BaseSensorOperator):
     @apply_defaults
     def __init__(
