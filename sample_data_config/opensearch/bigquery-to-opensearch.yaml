@@ -1,4 +1,4 @@
-europePmcLabsLink:
+bigQueryToOpenSearch:
   - dataPipelineId: bigquery_to_opensearch_data_pipeline_1
     source:
       bigQuery:
