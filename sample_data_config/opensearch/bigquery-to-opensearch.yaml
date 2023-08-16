@@ -8,7 +8,12 @@ bigQueryToOpenSearch:
                 s2_response.externalIds.DOI AS doi,
                 s2_response.title,
                 s2_response.abstract,
-                s2_response.authors,
+                ARRAY(
+                  SELECT AS STRUCT
+                    author.name,
+                    author.authorId AS s2_author_id
+                  FROM UNNEST(s2_response.authors) AS author
+                ) AS authors,
                 s2_response.embedding.vector AS s2_specter_embedding_v1,
                 s2_response.tldr,
                 s2_response.provenance.imported_timestamp AS data_hub_imported_timestamp,
