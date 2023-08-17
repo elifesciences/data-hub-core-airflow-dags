@@ -57,7 +57,7 @@ x-airflow-env:
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
     - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
-    
+    - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/app-config/opensearch/bigquery-to-opensearch.yaml
 
 x-airflow-volumes:
   &airflow-volumes
@@ -80,6 +80,7 @@ x-airflow-volumes:
     - ./.secrets:/home/airflow/secrets
     - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
     - ./sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml:/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
+    - ./sample_data_config/opensearch/bigquery-to-opensearch.yaml:/home/airflow/app-config/opensearch/bigquery-to-opensearch.yaml
 
 services:
     data-hub-dags:
