@@ -23,28 +23,28 @@ x-airflow-env:
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
-    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-    - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
+    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/gmail-data/gmail-data-pipeline.config.yaml
     - GMAIL_DATA_USER_ID=gmail-end2end-data-test@elifesciences.org
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
-    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
+    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/sample_data_config/elife-article-xml/elife-article-xml.config.yaml
     - ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL=${ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
-    - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
-    - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
-    - EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=/home/airflow/app-config/europepmc/test-ftp-password.txt
-    - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
+    - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc.config.yaml
+    - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc-labslink.config.yaml
+    - EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-password.txt
+    - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-directory-name.txt
     - SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL}
-    - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
+    - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/sample_data_config/semantic-scholar/semantic-scholar.config.yaml
     - SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL}
-    - SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
-    - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
-    - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-    - S3_CSV_CONFIG_FILE_PATH=/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-    - WEB_API_CONFIG_FILE_PATH=/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
+    - SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=/home/airflow/sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml
+    - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml
+    - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+    - S3_CSV_CONFIG_FILE_PATH=/home/airflow/sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml
+    - WEB_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/web-api/web-api-data-pipeline.config.yaml
+    - CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
     - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
     - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
     - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
@@ -53,33 +53,18 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=${MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT}
     - MATERIALIZE_BIGQUERY_VIEWS_DATASET=${MATERIALIZE_BIGQUERY_VIEWS_DATASET}
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
-    - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - MONITORING_CONFIG_FILE_PATH=/home/airflow/sample_data_config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
-    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
+    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml
     
 
 x-airflow-volumes:
   &airflow-volumes
-    - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-    - ./sample_data_config/elife-article-xml/elife-article-xml.config.yaml:/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
-    - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
-    - ./sample_data_config/europepmc/europepmc-labslink.config.yaml:/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
-    - ./sample_data_config/europepmc/test-ftp-password.txt:/home/airflow/app-config/europepmc/test-ftp-password.txt
-    - ./sample_data_config/europepmc/test-ftp-directory-name.txt:/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
-    - ./sample_data_config/gmail-data/gmail-data-pipeline.config.yaml:/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
-    - ./sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml:/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
-    - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-    - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-    - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - ./sample_data_config:/home/airflow/sample_data_config
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
-    - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
-    - ./sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml:/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
 
 services:
     data-hub-dags:
