@@ -26,7 +26,8 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
         hosts=[{
             'host': opensearch_target_config.hostname,
             'port': opensearch_target_config.port
-        }]
+        }],
+        http_auth=(opensearch_target_config.username, opensearch_target_config.password)
     )
 
 

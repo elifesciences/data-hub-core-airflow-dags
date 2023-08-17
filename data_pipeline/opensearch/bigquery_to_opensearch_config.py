@@ -1,8 +1,11 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Sequence
 
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
+from data_pipeline.utils.pipeline_config import (
+    BigQuerySourceConfig,
+    get_resolved_parameter_values_from_file_path_env_name
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,12 +28,19 @@ class BigQueryToOpenSearchSourceConfig:
 class OpenSearchTargetConfig:
     hostname: str
     port: int
+    username: str = field(repr=False)
+    password: str = field(repr=False)
 
     @staticmethod
     def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
+        secrets = get_resolved_parameter_values_from_file_path_env_name(
+            opensearch_target_config_dict['secrets']['parametersFromFile']
+        )
         return OpenSearchTargetConfig(
             hostname=opensearch_target_config_dict['hostname'],
-            port=opensearch_target_config_dict['port']
+            port=opensearch_target_config_dict['port'],
+            username=secrets['username'],
+            password=secrets['password']
         )
 
 

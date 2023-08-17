@@ -29,7 +29,9 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     target=BigQueryToOpenSearchTargetConfig(
         opensearch=OpenSearchTargetConfig(
             hostname='hostname1',
-            port=9200
+            port=9200,
+            username='username1',
+            password='password1'
         )
     )
 )
@@ -87,6 +89,26 @@ class TestGetOpenSearchClient:
             'host': OPENSEARCH_TARGET_CONFIG_1.hostname,
             'port': OPENSEARCH_TARGET_CONFIG_1.port
         }]
+
+    def test_should_pass_username_and_password_to_opensearch_class(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
+        opensearch_class_mock.assert_called()
+        _, kwargs = opensearch_class_mock.call_args
+        assert kwargs['http_auth'] == (
+            OPENSEARCH_TARGET_CONFIG_1.username,
+            OPENSEARCH_TARGET_CONFIG_1.password
+        )
+
+    def test_should_not_include_secrets_in_repr_or_str_output(
+        self
+    ):
+        client = get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
+        text = f'repr={repr(client)}, str={str(client)}'
+        assert OPENSEARCH_TARGET_CONFIG_1.username not in text
+        assert OPENSEARCH_TARGET_CONFIG_1.password not in text
 
     def test_should_return_opensearch_instance(
         self,
