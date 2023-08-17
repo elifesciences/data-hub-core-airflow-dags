@@ -31,7 +31,8 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
             hostname='hostname1',
             port=9200,
             username='username1',
-            password='password1'
+            password='password1',
+            index_name='index_1'
         )
     )
 )

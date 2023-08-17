@@ -34,7 +34,8 @@ OPENSEARCH_TARGET_CONFIG_DICT_1 = {
             'parameterName': 'password',
             'filePathEnvName': OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR
         }]
-    }
+    },
+    'index_name': 'index_1'
 }
 
 
@@ -76,6 +77,12 @@ class TestOpenSearchTargetConfig:
         )
         assert opensearch_target_config.username == USERNAME_1
         assert opensearch_target_config.password == PASSWORD_1
+
+    def test_should_read_index_name(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict(
+            OPENSEARCH_TARGET_CONFIG_DICT_1
+        )
+        assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['index_name']
 
 
 class TestBigQueryToOpenSearchConfig:

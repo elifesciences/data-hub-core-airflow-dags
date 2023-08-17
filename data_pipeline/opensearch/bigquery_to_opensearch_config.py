@@ -30,6 +30,7 @@ class OpenSearchTargetConfig:
     port: int
     username: str = field(repr=False)
     password: str = field(repr=False)
+    index_name: str
 
     @staticmethod
     def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
@@ -40,7 +41,8 @@ class OpenSearchTargetConfig:
             hostname=opensearch_target_config_dict['hostname'],
             port=opensearch_target_config_dict['port'],
             username=secrets['username'],
-            password=secrets['password']
+            password=secrets['password'],
+            index_name=opensearch_target_config_dict['index_name']
         )
 
 
