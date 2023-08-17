@@ -21,7 +21,7 @@ def load_documents_into_opensearch(
     LOGGER.debug('loading documents into opensearch: %r', document_iterable)
 
 
-def fetch_documents_from_bigquery_and_update_opensearch(
+def fetch_documents_from_bigquery_and_load_into_opensearch(
     config: BigQueryToOpenSearchConfig
 ):
     LOGGER.debug('processing config: %r', config)
@@ -29,8 +29,8 @@ def fetch_documents_from_bigquery_and_update_opensearch(
     load_documents_into_opensearch(document_iterable)
 
 
-def fetch_documents_from_bigquery_and_update_opensearch_from_config_list(
+def fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list(
     config_list: Sequence[BigQueryToOpenSearchConfig]
 ):
     for config in config_list:
-        fetch_documents_from_bigquery_and_update_opensearch(config)
+        fetch_documents_from_bigquery_and_load_into_opensearch(config)

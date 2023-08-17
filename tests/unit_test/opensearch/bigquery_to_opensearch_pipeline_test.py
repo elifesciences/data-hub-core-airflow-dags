@@ -12,8 +12,8 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
 )
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
-    fetch_documents_from_bigquery_and_update_opensearch,
-    fetch_documents_from_bigquery_and_update_opensearch_from_config_list
+    fetch_documents_from_bigquery_and_load_into_opensearch,
+    fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list
 )
 
 
@@ -45,9 +45,12 @@ def _load_documents_into_opensearch_mock() -> Iterator[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='fetch_documents_from_bigquery_and_update_opensearch_mock')
-def _fetch_documents_from_bigquery_and_update_opensearch_mock() -> Iterator[MagicMock]:
-    with patch.object(test_module, 'fetch_documents_from_bigquery_and_update_opensearch') as mock:
+@pytest.fixture(name='fetch_documents_from_bigquery_and_load_into_opensearch_mock')
+def _fetch_documents_from_bigquery_and_load_into_opensearch_mock() -> Iterator[MagicMock]:
+    with patch.object(
+        test_module,
+        'fetch_documents_from_bigquery_and_load_into_opensearch'
+    ) as mock:
         yield mock
 
 
@@ -57,7 +60,7 @@ class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
         iter_documents_from_bigquery_mock: MagicMock,
         load_documents_into_opensearch_mock: MagicMock
     ):
-        fetch_documents_from_bigquery_and_update_opensearch(
+        fetch_documents_from_bigquery_and_load_into_opensearch(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         iter_documents_from_bigquery_mock.assert_called_with(
@@ -71,11 +74,11 @@ class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
 class TestFetchDocumentsFromBigQueryAndUpdateOpenSearchFromConfigList:
     def test_should_process_each_config_item(
         self,
-        fetch_documents_from_bigquery_and_update_opensearch_mock: MagicMock
+        fetch_documents_from_bigquery_and_load_into_opensearch_mock: MagicMock
     ):
-        fetch_documents_from_bigquery_and_update_opensearch_from_config_list([
+        fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list([
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         ])
-        fetch_documents_from_bigquery_and_update_opensearch_mock.assert_called_with(
+        fetch_documents_from_bigquery_and_load_into_opensearch_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )

@@ -5,7 +5,7 @@ from typing import Sequence
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config import BigQueryToOpenSearchConfig
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
-    fetch_documents_from_bigquery_and_update_opensearch_from_config_list
+    fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list
 )
 from data_pipeline.utils.pipeline_config import (
     get_environment_variable_value,
@@ -36,8 +36,8 @@ def get_pipeline_config_list() -> Sequence[BigQueryToOpenSearchConfig]:
     )
 
 
-def fetch_documents_from_bigquery_and_update_opensearch_task(**_kwargs):
-    fetch_documents_from_bigquery_and_update_opensearch_from_config_list(
+def fetch_documents_from_bigquery_and_load_into_opensearch_task(**_kwargs):
+    fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list(
         get_pipeline_config_list()
     )
 
@@ -52,7 +52,7 @@ BIGQUERY_TO_OPENSEARCH_DAG = create_dag(
 
 create_python_task(
     BIGQUERY_TO_OPENSEARCH_DAG,
-    "fetch_documents_from_bigquery_and_update_opensearch_task",
-    fetch_documents_from_bigquery_and_update_opensearch_task,
+    "fetch_documents_from_bigquery_and_load_into_opensearch_task",
+    fetch_documents_from_bigquery_and_load_into_opensearch_task,
     retries=5
 )
