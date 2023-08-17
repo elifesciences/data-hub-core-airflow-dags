@@ -10,6 +10,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
 )
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
+    fetch_documents_from_bigquery_and_update_opensearch,
     fetch_documents_from_bigquery_and_update_opensearch_from_config_list
 )
 
@@ -24,10 +25,29 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
 )
 
 
+@pytest.fixture(name='iter_documents_from_bigquery_mock')
+def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'iter_documents_from_bigquery') as mock:
+        yield mock
+
+
 @pytest.fixture(name='fetch_documents_from_bigquery_and_update_opensearch_mock')
 def _fetch_documents_from_bigquery_and_update_opensearch_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'fetch_documents_from_bigquery_and_update_opensearch') as mock:
         yield mock
+
+
+class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
+    def test_should_fetch_documents_from_bigquery(
+        self,
+        iter_documents_from_bigquery_mock: MagicMock
+    ):
+        fetch_documents_from_bigquery_and_update_opensearch(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1
+        )
+        iter_documents_from_bigquery_mock.assert_called_with(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
+        )
 
 
 class TestFetchDocumentsFromBigQueryAndUpdateOpenSearchFromConfigList:
