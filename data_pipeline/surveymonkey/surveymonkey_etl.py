@@ -3,6 +3,8 @@ import logging
 from typing import Iterable, List, Union
 import requests
 
+from data_pipeline.utils.json import remove_key_with_null_value
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -137,7 +139,7 @@ def get_bq_json_for_survey_answers_response_json(
         "questions": [
             {
                 "question_id": question_response_json["id"],
-                "answers": [parse_answers_part_in_survey_answers_response(question_response_json)]
+                "answers": remove_key_with_null_value(question_response_json.get("answers"))
             }
             for page_response_json in survey_response_json["pages"]
             for question_response_json in page_response_json["questions"]
