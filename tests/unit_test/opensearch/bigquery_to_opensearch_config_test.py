@@ -1,9 +1,18 @@
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig
 )
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 
 
-CONFIG_DICT_1: dict = {}
+BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': 'project1',
+    'sqlQuery': 'query1'
+}
+
+
+CONFIG_DICT_1: dict = {
+    'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
+}
 
 
 class TestBigQueryToOpenSearchConfig:
@@ -18,3 +27,12 @@ class TestBigQueryToOpenSearchConfig:
             'bigQueryToOpenSearch': [CONFIG_DICT_1]
         }))
         assert len(config_list) == 1
+
+    def test_should_read_bigquery_source_config(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert (
+            config_list[0].source.bigquery
+            == BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+        )
