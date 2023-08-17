@@ -13,7 +13,9 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     fetch_documents_from_bigquery_and_load_into_opensearch,
-    fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list
+    fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
+    get_opensearch_client,
+    load_documents_into_opensearch
 )
 
 
@@ -32,10 +34,29 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     )
 )
 
+OPENSEARCH_TARGET_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
+
+
+@pytest.fixture(name='opensearch_class_mock', autouse=True)
+def _opensearch_class_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'OpenSearch') as mock:
+        yield mock
+
+
+@pytest.fixture(name='opensearch_mock')
+def _opensearch_mock(opensearch_class_mock: MagicMock) -> MagicMock:
+    return opensearch_class_mock.return_value
+
 
 @pytest.fixture(name='iter_documents_from_bigquery_mock')
 def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'iter_documents_from_bigquery') as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_opensearch_client_mock')
+def _get_opensearch_client_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'get_opensearch_client') as mock:
         yield mock
 
 
@@ -54,6 +75,39 @@ def _fetch_documents_from_bigquery_and_load_into_opensearch_mock() -> Iterator[M
         yield mock
 
 
+class TestGetOpenSearchClient:
+    def test_should_pass_hostname_and_port_to_opensearch_class(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
+        opensearch_class_mock.assert_called()
+        _, kwargs = opensearch_class_mock.call_args
+        assert kwargs['hosts'] == [{
+            'host': OPENSEARCH_TARGET_CONFIG_1.hostname,
+            'port': OPENSEARCH_TARGET_CONFIG_1.port
+        }]
+
+    def test_should_return_opensearch_instance(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        client = get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
+        assert client == opensearch_class_mock.return_value
+
+
+class TestLoadDocumentsIntoOpenSearch:
+    def test_should_pass_opensearch_target_config_to_get_cient(
+        self,
+        get_opensearch_client_mock: MagicMock
+    ):
+        load_documents_into_opensearch(
+            [],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
+
+
 class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
     def test_should_fetch_documents_from_bigquery_and_pass_to_opensearch(
         self,
@@ -67,7 +121,8 @@ class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
         )
         load_documents_into_opensearch_mock.assert_called_with(
-            iter_documents_from_bigquery_mock.return_value
+            iter_documents_from_bigquery_mock.return_value,
+            opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
         )
 
 
