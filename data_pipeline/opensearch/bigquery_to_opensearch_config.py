@@ -6,7 +6,7 @@ from typing import Sequence
 LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
     @staticmethod
     def _from_item_dict(
