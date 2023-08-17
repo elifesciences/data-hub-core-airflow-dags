@@ -22,13 +22,41 @@ class BigQueryToOpenSearchSourceConfig:
 
 
 @dataclass(frozen=True)
+class OpenSearchTargetConfig:
+    hostname: str
+    port: int
+
+    @staticmethod
+    def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
+        return OpenSearchTargetConfig(
+            hostname=opensearch_target_config_dict['hostname'],
+            port=opensearch_target_config_dict['port']
+        )
+
+
+@dataclass(frozen=True)
+class BigQueryToOpenSearchTargetConfig:
+    opensearch: OpenSearchTargetConfig
+
+    @staticmethod
+    def from_dict(target_config_dict: dict) -> 'BigQueryToOpenSearchTargetConfig':
+        return BigQueryToOpenSearchTargetConfig(
+            opensearch=OpenSearchTargetConfig.from_dict(
+                target_config_dict['opensearch']
+            )
+        )
+
+
+@dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
     source: BigQueryToOpenSearchSourceConfig
+    target: BigQueryToOpenSearchTargetConfig
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'BigQueryToOpenSearchConfig':
         return BigQueryToOpenSearchConfig(
-            source=BigQueryToOpenSearchSourceConfig.from_dict(item_config_dict['source'])
+            source=BigQueryToOpenSearchSourceConfig.from_dict(item_config_dict['source']),
+            target=BigQueryToOpenSearchTargetConfig.from_dict(item_config_dict['target'])
         )
 
     @staticmethod

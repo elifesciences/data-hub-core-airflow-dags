@@ -6,7 +6,9 @@ import pytest
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
-    BigQueryToOpenSearchSourceConfig
+    BigQueryToOpenSearchSourceConfig,
+    BigQueryToOpenSearchTargetConfig,
+    OpenSearchTargetConfig
 )
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
@@ -20,6 +22,12 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
         bigquery=BigQuerySourceConfig(
             project_name='project1',
             sql_query='query 1'
+        )
+    ),
+    target=BigQueryToOpenSearchTargetConfig(
+        opensearch=OpenSearchTargetConfig(
+            hostname='hostname1',
+            port=9200
         )
     )
 )
