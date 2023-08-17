@@ -39,6 +39,8 @@ def load_documents_into_opensearch(
     client = get_opensearch_client(opensearch_target_config)
     LOGGER.info('client: %r', client)
     LOGGER.info('index_name: %r', opensearch_target_config.index_name)
+    index_exists = client.indices.exists(opensearch_target_config.index_name)
+    LOGGER.info('index_exists: %r', index_exists)
 
 
 def fetch_documents_from_bigquery_and_load_into_opensearch(
