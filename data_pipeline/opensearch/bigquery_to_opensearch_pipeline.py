@@ -7,7 +7,14 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import BigQueryToOpe
 LOGGER = logging.getLogger(__name__)
 
 
+def fetch_documents_from_bigquery_and_update_opensearch(
+    config: BigQueryToOpenSearchConfig
+):
+    LOGGER.debug('processing config: %r', config)
+
+
 def fetch_documents_from_bigquery_and_update_opensearch_from_config_list(
     config_list: Sequence[BigQueryToOpenSearchConfig]
 ):
-    LOGGER.debug('processing config_list: %r', config_list)
+    for config in config_list:
+        fetch_documents_from_bigquery_and_update_opensearch(config)
