@@ -15,11 +15,18 @@ def iter_documents_from_bigquery(
     return []
 
 
+def load_documents_into_opensearch(
+    document_iterable: Iterable[dict]
+):
+    LOGGER.debug('loading documents into opensearch: %r', document_iterable)
+
+
 def fetch_documents_from_bigquery_and_update_opensearch(
     config: BigQueryToOpenSearchConfig
 ):
     LOGGER.debug('processing config: %r', config)
-    iter_documents_from_bigquery(config.source.bigquery)
+    document_iterable = iter_documents_from_bigquery(config.source.bigquery)
+    load_documents_into_opensearch(document_iterable)
 
 
 def fetch_documents_from_bigquery_and_update_opensearch_from_config_list(

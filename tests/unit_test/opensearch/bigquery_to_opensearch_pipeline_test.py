@@ -31,6 +31,12 @@ def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
         yield mock
 
 
+@pytest.fixture(name='load_documents_into_opensearch_mock')
+def _load_documents_into_opensearch_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'load_documents_into_opensearch') as mock:
+        yield mock
+
+
 @pytest.fixture(name='fetch_documents_from_bigquery_and_update_opensearch_mock')
 def _fetch_documents_from_bigquery_and_update_opensearch_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'fetch_documents_from_bigquery_and_update_opensearch') as mock:
@@ -38,15 +44,19 @@ def _fetch_documents_from_bigquery_and_update_opensearch_mock() -> Iterator[Magi
 
 
 class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
-    def test_should_fetch_documents_from_bigquery(
+    def test_should_fetch_documents_from_bigquery_and_pass_to_opensearch(
         self,
-        iter_documents_from_bigquery_mock: MagicMock
+        iter_documents_from_bigquery_mock: MagicMock,
+        load_documents_into_opensearch_mock: MagicMock
     ):
         fetch_documents_from_bigquery_and_update_opensearch(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         iter_documents_from_bigquery_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
+        )
+        load_documents_into_opensearch_mock.assert_called_with(
+            iter_documents_from_bigquery_mock.return_value
         )
 
 
