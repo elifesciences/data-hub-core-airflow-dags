@@ -118,7 +118,6 @@ services:
             retries: 10
 
     smtp-server:
-        restart: always
         image:  namshi/smtp
 
     scheduler:
