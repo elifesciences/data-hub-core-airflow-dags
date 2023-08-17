@@ -61,25 +61,10 @@ x-airflow-env:
 
 x-airflow-volumes:
   &airflow-volumes
-    - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-    - ./sample_data_config/elife-article-xml/elife-article-xml.config.yaml:/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
-    - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
-    - ./sample_data_config/europepmc/europepmc-labslink.config.yaml:/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
-    - ./sample_data_config/europepmc/test-ftp-password.txt:/home/airflow/app-config/europepmc/test-ftp-password.txt
-    - ./sample_data_config/europepmc/test-ftp-directory-name.txt:/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
-    - ./sample_data_config/gmail-data/gmail-data-pipeline.config.yaml:/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
-    - ./sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml:/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
-    - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-    - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-    - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - ./sample_data_config:/home/airflow/app-config
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
-    - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
-    - ./sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml:/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
 
 services:
     data-hub-dags:
