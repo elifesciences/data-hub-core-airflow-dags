@@ -130,7 +130,7 @@ class TestLoadDocumentsIntoOpenSearch:
         get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
 
-class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
+class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
     def test_should_fetch_documents_from_bigquery_and_pass_to_opensearch(
         self,
         iter_documents_from_bigquery_mock: MagicMock,
@@ -148,7 +148,7 @@ class TestFetchDocumentsFromBigQueryAndUpdateOpenSearch:
         )
 
 
-class TestFetchDocumentsFromBigQueryAndUpdateOpenSearchFromConfigList:
+class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearchFromConfigList:
     def test_should_process_each_config_item(
         self,
         fetch_documents_from_bigquery_and_load_into_opensearch_mock: MagicMock
