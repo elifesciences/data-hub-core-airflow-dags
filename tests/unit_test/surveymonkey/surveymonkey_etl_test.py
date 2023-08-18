@@ -272,8 +272,59 @@ class TestGetBqJsonForSurveyAnswersResponseJson():
             }]
         })
         assert result["questions"] == [
-            {"question_id": "Q_ID", "answers": [{}]}
+            {"question_id": "Q_ID", "answers": []}
         ]
+
+    def test_should_include_all_choices_in_an_answer(self):
+        result = get_bq_json_for_survey_answers_response_json({
+            **DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "answers": [{
+                        "choice_id": "CHOICE_ID_1"
+                    }, {
+                        "choice_id": "CHOICE_ID_2"
+                    }]
+                }]
+            }]
+        })
+        assert result["questions"] == [{
+            "question_id": "Q_ID",
+            "answers": [{
+                "choice_id": "CHOICE_ID_1"
+            }, {
+                "choice_id": "CHOICE_ID_2"
+            }]
+        }]
+
+    def test_should_include_all_data_in_an_answer_except_empty_fields(self):
+        result = get_bq_json_for_survey_answers_response_json({
+            **DEFAULT_SURVEY_ANSWERS_RESPONSE_JSON,
+            "pages": [{
+                "questions": [{
+                    "id": "Q_ID",
+                    "answers": [{
+                        "choice_id": "CHOICE_ID_1",
+                        "row_id": "ROW_ID_1",
+                        "choice_metadata": {"weight": "0"}
+                    }, {
+                        'tag_data': [],
+                        'text': 'TEXT_1'
+                    }]
+                }]
+            }]
+        })
+        assert result["questions"] == [{
+            "question_id": "Q_ID",
+            "answers": [{
+                "choice_id": "CHOICE_ID_1",
+                "row_id": "ROW_ID_1",
+                "choice_metadata": {"weight": "0"}
+            }, {
+                'text': 'TEXT_1'
+            }]
+        }]
 
     def test_should_include_all_existing_answer_id_keys(self):
         result = get_bq_json_for_survey_answers_response_json({
