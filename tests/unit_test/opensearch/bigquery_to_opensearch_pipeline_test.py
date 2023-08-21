@@ -13,6 +13,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
 )
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
+    create_or_update_index_and_load_documents_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
@@ -41,6 +42,11 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
 OPENSEARCH_TARGET_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
 
 
+DOCUMENT_1 = {
+    'doi': '10.12345/doi1'
+}
+
+
 @pytest.fixture(name='opensearch_class_mock', autouse=True)
 def _opensearch_class_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'OpenSearch') as mock:
@@ -67,6 +73,15 @@ def _get_opensearch_client_mock() -> Iterator[MagicMock]:
 @pytest.fixture(name='load_documents_into_opensearch_mock')
 def _load_documents_into_opensearch_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'load_documents_into_opensearch') as mock:
+        yield mock
+
+
+@pytest.fixture(name='create_or_update_index_and_load_documents_into_opensearch_mock')
+def _create_or_update_index_and_load_documents_into_opensearch_mock() -> Iterator[MagicMock]:
+    with patch.object(
+        test_module,
+        'create_or_update_index_and_load_documents_into_opensearch'
+    ) as mock:
         yield mock
 
 
@@ -169,11 +184,26 @@ class TestLoadDocumentsIntoOpenSearch:
         get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
 
+class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
+    def test_should_pass_documents_and_config_to_load_documents_method(
+        self,
+        load_documents_into_opensearch_mock: MagicMock
+    ):
+        create_or_update_index_and_load_documents_into_opensearch(
+            [DOCUMENT_1],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        load_documents_into_opensearch_mock.assert_called_with(
+            [DOCUMENT_1],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+
+
 class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
     def test_should_fetch_documents_from_bigquery_and_pass_to_opensearch(
         self,
         iter_documents_from_bigquery_mock: MagicMock,
-        load_documents_into_opensearch_mock: MagicMock
+        create_or_update_index_and_load_documents_into_opensearch_mock: MagicMock
     ):
         fetch_documents_from_bigquery_and_load_into_opensearch(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
@@ -181,7 +211,7 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
         iter_documents_from_bigquery_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
         )
-        load_documents_into_opensearch_mock.assert_called_with(
+        create_or_update_index_and_load_documents_into_opensearch_mock.assert_called_with(
             iter_documents_from_bigquery_mock.return_value,
             opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
         )

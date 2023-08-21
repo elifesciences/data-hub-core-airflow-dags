@@ -45,12 +45,22 @@ def load_documents_into_opensearch(
     LOGGER.info('index_exists: %r', index_exists)
 
 
+def create_or_update_index_and_load_documents_into_opensearch(
+    document_iterable: Iterable[dict],
+    opensearch_target_config: OpenSearchTargetConfig
+):
+    load_documents_into_opensearch(
+        document_iterable,
+        opensearch_target_config=opensearch_target_config
+    )
+
+
 def fetch_documents_from_bigquery_and_load_into_opensearch(
     config: BigQueryToOpenSearchConfig
 ):
     LOGGER.debug('processing config: %r', config)
     document_iterable = iter_documents_from_bigquery(config.source.bigquery)
-    load_documents_into_opensearch(
+    create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
         opensearch_target_config=config.target.opensearch
     )
