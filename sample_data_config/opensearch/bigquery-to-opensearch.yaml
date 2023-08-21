@@ -46,7 +46,7 @@ bigQueryToOpenSearch:
               filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
             - parameterName: password
               filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
-        index_name: 'dev_preprints_s2_v1'
+        indexName: 'dev_preprints_s2_v1'
         indexSettings:
           # Note: These settings can usually only be applied to a new index.
           #   It is important to set for example the "knn_vector" fields ahead of time.

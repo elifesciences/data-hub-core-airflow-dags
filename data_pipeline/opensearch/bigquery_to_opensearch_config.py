@@ -44,7 +44,7 @@ class OpenSearchTargetConfig:
             port=opensearch_target_config_dict['port'],
             username=secrets['username'],
             password=secrets['password'],
-            index_name=opensearch_target_config_dict['index_name'],
+            index_name=opensearch_target_config_dict['indexName'],
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True)
         )

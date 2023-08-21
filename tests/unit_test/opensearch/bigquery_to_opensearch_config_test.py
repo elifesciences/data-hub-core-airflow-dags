@@ -40,7 +40,7 @@ OPENSEARCH_TARGET_CONFIG_DICT_1 = {
             'filePathEnvName': OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR
         }]
     },
-    'index_name': 'index_1'
+    'indexName': 'index_1'
 }
 
 
@@ -87,7 +87,7 @@ class TestOpenSearchTargetConfig:
         opensearch_target_config = OpenSearchTargetConfig.from_dict(
             OPENSEARCH_TARGET_CONFIG_DICT_1
         )
-        assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['index_name']
+        assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['indexName']
 
     def test_should_allow_no_index_settings(self):
         assert 'indexSettings' not in OPENSEARCH_TARGET_CONFIG_DICT_1
