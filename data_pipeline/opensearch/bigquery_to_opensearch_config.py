@@ -76,11 +76,15 @@ class BigQueryToOpenSearchTargetConfig:
         )
 
 
+DEFAULT_BATCH_SIZE = 1000
+
+
 @dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
     source: BigQueryToOpenSearchSourceConfig
     field_names_for: BigQueryToOpenSearchFieldNamesForConfig
     target: BigQueryToOpenSearchTargetConfig
+    batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'BigQueryToOpenSearchConfig':
@@ -89,7 +93,8 @@ class BigQueryToOpenSearchConfig:
             field_names_for=BigQueryToOpenSearchFieldNamesForConfig.from_dict(
                 item_config_dict['fieldNamesFor']
             ),
-            target=BigQueryToOpenSearchTargetConfig.from_dict(item_config_dict['target'])
+            target=BigQueryToOpenSearchTargetConfig.from_dict(item_config_dict['target']),
+            batch_size=item_config_dict.get('batchSize', DEFAULT_BATCH_SIZE)
         )
 
     @staticmethod

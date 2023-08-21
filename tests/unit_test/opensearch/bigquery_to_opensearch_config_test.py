@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
+    DEFAULT_BATCH_SIZE,
     BigQueryToOpenSearchConfig,
     OpenSearchTargetConfig
 )
@@ -153,6 +154,22 @@ class TestBigQueryToOpenSearchConfig:
         }))
         assert config_list[0].field_names_for.id == ID_FIELD_NAME
         assert config_list[0].field_names_for.timestamp == TIMESTAMP_FIELD_NAME
+
+    def test_should_use_default_batch_size_for_config(self):
+        assert 'batchSize' not in CONFIG_DICT_1
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert config_list[0].batch_size == DEFAULT_BATCH_SIZE
+
+    def test_should_read_batch_size_for_config(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [{
+                **CONFIG_DICT_1,
+                'batchSize': 123
+            }]
+        }))
+        assert config_list[0].batch_size == 123
 
     def test_should_read_opensearch_target_config(self):
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
