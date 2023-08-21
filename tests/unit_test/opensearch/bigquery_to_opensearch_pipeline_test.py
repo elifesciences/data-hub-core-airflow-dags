@@ -22,9 +22,16 @@ from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
 )
 
 
-OPENSEARCH_INDEX_SETTNGS_1 = {
+OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1: dict = {
     'settings': {'index': {'some_setting': 'value'}}
 }
+
+OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1 = {
+    **OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1,
+    'mappings': {'properties': {'field1': {'type': 'text'}}}
+}
+
+OPENSEARCH_INDEX_SETTNGS_1 = OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
 
 
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
@@ -232,8 +239,9 @@ class TestCreateOrUpdateOpenSearchIndex:
             )
         )
         opensearch_client_mock.indices.put_settings.assert_not_called()
+        opensearch_client_mock.indices.put_mapping.assert_not_called()
 
-    def test_should_update_index_with_settings_if_it_does_exist(
+    def test_should_update_index_with_settings_but_no_mappings(
         self,
         opensearch_client_mock: MagicMock
     ):
@@ -242,12 +250,34 @@ class TestCreateOrUpdateOpenSearchIndex:
             client=opensearch_client_mock,
             opensearch_target_config=dataclasses.replace(
                 OPENSEARCH_TARGET_CONFIG_1,
-                index_settings=OPENSEARCH_INDEX_SETTNGS_1
+                index_settings=OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
             )
         )
         opensearch_client_mock.indices.put_settings.assert_called_with(
             index=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            body=OPENSEARCH_INDEX_SETTNGS_1
+            body=OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
+        )
+        opensearch_client_mock.indices.put_mapping.assert_not_called()
+
+    def test_should_update_index_with_settings_and_mappings(
+        self,
+        opensearch_client_mock: MagicMock
+    ):
+        opensearch_client_mock.indices.exists.return_value = True
+        create_or_update_opensearch_index(
+            client=opensearch_client_mock,
+            opensearch_target_config=dataclasses.replace(
+                OPENSEARCH_TARGET_CONFIG_1,
+                index_settings=OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1
+            )
+        )
+        opensearch_client_mock.indices.put_settings.assert_called_with(
+            index=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            body=OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1
+        )
+        opensearch_client_mock.indices.put_mapping.assert_called_with(
+            index=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            body=OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1['mappings']
         )
 
 
