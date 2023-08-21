@@ -84,6 +84,19 @@ class TestOpenSearchTargetConfig:
         )
         assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['index_name']
 
+    def test_should_verify_certificates_by_default(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict(
+            OPENSEARCH_TARGET_CONFIG_DICT_1
+        )
+        assert opensearch_target_config.verify_certificates is True
+
+    def test_should_read_verify_certificates_false(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'verifyCertificates': False
+        })
+        assert opensearch_target_config.verify_certificates is False
+
 
 class TestBigQueryToOpenSearchConfig:
     def test_should_load_empty_list_with_empty_config(self):

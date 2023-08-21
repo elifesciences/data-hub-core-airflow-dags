@@ -31,6 +31,7 @@ class OpenSearchTargetConfig:
     username: str = field(repr=False)
     password: str = field(repr=False)
     index_name: str
+    verify_certificates: bool = True
 
     @staticmethod
     def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
@@ -42,7 +43,8 @@ class OpenSearchTargetConfig:
             port=opensearch_target_config_dict['port'],
             username=secrets['username'],
             password=secrets['password'],
-            index_name=opensearch_target_config_dict['index_name']
+            index_name=opensearch_target_config_dict['index_name'],
+            verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True)
         )
 
 

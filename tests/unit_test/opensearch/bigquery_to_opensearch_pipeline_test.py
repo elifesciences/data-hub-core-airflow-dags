@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Iterator
 from unittest.mock import MagicMock, patch
 
@@ -99,6 +100,34 @@ class TestGetOpenSearchClient:
         opensearch_class_mock.assert_called()
         _, kwargs = opensearch_class_mock.call_args
         assert kwargs['use_ssl'] is True
+
+    def test_should_connect_verify_certificates_if_enabled(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        get_opensearch_client(
+            dataclasses.replace(
+                BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch,
+                verify_certificates=True
+            )
+        )
+        opensearch_class_mock.assert_called()
+        _, kwargs = opensearch_class_mock.call_args
+        assert kwargs['verify_certs'] is True
+
+    def test_should_not_connect_verify_certificates_if_disabled(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        get_opensearch_client(
+            dataclasses.replace(
+                BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch,
+                verify_certificates=False
+            )
+        )
+        opensearch_class_mock.assert_called()
+        _, kwargs = opensearch_class_mock.call_args
+        assert kwargs['verify_certs'] is False
 
     def test_should_pass_username_and_password_to_opensearch_class(
         self,

@@ -38,6 +38,8 @@ bigQueryToOpenSearch:
       opensearch:
         hostname: 'opensearch'
         port: 9200
+        # disable verification of certificates in development
+        verifyCertificates: False
         secrets:
           parametersFromFile:
             - parameterName: username
