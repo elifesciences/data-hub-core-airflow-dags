@@ -70,6 +70,12 @@ def _get_opensearch_client_mock() -> Iterator[MagicMock]:
         yield mock
 
 
+@pytest.fixture(name='create_or_update_opensearch_index_mock')
+def _create_or_update_opensearch_index_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'create_or_update_opensearch_index') as mock:
+        yield mock
+
+
 @pytest.fixture(name='load_documents_into_opensearch_mock')
 def _load_documents_into_opensearch_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'load_documents_into_opensearch') as mock:
@@ -185,6 +191,20 @@ class TestLoadDocumentsIntoOpenSearch:
 
 
 class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
+    def test_should_pass_config_to_create_or_update_opensearch_index_method(
+        self,
+        get_opensearch_client_mock: MagicMock,
+        create_or_update_opensearch_index_mock: MagicMock
+    ):
+        create_or_update_index_and_load_documents_into_opensearch(
+            [DOCUMENT_1],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        create_or_update_opensearch_index_mock.assert_called_with(
+            client=get_opensearch_client_mock.return_value,
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+
     def test_should_pass_documents_and_config_to_load_documents_method(
         self,
         get_opensearch_client_mock: MagicMock,

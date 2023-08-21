@@ -33,6 +33,15 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
     )
 
 
+def create_or_update_opensearch_index(
+    client: OpenSearch,
+    opensearch_target_config: OpenSearchTargetConfig
+):
+    LOGGER.info('index_name: %r', opensearch_target_config.index_name)
+    index_exists = client.indices.exists(opensearch_target_config.index_name)
+    LOGGER.info('index_exists: %r', index_exists)
+
+
 def load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     client: OpenSearch,
@@ -50,6 +59,10 @@ def create_or_update_index_and_load_documents_into_opensearch(
 ):
     client = get_opensearch_client(opensearch_target_config)
     LOGGER.info('client: %r', client)
+    create_or_update_opensearch_index(
+        client=client,
+        opensearch_target_config=opensearch_target_config
+    )
     load_documents_into_opensearch(
         document_iterable,
         client=client,
