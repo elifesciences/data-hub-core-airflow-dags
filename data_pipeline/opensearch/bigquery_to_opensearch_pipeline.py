@@ -94,7 +94,8 @@ def load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     client: OpenSearch,
     opensearch_target_config: OpenSearchTargetConfig,
-    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig
+    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig,
+    batch_size: int
 ):
     LOGGER.debug('loading documents into opensearch: %r', document_iterable)
     bulk_action_iterable = iter_opensearch_bulk_action_for_documents(
@@ -104,7 +105,8 @@ def load_documents_into_opensearch(
     )
     streaming_bulk_result_iterable = opensearchpy.helpers.streaming_bulk(
         client=client,
-        actions=bulk_action_iterable
+        actions=bulk_action_iterable,
+        chunk_size=batch_size
     )
     for _ in streaming_bulk_result_iterable:
         pass
@@ -113,7 +115,8 @@ def load_documents_into_opensearch(
 def create_or_update_index_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     opensearch_target_config: OpenSearchTargetConfig,
-    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig
+    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig,
+    batch_size: int
 ):
     client = get_opensearch_client(opensearch_target_config)
     LOGGER.info('client: %r', client)
@@ -125,7 +128,8 @@ def create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
         client=client,
         opensearch_target_config=opensearch_target_config,
-        field_names_for_config=field_names_for_config
+        field_names_for_config=field_names_for_config,
+        batch_size=batch_size
     )
 
 
@@ -137,7 +141,8 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
         opensearch_target_config=config.target.opensearch,
-        field_names_for_config=config.field_names_for
+        field_names_for_config=config.field_names_for,
+        batch_size=config.batch_size
     )
 
 
