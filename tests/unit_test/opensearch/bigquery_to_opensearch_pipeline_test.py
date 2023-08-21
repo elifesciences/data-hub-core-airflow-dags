@@ -1,4 +1,5 @@
 import dataclasses
+import json
 from typing import Iterator
 from unittest.mock import MagicMock, patch
 
@@ -64,6 +65,8 @@ DOCUMENT_1 = {
 @pytest.fixture(name='opensearch_class_mock', autouse=True)
 def _opensearch_class_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'OpenSearch') as mock:
+        # using this, we can use the real streaming_bulk method
+        mock.return_value.transport.serializer.dumps = json.dumps
         yield mock
 
 
@@ -85,8 +88,9 @@ def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
 
 
 @pytest.fixture(name='get_opensearch_client_mock')
-def _get_opensearch_client_mock() -> Iterator[MagicMock]:
+def _get_opensearch_client_mock(opensearch_client_mock: MagicMock) -> Iterator[MagicMock]:
     with patch.object(test_module, 'get_opensearch_client') as mock:
+        mock.return_value = opensearch_client_mock
         yield mock
 
 
@@ -99,6 +103,7 @@ def _create_or_update_opensearch_index_mock() -> Iterator[MagicMock]:
 @pytest.fixture(name='iter_opensearch_bulk_action_for_documents_mock')
 def _iter_opensearch_bulk_action_for_documents_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'iter_opensearch_bulk_action_for_documents') as mock:
+        mock.side_effect = iter_opensearch_bulk_action_for_documents
         yield mock
 
 
@@ -326,21 +331,40 @@ class TestLoadDocumentsIntoOpenSearch:
             id_field_name='doi'
         )
 
-    def test_should_pass_bulk_actions_to_streaming_bulk(
+    def test_should_pass_bulk_actions_to_streaming_bulk_and_consume_documents(
         self,
         opensearch_client_mock: MagicMock,
-        iter_opensearch_bulk_action_for_documents_mock: MagicMock,
         streaming_bulk_mock: MagicMock
     ):
+        expected_bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            id_field_name='doi'
+        ))
+        load_documents_into_opensearch(
+            iter([DOCUMENT_1]),
+            client=opensearch_client_mock,
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        streaming_bulk_mock.assert_called()
+        _, kwargs = streaming_bulk_mock.call_args
+        assert list(kwargs['actions']) == expected_bulk_actions
+
+    def test_should_consume_streaming_bulk_results(
+        self,
+        opensearch_client_mock: MagicMock,
+        streaming_bulk_mock: MagicMock
+    ):
+        streaming_bulk_ok: bool = True
+        streaming_bulk_item: dict = {'dummy_bulk': DOCUMENT_1}
+        streaming_bulk_result_iterable = iter([(streaming_bulk_ok, streaming_bulk_item)])
+        streaming_bulk_mock.return_value = streaming_bulk_result_iterable
         load_documents_into_opensearch(
             [DOCUMENT_1],
             client=opensearch_client_mock,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
         )
-        streaming_bulk_mock.assert_called_with(
-            client=opensearch_client_mock,
-            actions=iter_opensearch_bulk_action_for_documents_mock.return_value
-        )
+        assert not list(streaming_bulk_result_iterable)
 
 
 class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:

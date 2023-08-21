@@ -100,10 +100,12 @@ def load_documents_into_opensearch(
         index_name=opensearch_target_config.index_name,
         id_field_name='doi'
     )
-    opensearchpy.helpers.streaming_bulk(
+    streaming_bulk_result_iterable = opensearchpy.helpers.streaming_bulk(
         client=client,
         actions=bulk_action_iterable
     )
+    for _ in streaming_bulk_result_iterable:
+        pass
 
 
 def create_or_update_index_and_load_documents_into_opensearch(
