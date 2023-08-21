@@ -90,7 +90,7 @@ class TestOpenSearchTargetConfig:
         assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['index_name']
 
     def test_should_allow_no_index_settings(self):
-        assert 'index_settings' not in OPENSEARCH_TARGET_CONFIG_DICT_1
+        assert 'indexSettings' not in OPENSEARCH_TARGET_CONFIG_DICT_1
         opensearch_target_config = OpenSearchTargetConfig.from_dict(
             OPENSEARCH_TARGET_CONFIG_DICT_1,
         )
@@ -99,7 +99,7 @@ class TestOpenSearchTargetConfig:
     def test_should_read_index_settings_if_configured(self):
         opensearch_target_config = OpenSearchTargetConfig.from_dict({
             **OPENSEARCH_TARGET_CONFIG_DICT_1,
-            'index_settings': OPENSEARCH_INDEX_SETTNGS_1
+            'indexSettings': OPENSEARCH_INDEX_SETTNGS_1
         })
         assert opensearch_target_config.index_settings == OPENSEARCH_INDEX_SETTNGS_1
 
