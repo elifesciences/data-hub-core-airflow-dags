@@ -18,6 +18,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
+    iter_opensearch_bulk_action_for_documents,
     load_documents_into_opensearch
 )
 
@@ -71,6 +72,12 @@ def _opensearch_client_mock(opensearch_class_mock: MagicMock) -> MagicMock:
     return opensearch_class_mock.return_value
 
 
+@pytest.fixture(name='streaming_bulk_mock')
+def _streaming_bulk_mock() -> Iterator[MagicMock]:
+    with patch('opensearchpy.helpers.streaming_bulk') as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_documents_from_bigquery_mock')
 def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'iter_documents_from_bigquery') as mock:
@@ -86,6 +93,12 @@ def _get_opensearch_client_mock() -> Iterator[MagicMock]:
 @pytest.fixture(name='create_or_update_opensearch_index_mock')
 def _create_or_update_opensearch_index_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'create_or_update_opensearch_index') as mock:
+        yield mock
+
+
+@pytest.fixture(name='iter_opensearch_bulk_action_for_documents_mock')
+def _iter_opensearch_bulk_action_for_documents_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'iter_opensearch_bulk_action_for_documents') as mock:
         yield mock
 
 
@@ -281,15 +294,52 @@ class TestCreateOrUpdateOpenSearchIndex:
         )
 
 
+class TestIterOpensearchBulkActionForDocuments:
+    def test_should_wrap_document_with_bulk_index_action(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name='doi'
+        ))
+        assert bulk_actions == [{
+            '_op_type': 'index',
+            "_index": 'index_1',
+            '_id': DOCUMENT_1['doi'],
+            '_source': DOCUMENT_1
+        }]
+
+
 class TestLoadDocumentsIntoOpenSearch:
-    def test_should_not_fail(
+    def test_should_pass_documents_and_index_name_to_iter_opensearch_action_method(
         self,
-        opensearch_client_mock: MagicMock
+        opensearch_client_mock: MagicMock,
+        iter_opensearch_bulk_action_for_documents_mock: MagicMock
     ):
         load_documents_into_opensearch(
-            [],
+            [DOCUMENT_1],
             client=opensearch_client_mock,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        iter_opensearch_bulk_action_for_documents_mock.assert_called_with(
+            [DOCUMENT_1],
+            index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            id_field_name='doi'
+        )
+
+    def test_should_pass_bulk_actions_to_streaming_bulk(
+        self,
+        opensearch_client_mock: MagicMock,
+        iter_opensearch_bulk_action_for_documents_mock: MagicMock,
+        streaming_bulk_mock: MagicMock
+    ):
+        load_documents_into_opensearch(
+            [DOCUMENT_1],
+            client=opensearch_client_mock,
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        streaming_bulk_mock.assert_called_with(
+            client=opensearch_client_mock,
+            actions=iter_opensearch_bulk_action_for_documents_mock.return_value
         )
 
 

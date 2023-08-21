@@ -2,6 +2,7 @@ import logging
 from typing import Iterable, Sequence
 
 from opensearchpy import OpenSearch
+import opensearchpy
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
@@ -60,15 +61,49 @@ def create_or_update_opensearch_index(
         )
 
 
+def get_opensearch_bulk_action_for_document(
+    document: dict,
+    index_name: str,
+    id_field_name: str
+) -> dict:
+    return {
+        '_op_type': 'index',
+        '_index': index_name,
+        '_id': document[id_field_name],
+        '_source': document
+    }
+
+
+def iter_opensearch_bulk_action_for_documents(
+    document_iterable: Iterable[dict],
+    index_name: str,
+    id_field_name: str
+) -> Iterable[dict]:
+    return (
+        get_opensearch_bulk_action_for_document(
+            document,
+            index_name=index_name,
+            id_field_name=id_field_name
+        )
+        for document in document_iterable
+    )
+
+
 def load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     client: OpenSearch,
     opensearch_target_config: OpenSearchTargetConfig
 ):
     LOGGER.debug('loading documents into opensearch: %r', document_iterable)
-    LOGGER.info('index_name: %r', opensearch_target_config.index_name)
-    index_exists = client.indices.exists(opensearch_target_config.index_name)
-    LOGGER.info('index_exists: %r', index_exists)
+    bulk_action_iterable = iter_opensearch_bulk_action_for_documents(
+        document_iterable,
+        index_name=opensearch_target_config.index_name,
+        id_field_name='doi'
+    )
+    opensearchpy.helpers.streaming_bulk(
+        client=client,
+        actions=bulk_action_iterable
+    )
 
 
 def create_or_update_index_and_load_documents_into_opensearch(
