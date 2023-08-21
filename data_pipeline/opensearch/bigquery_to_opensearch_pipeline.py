@@ -38,8 +38,20 @@ def create_or_update_opensearch_index(
     opensearch_target_config: OpenSearchTargetConfig
 ):
     LOGGER.info('index_name: %r', opensearch_target_config.index_name)
+    LOGGER.debug('index_settings: %r', opensearch_target_config.index_settings)
     index_exists = client.indices.exists(opensearch_target_config.index_name)
     LOGGER.info('index_exists: %r', index_exists)
+    if index_exists:
+        if opensearch_target_config.index_settings:
+            client.indices.put_settings(
+                index=opensearch_target_config.index_name,
+                body=opensearch_target_config.index_settings
+            )
+    else:
+        client.indices.create(
+            index=opensearch_target_config.index_name,
+            body=opensearch_target_config.index_settings
+        )
 
 
 def load_documents_into_opensearch(

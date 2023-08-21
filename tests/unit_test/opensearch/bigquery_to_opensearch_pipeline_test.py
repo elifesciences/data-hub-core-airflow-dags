@@ -14,11 +14,17 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     create_or_update_index_and_load_documents_into_opensearch,
+    create_or_update_opensearch_index,
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
     load_documents_into_opensearch
 )
+
+
+OPENSEARCH_INDEX_SETTNGS_1 = {
+    'settings': {'index': {'some_setting': 'value'}}
+}
 
 
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
@@ -176,6 +182,73 @@ class TestGetOpenSearchClient:
     ):
         client = get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
         assert client == opensearch_class_mock.return_value
+
+
+class TestCreateOrUpdateOpenSearchIndex:
+    def test_should_create_index_without_settings_if_it_does_not_exist(
+        self,
+        opensearch_client_mock: MagicMock
+    ):
+        opensearch_client_mock.indices.exists.return_value = False
+        create_or_update_opensearch_index(
+            client=opensearch_client_mock,
+            opensearch_target_config=dataclasses.replace(
+                OPENSEARCH_TARGET_CONFIG_1,
+                index_settings=None
+            )
+        )
+        opensearch_client_mock.indices.create.assert_called_with(
+            index=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            body=None
+        )
+
+    def test_should_create_index_with_settings_if_it_does_not_exist(
+        self,
+        opensearch_client_mock: MagicMock
+    ):
+        opensearch_client_mock.indices.exists.return_value = False
+        create_or_update_opensearch_index(
+            client=opensearch_client_mock,
+            opensearch_target_config=dataclasses.replace(
+                OPENSEARCH_TARGET_CONFIG_1,
+                index_settings=OPENSEARCH_INDEX_SETTNGS_1
+            )
+        )
+        opensearch_client_mock.indices.create.assert_called_with(
+            index=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            body=OPENSEARCH_INDEX_SETTNGS_1
+        )
+
+    def test_should_not_update_index_without_settings_if_it_does_exist(
+        self,
+        opensearch_client_mock: MagicMock
+    ):
+        opensearch_client_mock.indices.exists.return_value = True
+        create_or_update_opensearch_index(
+            client=opensearch_client_mock,
+            opensearch_target_config=dataclasses.replace(
+                OPENSEARCH_TARGET_CONFIG_1,
+                index_settings=None
+            )
+        )
+        opensearch_client_mock.indices.put_settings.assert_not_called()
+
+    def test_should_update_index_with_settings_if_it_does_exist(
+        self,
+        opensearch_client_mock: MagicMock
+    ):
+        opensearch_client_mock.indices.exists.return_value = True
+        create_or_update_opensearch_index(
+            client=opensearch_client_mock,
+            opensearch_target_config=dataclasses.replace(
+                OPENSEARCH_TARGET_CONFIG_1,
+                index_settings=OPENSEARCH_INDEX_SETTNGS_1
+            )
+        )
+        opensearch_client_mock.indices.put_settings.assert_called_with(
+            index=OPENSEARCH_TARGET_CONFIG_1.index_name,
+            body=OPENSEARCH_INDEX_SETTNGS_1
+        )
 
 
 class TestLoadDocumentsIntoOpenSearch:
