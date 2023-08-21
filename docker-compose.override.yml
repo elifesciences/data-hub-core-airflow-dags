@@ -10,8 +10,6 @@ x-airflow-env:
     # Semantic Scholar API Key is optional
     - SEMANTIC_SCHOLAR_API_KEY_FILE_PATH=/home/airflow/secrets/semantic_scholar_api_key.txt
     - GITHUB_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/github_api_authorization.txt
-    - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/secrets/opensearch_username.txt
-    - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/secrets/opensearch_password.txt
     - TWITTER_API_AUTHORIZATION_FILE_PATH=/home/airflow/secrets/twitter_api_authorization.txt
     - TWITTER_API_KEY_FILE_PATH=/home/airflow/secrets/twitter_api_key.txt
     - TWITTER_API_SECRET_FILE_PATH=/home/airflow/secrets/twitter_api_secret.txt
@@ -52,3 +50,12 @@ services:
     test-ftpserver:
         ports:
             - "8021:21"
+
+    opensearch:
+        ports:
+            - 9200:9200
+            - 9600:9600  # required for Performance Analyzer
+
+    opensearch-dashboards:
+        ports:
+            - 5601:5601

@@ -58,6 +58,8 @@ x-airflow-env:
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
     - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml
     - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
+    - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
+    - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
 
 x-airflow-volumes:
   &airflow-volumes
@@ -172,6 +174,34 @@ services:
         environment:
             - ALLOW_EMPTY_PASSWORD=yes
 
+    opensearch:
+        image: opensearchproject/opensearch:2.9.0
+        environment:
+            - node.name=opensearch
+            - discovery.type=single-node
+            - cluster.routing.allocation.disk.threshold_enabled=false
+            - cluster.routing.allocation.disk.watermark.low=0mb
+            - cluster.routing.allocation.disk.watermark.high=0mb
+            - cluster.routing.allocation.disk.watermark.flood_stage=0mb
+            - bootstrap.memory_lock=false  # along with the memlock settings below, disables swapping
+            - "OPENSEARCH_JAVA_OPTS=-Xms1024m -Xmx1024m"  # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536  # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+                hard: 65536
+        volumes:
+            - opensearch-data-airflow-dev:/usr/share/opensearch/data
+
+    opensearch-dashboards:
+        image: opensearchproject/opensearch-dashboards:2.9.0
+        expose:
+            - "5601"
+        environment:
+            OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+
     # flower:
     #     image: elifesciences/data-hub-core-dags-dev
     #     depends_on:
@@ -180,3 +210,6 @@ services:
     #     ports:
     #         - "5555:5555"
     #     command: celery flower
+
+volumes:
+  opensearch-data-airflow-dev:
