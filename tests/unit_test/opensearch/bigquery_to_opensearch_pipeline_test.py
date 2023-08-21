@@ -37,6 +37,10 @@ OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1 = {
 OPENSEARCH_INDEX_SETTNGS_1 = OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
 
 
+ID_FIELD_NAME = 'id1'
+TIMESTAMP_FIELD_NAME = 'timestamp1'
+
+
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     source=BigQueryToOpenSearchSourceConfig(
         bigquery=BigQuerySourceConfig(
@@ -45,8 +49,8 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
         )
     ),
     field_names_for=BigQueryToOpenSearchFieldNamesForConfig(
-        id='doi',
-        timestamp='timestamp'
+        id=ID_FIELD_NAME,
+        timestamp=TIMESTAMP_FIELD_NAME
     ),
     target=BigQueryToOpenSearchTargetConfig(
         opensearch=OpenSearchTargetConfig(
@@ -60,10 +64,11 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
 )
 
 OPENSEARCH_TARGET_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
+FIELD_NAMES_FOR_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for
 
 
 DOCUMENT_1 = {
-    'doi': '10.12345/doi1'
+    ID_FIELD_NAME: '10.12345/doi1'
 }
 
 
@@ -309,12 +314,12 @@ class TestIterOpensearchBulkActionForDocuments:
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name='doi'
+            id_field_name=ID_FIELD_NAME
         ))
         assert bulk_actions == [{
             '_op_type': 'index',
             "_index": 'index_1',
-            '_id': DOCUMENT_1['doi'],
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
             '_source': DOCUMENT_1
         }]
 
@@ -328,12 +333,13 @@ class TestLoadDocumentsIntoOpenSearch:
         load_documents_into_opensearch(
             [DOCUMENT_1],
             client=opensearch_client_mock,
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         iter_opensearch_bulk_action_for_documents_mock.assert_called_with(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name='doi'
+            id_field_name=ID_FIELD_NAME
         )
 
     def test_should_pass_bulk_actions_to_streaming_bulk_and_consume_documents(
@@ -344,12 +350,13 @@ class TestLoadDocumentsIntoOpenSearch:
         expected_bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name='doi'
+            id_field_name=ID_FIELD_NAME
         ))
         load_documents_into_opensearch(
             iter([DOCUMENT_1]),
             client=opensearch_client_mock,
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         streaming_bulk_mock.assert_called()
         _, kwargs = streaming_bulk_mock.call_args
@@ -367,7 +374,8 @@ class TestLoadDocumentsIntoOpenSearch:
         load_documents_into_opensearch(
             [DOCUMENT_1],
             client=opensearch_client_mock,
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         assert not list(streaming_bulk_result_iterable)
 
@@ -380,7 +388,8 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         create_or_update_opensearch_index_mock.assert_called_with(
             client=get_opensearch_client_mock.return_value,
@@ -394,12 +403,14 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         load_documents_into_opensearch_mock.assert_called_with(
             [DOCUMENT_1],
             client=get_opensearch_client_mock.return_value,
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
 
     def test_should_pass_opensearch_target_config_to_get_cient(
@@ -408,7 +419,8 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1
         )
         get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
@@ -427,7 +439,8 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
         )
         create_or_update_index_and_load_documents_into_opensearch_mock.assert_called_with(
             iter_documents_from_bigquery_mock.return_value,
-            opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch
+            opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch,
+            field_names_for_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for
         )
 
 

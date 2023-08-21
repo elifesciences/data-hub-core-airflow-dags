@@ -6,6 +6,7 @@ import opensearchpy
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
+    BigQueryToOpenSearchFieldNamesForConfig,
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
@@ -92,13 +93,14 @@ def iter_opensearch_bulk_action_for_documents(
 def load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     client: OpenSearch,
-    opensearch_target_config: OpenSearchTargetConfig
+    opensearch_target_config: OpenSearchTargetConfig,
+    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig
 ):
     LOGGER.debug('loading documents into opensearch: %r', document_iterable)
     bulk_action_iterable = iter_opensearch_bulk_action_for_documents(
         document_iterable,
         index_name=opensearch_target_config.index_name,
-        id_field_name='doi'
+        id_field_name=field_names_for_config.id
     )
     streaming_bulk_result_iterable = opensearchpy.helpers.streaming_bulk(
         client=client,
@@ -110,7 +112,8 @@ def load_documents_into_opensearch(
 
 def create_or_update_index_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
-    opensearch_target_config: OpenSearchTargetConfig
+    opensearch_target_config: OpenSearchTargetConfig,
+    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig
 ):
     client = get_opensearch_client(opensearch_target_config)
     LOGGER.info('client: %r', client)
@@ -121,7 +124,8 @@ def create_or_update_index_and_load_documents_into_opensearch(
     load_documents_into_opensearch(
         document_iterable,
         client=client,
-        opensearch_target_config=opensearch_target_config
+        opensearch_target_config=opensearch_target_config,
+        field_names_for_config=field_names_for_config
     )
 
 
@@ -132,7 +136,8 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     document_iterable = iter_documents_from_bigquery(config.source.bigquery)
     create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
-        opensearch_target_config=config.target.opensearch
+        opensearch_target_config=config.target.opensearch,
+        field_names_for_config=config.field_names_for
     )
 
 
