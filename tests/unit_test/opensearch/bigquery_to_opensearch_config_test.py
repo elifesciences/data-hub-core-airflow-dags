@@ -13,6 +13,10 @@ USERNAME_1 = 'username1'
 PASSWORD_1 = 'password1'
 
 
+ID_FIELD_NAME = 'id1'
+TIMESTAMP_FIELD_NAME = 'timestamp1'
+
+
 OPENSEARCH_USERNAME_FILE_PATH_ENV_VAR = 'OPENSEARCH_USERNAME_FILE_PATH_ENV_VAR'
 OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR = 'OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR'
 
@@ -46,6 +50,10 @@ OPENSEARCH_TARGET_CONFIG_DICT_1 = {
 
 CONFIG_DICT_1: dict = {
     'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1},
+    'fieldNamesFor': {
+        'id': ID_FIELD_NAME,
+        'timestamp': TIMESTAMP_FIELD_NAME
+    },
     'target': {'opensearch': OPENSEARCH_TARGET_CONFIG_DICT_1}
 }
 
@@ -138,6 +146,13 @@ class TestBigQueryToOpenSearchConfig:
             config_list[0].source.bigquery
             == BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
         )
+
+    def test_should_read_field_names_for_config(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert config_list[0].field_names_for.id == ID_FIELD_NAME
+        assert config_list[0].field_names_for.timestamp == TIMESTAMP_FIELD_NAME
 
     def test_should_read_opensearch_target_config(self):
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({

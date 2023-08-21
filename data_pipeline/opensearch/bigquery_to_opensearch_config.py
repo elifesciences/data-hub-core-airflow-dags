@@ -51,6 +51,19 @@ class OpenSearchTargetConfig:
 
 
 @dataclass(frozen=True)
+class BigQueryToOpenSearchFieldNamesForConfig:
+    id: str  # pylint: disable=invalid-name
+    timestamp: str
+
+    @staticmethod
+    def from_dict(field_names_for_config_dict: dict) -> 'BigQueryToOpenSearchFieldNamesForConfig':
+        return BigQueryToOpenSearchFieldNamesForConfig(
+            id=field_names_for_config_dict['id'],
+            timestamp=field_names_for_config_dict['timestamp']
+        )
+
+
+@dataclass(frozen=True)
 class BigQueryToOpenSearchTargetConfig:
     opensearch: OpenSearchTargetConfig
 
@@ -66,12 +79,16 @@ class BigQueryToOpenSearchTargetConfig:
 @dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
     source: BigQueryToOpenSearchSourceConfig
+    field_names_for: BigQueryToOpenSearchFieldNamesForConfig
     target: BigQueryToOpenSearchTargetConfig
 
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'BigQueryToOpenSearchConfig':
         return BigQueryToOpenSearchConfig(
             source=BigQueryToOpenSearchSourceConfig.from_dict(item_config_dict['source']),
+            field_names_for=BigQueryToOpenSearchFieldNamesForConfig.from_dict(
+                item_config_dict['fieldNamesFor']
+            ),
             target=BigQueryToOpenSearchTargetConfig.from_dict(item_config_dict['target'])
         )
 

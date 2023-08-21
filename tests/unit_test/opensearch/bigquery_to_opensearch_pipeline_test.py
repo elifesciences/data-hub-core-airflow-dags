@@ -8,6 +8,7 @@ import pytest
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
+    BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchSourceConfig,
     BigQueryToOpenSearchTargetConfig,
     OpenSearchTargetConfig
@@ -42,6 +43,10 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
             project_name='project1',
             sql_query='query 1'
         )
+    ),
+    field_names_for=BigQueryToOpenSearchFieldNamesForConfig(
+        id='doi',
+        timestamp='timestamp'
     ),
     target=BigQueryToOpenSearchTargetConfig(
         opensearch=OpenSearchTargetConfig(
