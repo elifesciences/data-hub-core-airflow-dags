@@ -20,6 +20,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
+    iter_documents_from_bigquery,
     iter_opensearch_bulk_action_for_documents,
     load_documents_into_opensearch
 )
@@ -91,6 +92,12 @@ def _streaming_bulk_mock() -> Iterator[MagicMock]:
         yield mock
 
 
+@pytest.fixture(name='iter_dict_from_bq_query_for_bigquery_source_config_mock', autouse=True)
+def _iter_dict_from_bq_query_for_bigquery_source_config_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'iter_dict_from_bq_query_for_bigquery_source_config') as mock:
+        yield mock
+
+
 @pytest.fixture(name='iter_documents_from_bigquery_mock')
 def _iter_documents_from_bigquery_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'iter_documents_from_bigquery') as mock:
@@ -139,6 +146,18 @@ def _fetch_documents_from_bigquery_and_load_into_opensearch_mock() -> Iterator[M
         'fetch_documents_from_bigquery_and_load_into_opensearch'
     ) as mock:
         yield mock
+
+
+class TestIterDocumentsFromBigQuery:
+    def test_should_delegate_to_iter_dict_from_bq_query_for_bigquery_source_config(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
+    ):
+        result = iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery)
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
+        )
+        assert result == iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value
 
 
 class TestGetOpenSearchClient:

@@ -10,6 +10,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
+from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +20,9 @@ def iter_documents_from_bigquery(
     bigquery_source_config: BigQuerySourceConfig
 ) -> Iterable[dict]:
     LOGGER.debug('processing bigquery source config: %r', bigquery_source_config)
-    return []
+    return iter_dict_from_bq_query_for_bigquery_source_config(
+        bigquery_source_config
+    )
 
 
 def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> OpenSearch:
