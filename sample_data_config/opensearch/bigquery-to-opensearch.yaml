@@ -65,7 +65,7 @@ bigQueryToOpenSearch:
                 abstract:
                   type: "text"
                 publication_date:
-                  type": "date"
+                  type: "date"
                 s2_specter_embedding_v1:
                   type: "knn_vector"
                   dimension: 768
