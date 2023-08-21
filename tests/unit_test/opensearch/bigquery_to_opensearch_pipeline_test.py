@@ -53,8 +53,8 @@ def _opensearch_class_mock() -> Iterator[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='opensearch_mock')
-def _opensearch_mock(opensearch_class_mock: MagicMock) -> MagicMock:
+@pytest.fixture(name='opensearch_client_mock')
+def _opensearch_client_mock(opensearch_class_mock: MagicMock) -> MagicMock:
     return opensearch_class_mock.return_value
 
 
@@ -173,20 +173,21 @@ class TestGetOpenSearchClient:
 
 
 class TestLoadDocumentsIntoOpenSearch:
-    def test_should_pass_opensearch_target_config_to_get_cient(
+    def test_should_not_fail(
         self,
-        get_opensearch_client_mock: MagicMock
+        opensearch_client_mock: MagicMock
     ):
         load_documents_into_opensearch(
             [],
+            client=opensearch_client_mock,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
         )
-        get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
 
 class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     def test_should_pass_documents_and_config_to_load_documents_method(
         self,
+        get_opensearch_client_mock: MagicMock,
         load_documents_into_opensearch_mock: MagicMock
     ):
         create_or_update_index_and_load_documents_into_opensearch(
@@ -195,8 +196,19 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
         )
         load_documents_into_opensearch_mock.assert_called_with(
             [DOCUMENT_1],
+            client=get_opensearch_client_mock.return_value,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
         )
+
+    def test_should_pass_opensearch_target_config_to_get_cient(
+        self,
+        get_opensearch_client_mock: MagicMock
+    ):
+        create_or_update_index_and_load_documents_into_opensearch(
+            [DOCUMENT_1],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
+        )
+        get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
 
 class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
