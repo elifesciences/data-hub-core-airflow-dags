@@ -23,6 +23,11 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 }
 
 
+OPENSEARCH_INDEX_SETTNGS_1 = {
+    'settings': {'index': {'some_setting': 'value'}}
+}
+
+
 OPENSEARCH_TARGET_CONFIG_DICT_1 = {
     'hostname': 'hostname1',
     'port': 9200,
@@ -83,6 +88,20 @@ class TestOpenSearchTargetConfig:
             OPENSEARCH_TARGET_CONFIG_DICT_1
         )
         assert opensearch_target_config.index_name == OPENSEARCH_TARGET_CONFIG_DICT_1['index_name']
+
+    def test_should_allow_no_index_settings(self):
+        assert 'index_settings' not in OPENSEARCH_TARGET_CONFIG_DICT_1
+        opensearch_target_config = OpenSearchTargetConfig.from_dict(
+            OPENSEARCH_TARGET_CONFIG_DICT_1,
+        )
+        assert opensearch_target_config.index_settings is None
+
+    def test_should_read_index_settings_if_configured(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'index_settings': OPENSEARCH_INDEX_SETTNGS_1
+        })
+        assert opensearch_target_config.index_settings == OPENSEARCH_INDEX_SETTNGS_1
 
     def test_should_verify_certificates_by_default(self):
         opensearch_target_config = OpenSearchTargetConfig.from_dict(

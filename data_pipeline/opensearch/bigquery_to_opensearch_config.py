@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Optional, Sequence
 
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
@@ -31,6 +31,7 @@ class OpenSearchTargetConfig:
     username: str = field(repr=False)
     password: str = field(repr=False)
     index_name: str
+    index_settings: Optional[dict] = None
     verify_certificates: bool = True
 
     @staticmethod
@@ -44,6 +45,7 @@ class OpenSearchTargetConfig:
             username=secrets['username'],
             password=secrets['password'],
             index_name=opensearch_target_config_dict['index_name'],
+            index_settings=opensearch_target_config_dict.get('index_settings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True)
         )
 
