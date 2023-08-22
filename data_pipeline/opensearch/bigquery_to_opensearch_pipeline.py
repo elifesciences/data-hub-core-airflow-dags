@@ -189,8 +189,11 @@ def create_or_update_index_and_load_documents_into_opensearch(
         client=client,
         opensearch_target_config=config.target.opensearch
     )
-    for batch_documents_iterable in iter_batch_iterable(document_iterable, config.batch_size):
+    for index, batch_documents_iterable in enumerate(
+        iter_batch_iterable(document_iterable, config.batch_size)
+    ):
         batch_documents = list(batch_documents_iterable)
+        LOGGER.info('processing batch %d (%d documents)', 1 + index, len(batch_documents))
         load_documents_into_opensearch(
             batch_documents,
             client=client,
