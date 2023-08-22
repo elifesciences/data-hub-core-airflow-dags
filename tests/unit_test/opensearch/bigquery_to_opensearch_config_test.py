@@ -214,6 +214,13 @@ class TestBigQueryToOpenSearchConfig:
             == datetime.fromisoformat(INITIAL_START_TIMESTAMP_STR_1)
         )
 
+    def test_should_read_state_file_config(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert config_list[0].state.state_file.bucket_name == BUCKET_NAME_1
+        assert config_list[0].state.state_file.object_name == OBJECT_NAME_1
+
     def test_should_read_opensearch_target_config(self):
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
             'bigQueryToOpenSearch': [CONFIG_DICT_1]

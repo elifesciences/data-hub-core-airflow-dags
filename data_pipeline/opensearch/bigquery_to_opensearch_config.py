@@ -5,6 +5,7 @@ from typing import Optional, Sequence
 
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
+    StateFileConfig,
     get_resolved_parameter_values_from_file_path_env_name
 )
 
@@ -95,12 +96,16 @@ class BigQueryToOpenSearchInitialStateConfig:
 @dataclass(frozen=True)
 class BigQueryToOpenSearchStateConfig:
     initial_state: BigQueryToOpenSearchInitialStateConfig
+    state_file: StateFileConfig
 
     @staticmethod
     def from_dict(state_config_dict: dict) -> 'BigQueryToOpenSearchStateConfig':
         return BigQueryToOpenSearchStateConfig(
             initial_state=BigQueryToOpenSearchInitialStateConfig.from_dict(
                 state_config_dict['initialState']
+            ),
+            state_file=StateFileConfig.from_dict(
+                state_config_dict['stateFile']
             )
         )
 

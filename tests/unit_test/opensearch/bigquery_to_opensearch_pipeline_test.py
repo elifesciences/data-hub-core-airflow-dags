@@ -6,7 +6,7 @@ from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
 
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, StateFileConfig
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
@@ -68,7 +68,8 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     state=BigQueryToOpenSearchStateConfig(
         initial_state=BigQueryToOpenSearchInitialStateConfig(
             start_timestamp=datetime.fromisoformat('2001-02-03+00:00')
-        )
+        ),
+        state_file=StateFileConfig(bucket_name='bucket1', object_name='object1')
     )
 )
 
