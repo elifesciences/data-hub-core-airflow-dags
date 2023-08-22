@@ -42,28 +42,23 @@ def create_or_update_opensearch_index(
     client: OpenSearch,
     opensearch_target_config: OpenSearchTargetConfig
 ):
-    LOGGER.info('index_name: %r', opensearch_target_config.index_name)
-    LOGGER.info('index_settings: %r', opensearch_target_config.index_settings)
-    index_exists = client.indices.exists(opensearch_target_config.index_name)
+    index_name = opensearch_target_config.index_name
+    index_settings = opensearch_target_config.index_settings
+    LOGGER.info('index_name: %r', index_name)
+    LOGGER.info('index_settings: %r', index_settings)
+    index_exists = client.indices.exists(index_name)
     LOGGER.info('index_exists: %r', index_exists)
     if index_exists:
-        if opensearch_target_config.index_settings:
+        if index_settings:
             if opensearch_target_config.update_index_settings:
-                client.indices.put_settings(
-                    index=opensearch_target_config.index_name,
-                    body=opensearch_target_config.index_settings
-                )
-            mappings = opensearch_target_config.index_settings.get('mappings')
+                LOGGER.info('updating index settings: %r', index_settings)
+                client.indices.put_settings(index=index_name, body=index_settings)
+            mappings = index_settings.get('mappings')
             if mappings and opensearch_target_config.update_mappings:
-                client.indices.put_mapping(
-                    index=opensearch_target_config.index_name,
-                    body=mappings
-                )
+                LOGGER.info('updating mappings: %r', mappings)
+                client.indices.put_mapping(index=index_name, body=mappings)
     else:
-        client.indices.create(
-            index=opensearch_target_config.index_name,
-            body=opensearch_target_config.index_settings
-        )
+        client.indices.create(index=index_name, body=index_settings)
 
 
 def get_opensearch_bulk_action_for_document(
