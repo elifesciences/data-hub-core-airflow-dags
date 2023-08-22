@@ -153,11 +153,39 @@ class TestIterDocumentsFromBigQuery:
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
     ):
-        result = iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery)
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = [{
+            'field1': 'value1'
+        }]
+        result = list(iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery))
         iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
         )
-        assert result == iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value
+        assert result == [{'field1': 'value1'}]
+
+    def test_should_return_an_iterable(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = iter([{
+            'field1': 'value1'
+        }])
+        iterable = iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery)
+        assert list(iterable)
+        # iterable should now be consumed and empty
+        assert not list(iterable)
+
+    def test_should_remove_empty_embedding_vector_array(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
+    ):
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = [{
+            'other_field': 'other_value',
+            'empty_vector': []
+        }]
+        result = list(iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery))
+        assert result == [{
+            'other_field': 'other_value'
+        }]
 
 
 class TestGetOpenSearchClient:

@@ -9,6 +9,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchFieldNamesForConfig,
     OpenSearchTargetConfig
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
 
@@ -20,8 +21,11 @@ def iter_documents_from_bigquery(
     bigquery_source_config: BigQuerySourceConfig
 ) -> Iterable[dict]:
     LOGGER.debug('processing bigquery source config: %r', bigquery_source_config)
-    return iter_dict_from_bq_query_for_bigquery_source_config(
-        bigquery_source_config
+    return (
+        remove_key_with_null_value(document)
+        for document in iter_dict_from_bq_query_for_bigquery_source_config(
+            bigquery_source_config
+        )
     )
 
 
