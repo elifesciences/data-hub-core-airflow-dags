@@ -287,7 +287,7 @@ class TestGetOpenSearchClient:
         _, kwargs = opensearch_class_mock.call_args
         assert kwargs['use_ssl'] is True
 
-    def test_should_connect_verify_certificates_if_enabled(
+    def test_should_verify_certificates_and_show_ssl_warnings_if_enabled(
         self,
         opensearch_class_mock: MagicMock
     ):
@@ -300,8 +300,9 @@ class TestGetOpenSearchClient:
         opensearch_class_mock.assert_called()
         _, kwargs = opensearch_class_mock.call_args
         assert kwargs['verify_certs'] is True
+        assert kwargs['ssl_show_warn'] is True
 
-    def test_should_not_connect_verify_certificates_if_disabled(
+    def test_should_not_verify_certificates_or_show_ssl_warnings_if_disabled(
         self,
         opensearch_class_mock: MagicMock
     ):
@@ -314,6 +315,7 @@ class TestGetOpenSearchClient:
         opensearch_class_mock.assert_called()
         _, kwargs = opensearch_class_mock.call_args
         assert kwargs['verify_certs'] is False
+        assert kwargs['ssl_show_warn'] is False
 
     def test_should_pass_username_and_password_to_opensearch_class(
         self,
