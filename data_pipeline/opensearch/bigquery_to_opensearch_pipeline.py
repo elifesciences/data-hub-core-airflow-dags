@@ -48,10 +48,11 @@ def create_or_update_opensearch_index(
     LOGGER.info('index_exists: %r', index_exists)
     if index_exists:
         if opensearch_target_config.index_settings:
-            client.indices.put_settings(
-                index=opensearch_target_config.index_name,
-                body=opensearch_target_config.index_settings
-            )
+            if opensearch_target_config.update_index_settings:
+                client.indices.put_settings(
+                    index=opensearch_target_config.index_name,
+                    body=opensearch_target_config.index_settings
+                )
             mappings = opensearch_target_config.index_settings.get('mappings')
             if mappings:
                 client.indices.put_mapping(

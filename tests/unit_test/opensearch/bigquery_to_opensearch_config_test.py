@@ -112,6 +112,14 @@ class TestOpenSearchTargetConfig:
         })
         assert opensearch_target_config.index_settings == OPENSEARCH_INDEX_SETTNGS_1
 
+    @pytest.mark.parametrize('value', [False,  True])
+    def test_should_read_update_index_settings(self, value: bool):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'updateIndexSettings': value
+        })
+        assert opensearch_target_config.update_index_settings == value
+
     def test_should_verify_certificates_by_default(self):
         opensearch_target_config = OpenSearchTargetConfig.from_dict(
             OPENSEARCH_TARGET_CONFIG_DICT_1

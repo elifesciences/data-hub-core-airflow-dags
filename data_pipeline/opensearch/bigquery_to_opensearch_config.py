@@ -25,12 +25,13 @@ class BigQueryToOpenSearchSourceConfig:
 
 
 @dataclass(frozen=True)
-class OpenSearchTargetConfig:
+class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     hostname: str
     port: int
     username: str = field(repr=False)
     password: str = field(repr=False)
     index_name: str
+    update_index_settings: bool = False
     index_settings: Optional[dict] = None
     verify_certificates: bool = True
 
@@ -45,6 +46,7 @@ class OpenSearchTargetConfig:
             username=secrets['username'],
             password=secrets['password'],
             index_name=opensearch_target_config_dict['indexName'],
+            update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True)
         )
