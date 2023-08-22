@@ -90,6 +90,18 @@ DOCUMENT_3 = {
 }
 
 
+@pytest.fixture(name='upload_s3_object_mock', autouse=True)
+def _upload_s3_object_mock():
+    with patch.object(test_module, 'upload_s3_object') as mock:
+        yield mock
+
+
+@pytest.fixture(name='save_state_to_s3_for_config_mock')
+def _save_state_to_s3_for_config_mock():
+    with patch.object(test_module, 'save_state_to_s3_for_config') as mock:
+        yield mock
+
+
 @pytest.fixture(name='opensearch_class_mock', autouse=True)
 def _opensearch_class_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'OpenSearch') as mock:
@@ -496,6 +508,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1],
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
             field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
             batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
         )
         create_or_update_opensearch_index_mock.assert_called_with(
@@ -512,6 +525,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1],
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
             field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
             batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
         )
         load_documents_into_opensearch_mock.assert_called_with(
@@ -530,6 +544,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1, DOCUMENT_2, DOCUMENT_3],
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
             field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
             batch_size=2
         )
         load_documents_into_opensearch_mock.assert_has_calls([
@@ -549,6 +564,22 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             )
         ])
 
+    def test_should_update_state(
+        self,
+        save_state_to_s3_for_config_mock: MagicMock
+    ):
+        create_or_update_index_and_load_documents_into_opensearch(
+            [DOCUMENT_1],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
+            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+        )
+        save_state_to_s3_for_config_mock.assert_called_with(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
+            ANY
+        )
+
     def test_should_pass_opensearch_target_config_to_get_cient(
         self,
         get_opensearch_client_mock: MagicMock
@@ -557,6 +588,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1],
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
             field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
             batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
         )
         get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
@@ -578,6 +610,7 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
             iter_documents_from_bigquery_mock.return_value,
             opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch,
             field_names_for_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for,
+            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
             batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
         )
 

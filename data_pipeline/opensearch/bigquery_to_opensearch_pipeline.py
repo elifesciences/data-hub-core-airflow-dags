@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from typing import Iterable, Sequence
 
@@ -7,9 +8,11 @@ import opensearchpy
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
+    BigQueryToOpenSearchStateConfig,
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.collections import iter_batch_iterable
+from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
@@ -116,10 +119,22 @@ def load_documents_into_opensearch(
         pass
 
 
+def save_state_to_s3_for_config(
+    state_config: BigQueryToOpenSearchStateConfig,
+    start_timestamp: datetime
+):
+    upload_s3_object(
+        bucket=state_config.state_file.bucket_name,
+        object_key=state_config.state_file.object_name,
+        data_object=start_timestamp.isoformat()
+    )
+
+
 def create_or_update_index_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     opensearch_target_config: OpenSearchTargetConfig,
     field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig,
+    state_config: BigQueryToOpenSearchStateConfig,
     batch_size: int
 ):
     client = get_opensearch_client(opensearch_target_config)
@@ -137,6 +152,10 @@ def create_or_update_index_and_load_documents_into_opensearch(
             field_names_for_config=field_names_for_config,
             batch_size=len(batch_documents)
         )
+        save_state_to_s3_for_config(
+            state_config,
+            datetime.fromisoformat('2001-01-01+00:00')
+        )
 
 
 def fetch_documents_from_bigquery_and_load_into_opensearch(
@@ -148,6 +167,7 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
         document_iterable,
         opensearch_target_config=config.target.opensearch,
         field_names_for_config=config.field_names_for,
+        state_config=config.state,
         batch_size=config.batch_size
     )
 
