@@ -289,7 +289,7 @@ class TestCreateOrUpdateOpenSearchIndex:
         opensearch_client_mock.indices.put_settings.assert_not_called()
         opensearch_client_mock.indices.put_mapping.assert_not_called()
 
-    def test_should_not_update_index_if_not_enabled(
+    def test_should_not_update_index_or_mappings_if_not_enabled(
         self,
         opensearch_client_mock: MagicMock
     ):
@@ -299,10 +299,12 @@ class TestCreateOrUpdateOpenSearchIndex:
             opensearch_target_config=dataclasses.replace(
                 OPENSEARCH_TARGET_CONFIG_1,
                 update_index_settings=False,
+                update_mappings=False,
                 index_settings=OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1
             )
         )
         opensearch_client_mock.indices.put_settings.assert_not_called()
+        opensearch_client_mock.indices.put_mapping.assert_not_called()
 
     def test_should_update_index_with_settings_but_no_mappings(
         self,
@@ -333,6 +335,7 @@ class TestCreateOrUpdateOpenSearchIndex:
             opensearch_target_config=dataclasses.replace(
                 OPENSEARCH_TARGET_CONFIG_1,
                 update_index_settings=True,
+                update_mappings=True,
                 index_settings=OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1
             )
         )

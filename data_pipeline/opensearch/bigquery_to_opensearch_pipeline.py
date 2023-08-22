@@ -54,7 +54,7 @@ def create_or_update_opensearch_index(
                     body=opensearch_target_config.index_settings
                 )
             mappings = opensearch_target_config.index_settings.get('mappings')
-            if mappings:
+            if mappings and opensearch_target_config.update_mappings:
                 client.indices.put_mapping(
                     index=opensearch_target_config.index_name,
                     body=mappings

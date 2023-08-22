@@ -120,6 +120,14 @@ class TestOpenSearchTargetConfig:
         })
         assert opensearch_target_config.update_index_settings == value
 
+    @pytest.mark.parametrize('value', [False,  True])
+    def test_should_read_update_mappings(self, value: bool):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'updateMappings': value
+        })
+        assert opensearch_target_config.update_mappings == value
+
     def test_should_verify_certificates_by_default(self):
         opensearch_target_config = OpenSearchTargetConfig.from_dict(
             OPENSEARCH_TARGET_CONFIG_DICT_1
