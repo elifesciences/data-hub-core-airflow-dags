@@ -130,6 +130,13 @@ def save_state_to_s3_for_config(
     )
 
 
+def get_max_timestamp_from_documents(
+    document_iterable: Iterable[dict],
+    timestamp_field_name: str
+) -> datetime:
+    return max(document[timestamp_field_name] for document in document_iterable)
+
+
 def create_or_update_index_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     config: BigQueryToOpenSearchConfig
@@ -149,9 +156,13 @@ def create_or_update_index_and_load_documents_into_opensearch(
             field_names_for_config=config.field_names_for,
             batch_size=len(batch_documents)
         )
+        timestamp = get_max_timestamp_from_documents(
+            batch_documents,
+            timestamp_field_name=config.field_names_for.timestamp
+        )
         save_state_to_s3_for_config(
             config.state,
-            datetime.fromisoformat('2001-01-01+00:00')
+            timestamp
         )
 
 

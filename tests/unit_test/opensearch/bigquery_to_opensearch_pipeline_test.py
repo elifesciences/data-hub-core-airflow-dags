@@ -1,10 +1,11 @@
 import dataclasses
 from datetime import datetime
-import json
 from typing import Iterator
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
+
+import opensearchpy.serializer
 
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, StateFileConfig
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
@@ -78,15 +79,18 @@ FIELD_NAMES_FOR_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for
 
 
 DOCUMENT_1 = {
-    ID_FIELD_NAME: '10.12345/doi1'
+    ID_FIELD_NAME: '10.12345/doi1',
+    TIMESTAMP_FIELD_NAME: datetime.fromisoformat('2011-01-01+00:00')
 }
 
 DOCUMENT_2 = {
-    ID_FIELD_NAME: '10.12345/doi2'
+    ID_FIELD_NAME: '10.12345/doi2',
+    TIMESTAMP_FIELD_NAME: datetime.fromisoformat('2012-01-01+00:00')
 }
 
 DOCUMENT_3 = {
-    ID_FIELD_NAME: '10.12345/doi3'
+    ID_FIELD_NAME: '10.12345/doi3',
+    TIMESTAMP_FIELD_NAME: datetime.fromisoformat('2013-01-01+00:00')
 }
 
 
@@ -106,7 +110,7 @@ def _save_state_to_s3_for_config_mock():
 def _opensearch_class_mock() -> Iterator[MagicMock]:
     with patch.object(test_module, 'OpenSearch') as mock:
         # using this, we can use the real streaming_bulk method
-        mock.return_value.transport.serializer.dumps = json.dumps
+        mock.return_value.transport.serializer = opensearchpy.serializer.JSONSerializer()
         yield mock
 
 
@@ -568,7 +572,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
         )
         save_state_to_s3_for_config_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            ANY
+            DOCUMENT_1[TIMESTAMP_FIELD_NAME]
         )
 
     def test_should_pass_opensearch_target_config_to_get_cient(
