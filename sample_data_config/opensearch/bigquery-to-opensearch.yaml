@@ -24,7 +24,7 @@ bigQueryToOpenSearch:
           FROM `elife-data-pipeline.de_proto.v_semantic_scholar_response` AS s2_response
           LEFT JOIN `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
               ON europepmc_response.doi = s2_response.externalIds.DOI
-          LIMIT 10000
+          LIMIT 1000
     fieldNamesFor:
       id: doi
       timestamp: data_hub_imported_timestamp
@@ -80,4 +80,4 @@ bigQueryToOpenSearch:
                       # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
                       ef_construction: 512
                       m: 16
-    batchSize: 1000
+    batchSize: 100
