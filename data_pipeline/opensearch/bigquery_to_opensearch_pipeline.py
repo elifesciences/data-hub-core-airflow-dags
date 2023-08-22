@@ -160,6 +160,7 @@ def create_or_update_index_and_load_documents_into_opensearch(
             batch_documents,
             timestamp_field_name=config.field_names_for.timestamp
         )
+        LOGGER.info('updating state with: %r', timestamp)
         save_state_to_s3_for_config(
             config.state,
             timestamp
