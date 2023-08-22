@@ -3,7 +3,7 @@ import json
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, cast
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -65,8 +65,13 @@ def get_new_data_download_start_date_from_cloud_storage(
         no_of_prior_days_to_last_data_collected_date: int = 0
 ) -> dict:
     try:
-        journal_last_record_date = download_s3_object_as_string_or_file_not_found_error(
-            bucket, object_key
+        journal_last_record_date = cast(
+            # Temporarily casting to avoid linting error
+            # This currently can't work properly because the function returns a string
+            dict,
+            download_s3_object_as_string_or_file_not_found_error(
+                bucket, object_key
+            )
         )
     except FileNotFoundError:
         LOGGER.info(
