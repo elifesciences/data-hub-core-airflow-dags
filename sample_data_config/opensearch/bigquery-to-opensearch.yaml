@@ -37,7 +37,7 @@ bigQueryToOpenSearch:
         bucketName: '{ENV}-elife-data-pipeline'
         objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state.json'
     target:
-      opensearch:
+      openSearch:
         hostname: 'opensearch'
         port: 9200
         # disable verification of certificates in development

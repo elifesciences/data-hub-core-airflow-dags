@@ -72,7 +72,7 @@ CONFIG_DICT_1: dict = {
         'id': ID_FIELD_NAME,
         'timestamp': TIMESTAMP_FIELD_NAME
     },
-    'target': {'opensearch': OPENSEARCH_TARGET_CONFIG_DICT_1},
+    'target': {'openSearch': OPENSEARCH_TARGET_CONFIG_DICT_1},
     'state': STATE_CONFIG_DICT_1
 }
 

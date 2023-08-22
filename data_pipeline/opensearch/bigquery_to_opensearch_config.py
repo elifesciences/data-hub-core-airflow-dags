@@ -77,7 +77,7 @@ class BigQueryToOpenSearchTargetConfig:
     def from_dict(target_config_dict: dict) -> 'BigQueryToOpenSearchTargetConfig':
         return BigQueryToOpenSearchTargetConfig(
             opensearch=OpenSearchTargetConfig.from_dict(
-                target_config_dict['opensearch']
+                target_config_dict['openSearch']
             )
         )
 
