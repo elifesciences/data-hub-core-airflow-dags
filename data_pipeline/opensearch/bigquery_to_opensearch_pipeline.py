@@ -17,25 +17,45 @@ from data_pipeline.utils.data_store.s3_data_service import (
     upload_s3_object
 )
 from data_pipeline.utils.json import remove_key_with_null_value
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
 
 
 LOGGER = logging.getLogger(__name__)
 
 
+def get_wrapped_query(
+    query: str,
+    timestamp_field_name: str,
+    start_timestamp: datetime
+) -> str:
+    return '\n'.join([
+        'SELECT * FROM (',
+        query,
+        ')',
+        f"WHERE {timestamp_field_name} >= TIMESTAMP('{start_timestamp.isoformat()}')",
+        f'ORDER BY {timestamp_field_name}'
+    ])
+
+
 def iter_documents_from_bigquery(
-    bigquery_source_config: BigQuerySourceConfig,
+    config: BigQueryToOpenSearchConfig,
     start_timestamp: datetime
 ) -> Iterable[dict]:
+    bigquery_source_config = config.source.bigquery
     LOGGER.debug(
         'processing bigquery source config: %r (%r)',
         bigquery_source_config, start_timestamp
     )
+    wrapped_query = get_wrapped_query(
+        bigquery_source_config.sql_query,
+        timestamp_field_name=config.field_names_for.timestamp,
+        start_timestamp=start_timestamp
+    )
+    LOGGER.info('wrapped_query: %r', wrapped_query)
     return (
         remove_key_with_null_value(document)
         for document in iter_dict_from_bq_query_for_bigquery_source_config(
-            bigquery_source_config
+            bigquery_source_config._replace(sql_query=wrapped_query)
         )
     )
 
@@ -193,10 +213,9 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     config: BigQueryToOpenSearchConfig
 ):
     LOGGER.debug('processing config: %r', config)
-    document_iterable = iter_documents_from_bigquery(
-        config.source.bigquery,
-        start_timestamp=load_state_or_default_from_s3_for_config(config.state)
-    )
+    start_timestamp = load_state_or_default_from_s3_for_config(config.state)
+    LOGGER.info('start_timestamp: %r', start_timestamp)
+    document_iterable = iter_documents_from_bigquery(config, start_timestamp=start_timestamp)
     create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
         config=config

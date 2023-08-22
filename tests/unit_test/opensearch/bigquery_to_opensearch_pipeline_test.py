@@ -24,6 +24,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
+    get_wrapped_query,
     iter_documents_from_bigquery,
     iter_opensearch_bulk_action_for_documents,
     load_documents_into_opensearch
@@ -49,11 +50,14 @@ TIMESTAMP_FIELD_NAME = 'timestamp1'
 TIMESTAMP_1 = datetime.fromisoformat('2001-02-03+00:00')
 
 
+QUERY_1 = 'query 1'
+
+
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     source=BigQueryToOpenSearchSourceConfig(
         bigquery=BigQuerySourceConfig(
             project_name='project1',
-            sql_query='query 1'
+            sql_query=QUERY_1
         )
     ),
     field_names_for=BigQueryToOpenSearchFieldNamesForConfig(
@@ -190,8 +194,24 @@ def _fetch_documents_from_bigquery_and_load_into_opensearch_mock() -> Iterator[M
         yield mock
 
 
+class TestGetWrappedQuery:
+    def test_should_add_order_by_and_where_clause(self):
+        wrapped_query = get_wrapped_query(
+            QUERY_1,
+            timestamp_field_name='timestamp1',
+            start_timestamp=TIMESTAMP_1
+        )
+        assert wrapped_query == '\n'.join([
+            'SELECT * FROM (',
+            QUERY_1,
+            ')',
+            f"WHERE timestamp1 >= TIMESTAMP('{TIMESTAMP_1.isoformat()}')",
+            'ORDER BY timestamp1'
+        ])
+
+
 class TestIterDocumentsFromBigQuery:
-    def test_should_delegate_to_iter_dict_from_bq_query_for_bigquery_source_config(
+    def test_should_pass_wrapped_query_to_iter_dict_from_bq_query_for_bigquery_source_config(
         self,
         iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock
     ):
@@ -199,11 +219,17 @@ class TestIterDocumentsFromBigQuery:
             'field1': 'value1'
         }]
         result = list(iter_documents_from_bigquery(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1,
             start_timestamp=TIMESTAMP_1
         ))
         iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery._replace(
+                sql_query=get_wrapped_query(
+                    QUERY_1,
+                    timestamp_field_name=TIMESTAMP_FIELD_NAME,
+                    start_timestamp=TIMESTAMP_1
+                )
+            )
         )
         assert result == [{'field1': 'value1'}]
 
@@ -215,7 +241,7 @@ class TestIterDocumentsFromBigQuery:
             'field1': 'value1'
         }])
         iterable = iter_documents_from_bigquery(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1,
             start_timestamp=TIMESTAMP_1
         )
         assert list(iterable)
@@ -231,7 +257,7 @@ class TestIterDocumentsFromBigQuery:
             'empty_vector': []
         }]
         result = list(iter_documents_from_bigquery(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1,
             start_timestamp=TIMESTAMP_1
         ))
         assert result == [{
@@ -615,7 +641,7 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         iter_documents_from_bigquery_mock.assert_called_with(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1,
             start_timestamp=load_state_or_default_from_s3_for_config_mock.return_value
         )
         create_or_update_index_and_load_documents_into_opensearch_mock.assert_called_with(
