@@ -132,28 +132,25 @@ def save_state_to_s3_for_config(
 
 def create_or_update_index_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
-    opensearch_target_config: OpenSearchTargetConfig,
-    field_names_for_config: BigQueryToOpenSearchFieldNamesForConfig,
-    state_config: BigQueryToOpenSearchStateConfig,
-    batch_size: int
+    config: BigQueryToOpenSearchConfig
 ):
-    client = get_opensearch_client(opensearch_target_config)
+    client = get_opensearch_client(config.target.opensearch)
     LOGGER.info('client: %r', client)
     create_or_update_opensearch_index(
         client=client,
-        opensearch_target_config=opensearch_target_config
+        opensearch_target_config=config.target.opensearch
     )
-    for batch_documents_iterable in iter_batch_iterable(document_iterable, batch_size):
+    for batch_documents_iterable in iter_batch_iterable(document_iterable, config.batch_size):
         batch_documents = list(batch_documents_iterable)
         load_documents_into_opensearch(
             batch_documents,
             client=client,
-            opensearch_target_config=opensearch_target_config,
-            field_names_for_config=field_names_for_config,
+            opensearch_target_config=config.target.opensearch,
+            field_names_for_config=config.field_names_for,
             batch_size=len(batch_documents)
         )
         save_state_to_s3_for_config(
-            state_config,
+            config.state,
             datetime.fromisoformat('2001-01-01+00:00')
         )
 
@@ -165,10 +162,7 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     document_iterable = iter_documents_from_bigquery(config.source.bigquery)
     create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
-        opensearch_target_config=config.target.opensearch,
-        field_names_for_config=config.field_names_for,
-        state_config=config.state,
-        batch_size=config.batch_size
+        config=config
     )
 
 

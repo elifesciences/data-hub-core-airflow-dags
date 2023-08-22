@@ -506,10 +506,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
-            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         create_or_update_opensearch_index_mock.assert_called_with(
             client=get_opensearch_client_mock.return_value,
@@ -523,10 +520,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
-            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         load_documents_into_opensearch_mock.assert_called_with(
             [DOCUMENT_1],
@@ -542,10 +536,10 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1, DOCUMENT_2, DOCUMENT_3],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
-            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=2
+            config=dataclasses.replace(
+                BIGQUERY_TO_OPENSEARCH_CONFIG_1,
+                batch_size=2
+            )
         )
         load_documents_into_opensearch_mock.assert_has_calls([
             call(
@@ -570,10 +564,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
-            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         save_state_to_s3_for_config_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
@@ -586,10 +577,7 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
-            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
-            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         get_opensearch_client_mock.assert_called_with(OPENSEARCH_TARGET_CONFIG_1)
 
@@ -608,10 +596,7 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
         )
         create_or_update_index_and_load_documents_into_opensearch_mock.assert_called_with(
             iter_documents_from_bigquery_mock.return_value,
-            opensearch_target_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch,
-            field_names_for_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for,
-            state_config=BIGQUERY_TO_OPENSEARCH_CONFIG_1.state,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
 
 
