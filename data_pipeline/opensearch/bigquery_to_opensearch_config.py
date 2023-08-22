@@ -1,3 +1,4 @@
+from datetime import datetime
 import logging
 from dataclasses import dataclass, field
 from typing import Optional, Sequence
@@ -80,6 +81,30 @@ class BigQueryToOpenSearchTargetConfig:
         )
 
 
+@dataclass(frozen=True)
+class BigQueryToOpenSearchInitialStateConfig:
+    start_timestamp: datetime
+
+    @staticmethod
+    def from_dict(initial_state_config_dict: dict) -> 'BigQueryToOpenSearchInitialStateConfig':
+        return BigQueryToOpenSearchInitialStateConfig(
+            start_timestamp=datetime.fromisoformat(initial_state_config_dict['startTimestamp'])
+        )
+
+
+@dataclass(frozen=True)
+class BigQueryToOpenSearchStateConfig:
+    initial_state: BigQueryToOpenSearchInitialStateConfig
+
+    @staticmethod
+    def from_dict(state_config_dict: dict) -> 'BigQueryToOpenSearchStateConfig':
+        return BigQueryToOpenSearchStateConfig(
+            initial_state=BigQueryToOpenSearchInitialStateConfig.from_dict(
+                state_config_dict['initialState']
+            )
+        )
+
+
 DEFAULT_BATCH_SIZE = 1000
 
 
@@ -88,6 +113,7 @@ class BigQueryToOpenSearchConfig:
     source: BigQueryToOpenSearchSourceConfig
     field_names_for: BigQueryToOpenSearchFieldNamesForConfig
     target: BigQueryToOpenSearchTargetConfig
+    state: BigQueryToOpenSearchStateConfig
     batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
@@ -98,6 +124,7 @@ class BigQueryToOpenSearchConfig:
                 item_config_dict['fieldNamesFor']
             ),
             target=BigQueryToOpenSearchTargetConfig.from_dict(item_config_dict['target']),
+            state=BigQueryToOpenSearchStateConfig.from_dict(item_config_dict['state']),
             batch_size=item_config_dict.get('batchSize', DEFAULT_BATCH_SIZE)
         )
 

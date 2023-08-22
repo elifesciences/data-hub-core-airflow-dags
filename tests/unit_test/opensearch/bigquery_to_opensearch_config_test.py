@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,22 @@ TIMESTAMP_FIELD_NAME = 'timestamp1'
 
 OPENSEARCH_USERNAME_FILE_PATH_ENV_VAR = 'OPENSEARCH_USERNAME_FILE_PATH_ENV_VAR'
 OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR = 'OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR'
+
+
+INITIAL_START_TIMESTAMP_STR_1 = '2001-02-03+00:00'
+
+BUCKET_NAME_1 = 'bucket1'
+OBJECT_NAME_1 = 'object1'
+
+STATE_CONFIG_DICT_1 = {
+    'initialState': {
+        'startTimestamp': INITIAL_START_TIMESTAMP_STR_1
+    },
+    'stateFile': {
+        'bucketName': BUCKET_NAME_1,
+        'objectName': OBJECT_NAME_1
+    }
+}
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -55,7 +72,8 @@ CONFIG_DICT_1: dict = {
         'id': ID_FIELD_NAME,
         'timestamp': TIMESTAMP_FIELD_NAME
     },
-    'target': {'opensearch': OPENSEARCH_TARGET_CONFIG_DICT_1}
+    'target': {'opensearch': OPENSEARCH_TARGET_CONFIG_DICT_1},
+    'state': STATE_CONFIG_DICT_1
 }
 
 
@@ -186,6 +204,15 @@ class TestBigQueryToOpenSearchConfig:
             }]
         }))
         assert config_list[0].batch_size == 123
+
+    def test_should_read_initial_state_start_date(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert (
+            config_list[0].state.initial_state.start_timestamp
+            == datetime.fromisoformat(INITIAL_START_TIMESTAMP_STR_1)
+        )
 
     def test_should_read_opensearch_target_config(self):
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
