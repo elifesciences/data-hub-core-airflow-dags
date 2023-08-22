@@ -46,6 +46,9 @@ ID_FIELD_NAME = 'id1'
 TIMESTAMP_FIELD_NAME = 'timestamp1'
 
 
+TIMESTAMP_1 = datetime.fromisoformat('2001-02-03+00:00')
+
+
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     source=BigQueryToOpenSearchSourceConfig(
         bigquery=BigQuerySourceConfig(
@@ -68,7 +71,7 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
     ),
     state=BigQueryToOpenSearchStateConfig(
         initial_state=BigQueryToOpenSearchInitialStateConfig(
-            start_timestamp=datetime.fromisoformat('2001-02-03+00:00')
+            start_timestamp=TIMESTAMP_1
         ),
         state_file=StateFileConfig(bucket_name='bucket1', object_name='object1')
     )
@@ -103,6 +106,12 @@ def _upload_s3_object_mock():
 @pytest.fixture(name='save_state_to_s3_for_config_mock')
 def _save_state_to_s3_for_config_mock():
     with patch.object(test_module, 'save_state_to_s3_for_config') as mock:
+        yield mock
+
+
+@pytest.fixture(name='load_state_or_default_from_s3_for_config_mock')
+def _load_state_or_default_from_s3_for_config_mock():
+    with patch.object(test_module, 'load_state_or_default_from_s3_for_config') as mock:
         yield mock
 
 
@@ -189,7 +198,10 @@ class TestIterDocumentsFromBigQuery:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = [{
             'field1': 'value1'
         }]
-        result = list(iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery))
+        result = list(iter_documents_from_bigquery(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            start_timestamp=TIMESTAMP_1
+        ))
         iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
         )
@@ -202,7 +214,10 @@ class TestIterDocumentsFromBigQuery:
         iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = iter([{
             'field1': 'value1'
         }])
-        iterable = iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery)
+        iterable = iter_documents_from_bigquery(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            start_timestamp=TIMESTAMP_1
+        )
         assert list(iterable)
         # iterable should now be consumed and empty
         assert not list(iterable)
@@ -215,7 +230,10 @@ class TestIterDocumentsFromBigQuery:
             'other_field': 'other_value',
             'empty_vector': []
         }]
-        result = list(iter_documents_from_bigquery(BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery))
+        result = list(iter_documents_from_bigquery(
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            start_timestamp=TIMESTAMP_1
+        ))
         assert result == [{
             'other_field': 'other_value'
         }]
@@ -590,13 +608,15 @@ class TestFetchDocumentsFromBigQueryAndLoadIntoOpenSearch:
     def test_should_fetch_documents_from_bigquery_and_pass_to_opensearch(
         self,
         iter_documents_from_bigquery_mock: MagicMock,
-        create_or_update_index_and_load_documents_into_opensearch_mock: MagicMock
+        create_or_update_index_and_load_documents_into_opensearch_mock: MagicMock,
+        load_state_or_default_from_s3_for_config_mock: MagicMock
     ):
         fetch_documents_from_bigquery_and_load_into_opensearch(
             BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
         iter_documents_from_bigquery_mock.assert_called_with(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery
+            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
+            start_timestamp=load_state_or_default_from_s3_for_config_mock.return_value
         )
         create_or_update_index_and_load_documents_into_opensearch_mock.assert_called_with(
             iter_documents_from_bigquery_mock.return_value,

@@ -12,7 +12,10 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.collections import iter_batch_iterable
-from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string_or_file_not_found_error,
+    upload_s3_object
+)
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
@@ -22,9 +25,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 def iter_documents_from_bigquery(
-    bigquery_source_config: BigQuerySourceConfig
+    bigquery_source_config: BigQuerySourceConfig,
+    start_timestamp: datetime
 ) -> Iterable[dict]:
-    LOGGER.debug('processing bigquery source config: %r', bigquery_source_config)
+    LOGGER.debug(
+        'processing bigquery source config: %r (%r)',
+        bigquery_source_config, start_timestamp
+    )
     return (
         remove_key_with_null_value(document)
         for document in iter_dict_from_bq_query_for_bigquery_source_config(
@@ -130,6 +137,21 @@ def save_state_to_s3_for_config(
     )
 
 
+def load_state_or_default_from_s3_for_config(
+    state_config: BigQueryToOpenSearchStateConfig
+) -> datetime:
+    try:
+        return datetime.fromisoformat(
+            download_s3_object_as_string_or_file_not_found_error(
+                bucket=state_config.state_file.bucket_name,
+                object_key=state_config.state_file.object_name
+            )
+        )
+    except FileNotFoundError:
+        LOGGER.info('state file not found, returning initial state')
+        return state_config.initial_state.start_timestamp
+
+
 def get_max_timestamp_from_documents(
     document_iterable: Iterable[dict],
     timestamp_field_name: str
@@ -171,7 +193,10 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     config: BigQueryToOpenSearchConfig
 ):
     LOGGER.debug('processing config: %r', config)
-    document_iterable = iter_documents_from_bigquery(config.source.bigquery)
+    document_iterable = iter_documents_from_bigquery(
+        config.source.bigquery,
+        start_timestamp=load_state_or_default_from_s3_for_config(config.state)
+    )
     create_or_update_index_and_load_documents_into_opensearch(
         document_iterable,
         config=config
