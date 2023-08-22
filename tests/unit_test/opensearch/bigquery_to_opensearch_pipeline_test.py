@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from typing import Iterator
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import pytest
 
@@ -70,6 +70,14 @@ FIELD_NAMES_FOR_CONFIG_1 = BIGQUERY_TO_OPENSEARCH_CONFIG_1.field_names_for
 
 DOCUMENT_1 = {
     ID_FIELD_NAME: '10.12345/doi1'
+}
+
+DOCUMENT_2 = {
+    ID_FIELD_NAME: '10.12345/doi2'
+}
+
+DOCUMENT_3 = {
+    ID_FIELD_NAME: '10.12345/doi3'
 }
 
 
@@ -502,8 +510,35 @@ class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
             client=get_opensearch_client_mock.return_value,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
             field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
-            batch_size=BIGQUERY_TO_OPENSEARCH_CONFIG_1.batch_size
+            batch_size=1
         )
+
+    def test_should_batch_documents(
+        self,
+        load_documents_into_opensearch_mock: MagicMock
+    ):
+        create_or_update_index_and_load_documents_into_opensearch(
+            [DOCUMENT_1, DOCUMENT_2, DOCUMENT_3],
+            opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1,
+            field_names_for_config=FIELD_NAMES_FOR_CONFIG_1,
+            batch_size=2
+        )
+        load_documents_into_opensearch_mock.assert_has_calls([
+            call(
+                [DOCUMENT_1, DOCUMENT_2],
+                client=ANY,
+                opensearch_target_config=ANY,
+                field_names_for_config=ANY,
+                batch_size=2
+            ),
+            call(
+                [DOCUMENT_3],
+                client=ANY,
+                opensearch_target_config=ANY,
+                field_names_for_config=ANY,
+                batch_size=1
+            )
+        ])
 
     def test_should_pass_opensearch_target_config_to_get_cient(
         self,

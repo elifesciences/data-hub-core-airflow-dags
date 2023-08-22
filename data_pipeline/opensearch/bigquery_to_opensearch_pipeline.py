@@ -9,6 +9,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchFieldNamesForConfig,
     OpenSearchTargetConfig
 )
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
@@ -127,13 +128,15 @@ def create_or_update_index_and_load_documents_into_opensearch(
         client=client,
         opensearch_target_config=opensearch_target_config
     )
-    load_documents_into_opensearch(
-        document_iterable,
-        client=client,
-        opensearch_target_config=opensearch_target_config,
-        field_names_for_config=field_names_for_config,
-        batch_size=batch_size
-    )
+    for batch_documents_iterable in iter_batch_iterable(document_iterable, batch_size):
+        batch_documents = list(batch_documents_iterable)
+        load_documents_into_opensearch(
+            batch_documents,
+            client=client,
+            opensearch_target_config=opensearch_target_config,
+            field_names_for_config=field_names_for_config,
+            batch_size=len(batch_documents)
+        )
 
 
 def fetch_documents_from_bigquery_and_load_into_opensearch(
