@@ -135,6 +135,18 @@ airflow-stop:
 	$(DOCKER_COMPOSE) down
 
 
+opensearch-start:
+	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
+
+
+opensearch-stop:
+	$(DOCKER_COMPOSE) stop opensearch opensearch-dashboards
+
+
+opensearch-logs:
+	$(DOCKER_COMPOSE) logs -f opensearch opensearch-dashboards
+
+
 test-exclude-e2e: build-dev
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
 
