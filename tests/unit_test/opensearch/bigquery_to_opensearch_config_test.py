@@ -5,6 +5,7 @@ import pytest
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_BATCH_SIZE,
+    DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
     OpenSearchTargetConfig
 )
@@ -100,6 +101,13 @@ class TestOpenSearchTargetConfig:
         )
         assert opensearch_target_config.hostname == OPENSEARCH_TARGET_CONFIG_DICT_1['hostname']
         assert opensearch_target_config.port == OPENSEARCH_TARGET_CONFIG_DICT_1['port']
+
+    def test_should_use_default_timeout(self):
+        assert 'timeout' not in OPENSEARCH_TARGET_CONFIG_DICT_1
+        opensearch_target_config = OpenSearchTargetConfig.from_dict(
+            OPENSEARCH_TARGET_CONFIG_DICT_1
+        )
+        assert opensearch_target_config.timeout == DEFAULT_OPENSEARCH_TIMEOUT
 
     def test_should_read_target_username_and_password_from_file_path_env_name(
         self
