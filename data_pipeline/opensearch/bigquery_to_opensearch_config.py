@@ -54,6 +54,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             username=secrets['username'],
             password=secrets['password'],
             index_name=opensearch_target_config_dict['indexName'],
+            timeout=opensearch_target_config_dict.get('timeout', DEFAULT_OPENSEARCH_TIMEOUT),
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
             index_settings=opensearch_target_config_dict.get('indexSettings'),

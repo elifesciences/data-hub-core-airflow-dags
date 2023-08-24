@@ -109,6 +109,13 @@ class TestOpenSearchTargetConfig:
         )
         assert opensearch_target_config.timeout == DEFAULT_OPENSEARCH_TIMEOUT
 
+    def test_should_read_timeout(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'timeout': 0.123
+        })
+        assert opensearch_target_config.timeout == 0.123
+
     def test_should_read_target_username_and_password_from_file_path_env_name(
         self
     ):
