@@ -278,6 +278,15 @@ class TestGetOpenSearchClient:
             'port': OPENSEARCH_TARGET_CONFIG_1.port
         }]
 
+    def test_should_pass_in_timeout(
+        self,
+        opensearch_class_mock: MagicMock
+    ):
+        get_opensearch_client(BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch)
+        opensearch_class_mock.assert_called()
+        _, kwargs = opensearch_class_mock.call_args
+        assert kwargs['timeout'] == BIGQUERY_TO_OPENSEARCH_CONFIG_1.target.opensearch.timeout
+
     def test_should_connect_via_ssl(
         self,
         opensearch_class_mock: MagicMock

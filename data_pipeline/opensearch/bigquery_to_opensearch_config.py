@@ -13,6 +13,10 @@ from data_pipeline.utils.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
+# The default timeout for OpenSearch operations in seconds
+DEFAULT_OPENSEARCH_TIMEOUT = 60.0
+
+
 @dataclass(frozen=True)
 class BigQueryToOpenSearchSourceConfig:
     bigquery: BigQuerySourceConfig
@@ -33,6 +37,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     username: str = field(repr=False)
     password: str = field(repr=False)
     index_name: str
+    timeout: float = DEFAULT_OPENSEARCH_TIMEOUT
     update_index_settings: bool = False
     update_mappings: bool = False
     index_settings: Optional[dict] = None
@@ -49,6 +54,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             username=secrets['username'],
             password=secrets['password'],
             index_name=opensearch_target_config_dict['indexName'],
+            timeout=opensearch_target_config_dict.get('timeout', DEFAULT_OPENSEARCH_TIMEOUT),
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
