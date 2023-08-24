@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 # The default timeout for OpenSearch operations in seconds
-DEFAULT_OPENSEARCH_TIMEOUT = 10.0
+DEFAULT_OPENSEARCH_TIMEOUT = 60.0
 
 
 @dataclass(frozen=True)
