@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Sequence
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -232,6 +232,20 @@ class TestGetItemList:
             get_items_list(data, data_config)
 
 
+def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiConfig:
+    conf_dict: dict = {
+        **WEB_API_CONFIG,
+        'response': {
+            'nextPageCursorKeyFromResponseRoot': cursor_path
+        }
+    }
+    conf_dict['dataUrl']['configurableParameters'] = {
+        'nextPageCursorParameterName': 'cursor'
+    }
+
+    return get_data_config(conf_dict)
+
+
 class TestNextCursor:
 
     def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
@@ -255,17 +269,7 @@ class TestNextCursor:
     ):
         LOGGER.info('next_cursor=%r', next_cursor)
         cursor_path = ['cursor_key1', 'cursor_key2']
-        conf_dict: dict = {
-            **WEB_API_CONFIG,
-            'response': {
-                'nextPageCursorKeyFromResponseRoot': cursor_path
-            }
-        }
-        conf_dict['dataUrl']['configurableParameters'] = {
-            'nextPageCursorParameterName': 'cursor'
-        }
-
-        data_config = get_data_config(conf_dict)
+        data_config = _get_web_api_config_with_cursor_path(cursor_path)
         data = {cursor_path[0]: {cursor_path[1]: next_cursor}}
         actual_next_cursor = get_next_cursor_from_data(
             data, data_config, previous_cursor=previous_cursor
