@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Optional
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -15,6 +16,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.utils.collections import LOGGER
 
 
 @pytest.fixture(name='mock_upload_s3_object')
@@ -237,13 +239,20 @@ class TestNextCursor:
         data = {'key': 'val', 'values': []}
         assert get_next_cursor_from_data(data, data_config) is None
 
+    @pytest.mark.parametrize(
+        'next_cursor,expected_cursor',
+        [
+            ('cursor1', 'cursor1')
+        ]
+    )
     def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
-            self
+        self,
+        next_cursor: Optional[str],
+        expected_cursor: Optional[str]
     ):
+        LOGGER.info('next_cursor=%r', next_cursor)
         cursor_path = ['cursor_key1', 'cursor_key2']
-        cursor_val = 'cursor_value'
-
-        conf_dict = {
+        conf_dict: dict = {
             **WEB_API_CONFIG,
             'response': {
                 'nextPageCursorKeyFromResponseRoot': cursor_path
@@ -255,10 +264,10 @@ class TestNextCursor:
 
         data_config = get_data_config(conf_dict)
         data = {
-            cursor_path[0]: {cursor_path[1]: cursor_val},
+            cursor_path[0]: {cursor_path[1]: next_cursor},
             'values': []
         }
-        assert cursor_val == get_next_cursor_from_data(data, data_config)
+        assert get_next_cursor_from_data(data, data_config) == expected_cursor
 
     def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
         conf_dict = {
