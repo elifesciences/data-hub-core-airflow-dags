@@ -384,8 +384,13 @@ def get_next_start_date(
     return from_timestamp, reset_page_or_offset_param
 
 
-def get_next_cursor_from_data(data, web_config: WebApiConfig):
+def get_next_cursor_from_data(
+    data,
+    web_config: WebApiConfig,
+    previous_cursor: Optional[str] = None
+):
     next_cursor = None
+    LOGGER.debug('previous_cursor: %r', previous_cursor)
 
     if web_config.url_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
