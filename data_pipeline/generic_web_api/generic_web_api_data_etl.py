@@ -175,7 +175,9 @@ def process_web_api_data_etl_batch(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
-            cursor = get_next_cursor_from_data(page_data, data_config)
+            cursor = get_next_cursor_from_data(
+                page_data, data_config, previous_cursor=cursor
+            )
 
             from_date_to_advance, to_reset_page_or_offset_param = (
                 get_next_start_date(
@@ -387,7 +389,7 @@ def get_next_start_date(
 def get_next_cursor_from_data(
     data,
     web_config: WebApiConfig,
-    previous_cursor: Optional[str] = None
+    previous_cursor: Optional[str]
 ) -> Optional[str]:
     next_cursor = None
     LOGGER.debug('previous_cursor: %r', previous_cursor)

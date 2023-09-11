@@ -237,7 +237,7 @@ class TestNextCursor:
     def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key': 'val', 'values': []}
-        assert get_next_cursor_from_data(data, data_config) is None
+        assert get_next_cursor_from_data(data, data_config, previous_cursor=None) is None
 
     @pytest.mark.parametrize(
         'previous_cursor,next_cursor,expected_cursor',
@@ -287,7 +287,7 @@ class TestNextCursor:
         data = {
             'values': []
         }
-        assert not get_next_cursor_from_data(data, data_config)
+        assert not get_next_cursor_from_data(data, data_config, previous_cursor=None)
 
 
 class TestNextPage:
