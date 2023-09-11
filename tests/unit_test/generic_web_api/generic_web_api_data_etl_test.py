@@ -266,10 +266,7 @@ class TestNextCursor:
         }
 
         data_config = get_data_config(conf_dict)
-        data = {
-            cursor_path[0]: {cursor_path[1]: next_cursor},
-            'values': []
-        }
+        data = {cursor_path[0]: {cursor_path[1]: next_cursor}}
         actual_next_cursor = get_next_cursor_from_data(
             data, data_config, previous_cursor=previous_cursor
         )
