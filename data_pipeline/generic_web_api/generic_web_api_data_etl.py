@@ -388,7 +388,7 @@ def get_next_cursor_from_data(
     data,
     web_config: WebApiConfig,
     previous_cursor: Optional[str] = None
-):
+) -> Optional[str]:
     next_cursor = None
     LOGGER.debug('previous_cursor: %r', previous_cursor)
 
