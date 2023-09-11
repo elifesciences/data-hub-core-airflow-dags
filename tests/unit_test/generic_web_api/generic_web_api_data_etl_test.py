@@ -275,22 +275,13 @@ class TestNextCursor:
         )
         assert actual_next_cursor is None
 
-    def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
-        conf_dict = {
-            'response': {
-                'nextPageCursorKeyFromResponseRoot': ['cursor_key1']
-            },
-            **WEB_API_CONFIG,
-        }
-        conf_dict['dataUrl']['configurableParameters'] = {
-            'nextPageCursorParameterName': 'cursor'
-        }
-
-        data_config = get_data_config(conf_dict)
-        data = {
-            'values': []
-        }
-        assert not get_next_cursor_from_data(data, data_config, previous_cursor=None)
+    def test_should_be_none_when_configured_but_not_in_data(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor=None
+        )
+        assert actual_next_cursor is None
 
 
 class TestNextPage:
