@@ -246,7 +246,6 @@ def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiCo
 
 
 class TestNextCursor:
-
     def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key': 'val', 'values': []}
