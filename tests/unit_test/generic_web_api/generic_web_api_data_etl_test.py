@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional, Sequence
+from typing import Sequence
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -16,7 +16,6 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
-from data_pipeline.utils.collections import LOGGER
 
 
 @pytest.fixture(name='mock_upload_s3_object')
@@ -253,27 +252,21 @@ class TestNextCursor:
         data = {'key': 'val', 'values': []}
         assert get_next_cursor_from_data(data, data_config, previous_cursor=None) is None
 
-    @pytest.mark.parametrize(
-        'previous_cursor,next_cursor,expected_cursor',
-        [
-            (None, 'cursor1', 'cursor1'),
-            ('cursor0', 'cursor1', 'cursor1')
-        ]
-    )
-    def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
-        self,
-        previous_cursor: Optional[str],
-        next_cursor: Optional[str],
-        expected_cursor: Optional[str]
-    ):
-        LOGGER.info('next_cursor=%r', next_cursor)
-        cursor_path = ['cursor_key1', 'cursor_key2']
-        data_config = _get_web_api_config_with_cursor_path(cursor_path)
-        data = {cursor_path[0]: {cursor_path[1]: next_cursor}}
+    def test_should_get_cursor_value_when_in_data_and_configured_without_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
         actual_next_cursor = get_next_cursor_from_data(
-            data, data_config, previous_cursor=previous_cursor
+            data, data_config, previous_cursor=None
         )
-        assert actual_next_cursor == expected_cursor
+        assert actual_next_cursor == 'cursor1'
+
+    def test_should_get_cursor_value_when_in_data_and_configured_with_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor0'
+        )
+        assert actual_next_cursor == 'cursor1'
 
     def test_should_ignore_get_cursor_value_when_matching_previous_cursor(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
