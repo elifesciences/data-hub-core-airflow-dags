@@ -391,17 +391,15 @@ def get_next_cursor_from_data(
     web_config: WebApiConfig,
     previous_cursor: Optional[str]
 ) -> Optional[str]:
-    next_cursor = None
     LOGGER.debug('previous_cursor: %r', previous_cursor)
-
     if web_config.url_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
             web_config.next_page_cursor_key_path_from_response_root
         )
-        if next_cursor == previous_cursor:
-            next_cursor = None
-    return next_cursor
+        if next_cursor != previous_cursor:
+            return next_cursor
+    return None
 
 
 def get_items_list(page_data, web_config):
