@@ -397,6 +397,8 @@ def get_next_cursor_from_data(
             data,
             web_config.next_page_cursor_key_path_from_response_root
         )
+        if next_cursor == previous_cursor:
+            next_cursor = None
     return next_cursor
 
 

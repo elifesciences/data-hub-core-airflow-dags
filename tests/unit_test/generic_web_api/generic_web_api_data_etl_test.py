@@ -240,13 +240,16 @@ class TestNextCursor:
         assert get_next_cursor_from_data(data, data_config) is None
 
     @pytest.mark.parametrize(
-        'next_cursor,expected_cursor',
+        'previous_cursor,next_cursor,expected_cursor',
         [
-            ('cursor1', 'cursor1')
+            (None, 'cursor1', 'cursor1'),
+            ('cursor0', 'cursor1', 'cursor1'),
+            ('cursor1', 'cursor1', None)
         ]
     )
     def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
         self,
+        previous_cursor: Optional[str],
         next_cursor: Optional[str],
         expected_cursor: Optional[str]
     ):
@@ -267,7 +270,10 @@ class TestNextCursor:
             cursor_path[0]: {cursor_path[1]: next_cursor},
             'values': []
         }
-        assert get_next_cursor_from_data(data, data_config) == expected_cursor
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor=previous_cursor
+        )
+        assert actual_next_cursor == expected_cursor
 
     def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
         conf_dict = {
