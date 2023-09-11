@@ -236,12 +236,13 @@ def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiCo
         **WEB_API_CONFIG,
         'response': {
             'nextPageCursorKeyFromResponseRoot': cursor_path
+        },
+        'dataUrl': {
+            'configurableParameters': {
+                'nextPageCursorParameterName': 'cursor'
+            }
         }
     }
-    conf_dict['dataUrl']['configurableParameters'] = {
-        'nextPageCursorParameterName': 'cursor'
-    }
-
     return get_data_config(conf_dict)
 
 
