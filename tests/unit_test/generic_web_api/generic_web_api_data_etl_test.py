@@ -257,8 +257,7 @@ class TestNextCursor:
         'previous_cursor,next_cursor,expected_cursor',
         [
             (None, 'cursor1', 'cursor1'),
-            ('cursor0', 'cursor1', 'cursor1'),
-            ('cursor1', 'cursor1', None)
+            ('cursor0', 'cursor1', 'cursor1')
         ]
     )
     def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
@@ -275,6 +274,14 @@ class TestNextCursor:
             data, data_config, previous_cursor=previous_cursor
         )
         assert actual_next_cursor == expected_cursor
+
+    def test_should_ignore_get_cursor_value_when_matching_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor1'
+        )
+        assert actual_next_cursor is None
 
     def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
         conf_dict = {
