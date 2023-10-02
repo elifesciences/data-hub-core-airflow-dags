@@ -158,7 +158,7 @@ services:
             && ./run_test.sh with-end-to-end"
 
     postgres:
-        image: postgres:9.6
+        image: postgres:15
         environment:
             - POSTGRES_USER=airflow
             - POSTGRES_PASSWORD=airflow
