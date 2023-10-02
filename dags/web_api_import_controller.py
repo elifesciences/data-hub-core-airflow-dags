@@ -42,7 +42,7 @@ def trigger_web_api_data_import_pipeline_dag(**context):
 
 WEB_API_CONTROLLER_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         WEB_API_SCHEDULE_INTERVAL_ENV_NAME
     )
 )

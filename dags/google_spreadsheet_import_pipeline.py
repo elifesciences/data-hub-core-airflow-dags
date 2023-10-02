@@ -24,7 +24,7 @@ DAG_ID = "Google_Spreadsheet_Data_Pipeline"
 
 G_SPREADSHEET_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=None,
+    schedule=None,
     dagrun_timeout=timedelta(minutes=60)
 )
 

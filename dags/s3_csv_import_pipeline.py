@@ -60,7 +60,7 @@ def add_notification_emails_to_default_args():
 
 S3_CSV_ETL_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=None,
+    schedule=None,
     default_args=add_notification_emails_to_default_args(),
     dagrun_timeout=timedelta(minutes=60),
     max_active_runs=20,

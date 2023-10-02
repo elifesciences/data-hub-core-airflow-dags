@@ -48,7 +48,7 @@ def fetch_twitter_ads_api_data_and_load_into_bq_from_config_list_task(**_kwargs)
 
 TWITTER_ADS_API_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         TwitterAdsApiEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     ),

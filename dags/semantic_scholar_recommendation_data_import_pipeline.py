@@ -45,7 +45,7 @@ def fetch_article_data_from_semantic_scholar_recommendation_and_load_into_bigque
 
 SEMANTIC_SCHOLAR_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         SemanticScholarPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     ),

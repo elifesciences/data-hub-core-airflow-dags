@@ -44,7 +44,7 @@ def fetch_documents_from_bigquery_and_load_into_opensearch_task(**_kwargs):
 
 BIGQUERY_TO_OPENSEARCH_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         BigQueryToOpenSearchPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     )
