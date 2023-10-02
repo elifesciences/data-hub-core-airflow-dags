@@ -15,7 +15,7 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_SSL=False
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
-    - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
+    - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.default
     - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
