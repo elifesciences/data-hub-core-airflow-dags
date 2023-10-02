@@ -64,7 +64,7 @@ S3_CSV_ETL_DAG = create_dag(
     default_args=add_notification_emails_to_default_args(),
     dagrun_timeout=timedelta(minutes=60),
     max_active_runs=20,
-    concurrency=30
+    max_active_tasks=30
 )
 
 

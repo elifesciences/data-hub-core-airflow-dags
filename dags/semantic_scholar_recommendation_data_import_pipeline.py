@@ -49,7 +49,7 @@ SEMANTIC_SCHOLAR_DAG = create_dag(
         SemanticScholarPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     ),
-    concurrency=1,
+    max_active_tasks=1,
     max_active_runs=1
 )
 

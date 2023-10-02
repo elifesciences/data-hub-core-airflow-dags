@@ -53,7 +53,7 @@ TWITTER_ADS_API_DAG = create_dag(
         default_value=None
     ),
     dagrun_timeout=timedelta(days=1),
-    concurrency=1
+    max_active_tasks=1
 )
 
 create_python_task(
