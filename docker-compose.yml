@@ -8,14 +8,14 @@ x-airflow-env:
     - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
     - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/1
     - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@postgres:5432/airflow
-    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
     - AIRFLOW__SMTP__SMTP_HOST=smtp-server
     - AIRFLOW__SMTP__SMTP_STARTTLS=False
     - AIRFLOW__SMTP__SMTP_SSL=False
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
-    - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
+    - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.default
     - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600

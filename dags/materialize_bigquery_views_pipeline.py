@@ -49,7 +49,7 @@ def materialize_views_task(**_):
 
 MATERIALIZE_BIGQUERY_VIEWS_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         EnvironmentVariables.MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL,
         default_value=None
     )

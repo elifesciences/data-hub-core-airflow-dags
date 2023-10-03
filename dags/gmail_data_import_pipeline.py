@@ -389,7 +389,7 @@ def delete_temp_table_history_details(**kwargs):
 
 GMAIL_DATA_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=None,
+    schedule=None,
     dagrun_timeout=timedelta(days=1)
 )
 

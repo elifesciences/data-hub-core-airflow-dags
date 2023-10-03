@@ -45,7 +45,7 @@ def fetch_article_dois_from_bigquery_and_update_labslink_ftp_task(**_kwargs):
 
 EUROPEPMC_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         EuropePmcLabsLinkPipelineEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     )

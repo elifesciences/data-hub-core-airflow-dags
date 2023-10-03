@@ -40,7 +40,7 @@ def trigger_s3_csv_import_pipeline_dag(**context):
 
 S3_CSV_CONTROLLER_DAG = create_dag(
     dag_id="S3_CSV_Import_Pipeline_Controller",
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         S3_CSV_SCHEDULE_INTERVAL_ENV_NAME
     )
 )

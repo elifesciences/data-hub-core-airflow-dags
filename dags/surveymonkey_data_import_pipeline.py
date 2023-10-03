@@ -134,7 +134,7 @@ def surveymonkey_survey_answers_etl(**kwargs):
 
 SURVERMONKEY_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         SURVEYMONKEY_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(days=1)
