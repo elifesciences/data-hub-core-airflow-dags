@@ -38,7 +38,7 @@ MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL_ENV_NAME = (
 
 MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         MONITOR_DATA_HUB_PIPELINE_HEALTH_SCHEDULE_INTERVAL_ENV_NAME, None
     ),
     dagrun_timeout=timedelta(days=1)

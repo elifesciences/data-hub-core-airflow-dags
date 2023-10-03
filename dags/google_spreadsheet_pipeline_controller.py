@@ -40,7 +40,7 @@ def trigger_spreadsheet_data_pipeline_dag(**kwargs):
 
 SPREADSHEET_CONTROLLER_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         GOOGLE_SPREADSHEET_SCHEDULE_INTERVAL_ENV_NAME
     )
 )
