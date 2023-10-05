@@ -24,9 +24,10 @@ bigQueryToOpenSearch:
           FROM `elife-data-pipeline.prod.v_latest_semantic_scholar_response` AS s2_response
           LEFT JOIN `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
               ON europepmc_response.doi = s2_response.externalIds.DOI
-          -- adding ORDER BY and LIMIT for development only
-          ORDER BY s2_response.provenance.imported_timestamp
-          LIMIT 1
+          -- for development: Select a few evaluated articles
+          WHERE s2_response.externalIds.DOI IN (
+            '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515'
+          )
     fieldNamesFor:
       id: doi
       timestamp: data_hub_imported_timestamp
@@ -98,14 +99,16 @@ bigQueryToOpenSearch:
           FROM `elife-data-pipeline.prod.v_sciety_event` AS event
           WHERE event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
             AND NOT event.is_deleted
+            AND event.article_doi IN (
+              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515'
+            )
           GROUP BY event.article_doi
-          LIMIT 1
     fieldNamesFor:
       id: doi
       timestamp: last_event_timestamp
     state:
       initialState:
-        startTimestamp: '2022-05-01+00:00'
+        startTimestamp: '2019-01-01+00:00'
       stateFile:
         bucketName: '{ENV}-elife-data-pipeline'
         objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-update-state.json'
