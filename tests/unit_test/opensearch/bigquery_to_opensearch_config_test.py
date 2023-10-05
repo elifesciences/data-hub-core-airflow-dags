@@ -185,6 +185,13 @@ class TestOpenSearchTargetConfig:
         })
         assert opensearch_target_config.operation_mode == value
 
+    def test_should_reject_invalid_operation_mode(self):
+        with pytest.raises(ValueError):
+            OpenSearchTargetConfig.from_dict({
+                **OPENSEARCH_TARGET_CONFIG_DICT_1,
+                'operationMode': 'invalid'
+            })
+
     @pytest.mark.parametrize('value', [False,  True])
     def test_should_read_upsert(self, value: bool):
         opensearch_target_config = OpenSearchTargetConfig.from_dict({

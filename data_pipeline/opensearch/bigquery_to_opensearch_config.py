@@ -25,6 +25,13 @@ class OpenSearchOperationModes:
     UPDATE = 'update'
 
 
+VALID_OPENSEARCH_OPERATION_MODES = {
+    OpenSearchOperationModes.CREATE,
+    OpenSearchOperationModes.DELETE,
+    OpenSearchOperationModes.INDEX,
+    OpenSearchOperationModes.UPDATE
+}
+
 DEFAULT_OPENSEARCH_OPERATION_MODE = OpenSearchOperationModes.INDEX
 
 
@@ -61,6 +68,11 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
         secrets = get_resolved_parameter_values_from_file_path_env_name(
             opensearch_target_config_dict['secrets']['parametersFromFile']
         )
+        operation_mode = opensearch_target_config_dict.get(
+            'operationMode', DEFAULT_OPENSEARCH_OPERATION_MODE
+        )
+        if operation_mode not in VALID_OPENSEARCH_OPERATION_MODES:
+            raise ValueError(f'invalid operation mode: {operation_mode}')
         return OpenSearchTargetConfig(
             hostname=opensearch_target_config_dict['hostname'],
             port=opensearch_target_config_dict['port'],
@@ -72,9 +84,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True),
-            operation_mode=opensearch_target_config_dict.get(
-                'operationMode', DEFAULT_OPENSEARCH_OPERATION_MODE
-            ),
+            operation_mode=operation_mode,
             upsert=opensearch_target_config_dict.get('upsert', False)
         )
 
