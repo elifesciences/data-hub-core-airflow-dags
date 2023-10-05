@@ -7,6 +7,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
+    OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
@@ -173,6 +174,31 @@ class TestOpenSearchTargetConfig:
             'verifyCertificates': False
         })
         assert opensearch_target_config.verify_certificates is False
+
+    @pytest.mark.parametrize('value', [
+        OpenSearchOperationModes.INDEX, OpenSearchOperationModes.UPDATE
+    ])
+    def test_should_read_operation_mode(self, value: bool):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'operationMode': value
+        })
+        assert opensearch_target_config.operation_mode == value
+
+    def test_should_reject_invalid_operation_mode(self):
+        with pytest.raises(ValueError):
+            OpenSearchTargetConfig.from_dict({
+                **OPENSEARCH_TARGET_CONFIG_DICT_1,
+                'operationMode': 'invalid'
+            })
+
+    @pytest.mark.parametrize('value', [False,  True])
+    def test_should_read_upsert(self, value: bool):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'upsert': value
+        })
+        assert opensearch_target_config.upsert == value
 
 
 class TestBigQueryToOpenSearchConfig:

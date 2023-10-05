@@ -17,6 +17,24 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_OPENSEARCH_TIMEOUT = 60.0
 
 
+# See: https://opensearch.org/docs/latest/api-reference/document-apis/bulk/
+class OpenSearchOperationModes:
+    CREATE = 'create'
+    DELETE = 'delete'
+    INDEX = 'index'
+    UPDATE = 'update'
+
+
+# Note: We currently do not support the DELETE operation mode
+VALID_OPENSEARCH_OPERATION_MODES = {
+    OpenSearchOperationModes.CREATE,
+    OpenSearchOperationModes.INDEX,
+    OpenSearchOperationModes.UPDATE
+}
+
+DEFAULT_OPENSEARCH_OPERATION_MODE = OpenSearchOperationModes.INDEX
+
+
 @dataclass(frozen=True)
 class BigQueryToOpenSearchSourceConfig:
     bigquery: BigQuerySourceConfig
@@ -42,12 +60,22 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     update_mappings: bool = False
     index_settings: Optional[dict] = None
     verify_certificates: bool = True
+    operation_mode: str = DEFAULT_OPENSEARCH_OPERATION_MODE
+    upsert: bool = False
 
     @staticmethod
     def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
         secrets = get_resolved_parameter_values_from_file_path_env_name(
             opensearch_target_config_dict['secrets']['parametersFromFile']
         )
+        operation_mode = opensearch_target_config_dict.get(
+            'operationMode', DEFAULT_OPENSEARCH_OPERATION_MODE
+        )
+        if operation_mode not in VALID_OPENSEARCH_OPERATION_MODES:
+            raise ValueError(
+                f'invalid operation mode: {operation_mode}'
+                f', supported operation modes: {VALID_OPENSEARCH_OPERATION_MODES}'
+            )
         return OpenSearchTargetConfig(
             hostname=opensearch_target_config_dict['hostname'],
             port=opensearch_target_config_dict['port'],
@@ -58,7 +86,9 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
-            verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True)
+            verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True),
+            operation_mode=operation_mode,
+            upsert=opensearch_target_config_dict.get('upsert', False)
         )
 
 

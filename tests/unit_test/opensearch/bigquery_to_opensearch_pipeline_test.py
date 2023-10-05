@@ -15,6 +15,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchSourceConfig,
     BigQueryToOpenSearchStateConfig,
     BigQueryToOpenSearchTargetConfig,
+    OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
 import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
@@ -465,18 +466,63 @@ class TestCreateOrUpdateOpenSearchIndex:
         )
 
 
-class TestIterOpensearchBulkActionForDocuments:
+class TestIterOpenSearchBulkActionForDocuments:
     def test_should_wrap_document_with_bulk_index_action(self):
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name=ID_FIELD_NAME
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.INDEX
         ))
         assert bulk_actions == [{
-            '_op_type': 'index',
+            '_op_type': OpenSearchOperationModes.INDEX,
             "_index": 'index_1',
             '_id': DOCUMENT_1[ID_FIELD_NAME],
             '_source': DOCUMENT_1
+        }]
+
+    def test_should_wrap_document_with_create_operation_mode(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.CREATE
+        ))
+        assert bulk_actions == [{
+            '_op_type': OpenSearchOperationModes.CREATE,
+            "_index": 'index_1',
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
+            '_source': DOCUMENT_1
+        }]
+
+    def test_should_wrap_document_with_update_operation_mode(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.UPDATE
+        ))
+        assert bulk_actions == [{
+            '_op_type': OpenSearchOperationModes.UPDATE,
+            "_index": 'index_1',
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
+            'doc': DOCUMENT_1
+        }]
+
+    def test_should_wrap_document_with_update_operation_mode_with_upsert(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.UPDATE,
+            upsert=True
+        ))
+        assert bulk_actions == [{
+            '_op_type': OpenSearchOperationModes.UPDATE,
+            "_index": 'index_1',
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
+            'doc': DOCUMENT_1,
+            'doc_as_upsert': True
         }]
 
 
@@ -496,7 +542,9 @@ class TestLoadDocumentsIntoOpenSearch:
         iter_opensearch_bulk_action_for_documents_mock.assert_called_with(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name=ID_FIELD_NAME
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
+            upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         )
 
     def test_should_pass_client_and_batch_size_to_streaming_bulk_method(
@@ -525,7 +573,9 @@ class TestLoadDocumentsIntoOpenSearch:
         expected_bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name=ID_FIELD_NAME
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
+            upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         ))
         load_documents_into_opensearch(
             iter([DOCUMENT_1]),
