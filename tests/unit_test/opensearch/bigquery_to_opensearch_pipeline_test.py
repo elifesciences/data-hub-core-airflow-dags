@@ -465,7 +465,7 @@ class TestCreateOrUpdateOpenSearchIndex:
         )
 
 
-class TestIterOpensearchBulkActionForDocuments:
+class TestIterOpenSearchBulkActionForDocuments:
     def test_should_wrap_document_with_bulk_index_action(self):
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
