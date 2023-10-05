@@ -72,7 +72,10 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             'operationMode', DEFAULT_OPENSEARCH_OPERATION_MODE
         )
         if operation_mode not in VALID_OPENSEARCH_OPERATION_MODES:
-            raise ValueError(f'invalid operation mode: {operation_mode}')
+            raise ValueError(
+                f'invalid operation mode: {operation_mode}'
+                f', supported operation modes: {VALID_OPENSEARCH_OPERATION_MODES}'
+            )
         return OpenSearchTargetConfig(
             hostname=opensearch_target_config_dict['hostname'],
             port=opensearch_target_config_dict['port'],
