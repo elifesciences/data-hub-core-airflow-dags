@@ -110,29 +110,35 @@ def get_opensearch_bulk_action_for_document(
     document: dict,
     index_name: str,
     id_field_name: str,
-    operation_mode: str
+    operation_mode: str,
+    upsert: bool
 ) -> dict:
     document_field_name = OPENSEARCH_BULK_DOCUMENT_FIELD_BY_OPERATION_MODE[operation_mode]
-    return {
+    result: dict = {
         '_op_type': operation_mode,
         '_index': index_name,
         '_id': document[id_field_name],
         document_field_name: document
     }
+    if upsert:
+        result['doc_as_upsert'] = True
+    return result
 
 
 def iter_opensearch_bulk_action_for_documents(
     document_iterable: Iterable[dict],
     index_name: str,
     id_field_name: str,
-    operation_mode: str
+    operation_mode: str,
+    upsert: bool = False
 ) -> Iterable[dict]:
     return (
         get_opensearch_bulk_action_for_document(
             document,
             index_name=index_name,
             id_field_name=id_field_name,
-            operation_mode=operation_mode
+            operation_mode=operation_mode,
+            upsert=upsert
         )
         for document in document_iterable
     )
@@ -150,7 +156,8 @@ def load_documents_into_opensearch(
         document_iterable,
         index_name=opensearch_target_config.index_name,
         id_field_name=field_names_for_config.id,
-        operation_mode=opensearch_target_config.operation_mode
+        operation_mode=opensearch_target_config.operation_mode,
+        upsert=opensearch_target_config.upsert
     )
     streaming_bulk_result_iterable = opensearchpy.helpers.streaming_bulk(
         client=client,

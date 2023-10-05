@@ -26,7 +26,7 @@ bigQueryToOpenSearch:
               ON europepmc_response.doi = s2_response.externalIds.DOI
           -- adding ORDER BY and LIMIT for development only
           ORDER BY s2_response.provenance.imported_timestamp
-          LIMIT 1000
+          LIMIT 1
     fieldNamesFor:
       id: doi
       timestamp: data_hub_imported_timestamp

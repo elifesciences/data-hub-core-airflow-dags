@@ -509,6 +509,22 @@ class TestIterOpenSearchBulkActionForDocuments:
             'doc': DOCUMENT_1
         }]
 
+    def test_should_wrap_document_with_update_operation_mode_with_upsert(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.UPDATE,
+            upsert=True
+        ))
+        assert bulk_actions == [{
+            '_op_type': OpenSearchOperationModes.UPDATE,
+            "_index": 'index_1',
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
+            'doc': DOCUMENT_1,
+            'doc_as_upsert': True
+        }]
+
 
 class TestLoadDocumentsIntoOpenSearch:
     def test_should_pass_documents_and_index_name_to_iter_opensearch_action_method(
@@ -527,7 +543,8 @@ class TestLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
             id_field_name=ID_FIELD_NAME,
-            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode
+            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
+            upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         )
 
     def test_should_pass_client_and_batch_size_to_streaming_bulk_method(
@@ -557,7 +574,8 @@ class TestLoadDocumentsIntoOpenSearch:
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
             id_field_name=ID_FIELD_NAME,
-            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode
+            operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
+            upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         ))
         load_documents_into_opensearch(
             iter([DOCUMENT_1]),
