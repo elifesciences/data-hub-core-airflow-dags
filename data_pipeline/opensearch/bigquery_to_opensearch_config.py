@@ -25,9 +25,9 @@ class OpenSearchOperationModes:
     UPDATE = 'update'
 
 
+# Note: We currently do not support the DELETE operation mode
 VALID_OPENSEARCH_OPERATION_MODES = {
     OpenSearchOperationModes.CREATE,
-    OpenSearchOperationModes.DELETE,
     OpenSearchOperationModes.INDEX,
     OpenSearchOperationModes.UPDATE
 }
