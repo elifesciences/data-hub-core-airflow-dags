@@ -9,6 +9,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchStateConfig,
+    OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
 from data_pipeline.utils.collections import iter_batch_iterable
@@ -98,17 +99,25 @@ def create_or_update_opensearch_index(
         client.indices.create(index=index_name, body=index_settings)
 
 
+OPENSEARCH_BULK_DOCUMENT_FIELD_BY_OPERATION_MODE = {
+    OpenSearchOperationModes.INDEX: '_source',
+    OpenSearchOperationModes.CREATE: '_source',
+    OpenSearchOperationModes.UPDATE: 'doc'
+}
+
+
 def get_opensearch_bulk_action_for_document(
     document: dict,
     index_name: str,
     id_field_name: str,
     operation_mode: str
 ) -> dict:
+    document_field_name = OPENSEARCH_BULK_DOCUMENT_FIELD_BY_OPERATION_MODE[operation_mode]
     return {
         '_op_type': operation_mode,
         '_index': index_name,
         '_id': document[id_field_name],
-        '_source': document
+        document_field_name: document
     }
 
 

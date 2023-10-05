@@ -481,6 +481,20 @@ class TestIterOpenSearchBulkActionForDocuments:
             '_source': DOCUMENT_1
         }]
 
+    def test_should_wrap_document_with_create_operation_mode(self):
+        bulk_actions = list(iter_opensearch_bulk_action_for_documents(
+            [DOCUMENT_1],
+            index_name='index_1',
+            id_field_name=ID_FIELD_NAME,
+            operation_mode=OpenSearchOperationModes.CREATE
+        ))
+        assert bulk_actions == [{
+            '_op_type': OpenSearchOperationModes.CREATE,
+            "_index": 'index_1',
+            '_id': DOCUMENT_1[ID_FIELD_NAME],
+            '_source': DOCUMENT_1
+        }]
+
     def test_should_wrap_document_with_update_operation_mode(self):
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
@@ -492,7 +506,7 @@ class TestIterOpenSearchBulkActionForDocuments:
             '_op_type': OpenSearchOperationModes.UPDATE,
             "_index": 'index_1',
             '_id': DOCUMENT_1[ID_FIELD_NAME],
-            '_source': DOCUMENT_1
+            'doc': DOCUMENT_1
         }]
 
 
