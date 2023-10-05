@@ -101,10 +101,11 @@ def create_or_update_opensearch_index(
 def get_opensearch_bulk_action_for_document(
     document: dict,
     index_name: str,
-    id_field_name: str
+    id_field_name: str,
+    operation_mode: str
 ) -> dict:
     return {
-        '_op_type': 'index',
+        '_op_type': operation_mode,
         '_index': index_name,
         '_id': document[id_field_name],
         '_source': document
@@ -114,13 +115,15 @@ def get_opensearch_bulk_action_for_document(
 def iter_opensearch_bulk_action_for_documents(
     document_iterable: Iterable[dict],
     index_name: str,
-    id_field_name: str
+    id_field_name: str,
+    operation_mode: str
 ) -> Iterable[dict]:
     return (
         get_opensearch_bulk_action_for_document(
             document,
             index_name=index_name,
-            id_field_name=id_field_name
+            id_field_name=id_field_name,
+            operation_mode=operation_mode
         )
         for document in document_iterable
     )
@@ -137,7 +140,8 @@ def load_documents_into_opensearch(
     bulk_action_iterable = iter_opensearch_bulk_action_for_documents(
         document_iterable,
         index_name=opensearch_target_config.index_name,
-        id_field_name=field_names_for_config.id
+        id_field_name=field_names_for_config.id,
+        operation_mode=opensearch_target_config.operation_mode
     )
     streaming_bulk_result_iterable = opensearchpy.helpers.streaming_bulk(
         client=client,
