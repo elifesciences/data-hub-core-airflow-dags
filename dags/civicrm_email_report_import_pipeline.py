@@ -91,7 +91,7 @@ def civicrm_email_report_etl(**kwargs):
 
 CIVICRM_EMAIL_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         CIVICRM_EMAIL_REPORT_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(days=1)

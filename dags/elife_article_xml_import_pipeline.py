@@ -46,7 +46,7 @@ def fetch_elife_article_data_and_load_into_bigquery_task(**_kwargs):
 
 ARTICLE_XML_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=get_environment_variable_value(
+    schedule=get_environment_variable_value(
         ElifeArticleXmlEnvironmentVariables.SCHEDULE_INTERVAL,
         default_value=None
     )

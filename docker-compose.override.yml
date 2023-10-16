@@ -50,3 +50,12 @@ services:
     test-ftpserver:
         ports:
             - "8021:21"
+
+    opensearch:
+        ports:
+            - 9200:9200
+            - 9600:9600  # required for Performance Analyzer
+
+    opensearch-dashboards:
+        ports:
+            - 5601:5601

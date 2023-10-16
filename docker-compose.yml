@@ -8,14 +8,14 @@ x-airflow-env:
     - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
     - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/1
     - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@postgres:5432/airflow
-    - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
     - AIRFLOW__SMTP__SMTP_HOST=smtp-server
     - AIRFLOW__SMTP__SMTP_STARTTLS=False
     - AIRFLOW__SMTP__SMTP_SSL=False
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
-    - AIRFLOW__API__AUTH_BACKEND=airflow.api.auth.backend.default
+    - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.default
     - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
@@ -23,28 +23,28 @@ x-airflow-env:
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
-    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-    - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
+    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml
+    - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/gmail-data/gmail-data-pipeline.config.yaml
     - GMAIL_DATA_USER_ID=gmail-end2end-data-test@elifesciences.org
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
-    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
+    - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/sample_data_config/elife-article-xml/elife-article-xml.config.yaml
     - ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL=${ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
-    - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc.config.yaml
-    - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
-    - EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=/home/airflow/app-config/europepmc/test-ftp-password.txt
-    - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
+    - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc.config.yaml
+    - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc-labslink.config.yaml
+    - EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-password.txt
+    - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-directory-name.txt
     - SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL}
-    - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
+    - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/sample_data_config/semantic-scholar/semantic-scholar.config.yaml
     - SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL}
-    - SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
-    - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
-    - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-    - S3_CSV_CONFIG_FILE_PATH=/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-    - WEB_API_CONFIG_FILE_PATH=/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
+    - SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=/home/airflow/sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml
+    - SURVEYMONKEY_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml
+    - SPREADSHEET_CONFIG_FILE_PATH=/home/airflow/sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
+    - S3_CSV_CONFIG_FILE_PATH=/home/airflow/sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml
+    - WEB_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/web-api/web-api-data-pipeline.config.yaml
+    - CIVICRM_EMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
     - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
     - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
     - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
@@ -53,33 +53,20 @@ x-airflow-env:
     - MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=${MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT}
     - MATERIALIZE_BIGQUERY_VIEWS_DATASET=${MATERIALIZE_BIGQUERY_VIEWS_DATASET}
     - MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED=${MATERIALIZE_BIGQUERY_VIEWS_VIEW_MAPPING_ENABLED}
-    - MONITORING_CONFIG_FILE_PATH=/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - MONITORING_CONFIG_FILE_PATH=/home/airflow/sample_data_config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
-    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
-    
+    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml
+    - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
+    - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
+    - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
 
 x-airflow-volumes:
   &airflow-volumes
-    - ./sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml:/home/airflow/app-config/crossref-event/crossref-event-data-pipeline.config.yaml
-    - ./sample_data_config/elife-article-xml/elife-article-xml.config.yaml:/home/airflow/app-config/elife-article-xml/elife-article-xml.config.yaml
-    - ./sample_data_config/europepmc/europepmc.config.yaml:/home/airflow/app-config/europepmc/europepmc.config.yaml
-    - ./sample_data_config/europepmc/europepmc-labslink.config.yaml:/home/airflow/app-config/europepmc/europepmc-labslink.config.yaml
-    - ./sample_data_config/europepmc/test-ftp-password.txt:/home/airflow/app-config/europepmc/test-ftp-password.txt
-    - ./sample_data_config/europepmc/test-ftp-directory-name.txt:/home/airflow/app-config/europepmc/test-ftp-directory-name.txt
-    - ./sample_data_config/gmail-data/gmail-data-pipeline.config.yaml:/home/airflow/app-config/gmail-data/gmail-data-pipeline.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar.config.yaml
-    - ./sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml:/home/airflow/app-config/semantic-scholar/semantic-scholar-recommendation.config.yaml
-    - ./sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml:/home/airflow/app-config/surveymonkey/surveymonkey-data-pipeline.config.yaml
-    - ./sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml:/home/airflow/app-config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml
-    - ./sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml:/home/airflow/app-config/s3-csv/s3-csv-data-pipeline.config.yaml
-    - ./sample_data_config/web-api/web-api-data-pipeline.config.yaml:/home/airflow/app-config/web-api/web-api-data-pipeline.config.yaml
-    - ./sample_data_config/monitoring/monitoring.config.yaml:/home/airflow/app-config/monitoring/monitoring.config.yaml
+    - ./sample_data_config:/home/airflow/sample_data_config
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
-    - ./sample_data_config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml:/home/airflow/app-config/civicrm-email/civicrm-email-report-data-pipeline.config.yaml
-    - ./sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml:/home/airflow/app-config/twitter-ads-api/twitter-ads-api.config.yaml
 
 services:
     data-hub-dags:
@@ -118,7 +105,6 @@ services:
             retries: 10
 
     smtp-server:
-        restart: always
         image:  namshi/smtp
 
     scheduler:
@@ -172,7 +158,7 @@ services:
             && ./run_test.sh with-end-to-end"
 
     postgres:
-        image: postgres:9.6
+        image: postgres:15
         environment:
             - POSTGRES_USER=airflow
             - POSTGRES_PASSWORD=airflow
@@ -188,6 +174,34 @@ services:
         environment:
             - ALLOW_EMPTY_PASSWORD=yes
 
+    opensearch:
+        image: opensearchproject/opensearch:2.9.0
+        environment:
+            - node.name=opensearch
+            - discovery.type=single-node
+            - cluster.routing.allocation.disk.threshold_enabled=false
+            - cluster.routing.allocation.disk.watermark.low=0mb
+            - cluster.routing.allocation.disk.watermark.high=0mb
+            - cluster.routing.allocation.disk.watermark.flood_stage=0mb
+            - bootstrap.memory_lock=false  # along with the memlock settings below, disables swapping
+            - "OPENSEARCH_JAVA_OPTS=-Xms1024m -Xmx1024m"  # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+            nofile:
+                soft: 65536  # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+                hard: 65536
+        volumes:
+            - opensearch-data-airflow-dev:/usr/share/opensearch/data
+
+    opensearch-dashboards:
+        image: opensearchproject/opensearch-dashboards:2.9.0
+        expose:
+            - "5601"
+        environment:
+            OPENSEARCH_HOSTS: '["https://opensearch:9200"]'
+
     # flower:
     #     image: elifesciences/data-hub-core-dags-dev
     #     depends_on:
@@ -196,3 +210,6 @@ services:
     #     ports:
     #         - "5555:5555"
     #     command: celery flower
+
+volumes:
+  opensearch-data-airflow-dev:

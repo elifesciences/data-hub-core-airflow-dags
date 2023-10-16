@@ -38,7 +38,7 @@ def trigger_gmail_data_import_pipeline_dag(**context):
 
 GMAIL_CONTROLLER_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     )
 )

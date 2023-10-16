@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import Sequence
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -230,52 +231,58 @@ class TestGetItemList:
             get_items_list(data, data_config)
 
 
-class TestNextCursor:
+def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiConfig:
+    conf_dict: dict = {
+        **WEB_API_CONFIG,
+        'response': {
+            'nextPageCursorKeyFromResponseRoot': cursor_path
+        },
+        'dataUrl': {
+            'configurableParameters': {
+                'nextPageCursorParameterName': 'cursor'
+            }
+        }
+    }
+    return get_data_config(conf_dict)
 
+
+class TestNextCursor:
     def test_should_be_none_when_cursor_parameter_is_not_in_config(self):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key': 'val', 'values': []}
-        assert get_next_cursor_from_data(data, data_config) is None
+        assert get_next_cursor_from_data(data, data_config, previous_cursor=None) is None
 
-    def test_should_get_cursor_value_when_in_data_and_cursor_param_in_config(
-            self
-    ):
-        cursor_path = ['cursor_key1', 'cursor_key2']
-        cursor_val = 'cursor_value'
+    def test_should_get_cursor_value_when_in_data_and_configured_without_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor=None
+        )
+        assert actual_next_cursor == 'cursor1'
 
-        conf_dict = {
-            **WEB_API_CONFIG,
-            'response': {
-                'nextPageCursorKeyFromResponseRoot': cursor_path
-            }
-        }
-        conf_dict['dataUrl']['configurableParameters'] = {
-            'nextPageCursorParameterName': 'cursor'
-        }
+    def test_should_get_cursor_value_when_in_data_and_configured_with_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor0'
+        )
+        assert actual_next_cursor == 'cursor1'
 
-        data_config = get_data_config(conf_dict)
-        data = {
-            cursor_path[0]: {cursor_path[1]: cursor_val},
-            'values': []
-        }
-        assert cursor_val == get_next_cursor_from_data(data, data_config)
+    def test_should_ignore_get_cursor_value_when_matching_previous_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor1'
+        )
+        assert actual_next_cursor is None
 
-    def test_should_be_none_when_not_in_data_and_cursor_param_in_config(self):
-        conf_dict = {
-            'response': {
-                'nextPageCursorKeyFromResponseRoot': ['cursor_key1']
-            },
-            **WEB_API_CONFIG,
-        }
-        conf_dict['dataUrl']['configurableParameters'] = {
-            'nextPageCursorParameterName': 'cursor'
-        }
-
-        data_config = get_data_config(conf_dict)
-        data = {
-            'values': []
-        }
-        assert not get_next_cursor_from_data(data, data_config)
+    def test_should_be_none_when_configured_but_not_in_data(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data = {}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor=None
+        )
+        assert actual_next_cursor is None
 
 
 class TestNextPage:

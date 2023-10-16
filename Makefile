@@ -135,6 +135,18 @@ airflow-stop:
 	$(DOCKER_COMPOSE) down
 
 
+opensearch-start:
+	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
+
+
+opensearch-stop:
+	$(DOCKER_COMPOSE) stop opensearch opensearch-dashboards
+
+
+opensearch-logs:
+	$(DOCKER_COMPOSE) logs -f opensearch opensearch-dashboards
+
+
 test-exclude-e2e: build-dev
 	$(DOCKER_COMPOSE) run --rm data-hub-dags-dev ./run_test.sh
 
@@ -145,8 +157,8 @@ clean:
 airflow-db-check-migrations:
 	$(DOCKER_COMPOSE) run --rm  webserver db check-migrations
 
-airflow-db-upgrade:
-	$(DOCKER_COMPOSE) run --rm  webserver db upgrade
+airflow-db-migrate:
+	$(DOCKER_COMPOSE) run --rm  webserver db migrate
 
 airflow-initdb:
 	$(DOCKER_COMPOSE) run --rm  webserver db init
@@ -154,7 +166,7 @@ airflow-initdb:
 
 end2end-test:
 	$(MAKE) clean
-	$(MAKE) airflow-db-upgrade
+	$(MAKE) airflow-db-migrate
 	$(MAKE) airflow-initdb
 	$(MAKE) test-ftpserver-start
 	$(MAKE) docker-wait-for-ftpserver

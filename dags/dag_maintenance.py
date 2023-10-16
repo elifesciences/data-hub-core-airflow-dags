@@ -16,7 +16,7 @@ from airflow.models import (
     DagModel, Variable
 )
 from airflow.utils import timezone
-from airflow.jobs.base_job import BaseJob
+from airflow.jobs.job import Job
 from airflow import settings
 from airflow.operators.python import PythonOperator
 from sqlalchemy import func, and_
@@ -64,8 +64,8 @@ DATABASE_OBJECTS = [
         "keep_last_group_by": None
     },
     {
-        "airflow_db_model": BaseJob,
-        "age_check_column": BaseJob.latest_heartbeat,
+        "airflow_db_model": Job,
+        "age_check_column": Job.latest_heartbeat,
         "keep_last": False,
         "keep_last_filters": None,
         "keep_last_group_by": None
@@ -99,7 +99,7 @@ DEFAULT_ARGS = {
 
 MAINTENANCE_DAG = create_dag(
     dag_id=DAG_ID,
-    schedule_interval=os.getenv(
+    schedule=os.getenv(
         DB_MAINTENANCE_SCHEDULE_INTERVAL_ENV_NAME
     ),
     dagrun_timeout=timedelta(days=1)
