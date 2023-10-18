@@ -1,5 +1,5 @@
 bigQueryToOpenSearch:
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_1
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_s2_1
     source:
       bigQuery:
         projectName: 'elife-data-pipeline'
@@ -16,14 +16,11 @@ bigQueryToOpenSearch:
               ) AS authors,
               s2_response.embedding.vector AS s2_specter_embedding_v1,
               s2_response.tldr,
-              s2_response.provenance.imported_timestamp AS data_hub_imported_timestamp,
-              s2_response.provenance.request_timestamp AS data_hub_request_timestamp,
-              s2_response.provenance.response_timestamp AS data_hub_response_timestamp,
-              s2_response.paperId AS s2_paper_id,
-              europepmc_response.firstPublicationDate AS publication_date
+              s2_response.provenance.imported_timestamp AS s2_data_hub_imported_timestamp,
+              s2_response.provenance.request_timestamp AS s2_data_hub_request_timestamp,
+              s2_response.provenance.response_timestamp AS s2_data_hub_response_timestamp,
+              s2_response.paperId AS s2_paper_id
           FROM `elife-data-pipeline.prod.v_latest_semantic_scholar_response` AS s2_response
-          LEFT JOIN `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
-              ON europepmc_response.doi = s2_response.externalIds.DOI
           -- for development: Select a few evaluated articles
           WHERE s2_response.externalIds.DOI IN (
             '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515'
@@ -87,7 +84,50 @@ bigQueryToOpenSearch:
                       ef_construction: 512
                       m: 16
     batchSize: 100
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_2
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc_2
+    source:
+      bigQuery:
+        projectName: 'elife-data-pipeline'
+        sqlQuery: |-
+          SELECT
+              europepmc_response.doi AS doi,
+              europepmc_response.provenance.imported_timestamp AS europepmc_data_hub_imported_timestamp
+              europepmc_response.firstPublicationDate AS publication_date,
+              europepmc_response.title_with_markup AS europepmc_title_with_markup,
+          FROM `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
+          WHERE europepmc_response.doi IN (
+            '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
+            '10.1101/2022.09.28.509871'
+          )
+    fieldNamesFor:
+      id: doi
+      timestamp: europepmc_data_hub_imported_timestamp
+    state:
+      initialState:
+        startTimestamp: '2022-05-01+00:00'
+      stateFile:
+        bucketName: '{ENV}-elife-data-pipeline'
+        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state.json'
+    target:
+      openSearch:
+        hostname: 'opensearch'
+        port: 9200
+        timeout: 60
+        # disable verification of certificates in development
+        verifyCertificates: False
+        secrets:
+          parametersFromFile:
+            - parameterName: username
+              filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
+            - parameterName: password
+              filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
+        indexName: 'dev_preprints_s2_v1'
+        updateIndexSettings: False
+        updateMappings: True
+        operationMode: 'update'
+        upsert: True
+    batchSize: 100
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_sciety_3
     source:
       bigQuery:
         projectName: 'elife-data-pipeline'
@@ -100,7 +140,8 @@ bigQueryToOpenSearch:
           WHERE event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
             AND NOT event.is_deleted
             AND event.article_doi IN (
-              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515'
+              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
+              '10.1101/2022.09.28.509871'
             )
           GROUP BY event.article_doi
     fieldNamesFor:
