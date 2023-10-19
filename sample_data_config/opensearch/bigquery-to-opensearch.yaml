@@ -18,7 +18,10 @@ bigQueryToOpenSearch:
                   FROM UNNEST(s2_response.authors) AS author
                 ) AS author_list,
                 s2_response.embedding.vector AS specter_embedding_v1,
-                s2_response.tldr
+                STRUCT(
+                  s2_response.tldr.model AS model_id,
+                  s2_response.tldr.text
+                ) AS tldr
               ) AS s2
           FROM `elife-data-pipeline.prod.v_latest_semantic_scholar_response` AS s2_response
           -- for development: Select a few evaluated articles
