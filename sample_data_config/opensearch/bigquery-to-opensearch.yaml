@@ -113,7 +113,6 @@ bigQueryToOpenSearch:
         sqlQuery: |-
           SELECT
               europepmc_response.doi AS doi,
-              europepmc_response.firstPublicationDate AS publication_date,
 
               STRUCT(
                   europepmc_response.source AS source,
