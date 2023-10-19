@@ -139,7 +139,7 @@ bigQueryToOpenSearch:
                               FROM UNNEST(author.authorAffiliationDetailsList.authorAffiliation) AS affiliation
                           ) AS affiliation_string_list
                       FROM UNNEST(europepmc_response.authorList.author) AS author
-                  ) AS authors,
+                  ) AS author_list,
 
                   ARRAY(
                       SELECT AS STRUCT
