@@ -6,6 +6,7 @@ bigQueryToOpenSearch:
         sqlQuery: |-
           SELECT
               s2_response.externalIds.DOI AS doi,
+
               STRUCT(
                 s2_response.provenance.imported_timestamp AS data_hub_imported_timestamp,
                 s2_response.paperId AS paper_id,
