@@ -6,20 +6,20 @@ bigQueryToOpenSearch:
         sqlQuery: |-
           SELECT
               s2_response.externalIds.DOI AS doi,
-              s2_response.title,
-              s2_response.abstract,
-              ARRAY(
-                SELECT AS STRUCT
-                  author.name,
-                  author.authorId AS s2_author_id
-                FROM UNNEST(s2_response.authors) AS author
-              ) AS authors,
-              s2_response.embedding.vector AS s2_specter_embedding_v1,
-              s2_response.tldr,
-              s2_response.provenance.imported_timestamp AS s2_data_hub_imported_timestamp,
-              s2_response.provenance.request_timestamp AS s2_data_hub_request_timestamp,
-              s2_response.provenance.response_timestamp AS s2_data_hub_response_timestamp,
-              s2_response.paperId AS s2_paper_id
+              STRUCT(
+                s2_response.provenance.imported_timestamp AS data_hub_imported_timestamp,
+                s2_response.paperId AS paper_id,
+                s2_response.title,
+                s2_response.abstract,
+                ARRAY(
+                  SELECT AS STRUCT
+                    author.name,
+                    author.authorId AS s2_author_id
+                  FROM UNNEST(s2_response.authors) AS author
+                ) AS authors,
+                s2_response.embedding.vector AS specter_embedding_v1,
+                s2_response.tldr
+              ) AS s2
           FROM `elife-data-pipeline.prod.v_latest_semantic_scholar_response` AS s2_response
           -- for development: Select a few evaluated articles
           WHERE s2_response.externalIds.DOI IN (
@@ -33,7 +33,7 @@ bigQueryToOpenSearch:
         startTimestamp: '2022-05-01+00:00'
       stateFile:
         bucketName: '{ENV}-elife-data-pipeline'
-        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state.json'
+        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state-s2.json'
     target:
       openSearch:
         hostname: 'opensearch'
@@ -47,7 +47,7 @@ bigQueryToOpenSearch:
               filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
             - parameterName: password
               filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
-        indexName: 'dev_preprints_s2_v1'
+        indexName: 'dev_preprints_v2'
         updateIndexSettings: False
         updateMappings: True
         operationMode: 'update'
@@ -71,18 +71,19 @@ bigQueryToOpenSearch:
                   type: "text"
                 publication_date:
                   type: "date"
-                s2_specter_embedding_v1:
-                  type: "knn_vector"
-                  dimension: 768
-                  method:
-                    # Note: we need Lucene for filter support
-                    name: "hnsw"
-                    space_type: "l2"
-                    engine: "lucene"
-                    parameters:
-                      # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
-                      ef_construction: 512
-                      m: 16
+                s2:
+                  specter_embedding_v1:
+                    type: "knn_vector"
+                    dimension: 768
+                    method:
+                      # Note: we need Lucene for filter support
+                      name: "hnsw"
+                      space_type: "l2"
+                      engine: "lucene"
+                      parameters:
+                        # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
+                        ef_construction: 512
+                        m: 16
     batchSize: 100
   - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc_2
     source:
@@ -91,9 +92,64 @@ bigQueryToOpenSearch:
         sqlQuery: |-
           SELECT
               europepmc_response.doi AS doi,
-              europepmc_response.provenance.imported_timestamp AS europepmc_data_hub_imported_timestamp
               europepmc_response.firstPublicationDate AS publication_date,
-              europepmc_response.title_with_markup AS europepmc_title_with_markup,
+
+              STRUCT(
+                  europepmc_response.source AS source,
+                  europepmc_response.provenance.imported_timestamp AS data_hub_imported_timestamp,
+                  europepmc_response.id AS id,
+                  europepmc_response.title_with_markup AS title_with_markup,
+                  europepmc_response.abstractText AS abstract_with_markup,
+                  europepmc_response.authorString AS author_string,
+                  europepmc_response.firstIndexDate AS first_index_date,
+                  europepmc_response.firstPublicationDate AS first_publication_date,
+                  europepmc_response.dateOfRevision AS revision_date,
+                  europepmc_response.language AS language,
+
+                  ARRAY(
+                      SELECT AS STRUCT
+                          author.authorId AS author_id,
+                          author.collectiveName AS collective_name,
+                          author.firstName AS first_name,
+                          author.fullName AS full_name,
+                          author.initials,
+                          author.lastName AS last_name,
+                          ARRAY(
+                              SELECT affiliation
+                              FROM UNNEST(author.authorAffiliationDetailsList.authorAffiliation) AS affiliation
+                          ) AS affiliation_string_list
+                      FROM UNNEST(europepmc_response.authorList.author) AS author
+                  ) AS author_list,
+
+                  ARRAY(
+                      SELECT AS STRUCT
+                          version.source,
+                          version.id,
+                          version.versionNumber AS version_number,
+                          version.firstPublishDate AS first_publication_date,
+                          ARRAY(
+                              SELECT publication_type
+                              FROM UNNEST(pubTypeList.pubType) AS publication_type
+                          ) AS publication_type_list
+                      FROM UNNEST(europepmc_response.versionList.version) AS version
+                  ) AS version_list,
+
+                  ARRAY(
+                      SELECT AS STRUCT
+                          full_text_info.availability,
+                          full_text_info.availabilityCode AS availability_code,
+                          full_text_info.documentStyle AS documentStyle,
+                          full_text_info.site AS site,
+                          full_text_info.url,
+                      FROM UNNEST(europepmc_response.fullTextUrlList.fullTextUrl) AS full_text_info
+                  ) AS full_text_list,
+
+                  ARRAY(
+                      SELECT keyword
+                      FROM UNNEST(europepmc_response.keywordList.keyword) AS keyword
+                  ) AS keyword_string_list
+              ) AS europepmc
+
           FROM `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
           WHERE europepmc_response.doi IN (
             '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
@@ -107,7 +163,7 @@ bigQueryToOpenSearch:
         startTimestamp: '2022-05-01+00:00'
       stateFile:
         bucketName: '{ENV}-elife-data-pipeline'
-        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state.json'
+        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state-europepmc.json'
     target:
       openSearch:
         hostname: 'opensearch'
@@ -121,7 +177,7 @@ bigQueryToOpenSearch:
               filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
             - parameterName: password
               filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
-        indexName: 'dev_preprints_s2_v1'
+        indexName: 'dev_preprints_v2'
         updateIndexSettings: False
         updateMappings: True
         operationMode: 'update'
@@ -134,8 +190,10 @@ bigQueryToOpenSearch:
         sqlQuery: |-
           SELECT
             event.article_doi AS doi,
-            MAX(event_timestamp) AS last_event_timestamp,
-            COUNT(DISTINCT event.evaluation_locator) AS evaluation_count
+            STRUCT(
+              MAX(event_timestamp) AS last_event_timestamp,
+              COUNT(DISTINCT event.evaluation_locator) AS evaluation_count
+            ) AS sciety
           FROM `elife-data-pipeline.prod.v_sciety_event` AS event
           WHERE event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
             AND NOT event.is_deleted
@@ -152,7 +210,7 @@ bigQueryToOpenSearch:
         startTimestamp: '2019-01-01+00:00'
       stateFile:
         bucketName: '{ENV}-elife-data-pipeline'
-        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-update-state.json'
+        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state-sciety.json'
     target:
       openSearch:
         hostname: 'opensearch'
@@ -166,7 +224,7 @@ bigQueryToOpenSearch:
               filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
             - parameterName: password
               filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
-        indexName: 'dev_preprints_s2_v1'
+        indexName: 'dev_preprints_v2'
         updateIndexSettings: False
         updateMappings: True
         operationMode: 'update'
