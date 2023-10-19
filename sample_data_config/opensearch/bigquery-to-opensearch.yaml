@@ -84,6 +84,14 @@ bigQueryToOpenSearch:
                         # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
                         ef_construction: 512
                         m: 16
+                europepmc:
+                  properties:
+                    author_list:
+                      type: "nested"
+                    version_list:
+                      type: "nested"
+                    full_text_list:
+                      type: "nested"
     batchSize: 100
   - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc_2
     source:
@@ -119,7 +127,7 @@ bigQueryToOpenSearch:
                               FROM UNNEST(author.authorAffiliationDetailsList.authorAffiliation) AS affiliation
                           ) AS affiliation_string_list
                       FROM UNNEST(europepmc_response.authorList.author) AS author
-                  ) AS author_list,
+                  ) AS authors,
 
                   ARRAY(
                       SELECT AS STRUCT
