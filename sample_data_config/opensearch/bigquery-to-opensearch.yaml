@@ -16,7 +16,7 @@ bigQueryToOpenSearch:
                     author.name,
                     author.authorId AS s2_author_id
                   FROM UNNEST(s2_response.authors) AS author
-                ) AS authors,
+                ) AS author_list,
                 s2_response.embedding.vector AS specter_embedding_v1,
                 s2_response.tldr
               ) AS s2
