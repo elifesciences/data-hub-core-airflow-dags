@@ -150,7 +150,7 @@ bigQueryToOpenSearch:
                           ARRAY(
                               SELECT publication_type
                               FROM UNNEST(pubTypeList.pubType) AS publication_type
-                          ) AS publication_type_list
+                          ) AS publication_type_string_list
                       FROM UNNEST(europepmc_response.versionList.version) AS version
                   ) AS version_list,
 
