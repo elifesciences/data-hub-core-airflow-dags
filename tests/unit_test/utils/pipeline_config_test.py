@@ -10,6 +10,8 @@ from data_pipeline.utils.pipeline_config import (
     MappingConfig,
     StateFileConfig,
     get_resolved_parameter_values_from_file_path_env_name,
+    parse_key_path,
+    parse_required_non_empty_key_path,
     str_to_bool,
     get_environment_variable_value
 )
@@ -187,3 +189,33 @@ class TestMappingConfig:
         assert config.printable_mapping == {KEY_1: SECRET_VALUE_PLACEHOLDER}
         assert VALUE_1 not in str(config)
         assert VALUE_1 not in repr(config)
+
+
+class TestParseKeyPath:
+    def test_should_return_empty_list_for_none(self):
+        assert parse_key_path(None) == []
+
+    def test_should_return_passed_in_list_if_list(self):
+        assert parse_key_path(['parent', 'child']) == ['parent', 'child']
+
+    def test_should_split_string_path_by_dot(self):
+        assert parse_key_path('parent.child') == ['parent', 'child']
+
+    def test_should_raise_error_if_other_type(self):
+        with pytest.raises(TypeError):
+            parse_key_path({'set'})
+
+
+class TestParseRequiredNonEmptyKeyPath:
+    def test_should_raise_error_for_none(self):
+        with pytest.raises(ValueError):
+            parse_required_non_empty_key_path(None)
+
+    def test_should_raise_error_for_empty_list(self):
+        with pytest.raises(ValueError):
+            parse_required_non_empty_key_path([])
+
+    def test_should_return_passed_in_list_if_not_empty(self):
+        assert parse_required_non_empty_key_path(
+            ['parent', 'child']
+        ) == ['parent', 'child']

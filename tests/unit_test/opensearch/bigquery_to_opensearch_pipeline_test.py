@@ -62,8 +62,8 @@ BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
         )
     ),
     field_names_for=BigQueryToOpenSearchFieldNamesForConfig(
-        id=ID_FIELD_NAME,
-        timestamp=TIMESTAMP_FIELD_NAME
+        id_key_path=[ID_FIELD_NAME],
+        timestamp_key_path=[TIMESTAMP_FIELD_NAME]
     ),
     target=BigQueryToOpenSearchTargetConfig(
         opensearch=OpenSearchTargetConfig(
@@ -471,7 +471,7 @@ class TestIterOpenSearchBulkActionForDocuments:
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OpenSearchOperationModes.INDEX
         ))
         assert bulk_actions == [{
@@ -485,7 +485,7 @@ class TestIterOpenSearchBulkActionForDocuments:
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OpenSearchOperationModes.CREATE
         ))
         assert bulk_actions == [{
@@ -499,7 +499,7 @@ class TestIterOpenSearchBulkActionForDocuments:
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OpenSearchOperationModes.UPDATE
         ))
         assert bulk_actions == [{
@@ -513,7 +513,7 @@ class TestIterOpenSearchBulkActionForDocuments:
         bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name='index_1',
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OpenSearchOperationModes.UPDATE,
             upsert=True
         ))
@@ -542,7 +542,7 @@ class TestLoadDocumentsIntoOpenSearch:
         iter_opensearch_bulk_action_for_documents_mock.assert_called_with(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
             upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         )
@@ -573,7 +573,7 @@ class TestLoadDocumentsIntoOpenSearch:
         expected_bulk_actions = list(iter_opensearch_bulk_action_for_documents(
             [DOCUMENT_1],
             index_name=OPENSEARCH_TARGET_CONFIG_1.index_name,
-            id_field_name=ID_FIELD_NAME,
+            id_key_path=[ID_FIELD_NAME],
             operation_mode=OPENSEARCH_TARGET_CONFIG_1.operation_mode,
             upsert=OPENSEARCH_TARGET_CONFIG_1.upsert
         ))

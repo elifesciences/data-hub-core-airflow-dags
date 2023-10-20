@@ -227,8 +227,8 @@ class TestBigQueryToOpenSearchConfig:
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
             'bigQueryToOpenSearch': [CONFIG_DICT_1]
         }))
-        assert config_list[0].field_names_for.id == ID_FIELD_NAME
-        assert config_list[0].field_names_for.timestamp == TIMESTAMP_FIELD_NAME
+        assert config_list[0].field_names_for.id_key_path == [ID_FIELD_NAME]
+        assert config_list[0].field_names_for.timestamp_key_path == [TIMESTAMP_FIELD_NAME]
 
     def test_should_use_default_batch_size_for_config(self):
         assert 'batchSize' not in CONFIG_DICT_1
