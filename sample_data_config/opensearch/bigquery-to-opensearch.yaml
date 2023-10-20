@@ -75,12 +75,6 @@ bigQueryToOpenSearch:
             properties:
                 doi:
                   type: "text"
-                title:
-                  type: "text"
-                abstract:
-                  type: "text"
-                publication_date:
-                  type: "date"
                 s2:
                   properties:
                     author_list:
