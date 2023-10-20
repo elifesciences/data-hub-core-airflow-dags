@@ -1,5 +1,5 @@
 bigQueryToOpenSearch:
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_s2_1
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_s2
     source:
       bigQuery:
         projectName: 'elife-data-pipeline'
@@ -108,7 +108,7 @@ bigQueryToOpenSearch:
                     full_text_list:
                       type: "nested"
     batchSize: 100
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc_2
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc
     source:
       bigQuery:
         projectName: 'elife-data-pipeline'
@@ -205,7 +205,7 @@ bigQueryToOpenSearch:
         operationMode: 'update'
         upsert: True
     batchSize: 100
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_sciety_3
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_sciety
     source:
       bigQuery:
         projectName: 'elife-data-pipeline'
