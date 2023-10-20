@@ -86,17 +86,19 @@ bigQueryToOpenSearch:
                     author_list:
                       type: "nested"
                     specter_embedding_v1:
-                      type: "knn_vector"
-                      dimension: 768
-                      method:
-                        # Note: we need Lucene for filter support
-                        name: "hnsw"
-                        space_type: "l2"
-                        engine: "lucene"
-                        parameters:
-                          # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
-                          ef_construction: 512
-                          m: 16
+                      properties:
+                        vector:
+                          type: "knn_vector"
+                          dimension: 768
+                          method:
+                            # Note: we need Lucene for filter support
+                            name: "hnsw"
+                            space_type: "l2"
+                            engine: "lucene"
+                            parameters:
+                              # Default values: https://opensearch.org/docs/latest/search-plugins/knn/knn-index/
+                              ef_construction: 512
+                              m: 16
                 europepmc:
                   properties:
                     author_list:
