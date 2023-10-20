@@ -1,7 +1,7 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type, TypeVar
+from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type, TypeVar, Union
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 
@@ -216,3 +216,22 @@ class MappingConfig:
             mapping=mapping,
             printable_mapping=printable_mapping
         )
+
+
+def parse_key_path(key_path: Optional[Union[str, Sequence[str]]]) -> Sequence[str]:
+    if isinstance(key_path, list):
+        return key_path
+    if isinstance(key_path, str):
+        return key_path.split('.')
+    if key_path is not None:
+        raise TypeError(f'unsupported type for key path: {type(key_path)}')
+    return []
+
+
+def parse_required_non_empty_key_path(
+    key_path: Optional[Union[str, Sequence[str]]]
+) -> Sequence[str]:
+    parsed_key_path = parse_key_path(key_path)
+    if not parsed_key_path:
+        raise ValueError('key path required')
+    return parsed_key_path

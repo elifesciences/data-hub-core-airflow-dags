@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Sequence
 
 from opensearchpy import OpenSearch
 import opensearchpy
@@ -49,7 +49,7 @@ def iter_documents_from_bigquery(
     )
     wrapped_query = get_wrapped_query(
         bigquery_source_config.sql_query,
-        timestamp_field_name=config.field_names_for.timestamp,
+        timestamp_field_name='.'.join(config.field_names_for.timestamp_key_path),
         start_timestamp=start_timestamp
     )
     LOGGER.info('wrapped_query: %r', wrapped_query)
@@ -106,10 +106,18 @@ OPENSEARCH_BULK_DOCUMENT_FIELD_BY_OPERATION_MODE = {
 }
 
 
+def get_required_value_for_key_path(parent: dict, key_path: Sequence[str]) -> Any:
+    result: Any = parent
+    for key in key_path:
+        result = result.get(key)
+    assert result is not None
+    return result
+
+
 def get_opensearch_bulk_action_for_document(
     document: dict,
     index_name: str,
-    id_field_name: str,
+    id_key_path: Sequence[str],
     operation_mode: str,
     upsert: bool
 ) -> dict:
@@ -117,7 +125,7 @@ def get_opensearch_bulk_action_for_document(
     result: dict = {
         '_op_type': operation_mode,
         '_index': index_name,
-        '_id': document[id_field_name],
+        '_id': get_required_value_for_key_path(document, id_key_path),
         document_field_name: document
     }
     if upsert:
@@ -128,7 +136,7 @@ def get_opensearch_bulk_action_for_document(
 def iter_opensearch_bulk_action_for_documents(
     document_iterable: Iterable[dict],
     index_name: str,
-    id_field_name: str,
+    id_key_path: Sequence[str],
     operation_mode: str,
     upsert: bool = False
 ) -> Iterable[dict]:
@@ -136,7 +144,7 @@ def iter_opensearch_bulk_action_for_documents(
         get_opensearch_bulk_action_for_document(
             document,
             index_name=index_name,
-            id_field_name=id_field_name,
+            id_key_path=id_key_path,
             operation_mode=operation_mode,
             upsert=upsert
         )
@@ -155,7 +163,7 @@ def load_documents_into_opensearch(
     bulk_action_iterable = iter_opensearch_bulk_action_for_documents(
         document_iterable,
         index_name=opensearch_target_config.index_name,
-        id_field_name=field_names_for_config.id,
+        id_key_path=field_names_for_config.id_key_path,
         operation_mode=opensearch_target_config.operation_mode,
         upsert=opensearch_target_config.upsert
     )
@@ -196,9 +204,12 @@ def load_state_or_default_from_s3_for_config(
 
 def get_max_timestamp_from_documents(
     document_iterable: Iterable[dict],
-    timestamp_field_name: str
+    timestamp_key_path: Sequence[str]
 ) -> datetime:
-    return max(document[timestamp_field_name] for document in document_iterable)
+    return max(
+        get_required_value_for_key_path(document, timestamp_key_path)
+        for document in document_iterable
+    )
 
 
 def create_or_update_index_and_load_documents_into_opensearch(
@@ -215,7 +226,12 @@ def create_or_update_index_and_load_documents_into_opensearch(
         iter_batch_iterable(document_iterable, config.batch_size)
     ):
         batch_documents = list(batch_documents_iterable)
-        LOGGER.info('processing batch %d (%d documents)', 1 + index, len(batch_documents))
+        LOGGER.info(
+            '%s: processing batch %d (%d documents)',
+            config.data_pipeline_id,
+            1 + index,
+            len(batch_documents)
+        )
         load_documents_into_opensearch(
             batch_documents,
             client=client,
@@ -225,7 +241,7 @@ def create_or_update_index_and_load_documents_into_opensearch(
         )
         timestamp = get_max_timestamp_from_documents(
             batch_documents,
-            timestamp_field_name=config.field_names_for.timestamp
+            timestamp_key_path=config.field_names_for.timestamp_key_path
         )
         LOGGER.info('updating state with: %r', timestamp)
         save_state_to_s3_for_config(

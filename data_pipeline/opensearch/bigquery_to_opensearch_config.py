@@ -6,7 +6,8 @@ from typing import Optional, Sequence
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     StateFileConfig,
-    get_resolved_parameter_values_from_file_path_env_name
+    get_resolved_parameter_values_from_file_path_env_name,
+    parse_required_non_empty_key_path
 )
 
 
@@ -94,14 +95,18 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
 
 @dataclass(frozen=True)
 class BigQueryToOpenSearchFieldNamesForConfig:
-    id: str  # pylint: disable=invalid-name
-    timestamp: str
+    id_key_path: Sequence[str]
+    timestamp_key_path: Sequence[str]
 
     @staticmethod
     def from_dict(field_names_for_config_dict: dict) -> 'BigQueryToOpenSearchFieldNamesForConfig':
         return BigQueryToOpenSearchFieldNamesForConfig(
-            id=field_names_for_config_dict['id'],
-            timestamp=field_names_for_config_dict['timestamp']
+            id_key_path=parse_required_non_empty_key_path(
+                field_names_for_config_dict['id']
+            ),
+            timestamp_key_path=parse_required_non_empty_key_path(
+                field_names_for_config_dict['timestamp']
+            )
         )
 
 
@@ -151,6 +156,7 @@ DEFAULT_BATCH_SIZE = 1000
 
 @dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
+    data_pipeline_id: str
     source: BigQueryToOpenSearchSourceConfig
     field_names_for: BigQueryToOpenSearchFieldNamesForConfig
     target: BigQueryToOpenSearchTargetConfig
@@ -160,6 +166,7 @@ class BigQueryToOpenSearchConfig:
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'BigQueryToOpenSearchConfig':
         return BigQueryToOpenSearchConfig(
+            data_pipeline_id=item_config_dict['dataPipelineId'],
             source=BigQueryToOpenSearchSourceConfig.from_dict(item_config_dict['source']),
             field_names_for=BigQueryToOpenSearchFieldNamesForConfig.from_dict(
                 item_config_dict['fieldNamesFor']

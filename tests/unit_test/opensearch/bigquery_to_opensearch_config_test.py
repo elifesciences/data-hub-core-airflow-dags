@@ -69,6 +69,7 @@ OPENSEARCH_TARGET_CONFIG_DICT_1 = {
 
 
 CONFIG_DICT_1: dict = {
+    'dataPipelineId': 'pipeline_1',
     'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1},
     'fieldNamesFor': {
         'id': ID_FIELD_NAME,
@@ -214,6 +215,14 @@ class TestBigQueryToOpenSearchConfig:
         }))
         assert len(config_list) == 1
 
+    def test_should_read_data_pipeline_id(self):
+        config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
+            'bigQueryToOpenSearch': [CONFIG_DICT_1]
+        }))
+        assert (
+            config_list[0].data_pipeline_id == CONFIG_DICT_1['dataPipelineId']
+        )
+
     def test_should_read_bigquery_source_config(self):
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
             'bigQueryToOpenSearch': [CONFIG_DICT_1]
@@ -227,8 +236,8 @@ class TestBigQueryToOpenSearchConfig:
         config_list = list(BigQueryToOpenSearchConfig.parse_config_list_from_dict({
             'bigQueryToOpenSearch': [CONFIG_DICT_1]
         }))
-        assert config_list[0].field_names_for.id == ID_FIELD_NAME
-        assert config_list[0].field_names_for.timestamp == TIMESTAMP_FIELD_NAME
+        assert config_list[0].field_names_for.id_key_path == [ID_FIELD_NAME]
+        assert config_list[0].field_names_for.timestamp_key_path == [TIMESTAMP_FIELD_NAME]
 
     def test_should_use_default_batch_size_for_config(self):
         assert 'batchSize' not in CONFIG_DICT_1
