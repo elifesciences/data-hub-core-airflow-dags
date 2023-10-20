@@ -37,7 +37,7 @@ bigQueryToOpenSearch:
           )
     fieldNamesFor:
       id: doi
-      timestamp: data_hub_imported_timestamp
+      timestamp: s2.data_hub_imported_timestamp
     state:
       initialState:
         startTimestamp: '2022-05-01+00:00'
@@ -177,7 +177,7 @@ bigQueryToOpenSearch:
           )
     fieldNamesFor:
       id: doi
-      timestamp: europepmc_data_hub_imported_timestamp
+      timestamp: europepmc.data_hub_imported_timestamp
     state:
       initialState:
         startTimestamp: '2022-05-01+00:00'
@@ -224,7 +224,7 @@ bigQueryToOpenSearch:
           GROUP BY event.article_doi
     fieldNamesFor:
       id: doi
-      timestamp: last_event_timestamp
+      timestamp: sciety.last_event_timestamp
     state:
       initialState:
         startTimestamp: '2019-01-01+00:00'
