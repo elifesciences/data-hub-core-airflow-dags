@@ -226,7 +226,12 @@ def create_or_update_index_and_load_documents_into_opensearch(
         iter_batch_iterable(document_iterable, config.batch_size)
     ):
         batch_documents = list(batch_documents_iterable)
-        LOGGER.info('processing batch %d (%d documents)', 1 + index, len(batch_documents))
+        LOGGER.info(
+            '%s: processing batch %d (%d documents)',
+            config.data_pipeline_id,
+            1 + index,
+            len(batch_documents)
+        )
         load_documents_into_opensearch(
             batch_documents,
             client=client,

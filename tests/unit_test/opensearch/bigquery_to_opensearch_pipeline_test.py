@@ -55,6 +55,7 @@ QUERY_1 = 'query 1'
 
 
 BIGQUERY_TO_OPENSEARCH_CONFIG_1 = BigQueryToOpenSearchConfig(
+    data_pipeline_id='pipeline_1',
     source=BigQueryToOpenSearchSourceConfig(
         bigquery=BigQuerySourceConfig(
             project_name='project1',

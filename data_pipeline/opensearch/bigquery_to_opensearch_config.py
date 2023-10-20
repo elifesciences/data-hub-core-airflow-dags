@@ -156,6 +156,7 @@ DEFAULT_BATCH_SIZE = 1000
 
 @dataclass(frozen=True)
 class BigQueryToOpenSearchConfig:
+    data_pipeline_id: str
     source: BigQueryToOpenSearchSourceConfig
     field_names_for: BigQueryToOpenSearchFieldNamesForConfig
     target: BigQueryToOpenSearchTargetConfig
@@ -165,6 +166,7 @@ class BigQueryToOpenSearchConfig:
     @staticmethod
     def _from_item_dict(item_config_dict: dict) -> 'BigQueryToOpenSearchConfig':
         return BigQueryToOpenSearchConfig(
+            data_pipeline_id=item_config_dict['dataPipelineId'],
             source=BigQueryToOpenSearchSourceConfig.from_dict(item_config_dict['source']),
             field_names_for=BigQueryToOpenSearchFieldNamesForConfig.from_dict(
                 item_config_dict['fieldNamesFor']
