@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 import os
 
@@ -14,21 +15,11 @@ from data_pipeline.utils.pipeline_file_io import get_temp_local_file_if_remote
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
 class BigQueryViewsConfig:
-    def __init__(
-            self,
-            bigquery_views_config_path: str,
-            gcp_project: str,
-            dataset: str):
-        self.bigquery_views_config_path = bigquery_views_config_path
-        self.gcp_project = gcp_project
-        self.dataset = dataset
-
-    def __str__(self):
-        return str(self.__dict__)
-
-    def __repr__(self):
-        return repr(self.__dict__)
+    bigquery_views_config_path: str
+    gcp_project: str
+    dataset: str
 
 
 def load_remote_view_list_config(urlpath: str, **kwargs):
