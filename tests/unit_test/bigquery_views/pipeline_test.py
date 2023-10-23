@@ -36,6 +36,19 @@ OTHER_DATASET_1 = 'other_dataset1'
 OUTPUT_DATASET_1 = 'output_dataset1'
 OUTPUT_TABLE_1 = 'output_table1'
 
+MATERIALIZE_VIEW_RESULT_1 = MaterializeViewResult(
+    source_dataset='source_dataset_1',
+    source_view_name='source_view_name_1',
+    destination_dataset='destination_dataset_1',
+    destination_table_name='destination_table_name_1',
+    total_bytes_processed=10,
+    total_rows=10,
+    duration=3,
+    cache_hit=10,
+    slot_millis=10,
+    total_bytes_billed=10
+)
+
 
 @pytest.fixture(name='bigquery', autouse=True)
 def _bigquery() -> Iterable[MagicMock]:
@@ -130,18 +143,7 @@ class TestGetJsonListForMaterializeViewsLog:
     def test_should_return_json_list_from_materialize_view_list_result(self):
         result = get_json_list_for_materialize_views_log(
             MaterializeViewListResult(
-                result_list=[MaterializeViewResult(
-                    source_dataset='source_dataset_1',
-                    source_view_name='source_view_name_1',
-                    destination_dataset='destination_dataset_1',
-                    destination_table_name='destination_table_name_1',
-                    total_bytes_processed=10,
-                    total_rows=10,
-                    duration=3,
-                    cache_hit=10,
-                    slot_millis=10,
-                    total_bytes_billed=10
-                )]
+                result_list=[MATERIALIZE_VIEW_RESULT_1]
             )
         )
         assert result == [{
@@ -156,6 +158,16 @@ class TestGetJsonListForMaterializeViewsLog:
             'slot_millis': 10,
             'total_bytes_billed': 10
         }]
+
+    def test_should_remove_fields_with_none_value(self):
+        result = get_json_list_for_materialize_views_log(
+            MaterializeViewListResult(
+                result_list=[
+                    dataclasses.replace(MATERIALIZE_VIEW_RESULT_1, total_bytes_billed=None)
+                ]
+            )
+        )
+        assert 'total_bytes_billed' not in result[0]
 
 
 class TestMaterializeBigQueryViews:
@@ -213,18 +225,7 @@ class TestMaterializeBigQueryViews:
         mock_materialize_views: MagicMock
     ):
         mock_materialize_views.return_value = MaterializeViewListResult(
-            result_list=[MaterializeViewResult(
-                source_dataset='source_dataset_1',
-                source_view_name='source_view_name_1',
-                destination_dataset='destination_dataset_1',
-                destination_table_name='destination_table_name_1',
-                total_bytes_processed=10,
-                total_rows=10,
-                duration=3,
-                cache_hit=10,
-                slot_millis=10,
-                total_bytes_billed=10
-            )]
+            result_list=[MATERIALIZE_VIEW_RESULT_1]
         )
         json_list = get_json_list_for_materialize_views_log(mock_materialize_views.return_value)
         materialize_bigquery_views(bigquery_views_config)

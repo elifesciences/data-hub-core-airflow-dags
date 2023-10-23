@@ -13,6 +13,7 @@ from bigquery_views_manager.materialize_views import (
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import get_temp_local_file_if_remote
 
 
@@ -41,7 +42,7 @@ def get_client(config: BigQueryViewsConfig) -> bigquery.Client:
 def get_json_list_for_materialize_views_log(
     materialize_views_log: MaterializeViewListResult
 ) -> Sequence[dict]:
-    return asdict(materialize_views_log)['result_list']
+    return remove_key_with_null_value(asdict(materialize_views_log)['result_list'])
 
 
 def materialize_bigquery_views(config: BigQueryViewsConfig):
