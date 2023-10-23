@@ -1,14 +1,18 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import logging
 import os
+from typing import Sequence
 
 from google.cloud import bigquery
 
 from bigquery_views_manager.view_list import load_view_list_config
 from bigquery_views_manager.materialize_views import (
-    materialize_views
+    materialize_views,
+    MaterializeViewListResult
 )
-
+from data_pipeline.utils.data_store.bq_data_service import (
+    load_given_json_list_data_from_tempdir_to_bq
+)
 from data_pipeline.utils.pipeline_file_io import get_temp_local_file_if_remote
 
 
@@ -20,6 +24,7 @@ class BigQueryViewsConfig:
     bigquery_views_config_path: str
     gcp_project: str
     dataset: str
+    log_table_name: str = 'data_hub_bigquery_views_pipeline_log'
 
 
 def load_remote_view_list_config(urlpath: str, **kwargs):
@@ -31,6 +36,12 @@ def load_remote_view_list_config(urlpath: str, **kwargs):
 
 def get_client(config: BigQueryViewsConfig) -> bigquery.Client:
     return bigquery.Client(project=config.gcp_project)
+
+
+def get_json_list_for_materialize_views_log(
+    materialize_views_log: MaterializeViewListResult
+) -> Sequence[dict]:
+    return asdict(materialize_views_log)['result_list']
 
 
 def materialize_bigquery_views(config: BigQueryViewsConfig):
@@ -57,9 +68,15 @@ def materialize_bigquery_views(config: BigQueryViewsConfig):
     )
     LOGGER.debug('materialized_view_ordered_dict_all: %s', materialized_view_ordered_dict_all)
 
-    materialize_views(
+    materialize_views_log = materialize_views(
         client=client,
         materialized_view_dict=materialized_view_ordered_dict_all,
         source_view_dict=views_ordered_dict_all,
         project=client.project
+    )
+    load_given_json_list_data_from_tempdir_to_bq(
+        project_name=config.gcp_project,
+        dataset_name=config.dataset,
+        table_name=config.log_table_name,
+        json_list=get_json_list_for_materialize_views_log(materialize_views_log)
     )
