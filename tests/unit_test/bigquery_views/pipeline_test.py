@@ -2,7 +2,7 @@ import dataclasses
 from datetime import datetime
 import logging
 from pathlib import Path
-from unittest.mock import ANY, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from typing import Iterable
 
 import pytest
