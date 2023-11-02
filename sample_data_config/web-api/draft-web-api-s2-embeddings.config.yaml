@@ -1,0 +1,24 @@
+gcpProjectName: 'elife-data-pipeline'
+importedTimestampFieldName: 'data_hub_imported_timestamp'
+webApi:
+  - dataPipelineId: web_s2_embeddings
+    dataset: '{ENV}'
+    table: test_s2_specter_v1_embeddings
+    source:
+      bigQuery:
+        SELECT
+          europepmc_response.doi AS paper_id,
+          europepmc_response.title_with_markup AS title,
+          europepmc_response.abstractText AS abstract,
+        FROM `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
+        WHERE europepmc_response.doi IN (
+          '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
+          '10.1101/2022.09.28.509871'
+        )
+    urlSourceType:
+      name: 's2_title_abstract_embeddings_api'
+    dataUrl:
+      urlExcludingConfigurableParameters: 'https://model-apis.semanticscholar.org/specter/v1/invoke'
+    response:
+      itemsKeyFromResponseRoot:
+        - preds
