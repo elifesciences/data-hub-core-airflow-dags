@@ -47,7 +47,7 @@ def get_json_list_for_materialize_views_log(
     return [
         {
             **record,
-            'data_hub_imported_timestamp': data_hub_imported_timestamp
+            'data_hub_imported_timestamp': data_hub_imported_timestamp.isoformat()
         }
         for record in remove_key_with_null_value(asdict(materialize_views_log)['result_list'])
     ]

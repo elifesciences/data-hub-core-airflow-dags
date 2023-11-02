@@ -157,7 +157,7 @@ class TestGetJsonListForMaterializeViewsLog:
             )
         )
         assert result == [{
-            'data_hub_imported_timestamp': ANY,
+            'data_hub_imported_timestamp': CURRENT_TIMESTAMP.isoformat(),
             'source_dataset': 'source_dataset_1',
             'source_view_name': 'source_view_name_1',
             'destination_dataset': 'destination_dataset_1',
