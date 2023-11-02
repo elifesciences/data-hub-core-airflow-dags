@@ -10,6 +10,7 @@ from bigquery_views_manager.materialize_views import (
     materialize_views,
     MaterializeViewListResult
 )
+from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
@@ -42,7 +43,14 @@ def get_client(config: BigQueryViewsConfig) -> bigquery.Client:
 def get_json_list_for_materialize_views_log(
     materialize_views_log: MaterializeViewListResult
 ) -> Sequence[dict]:
-    return remove_key_with_null_value(asdict(materialize_views_log)['result_list'])
+    data_hub_imported_timestamp = get_current_timestamp()
+    return [
+        {
+            **record,
+            'data_hub_imported_timestamp': data_hub_imported_timestamp.isoformat()
+        }
+        for record in remove_key_with_null_value(asdict(materialize_views_log)['result_list'])
+    ]
 
 
 def materialize_bigquery_views(config: BigQueryViewsConfig):
