@@ -1,4 +1,5 @@
 import dataclasses
+from datetime import datetime
 import logging
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -31,6 +32,8 @@ LOGGER = logging.getLogger(__name__)
 
 GCP_PROJECT_1 = 'gcp-project-1'
 
+CURRENT_TIMESTAMP = datetime.fromisoformat('2023-01-02T03:04:05+00:00')
+
 MATCHING_DATASET_1 = 'matching_dataset1'
 OTHER_DATASET_1 = 'other_dataset1'
 OUTPUT_DATASET_1 = 'output_dataset1'
@@ -48,6 +51,13 @@ MATERIALIZE_VIEW_RESULT_1 = MaterializeViewResult(
     slot_millis=10,
     total_bytes_billed=10
 )
+
+
+@pytest.fixture(name='get_current_timestamp_mock', autouse=True)
+def _get_current_timestamp_mock() -> Iterable[MagicMock]:
+    with patch.object(target_module, 'get_current_timestamp') as mock:
+        mock.return_value = CURRENT_TIMESTAMP
+        yield mock
 
 
 @pytest.fixture(name='bigquery', autouse=True)
@@ -147,6 +157,7 @@ class TestGetJsonListForMaterializeViewsLog:
             )
         )
         assert result == [{
+            'data_hub_imported_timestamp': CURRENT_TIMESTAMP.isoformat(),
             'source_dataset': 'source_dataset_1',
             'source_view_name': 'source_view_name_1',
             'destination_dataset': 'destination_dataset_1',
