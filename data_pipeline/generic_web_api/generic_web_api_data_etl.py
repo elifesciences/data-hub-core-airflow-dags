@@ -105,7 +105,11 @@ def get_data_single_page(
             session.auth = cast(Tuple[str, str], tuple(data_config.authentication.auth_val_list))
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
-        session_response = session.get(url, headers=data_config.headers.mapping)
+        session_response = session.request(
+            method=data_config.url_builder.method,
+            url=url,
+            headers=data_config.headers.mapping
+        )
         session_response.raise_for_status()
         resp = session_response.content
         try:

@@ -56,6 +56,7 @@ class DynamicURLBuilder:
     page_size: Optional[int] = None
     sort_key: Optional[str] = None
     sort_key_value: Optional[str] = None
+    method: str = 'GET'
     type_specific_params: Optional[dict] = None
 
     def _get_url_separator(self):

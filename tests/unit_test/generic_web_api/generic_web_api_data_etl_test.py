@@ -26,6 +26,7 @@ def _requests_session_mock() -> MagicMock:
     response_mock = MagicMock(name='response_mock')
     response_mock.content = b'{}'
     requests_session_mock.get.return_value = response_mock
+    requests_session_mock.request.return_value = response_mock
     return requests_session_mock
 
 
@@ -404,8 +405,12 @@ class TestNextOffset:
 
 
 class TestGetDataSinglePage:
-    def test_should_pass_url_and_header_to_session_get(self, requests_session_mock: MagicMock):
+    def test_should_pass_method_url_and_header_to_session_request(
+        self,
+        requests_session_mock: MagicMock
+    ):
         url_builder = MagicMock(name='url_builder')
+        url_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
             url_builder=url_builder
@@ -413,8 +418,9 @@ class TestGetDataSinglePage:
         get_data_single_page(
             data_config=data_config
         )
-        requests_session_mock.get.assert_called_with(
-            url_builder.get_url.return_value,
+        requests_session_mock.request.assert_called_with(
+            method=url_builder.method,
+            url=url_builder.get_url.return_value,
             headers=data_config.headers.mapping
         )
 
