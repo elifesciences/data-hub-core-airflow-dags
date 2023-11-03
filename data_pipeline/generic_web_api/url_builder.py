@@ -111,14 +111,6 @@ class DynamicURLBuilder:
         return self.compose_url(param_dict)
 
 
-def get_url_builder_class(url_source_type: str = ''):
-    if url_source_type.strip().lower() == 'civi':
-        return DynamicCiviURLBuilder
-    if url_source_type == 'biorxiv_medrxiv_api':
-        return DynamicBioRxivMedRxivURLBuilder
-    return DynamicURLBuilder
-
-
 class DynamicCiviURLBuilder(DynamicURLBuilder):
 
     def get_url(
@@ -191,3 +183,11 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
             url_compose_param.to_date.strftime(r'%Y-%m-%d'),
             str(url_compose_param.page_offset)
         ])
+
+
+def get_url_builder_class(url_source_type: str = ''):
+    if url_source_type.strip().lower() == 'civi':
+        return DynamicCiviURLBuilder
+    if url_source_type == 'biorxiv_medrxiv_api':
+        return DynamicBioRxivMedRxivURLBuilder
+    return DynamicURLBuilder
