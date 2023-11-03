@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from data_pipeline.generic_web_api.url_builder import (
+    DynamicS2TitleAbstractEmbeddingsURLBuilder,
     get_url_builder_class,
     DynamicBioRxivMedRxivURLBuilder,
     UrlComposeParam
@@ -14,6 +15,10 @@ class TestGetUrlBuilderClass:
     def test_should_return_biorxiv_api_class(self):
         url_builder_class = get_url_builder_class('biorxiv_medrxiv_api')
         assert url_builder_class == DynamicBioRxivMedRxivURLBuilder
+
+    def test_should_return_s2_title_abstract_embeddings_api_class(self):
+        url_builder_class = get_url_builder_class('s2_title_abstract_embeddings_api')
+        assert url_builder_class == DynamicS2TitleAbstractEmbeddingsURLBuilder
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:

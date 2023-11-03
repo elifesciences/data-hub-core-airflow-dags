@@ -185,6 +185,10 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
         ])
 
 
+class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
+    pass
+
+
 def get_url_builder_class(url_source_type: str = ''):
     if url_source_type.strip().lower() == 'civi':
         return DynamicCiviURLBuilder
