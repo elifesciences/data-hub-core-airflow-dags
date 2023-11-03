@@ -194,4 +194,6 @@ def get_url_builder_class(url_source_type: str = ''):
         return DynamicCiviURLBuilder
     if url_source_type == 'biorxiv_medrxiv_api':
         return DynamicBioRxivMedRxivURLBuilder
+    if url_source_type == 's2_title_abstract_embeddings_api':
+        return DynamicS2TitleAbstractEmbeddingsURLBuilder
     return DynamicURLBuilder
