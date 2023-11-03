@@ -111,6 +111,7 @@ def get_data_single_page(
         try:
             json_resp = json.loads(resp)
         except JSONDecodeError:
+            LOGGER.debug('Attempting to parse jsonl: %r', resp)
             json_resp = get_newline_delimited_json_string_as_json_list(
                 resp.decode("utf-8")
             )
