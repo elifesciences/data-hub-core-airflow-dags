@@ -23,6 +23,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     create_or_extend_table_schema
 )
 from data_pipeline.utils.json import remove_key_with_null_value
+from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
 from data_pipeline.utils.web_api import requests_retry_session
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -125,11 +126,27 @@ def get_data_single_page(
     return json_resp
 
 
+def iter_optional_source_values_from_bigquery(
+    data_config: WebApiConfig
+) -> Optional[Iterable[dict]]:
+    source_config = data_config.source
+    if source_config is None:
+        return None
+    LOGGER.debug(
+        'processing source config: %r',
+        source_config
+    )
+    return iter_dict_from_bq_query_for_bigquery_source_config(
+        source_config.bigquery
+    )
+
+
 # pylint: disable=too-many-locals
 def process_web_api_data_etl_batch(
         data_config: WebApiConfig,
         initial_from_date: Optional[datetime] = None,
         until_date: Optional[datetime] = None,
+        source_values: Optional[Iterable[dict]] = None
 ):
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
@@ -166,7 +183,8 @@ def process_web_api_data_etl_batch(
                 until_date=variable_until_date,
                 cursor=cursor,
                 page_number=page_number,
-                page_offset=offset
+                page_offset=offset,
+                source_values=source_values
             )
             LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(
@@ -242,6 +260,7 @@ def generic_web_api_data_etl(
     if not end_timestamp and current_from_timestamp:
         end_timestamp = get_current_timestamp()
     LOGGER.info('end_timestamp: %r', end_timestamp)
+    source_values = iter_optional_source_values_from_bigquery(data_config)
     while True:
         next_from_timestamp = get_next_batch_from_timestamp_for_config(
             data_config=data_config,
@@ -250,7 +269,8 @@ def generic_web_api_data_etl(
         process_web_api_data_etl_batch(
             data_config=data_config,
             initial_from_date=current_from_timestamp,
-            until_date=next_from_timestamp
+            until_date=next_from_timestamp,
+            source_values=source_values
         )
         if (
             not next_from_timestamp

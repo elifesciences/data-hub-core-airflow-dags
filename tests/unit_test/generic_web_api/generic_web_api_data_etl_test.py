@@ -20,6 +20,12 @@ from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
 
 
+BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': 'project1',
+    'sqlQuery': 'query1'
+}
+
+
 @pytest.fixture(name='requests_session_mock')
 def _requests_session_mock() -> MagicMock:
     requests_session_mock = MagicMock(name='requests_session_mock')
@@ -93,6 +99,14 @@ def _upload_latest_timestamp_as_pipeline_state_mock():
 def _get_items_list_mock():
     with patch.object(
             generic_web_api_data_etl_module, 'get_items_list'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='iter_dict_from_bq_query_for_bigquery_source_config_mock')
+def _iter_dict_from_bq_query_for_bigquery_source_config_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'iter_dict_from_bq_query_for_bigquery_source_config'
     ) as mock:
         yield mock
 
@@ -547,3 +561,22 @@ class TestGenericWebApiDataEtl:
             for call_args in get_data_single_page_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
+
+    def test_should_load_source_values_from_bigquery_and_pass_to_get_data_single_page(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        conf_dict: dict = {
+            **WEB_API_CONFIG,
+            'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
+        }
+        data_config = get_data_config(conf_dict)
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = iter(['value 1'])
+
+        generic_web_api_data_etl(data_config)
+
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called()
+        get_data_single_page_mock.assert_called()
+        _, kwargs = get_data_single_page_mock.call_args
+        assert list(kwargs['source_values']) == ['value 1']
