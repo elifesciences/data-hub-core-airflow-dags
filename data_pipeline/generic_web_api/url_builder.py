@@ -3,7 +3,7 @@ import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, NamedTuple, Optional
+from typing import Any, Iterable, NamedTuple, Optional
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
@@ -59,7 +59,10 @@ class DynamicURLBuilder:
     method: str = 'GET'
     type_specific_params: Optional[dict] = None
 
-    def get_json(self) -> Optional[Any]:
+    def get_json(  # pylint: disable=unused-argument
+        self,
+        source_values: Optional[Iterable[dict]]
+    ) -> Optional[Any]:
         return None
 
     def _get_url_separator(self):

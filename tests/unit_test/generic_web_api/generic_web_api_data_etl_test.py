@@ -425,6 +425,21 @@ class TestGetDataSinglePage:
             headers=data_config.headers.mapping
         )
 
+    def test_should_pass_source_values_to_get_json(self):
+        url_builder = MagicMock(name='url_builder')
+        url_builder.method = 'POST'
+        data_config = dataclasses.replace(
+            get_data_config(WEB_API_CONFIG),
+            url_builder=url_builder
+        )
+        get_data_single_page(
+            data_config=data_config,
+            source_values=['value1']
+        )
+        url_builder.get_json.assert_called_with(
+            source_values=['value1']
+        )
+
 
 class TestGenericWebApiDataEtl:
     def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(

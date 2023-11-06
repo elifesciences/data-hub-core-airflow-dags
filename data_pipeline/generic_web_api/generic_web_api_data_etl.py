@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
-from typing import Any, Optional, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple, cast
 
 from botocore.exceptions import ClientError
 
@@ -84,7 +84,8 @@ def get_data_single_page(
         from_date: Optional[datetime] = None,
         until_date: Optional[datetime] = None,
         page_number: Optional[int] = None,
-        page_offset: Optional[int] = None
+        page_offset: Optional[int] = None,
+        source_values: Optional[Iterable[dict]] = None
 ) -> Any:
     url_compose_arg = UrlComposeParam(
         from_date=from_date,
@@ -96,7 +97,7 @@ def get_data_single_page(
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
-    json_data = data_config.url_builder.get_json()
+    json_data = data_config.url_builder.get_json(source_values=source_values)
     LOGGER.info("Request URL: %s (json: %r)", url, json_data)
 
     with requests_retry_session() as session:
