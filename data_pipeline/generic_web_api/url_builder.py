@@ -3,7 +3,7 @@ import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, NamedTuple, Optional
+from typing import Any, Iterable, NamedTuple, Optional, Sequence
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
@@ -193,7 +193,19 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
 
 
 class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
-    pass
+    def get_json(
+        self,
+        source_values: Optional[Iterable[dict]]
+    ) -> Sequence[dict]:
+        assert source_values is not None
+        return [
+            {
+                'paper_id': source_value['paper_id'],
+                'title': source_value['title'],
+                'abstract': source_value['abstract']
+            }
+            for source_value in source_values
+        ]
 
 
 def get_url_builder_class(url_source_type: str = ''):

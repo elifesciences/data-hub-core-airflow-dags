@@ -8,13 +8,13 @@ from data_pipeline.generic_web_api.url_builder import (
 )
 
 
-TEST_BIORXIV_API_URL = 'https://test.api.biorxiv.org/details/server'
+TEST_API_URL_1 = 'https://test/api1'
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
     def test_should_initialize_dummy_parameteres(self):
         url_builder = DynamicBioRxivMedRxivURLBuilder(
-            url_excluding_configurable_parameters=TEST_BIORXIV_API_URL,
+            url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
         assert url_builder.from_date_param
@@ -23,7 +23,7 @@ class TestDynamicBioRxivMedRxivURLBuilder:
 
     def test_should_include_interval_and_offset_in_url(self):
         url_builder = DynamicBioRxivMedRxivURLBuilder(
-            url_excluding_configurable_parameters=TEST_BIORXIV_API_URL,
+            url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
         url = url_builder.get_url(url_compose_param=UrlComposeParam(
@@ -35,6 +35,23 @@ class TestDynamicBioRxivMedRxivURLBuilder:
             url_builder.url_excluding_configurable_parameters
             + '/2001-01-01/2001-01-02/10'
         )
+
+
+class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
+    def test_should_generate_json_data_for_source_values(self):
+        url_builder = DynamicS2TitleAbstractEmbeddingsURLBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            compose_able_url_key_val={}
+        )
+        assert url_builder.get_json(source_values=iter([{
+            'paper_id': 'paper_id1',
+            'title': 'Title 1',
+            'abstract': 'Abstract 1'
+        }])) == [{
+            'paper_id': 'paper_id1',
+            'title': 'Title 1',
+            'abstract': 'Abstract 1'
+        }]
 
 
 class TestGetUrlBuilderClass:
