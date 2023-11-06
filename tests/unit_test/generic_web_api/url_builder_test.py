@@ -38,6 +38,13 @@ class TestDynamicBioRxivMedRxivURLBuilder:
 
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
+    def test_should_set_method_to_post(self):
+        url_builder = DynamicS2TitleAbstractEmbeddingsURLBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            compose_able_url_key_val={}
+        )
+        assert url_builder.method == 'POST'
+
     def test_should_generate_json_data_for_source_values(self):
         url_builder = DynamicS2TitleAbstractEmbeddingsURLBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,

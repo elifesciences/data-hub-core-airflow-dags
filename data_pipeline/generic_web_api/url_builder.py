@@ -193,6 +193,9 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
 
 
 class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
+    def __init__(self, **kwargs):
+        super().__init__(**{**kwargs, 'method': 'POST'})
+
     def get_json(
         self,
         source_values: Optional[Iterable[dict]]
