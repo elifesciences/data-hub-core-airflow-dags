@@ -99,7 +99,7 @@ def get_data_single_page(
         url_compose_arg
     )
     json_data = data_config.url_builder.get_json(source_values=source_values)
-    LOGGER.info("Request URL: %s (json: %r)", url, json_data)
+    LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
 
     with requests_retry_session() as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
