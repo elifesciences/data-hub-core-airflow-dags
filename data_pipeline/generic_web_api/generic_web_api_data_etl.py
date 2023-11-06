@@ -96,7 +96,8 @@ def get_data_single_page(
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
-    LOGGER.info("Request URL: %s", url)
+    json_data = data_config.url_builder.get_json()
+    LOGGER.info("Request URL: %s (json: %r)", url, json_data)
 
     with requests_retry_session() as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
@@ -108,6 +109,7 @@ def get_data_single_page(
         session_response = session.request(
             method=data_config.url_builder.method,
             url=url,
+            json=json_data,
             headers=data_config.headers.mapping
         )
         session_response.raise_for_status()

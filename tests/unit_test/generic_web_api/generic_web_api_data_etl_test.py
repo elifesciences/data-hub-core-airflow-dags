@@ -421,6 +421,7 @@ class TestGetDataSinglePage:
         requests_session_mock.request.assert_called_with(
             method=url_builder.method,
             url=url_builder.get_url.return_value,
+            json=url_builder.get_json.return_value,
             headers=data_config.headers.mapping
         )
 
