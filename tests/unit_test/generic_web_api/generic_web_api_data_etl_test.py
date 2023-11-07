@@ -1,5 +1,6 @@
+import dataclasses
 from datetime import datetime, timedelta
-from typing import Sequence
+from typing import Iterator, Sequence
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -7,6 +8,7 @@ from data_pipeline.generic_web_api import (
     generic_web_api_data_etl as generic_web_api_data_etl_module
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
+    get_data_single_page,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -16,6 +18,29 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+
+
+BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': 'project1',
+    'sqlQuery': 'query1'
+}
+
+
+@pytest.fixture(name='requests_session_mock')
+def _requests_session_mock() -> MagicMock:
+    requests_session_mock = MagicMock(name='requests_session_mock')
+    response_mock = MagicMock(name='response_mock')
+    response_mock.content = b'{}'
+    requests_session_mock.get.return_value = response_mock
+    requests_session_mock.request.return_value = response_mock
+    return requests_session_mock
+
+
+@pytest.fixture(name='requests_retry_session_mock', autouse=True)
+def _requests_retry_session_mock(requests_session_mock: MagicMock) -> Iterator[MagicMock]:
+    with patch.object(generic_web_api_data_etl_module, 'requests_retry_session') as mock:
+        mock.return_value.__enter__.return_value = requests_session_mock
+        yield mock
 
 
 @pytest.fixture(name='mock_upload_s3_object')
@@ -74,6 +99,14 @@ def _upload_latest_timestamp_as_pipeline_state_mock():
 def _get_items_list_mock():
     with patch.object(
             generic_web_api_data_etl_module, 'get_items_list'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='iter_dict_from_bq_query_for_bigquery_source_config_mock')
+def _iter_dict_from_bq_query_for_bigquery_source_config_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'iter_dict_from_bq_query_for_bigquery_source_config'
     ) as mock:
         yield mock
 
@@ -385,6 +418,43 @@ class TestNextOffset:
         )
 
 
+class TestGetDataSinglePage:
+    def test_should_pass_method_url_and_header_to_session_request(
+        self,
+        requests_session_mock: MagicMock
+    ):
+        url_builder = MagicMock(name='url_builder')
+        url_builder.method = 'POST'
+        data_config = dataclasses.replace(
+            get_data_config(WEB_API_CONFIG),
+            url_builder=url_builder
+        )
+        get_data_single_page(
+            data_config=data_config
+        )
+        requests_session_mock.request.assert_called_with(
+            method=url_builder.method,
+            url=url_builder.get_url.return_value,
+            json=url_builder.get_json.return_value,
+            headers=data_config.headers.mapping
+        )
+
+    def test_should_pass_source_values_to_get_json(self):
+        url_builder = MagicMock(name='url_builder')
+        url_builder.method = 'POST'
+        data_config = dataclasses.replace(
+            get_data_config(WEB_API_CONFIG),
+            url_builder=url_builder
+        )
+        get_data_single_page(
+            data_config=data_config,
+            source_values=['value1']
+        )
+        url_builder.get_json.assert_called_with(
+            source_values=['value1']
+        )
+
+
 class TestGenericWebApiDataEtl:
     def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(
         self,
@@ -491,3 +561,22 @@ class TestGenericWebApiDataEtl:
             for call_args in get_data_single_page_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
+
+    def test_should_load_source_values_from_bigquery_and_pass_to_get_data_single_page(
+        self,
+        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        get_data_single_page_mock: MagicMock
+    ):
+        conf_dict: dict = {
+            **WEB_API_CONFIG,
+            'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
+        }
+        data_config = get_data_config(conf_dict)
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = iter(['value 1'])
+
+        generic_web_api_data_etl(data_config)
+
+        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called()
+        get_data_single_page_mock.assert_called()
+        _, kwargs = get_data_single_page_mock.call_args
+        assert list(kwargs['source_values']) == ['value 1']

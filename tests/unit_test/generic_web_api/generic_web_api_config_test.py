@@ -1,4 +1,4 @@
-from data_pipeline.utils.pipeline_config import ConfigKeys
+from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
     get_web_api_config_id,
     MultiWebApiConfig,
@@ -7,6 +7,11 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 
 DATASET_1 = 'dataset_1'
 TABLE_1 = 'table_1'
+
+BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+    'projectName': 'project1',
+    'sqlQuery': 'query1'
+}
 
 MINIMAL_WEB_API_CONFIG_DICT = {
     'dataset': DATASET_1,
@@ -65,3 +70,16 @@ class TestWebApiConfig:
             'headers': headers
         })
         assert web_api_config.headers.mapping == headers
+
+    def test_should_read_bigquery_source_config(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'source': {
+                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+            }
+        })
+        assert web_api_config.source
+        assert (
+            web_api_config.source.bigquery
+            == BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+        )

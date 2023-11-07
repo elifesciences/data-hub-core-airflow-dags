@@ -3,7 +3,7 @@ import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import NamedTuple, Optional
+from typing import Any, Iterable, NamedTuple, Optional, Sequence
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
@@ -56,7 +56,14 @@ class DynamicURLBuilder:
     page_size: Optional[int] = None
     sort_key: Optional[str] = None
     sort_key_value: Optional[str] = None
+    method: str = 'GET'
     type_specific_params: Optional[dict] = None
+
+    def get_json(  # pylint: disable=unused-argument
+        self,
+        source_values: Optional[Iterable[dict]]
+    ) -> Optional[Any]:
+        return None
 
     def _get_url_separator(self):
         url = self.url_excluding_configurable_parameters
@@ -109,14 +116,6 @@ class DynamicURLBuilder:
         }
 
         return self.compose_url(param_dict)
-
-
-def get_url_builder_class(url_source_type: str = ''):
-    if url_source_type.strip().lower() == 'civi':
-        return DynamicCiviURLBuilder
-    if url_source_type == 'biorxiv_medrxiv_api':
-        return DynamicBioRxivMedRxivURLBuilder
-    return DynamicURLBuilder
 
 
 class DynamicCiviURLBuilder(DynamicURLBuilder):
@@ -191,3 +190,32 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
             url_compose_param.to_date.strftime(r'%Y-%m-%d'),
             str(url_compose_param.page_offset)
         ])
+
+
+class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
+    def __init__(self, **kwargs):
+        super().__init__(**{**kwargs, 'method': 'POST'})
+
+    def get_json(
+        self,
+        source_values: Optional[Iterable[dict]]
+    ) -> Sequence[dict]:
+        assert source_values is not None
+        return [
+            {
+                'paper_id': source_value['paper_id'],
+                'title': source_value['title'],
+                'abstract': source_value['abstract']
+            }
+            for source_value in source_values
+        ]
+
+
+def get_url_builder_class(url_source_type: str = ''):
+    if url_source_type.strip().lower() == 'civi':
+        return DynamicCiviURLBuilder
+    if url_source_type == 'biorxiv_medrxiv_api':
+        return DynamicBioRxivMedRxivURLBuilder
+    if url_source_type == 's2_title_abstract_embeddings_api':
+        return DynamicS2TitleAbstractEmbeddingsURLBuilder
+    return DynamicURLBuilder
