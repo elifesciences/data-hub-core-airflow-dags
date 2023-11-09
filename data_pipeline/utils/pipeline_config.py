@@ -7,6 +7,7 @@ from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_fil
 from data_pipeline.utils.pipeline_config_typing import (
     BigQueryIncludeExcludeSourceConfigDict,
     BigQuerySourceConfigDict,
+    BigQueryTargetConfigDict,
     BigQueryWrappedExcludeSourceConfigDict,
     BigQueryWrappedSourceConfigDict
 )
@@ -121,7 +122,7 @@ class BigQueryTargetConfig(NamedTuple):
     table_name: str
 
     @staticmethod
-    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
+    def from_dict(target_config_dict: BigQueryTargetConfigDict) -> 'BigQueryTargetConfig':
         return BigQueryTargetConfig(
             project_name=target_config_dict['projectName'],
             dataset_name=target_config_dict['datasetName'],

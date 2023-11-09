@@ -18,3 +18,9 @@ class BigQueryWrappedExcludeSourceConfigDict(BigQueryWrappedSourceConfigDict):
 class BigQueryIncludeExcludeSourceConfigDict(TypedDict):
     include: BigQueryWrappedSourceConfigDict
     exclude: NotRequired[BigQueryWrappedExcludeSourceConfigDict]
+
+
+class BigQueryTargetConfigDict(TypedDict):
+    projectName: str
+    datasetName: str
+    tableName: str
