@@ -4,6 +4,9 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type, TypeVar, Union
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
+from data_pipeline.utils.pipeline_config_typing import (
+    BigQuerySourceConfigDict
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +36,7 @@ class BigQuerySourceConfig:
     ignore_not_found: bool = False
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
+    def from_dict(source_config_dict: BigQuerySourceConfigDict) -> 'BigQuerySourceConfig':
         return BigQuerySourceConfig(
             project_name=source_config_dict['projectName'],
             sql_query=source_config_dict['sqlQuery'],

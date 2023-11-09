@@ -16,12 +16,15 @@ from data_pipeline.utils.pipeline_config import (
     str_to_bool,
     get_environment_variable_value
 )
+from data_pipeline.utils.pipeline_config_typing import (
+    BigQuerySourceConfigDict
+)
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+BIGQUERY_SOURCE_CONFIG_DICT_1: BigQuerySourceConfigDict = {
     'projectName': 'project1',
     'sqlQuery': 'query1'
 }
