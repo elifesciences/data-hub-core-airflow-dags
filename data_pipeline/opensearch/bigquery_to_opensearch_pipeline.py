@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import datetime
 import logging
 from typing import Any, Iterable, Sequence
@@ -56,7 +57,7 @@ def iter_documents_from_bigquery(
     return (
         remove_key_with_null_value(document)
         for document in iter_dict_from_bq_query_for_bigquery_source_config(
-            bigquery_source_config._replace(sql_query=wrapped_query)
+            dataclasses.replace(bigquery_source_config, sql_query=wrapped_query)
         )
     )
 

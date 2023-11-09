@@ -89,19 +89,19 @@ class TestBigQueryIncludeExcludeSourceConfig:
                 'bigQuery': {
                     'projectName': 'exclude_project_1',
                     'sqlQuery': 'exclude_query_1'
-                }
+                },
+                'keyFieldName': 'key_1'
             },
-            'keyFieldName': 'key_1'
         })
         assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
         assert config.include.bigquery.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
         assert config.exclude
         assert config.exclude.bigquery.project_name == 'exclude_project_1'
         assert config.exclude.bigquery.sql_query == 'exclude_query_1'
-        assert config.key_field_name == 'key_1'
+        assert config.exclude.key_field_name == 'key_1'
 
     def test_should_raise_error_if_exclude_is_configured_without_key_field_name(self):
-        with pytest.raises(AssertionError):
+        with pytest.raises(KeyError):
             BigQueryIncludeExcludeSourceConfig.from_dict({
                 'include': {
                     'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1

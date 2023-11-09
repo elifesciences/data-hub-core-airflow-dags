@@ -112,10 +112,9 @@ def iter_dict_for_bigquery_include_exclude_source_config(
         return iter_dict_from_bq_query_for_bigquery_source_config(
             bigquery_include_exclude_source_config.include.bigquery
         )
-    assert bigquery_include_exclude_source_config.key_field_name
     return iter_dict_for_bigquery_source_config_with_exclusion(
         bigquery_include_exclude_source_config.include.bigquery,
-        key_field_name=bigquery_include_exclude_source_config.key_field_name,
+        key_field_name=bigquery_include_exclude_source_config.exclude.key_field_name,
         exclude_bigquery_source_config=bigquery_include_exclude_source_config.exclude.bigquery
     )
 

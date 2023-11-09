@@ -26,7 +26,8 @@ DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
 SECRET_VALUE_PLACEHOLDER = '***'
 
 
-class BigQuerySourceConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQuerySourceConfig:
     project_name: str
     sql_query: str
     ignore_not_found: bool = False
@@ -40,7 +41,8 @@ class BigQuerySourceConfig(NamedTuple):
         )
 
 
-class BigQueryWrappedSourceConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQueryWrappedSourceConfig:
     bigquery: BigQuerySourceConfig
 
     @staticmethod
@@ -52,28 +54,42 @@ class BigQueryWrappedSourceConfig(NamedTuple):
         )
 
 
+@dataclass(frozen=True)
+class BigQueryWrappedExcludeSourceConfig(BigQueryWrappedSourceConfig):
+    key_field_name: str
+
+    @staticmethod
+    def from_dict(source_config_dict: dict) -> 'BigQueryWrappedExcludeSourceConfig':
+        return BigQueryWrappedExcludeSourceConfig(
+            bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict['bigQuery']
+            ),
+            key_field_name=source_config_dict['keyFieldName']
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        exclude_config_dict: Optional[dict]
+    ) -> Optional['BigQueryWrappedExcludeSourceConfig']:
+        if exclude_config_dict is None:
+            return None
+        return BigQueryWrappedExcludeSourceConfig.from_dict(exclude_config_dict)
+
+
 class BigQueryIncludeExcludeSourceConfig(NamedTuple):
     include: BigQueryWrappedSourceConfig
-    exclude:  Optional[BigQueryWrappedSourceConfig] = None
-    # Note: the key field name is required if exclude is specified
-    key_field_name: Optional[str] = None
+    exclude:  Optional[BigQueryWrappedExcludeSourceConfig] = None
 
     @staticmethod
     def from_dict(include_exclude_config_dict: dict) -> 'BigQueryIncludeExcludeSourceConfig':
         LOGGER.debug('include_exclude_config_dict: %r', include_exclude_config_dict)
-        exclude:  Optional[BigQueryWrappedSourceConfig] = None
-        key_field_name: Optional[str] = include_exclude_config_dict.get('keyFieldName')
-        if include_exclude_config_dict.get('exclude'):
-            exclude = BigQueryWrappedSourceConfig.from_dict(
-                include_exclude_config_dict['exclude']
-            )
-            assert key_field_name, 'keyFieldName required'
         return BigQueryIncludeExcludeSourceConfig(
             include=BigQueryWrappedSourceConfig.from_dict(
                 include_exclude_config_dict['include']
             ),
-            exclude=exclude,
-            key_field_name=key_field_name
+            exclude=BigQueryWrappedExcludeSourceConfig.from_optional_dict(
+                include_exclude_config_dict.get('exclude')
+            )
         )
 
     @staticmethod

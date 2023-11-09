@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import datetime
 from email.message import Message
 from unittest.mock import MagicMock, patch
@@ -25,7 +26,7 @@ BIGQUERY_SOURCE_CONFIG_1 = BigQuerySourceConfig(
     sql_query='query1'
 )
 
-BIGQUERY_SOURCE_CONFIG_2 = BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='query2')
+BIGQUERY_SOURCE_CONFIG_2 = dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, sql_query='query2')
 
 
 API_URL_1 = '/api1'
@@ -112,9 +113,7 @@ class TestFetchSingleColumnValueListForBigQuerySourceConfig:
         )
         with pytest.raises(google.cloud.exceptions.NotFound):
             fetch_single_column_value_list_for_bigquery_source_config(
-                BIGQUERY_SOURCE_CONFIG_1._replace(
-                    ignore_not_found=False
-                )
+                dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=False)
             )
 
     def test_should_return_empty_list_if_not_found_exception_and_ignored(
@@ -125,9 +124,7 @@ class TestFetchSingleColumnValueListForBigQuerySourceConfig:
             google.cloud.exceptions.NotFound('not found')
         )
         result = fetch_single_column_value_list_for_bigquery_source_config(
-            BIGQUERY_SOURCE_CONFIG_1._replace(
-                ignore_not_found=True
-            )
+            dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=True)
         )
         assert result == []
 
@@ -148,7 +145,10 @@ class TestIterDictFromBqQueryForBigquerySourceConfig:
         iter_dict_from_bq_query_mock: MagicMock
     ):
         list(iter_dict_from_bq_query_for_bigquery_source_config(
-            BIGQUERY_SOURCE_CONFIG_1._replace(sql_query='sql_query_with_{placeholder}'),
+            dataclasses.replace(
+                BIGQUERY_SOURCE_CONFIG_1,
+                sql_query='sql_query_with_{placeholder}'
+            ),
             placeholders={'placeholder': 'replaced_placeholder'}
         ))
         iter_dict_from_bq_query_mock.assert_called_with(
@@ -177,9 +177,7 @@ class TestIterDictFromBqQueryForBigquerySourceConfig:
         )
         with pytest.raises(google.cloud.exceptions.NotFound):
             list(iter_dict_from_bq_query_for_bigquery_source_config(
-                BIGQUERY_SOURCE_CONFIG_1._replace(
-                    ignore_not_found=False
-                )
+                dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=False)
             ))
 
     def test_should_return_empty_list_if_not_found_exception_and_ignored(
@@ -190,9 +188,7 @@ class TestIterDictFromBqQueryForBigquerySourceConfig:
             google.cloud.exceptions.NotFound('not found')
         )
         result = list(iter_dict_from_bq_query_for_bigquery_source_config(
-            BIGQUERY_SOURCE_CONFIG_1._replace(
-                ignore_not_found=True
-            )
+            dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=True)
         ))
         assert not result
 
@@ -233,9 +229,7 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
         )
         with pytest.raises(google.cloud.exceptions.NotFound):
             list(iter_dict_for_bigquery_source_config_with_exclusion(
-                BIGQUERY_SOURCE_CONFIG_1._replace(
-                    ignore_not_found=False
-                ),
+                dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=False),
                 key_field_name='key1'
             ))
 
@@ -247,9 +241,7 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
             google.cloud.exceptions.NotFound('not found')
         )
         result = list(iter_dict_for_bigquery_source_config_with_exclusion(
-            BIGQUERY_SOURCE_CONFIG_1._replace(
-                ignore_not_found=True
-            ),
+            dataclasses.replace(BIGQUERY_SOURCE_CONFIG_1, ignore_not_found=True),
             key_field_name='key1'
         ))
         assert not result
@@ -265,7 +257,8 @@ class TestIterDictForBigQuerySourceConfigWithExclusion:
         result = list(iter_dict_for_bigquery_source_config_with_exclusion(
             BIGQUERY_SOURCE_CONFIG_1,
             key_field_name='key1',
-            exclude_bigquery_source_config=BIGQUERY_SOURCE_CONFIG_2._replace(
+            exclude_bigquery_source_config=dataclasses.replace(
+                BIGQUERY_SOURCE_CONFIG_2,
                 ignore_not_found=True
             )
         ))

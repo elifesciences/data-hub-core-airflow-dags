@@ -225,7 +225,8 @@ class TestIterDocumentsFromBigQuery:
             start_timestamp=TIMESTAMP_1
         ))
         iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called_with(
-            BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery._replace(
+            dataclasses.replace(
+                BIGQUERY_TO_OPENSEARCH_CONFIG_1.source.bigquery,
                 sql_query=get_wrapped_query(
                     QUERY_1,
                     timestamp_field_name=TIMESTAMP_FIELD_NAME,

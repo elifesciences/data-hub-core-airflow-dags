@@ -25,7 +25,7 @@ webApi:
           sqlQuery:
             SELECT response.paper_id
             FROM `elife-data-pipeline.{ENV}.test_s2_specter_v1_embeddings` AS response
-      keyFieldName: 'paper_id'
+        keyFieldName: 'paper_id'
     urlSourceType:
       name: 's2_title_abstract_embeddings_api'
     dataUrl:
