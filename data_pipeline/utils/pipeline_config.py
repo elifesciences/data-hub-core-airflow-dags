@@ -55,19 +55,24 @@ class BigQueryWrappedSourceConfig(NamedTuple):
 class BigQueryIncludeExcludeSourceConfig(NamedTuple):
     include: BigQueryWrappedSourceConfig
     exclude:  Optional[BigQueryWrappedSourceConfig] = None
+    # Note: the key field name is required if exclude is specified
+    key_field_name: Optional[str] = None
 
     @staticmethod
     def from_dict(include_exclude_config_dict: dict) -> 'BigQueryIncludeExcludeSourceConfig':
         exclude:  Optional[BigQueryWrappedSourceConfig] = None
+        key_field_name: Optional[str] = include_exclude_config_dict.get('keyFieldName')
         if include_exclude_config_dict.get('exclude'):
             exclude = BigQueryWrappedSourceConfig.from_dict(
                 include_exclude_config_dict['exclude']
             )
+            assert key_field_name, 'keyFieldName required'
         return BigQueryIncludeExcludeSourceConfig(
             include=BigQueryWrappedSourceConfig.from_dict(
                 include_exclude_config_dict['include']
             ),
-            exclude=exclude
+            exclude=exclude,
+            key_field_name=key_field_name
         )
 
     @staticmethod
