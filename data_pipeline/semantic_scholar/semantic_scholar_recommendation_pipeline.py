@@ -13,7 +13,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.pipeline_utils import (
     get_response_json_with_provenance_from_api,
-    iter_dict_for_bigquery_source_config_with_exclusion
+    iter_dict_for_bigquery_include_exclude_source_config
 )
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import (
     get_progress_message,
@@ -93,13 +93,7 @@ def iter_list_for_matrix_config(
 ) -> Iterable[ExcludableListWithMeta]:
     LOGGER.debug('matrix_config: %r', matrix_config)
     variable_config = matrix_config.variables['list']
-    iterable = iter_dict_for_bigquery_source_config_with_exclusion(
-        variable_config.include.bigquery,
-        key_field_name='list_key',
-        exclude_bigquery_source_config=(
-            variable_config.exclude.bigquery if variable_config.exclude else None
-        )
-    )
+    iterable = iter_dict_for_bigquery_include_exclude_source_config(variable_config)
     return map(get_list_with_meta_for_dict, iterable)
 
 

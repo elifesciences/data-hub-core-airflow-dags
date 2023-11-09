@@ -9,7 +9,6 @@ from data_pipeline.utils.pipeline_config import (
     BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
-    BigQueryWrappedExcludeSourceConfig,
     BigQueryWrappedSourceConfig,
     MappingConfig
 )
@@ -77,27 +76,9 @@ MATRIX_VARIABLE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
 )
 
 
-MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
-    include=BigQueryWrappedSourceConfig(
-        bigquery=BIGQUERY_SOURCE_CONFIG_1
-    ),
-    exclude=BigQueryWrappedExcludeSourceConfig(
-        bigquery=BIGQUERY_SOURCE_CONFIG_2,
-        key_field_name='list_key'
-    )
-)
-
-
 MATRIX_CONFIG_1 = SemanticScholarMatrixConfig(
     variables={
         'list': MATRIX_VARIABLE_CONFIG_1
-    }
-)
-
-
-MATRIX_WITH_EXCLUDE_CONFIG_1 = SemanticScholarMatrixConfig(
-    variables={
-        'list': MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1
     }
 )
 
@@ -155,11 +136,11 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_dict_for_bigquery_source_config_with_exclusion_mock', autouse=True)
-def _iter_dict_for_bigquery_source_config_with_exclusion_mock():
+@pytest.fixture(name='iter_dict_for_bigquery_include_exclude_source_config_mock', autouse=True)
+def _iter_dict_for_bigquery_include_exclude_source_config_mock():
     with patch.object(
         semantic_scholar_recommendation_pipeline_module,
-        'iter_dict_for_bigquery_source_config_with_exclusion'
+        'iter_dict_for_bigquery_include_exclude_source_config'
     ) as mock:
         yield mock
 
@@ -210,34 +191,20 @@ def _iter_recommendation_data_mock():
 
 
 class TestIterListForMatrixConfig:
-    def test_should_call_iter_dict_from_bq_query_without_exclusion(
+    def test_should_call_iter_dict_for_bigquery_include_exclude_source_config_with_config(
         self,
-        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
+        iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock
     ):
         iter_list_for_matrix_config(MATRIX_CONFIG_1)
-        iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
-            MATRIX_VARIABLE_CONFIG_1.include.bigquery,
-            key_field_name='list_key',
-            exclude_bigquery_source_config=None
-        )
-
-    def test_should_call_iter_dict_from_bq_query_with_exclusion(
-        self,
-        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
-    ):
-        iter_list_for_matrix_config(MATRIX_WITH_EXCLUDE_CONFIG_1)
-        assert MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.exclude is not None
-        iter_dict_for_bigquery_source_config_with_exclusion_mock.assert_called_with(
-            MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.include.bigquery,
-            key_field_name='list_key',
-            exclude_bigquery_source_config=MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1.exclude.bigquery
+        iter_dict_for_bigquery_include_exclude_source_config_mock.assert_called_with(
+            MATRIX_VARIABLE_CONFIG_1
         )
 
     def test_should_return_parsed_include_list(
         self,
-        iter_dict_for_bigquery_source_config_with_exclusion_mock: MagicMock
+        iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock
     ):
-        iter_dict_for_bigquery_source_config_with_exclusion_mock.return_value = [
+        iter_dict_for_bigquery_include_exclude_source_config_mock.return_value = [
             {
                 'list_key': 'list1',
                 'list_meta': {'meta_key1': 'meta_value1'},
