@@ -23,7 +23,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     create_or_extend_table_schema
 )
 from data_pipeline.utils.json import remove_key_with_null_value
-from data_pipeline.utils.pipeline_utils import iter_dict_from_bq_query_for_bigquery_source_config
+from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
 from data_pipeline.utils.web_api import requests_retry_session
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -136,8 +136,8 @@ def iter_optional_source_values_from_bigquery(
         'processing source config: %r',
         source_config
     )
-    return iter_dict_from_bq_query_for_bigquery_source_config(
-        source_config.bigquery
+    return iter_dict_for_bigquery_include_exclude_source_config(
+        source_config
     )
 
 

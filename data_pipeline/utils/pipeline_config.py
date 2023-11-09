@@ -60,6 +60,7 @@ class BigQueryIncludeExcludeSourceConfig(NamedTuple):
 
     @staticmethod
     def from_dict(include_exclude_config_dict: dict) -> 'BigQueryIncludeExcludeSourceConfig':
+        LOGGER.debug('include_exclude_config_dict: %r', include_exclude_config_dict)
         exclude:  Optional[BigQueryWrappedSourceConfig] = None
         key_field_name: Optional[str] = include_exclude_config_dict.get('keyFieldName')
         if include_exclude_config_dict.get('exclude'):

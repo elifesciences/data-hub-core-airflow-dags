@@ -11,7 +11,7 @@ from data_pipeline.generic_web_api.url_builder import (
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
-    BigQuerySourceConfig,
+    BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
     update_deployment_env_placeholder
@@ -53,23 +53,23 @@ class MultiWebApiConfig:
         }
 
 
-@dataclass(frozen=True)
-class WebApiSourceConfig:
-    bigquery: BigQuerySourceConfig
+# @dataclass(frozen=True)
+# class WebApiSourceConfig:
+#     bigquery: BigQuerySourceConfig
 
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'WebApiSourceConfig':
-        return WebApiSourceConfig(
-            bigquery=BigQuerySourceConfig.from_dict(
-                source_config_dict['bigQuery']
-            )
-        )
+#     @staticmethod
+#     def from_dict(source_config_dict: dict) -> 'WebApiSourceConfig':
+#         return WebApiSourceConfig(
+#             bigquery=BigQuerySourceConfig.from_dict(
+#                 source_config_dict['bigQuery']
+#             )
+#         )
 
-    @staticmethod
-    def from_optional_dict(source_config_dict: Optional[dict]) -> Optional['WebApiSourceConfig']:
-        if source_config_dict is None:
-            return None
-        return WebApiSourceConfig.from_dict(source_config_dict)
+#     @staticmethod
+#     def from_optional_dict(source_config_dict: Optional[dict]) -> Optional['WebApiSourceConfig']:
+#         if source_config_dict is None:
+#             return None
+#         return WebApiSourceConfig.from_dict(source_config_dict)
 
 
 @dataclass(frozen=True)
@@ -94,7 +94,7 @@ class WebApiConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     authentication: Optional[WebApiAuthentication] = None
-    source: Optional[WebApiSourceConfig] = None
+    source: Optional[BigQueryIncludeExcludeSourceConfig] = None
 
     @staticmethod
     def from_dict(
@@ -251,7 +251,7 @@ class WebApiConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             authentication=authentication,
-            source=WebApiSourceConfig.from_optional_dict(api_config.get('source'))
+            source=BigQueryIncludeExcludeSourceConfig.from_optional_dict(api_config.get('source'))
         )
 
     def _replace(self, **kwargs) -> 'WebApiConfig':

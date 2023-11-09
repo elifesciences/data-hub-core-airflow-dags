@@ -1,4 +1,4 @@
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, ConfigKeys
+from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
     get_web_api_config_id,
     MultiWebApiConfig,
@@ -11,6 +11,10 @@ TABLE_1 = 'table_1'
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'projectName': 'project1',
     'sqlQuery': 'query1'
+}
+
+BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
+    'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
 }
 
 MINIMAL_WEB_API_CONFIG_DICT = {
@@ -75,11 +79,15 @@ class TestWebApiConfig:
         web_api_config = WebApiConfig.from_dict({
             **MINIMAL_WEB_API_CONFIG_DICT,
             'source': {
-                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                'include': {
+                    'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                }
             }
         })
         assert web_api_config.source
         assert (
-            web_api_config.source.bigquery
-            == BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+            web_api_config.source
+            == BigQueryIncludeExcludeSourceConfig.from_dict(
+                BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1
+            )
         )
