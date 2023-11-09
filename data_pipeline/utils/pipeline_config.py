@@ -1,7 +1,7 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Callable, Mapping, Optional, Sequence, Type, TypeVar, Union
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 from data_pipeline.utils.pipeline_config_typing import (
@@ -132,7 +132,8 @@ class BigQueryTargetConfig:
         )
 
 
-class StateFileConfig(NamedTuple):
+@dataclass(frozen=True)
+class StateFileConfig:
     bucket_name: str
     object_name: str
 
