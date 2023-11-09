@@ -5,6 +5,7 @@ from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type,
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 from data_pipeline.utils.pipeline_config_typing import (
+    BigQueryIncludeExcludeSourceConfigDict,
     BigQuerySourceConfigDict,
     BigQueryWrappedExcludeSourceConfigDict,
     BigQueryWrappedSourceConfigDict
@@ -91,7 +92,9 @@ class BigQueryIncludeExcludeSourceConfig(NamedTuple):
     exclude:  Optional[BigQueryWrappedExcludeSourceConfig] = None
 
     @staticmethod
-    def from_dict(include_exclude_config_dict: dict) -> 'BigQueryIncludeExcludeSourceConfig':
+    def from_dict(
+        include_exclude_config_dict: BigQueryIncludeExcludeSourceConfigDict
+    ) -> 'BigQueryIncludeExcludeSourceConfig':
         LOGGER.debug('include_exclude_config_dict: %r', include_exclude_config_dict)
         return BigQueryIncludeExcludeSourceConfig(
             include=BigQueryWrappedSourceConfig.from_dict(
@@ -104,7 +107,7 @@ class BigQueryIncludeExcludeSourceConfig(NamedTuple):
 
     @staticmethod
     def from_optional_dict(
-        include_exclude_config_dict: Optional[dict]
+        include_exclude_config_dict: Optional[BigQueryIncludeExcludeSourceConfigDict]
     ) -> Optional['BigQueryIncludeExcludeSourceConfig']:
         if include_exclude_config_dict is None:
             return None

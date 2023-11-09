@@ -13,3 +13,8 @@ class BigQueryWrappedSourceConfigDict(TypedDict):
 
 class BigQueryWrappedExcludeSourceConfigDict(BigQueryWrappedSourceConfigDict):
     keyFieldName: str
+
+
+class BigQueryIncludeExcludeSourceConfigDict(TypedDict):
+    include: BigQueryWrappedSourceConfigDict
+    exclude: NotRequired[BigQueryWrappedExcludeSourceConfigDict]
