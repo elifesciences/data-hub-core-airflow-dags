@@ -5,7 +5,9 @@ from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type,
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 from data_pipeline.utils.pipeline_config_typing import (
-    BigQuerySourceConfigDict
+    BigQuerySourceConfigDict,
+    BigQueryWrappedExcludeSourceConfigDict,
+    BigQueryWrappedSourceConfigDict
 )
 
 
@@ -49,7 +51,9 @@ class BigQueryWrappedSourceConfig:
     bigquery: BigQuerySourceConfig
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQueryWrappedSourceConfig':
+    def from_dict(
+        source_config_dict: BigQueryWrappedSourceConfigDict
+    ) -> 'BigQueryWrappedSourceConfig':
         return BigQueryWrappedSourceConfig(
             bigquery=BigQuerySourceConfig.from_dict(
                 source_config_dict['bigQuery']
@@ -58,11 +62,14 @@ class BigQueryWrappedSourceConfig:
 
 
 @dataclass(frozen=True)
-class BigQueryWrappedExcludeSourceConfig(BigQueryWrappedSourceConfig):
+class BigQueryWrappedExcludeSourceConfig:
+    bigquery: BigQuerySourceConfig
     key_field_name: str
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQueryWrappedExcludeSourceConfig':
+    def from_dict(
+        source_config_dict: BigQueryWrappedExcludeSourceConfigDict
+    ) -> 'BigQueryWrappedExcludeSourceConfig':
         return BigQueryWrappedExcludeSourceConfig(
             bigquery=BigQuerySourceConfig.from_dict(
                 source_config_dict['bigQuery']
@@ -72,7 +79,7 @@ class BigQueryWrappedExcludeSourceConfig(BigQueryWrappedSourceConfig):
 
     @staticmethod
     def from_optional_dict(
-        exclude_config_dict: Optional[dict]
+        exclude_config_dict: Optional[BigQueryWrappedExcludeSourceConfigDict]
     ) -> Optional['BigQueryWrappedExcludeSourceConfig']:
         if exclude_config_dict is None:
             return None
