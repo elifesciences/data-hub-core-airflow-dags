@@ -87,7 +87,8 @@ class BigQueryWrappedExcludeSourceConfig:
         return BigQueryWrappedExcludeSourceConfig.from_dict(exclude_config_dict)
 
 
-class BigQueryIncludeExcludeSourceConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQueryIncludeExcludeSourceConfig:
     include: BigQueryWrappedSourceConfig
     exclude:  Optional[BigQueryWrappedExcludeSourceConfig] = None
 
