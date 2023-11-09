@@ -40,6 +40,45 @@ class BigQuerySourceConfig(NamedTuple):
         )
 
 
+class BigQueryWrappedSourceConfig(NamedTuple):
+    bigquery: BigQuerySourceConfig
+
+    @staticmethod
+    def from_dict(source_config_dict: dict) -> 'BigQueryWrappedSourceConfig':
+        return BigQueryWrappedSourceConfig(
+            bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict['bigQuery']
+            )
+        )
+
+
+class BigQueryIncludeExcludeSourceConfig(NamedTuple):
+    include: BigQueryWrappedSourceConfig
+    exclude:  Optional[BigQueryWrappedSourceConfig] = None
+
+    @staticmethod
+    def from_dict(include_exclude_config_dict: dict) -> 'BigQueryIncludeExcludeSourceConfig':
+        exclude:  Optional[BigQueryWrappedSourceConfig] = None
+        if include_exclude_config_dict.get('exclude'):
+            exclude = BigQueryWrappedSourceConfig.from_dict(
+                include_exclude_config_dict['exclude']
+            )
+        return BigQueryIncludeExcludeSourceConfig(
+            include=BigQueryWrappedSourceConfig.from_dict(
+                include_exclude_config_dict['include']
+            ),
+            exclude=exclude
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        include_exclude_config_dict: Optional[dict]
+    ) -> Optional['BigQueryIncludeExcludeSourceConfig']:
+        if include_exclude_config_dict is None:
+            return None
+        return BigQueryIncludeExcludeSourceConfig.from_dict(include_exclude_config_dict)
+
+
 class BigQueryTargetConfig(NamedTuple):
     project_name: str
     dataset_name: str

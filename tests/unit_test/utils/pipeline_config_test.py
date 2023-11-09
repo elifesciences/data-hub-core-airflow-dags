@@ -5,6 +5,7 @@ import pytest
 
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
+    BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig,
@@ -66,6 +67,36 @@ class TestBigQuerySourceConfig:
             'ignoreNotFound': True
         })
         assert config.ignore_not_found is True
+
+
+class TestBigQueryIncludeExcludeSourceConfig:
+    def test_should_read_matrix_variables_without_exclude(self):
+        config = BigQueryIncludeExcludeSourceConfig.from_dict({
+            'include': {
+                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+            }
+        })
+        assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
+        assert config.include.bigquery.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
+        assert not config.exclude
+
+    def test_should_read_matrix_variables_with_exclude(self):
+        config = BigQueryIncludeExcludeSourceConfig.from_dict({
+            'include': {
+                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+            },
+            'exclude': {
+                'bigQuery': {
+                    'projectName': 'exclude_project_1',
+                    'sqlQuery': 'exclude_query_1'
+                }
+            }
+        })
+        assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
+        assert config.include.bigquery.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
+        assert config.exclude
+        assert config.exclude.bigquery.project_name == 'exclude_project_1'
+        assert config.exclude.bigquery.sql_query == 'exclude_query_1'
 
 
 class TestBigQueryTargetConfig:
