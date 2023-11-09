@@ -116,7 +116,8 @@ class BigQueryIncludeExcludeSourceConfig:
         return BigQueryIncludeExcludeSourceConfig.from_dict(include_exclude_config_dict)
 
 
-class BigQueryTargetConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQueryTargetConfig:
     project_name: str
     dataset_name: str
     table_name: str
