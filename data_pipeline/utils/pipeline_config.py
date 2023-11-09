@@ -9,7 +9,8 @@ from data_pipeline.utils.pipeline_config_typing import (
     BigQuerySourceConfigDict,
     BigQueryTargetConfigDict,
     BigQueryWrappedExcludeSourceConfigDict,
-    BigQueryWrappedSourceConfigDict
+    BigQueryWrappedSourceConfigDict,
+    StateFileConfigDict
 )
 
 
@@ -136,7 +137,7 @@ class StateFileConfig(NamedTuple):
     object_name: str
 
     @staticmethod
-    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
+    def from_dict(state_file_config_dict: StateFileConfigDict) -> 'StateFileConfig':
         return StateFileConfig(
             bucket_name=state_file_config_dict['bucketName'],
             object_name=state_file_config_dict['objectName']

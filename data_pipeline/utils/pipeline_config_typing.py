@@ -24,3 +24,8 @@ class BigQueryTargetConfigDict(TypedDict):
     projectName: str
     datasetName: str
     tableName: str
+
+
+class StateFileConfigDict(TypedDict):
+    bucketName: str
+    objectName: str
