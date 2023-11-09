@@ -1,7 +1,7 @@
-from typing import Mapping, NamedTuple, Optional
+from typing import Mapping, NamedTuple
 
 from data_pipeline.utils.pipeline_config import (
-    BigQuerySourceConfig,
+    BigQueryIncludeExcludeSourceConfig,
     BigQueryTargetConfig,
     MappingConfig
 )
@@ -10,45 +10,14 @@ from data_pipeline.utils.pipeline_config import (
 DEFAULT_BATCH_SIZE = 1000
 
 
-class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
-    bigquery: BigQuerySourceConfig
-
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'SemanticScholarMatrixVariableSourceConfig':
-        return SemanticScholarMatrixVariableSourceConfig(
-            bigquery=BigQuerySourceConfig.from_dict(
-                source_config_dict['bigQuery']
-            )
-        )
-
-
-class SemanticScholarMatrixVariableConfig(NamedTuple):
-    include: SemanticScholarMatrixVariableSourceConfig
-    exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
-
-    @staticmethod
-    def from_dict(matrix_variable_config_dict: dict) -> 'SemanticScholarMatrixVariableConfig':
-        exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
-        if matrix_variable_config_dict.get('exclude'):
-            exclude = SemanticScholarMatrixVariableSourceConfig.from_dict(
-                matrix_variable_config_dict['exclude']
-            )
-        return SemanticScholarMatrixVariableConfig(
-            include=SemanticScholarMatrixVariableSourceConfig.from_dict(
-                matrix_variable_config_dict['include']
-            ),
-            exclude=exclude
-        )
-
-
 class SemanticScholarMatrixConfig(NamedTuple):
-    variables: Mapping[str, SemanticScholarMatrixVariableConfig]
+    variables: Mapping[str, BigQueryIncludeExcludeSourceConfig]
 
     @staticmethod
     def from_dict(matrix_config_dict: dict) -> 'SemanticScholarMatrixConfig':
         return SemanticScholarMatrixConfig(
             variables={
-                name: SemanticScholarMatrixVariableConfig.from_dict(
+                name: BigQueryIncludeExcludeSourceConfig.from_dict(
                     matrix_variable_config_dict
                 )
                 for name, matrix_variable_config_dict in matrix_config_dict.items()

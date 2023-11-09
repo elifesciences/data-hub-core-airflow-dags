@@ -6,14 +6,15 @@ from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config impor
     SemanticScholarRecommendationConfig
 )
 from data_pipeline.utils.pipeline_config import (
+    BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
+    BigQueryWrappedExcludeSourceConfig,
+    BigQueryWrappedSourceConfig,
     MappingConfig
 )
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarMatrixConfig,
-    SemanticScholarMatrixVariableConfig,
-    SemanticScholarMatrixVariableSourceConfig,
     SemanticScholarSourceConfig
 )
 from data_pipeline.semantic_scholar.semantic_scholar_pipeline import get_progress_message
@@ -69,19 +70,20 @@ BIGQUERY_SOURCE_CONFIG_2 = BigQuerySourceConfig(
 )
 
 
-MATRIX_VARIABLE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
-    include=SemanticScholarMatrixVariableSourceConfig(
+MATRIX_VARIABLE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
+    include=BigQueryWrappedSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_1
     )
 )
 
 
-MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
-    include=SemanticScholarMatrixVariableSourceConfig(
+MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
+    include=BigQueryWrappedSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_1
     ),
-    exclude=SemanticScholarMatrixVariableSourceConfig(
-        bigquery=BIGQUERY_SOURCE_CONFIG_2
+    exclude=BigQueryWrappedExcludeSourceConfig(
+        bigquery=BIGQUERY_SOURCE_CONFIG_2,
+        key_field_name='list_key'
     )
 )
 
