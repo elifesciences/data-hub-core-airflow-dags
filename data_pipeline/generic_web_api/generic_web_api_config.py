@@ -53,25 +53,6 @@ class MultiWebApiConfig:
         }
 
 
-# @dataclass(frozen=True)
-# class WebApiSourceConfig:
-#     bigquery: BigQuerySourceConfig
-
-#     @staticmethod
-#     def from_dict(source_config_dict: dict) -> 'WebApiSourceConfig':
-#         return WebApiSourceConfig(
-#             bigquery=BigQuerySourceConfig.from_dict(
-#                 source_config_dict['bigQuery']
-#             )
-#         )
-
-#     @staticmethod
-#     def from_optional_dict(source_config_dict: Optional[dict]) -> Optional['WebApiSourceConfig']:
-#         if source_config_dict is None:
-#             return None
-#         return WebApiSourceConfig.from_dict(source_config_dict)
-
-
 @dataclass(frozen=True)
 class WebApiConfig:
     config_as_dict: dict
