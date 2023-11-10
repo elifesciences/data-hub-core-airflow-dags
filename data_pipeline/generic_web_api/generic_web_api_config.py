@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from typing import Optional, Sequence
+from typing import Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -15,6 +15,9 @@ from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
     MappingConfig,
     update_deployment_env_placeholder
+)
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiConfigDict
 )
 
 
@@ -55,7 +58,7 @@ class MultiWebApiConfig:
 
 @dataclass(frozen=True)
 class WebApiConfig:
-    config_as_dict: dict
+    config_as_dict: WebApiConfigDict
     import_timestamp_field_name: str
     dataset_name: str
     table_name: str
@@ -79,23 +82,30 @@ class WebApiConfig:
 
     @staticmethod
     def from_dict(
-            web_api_config: dict,
-            gcp_project: Optional[str] = None,
-            imported_timestamp_field_name: Optional[str] = None,
+            web_api_config: WebApiConfigDict,
             deployment_env: Optional[str] = None,
             deployment_env_placeholder: str = "{ENV}"
     ):
-        api_config = update_deployment_env_placeholder(
-            web_api_config, deployment_env,
-            deployment_env_placeholder
-        ) if deployment_env else web_api_config
+        api_config = (
+            cast(
+                WebApiConfigDict,
+                update_deployment_env_placeholder(
+                    cast(dict, web_api_config),
+                    deployment_env,
+                    deployment_env_placeholder
+                )
+            )
+            if deployment_env
+            else web_api_config
+        )
 
-        url_excluding_configurable_parameters = api_config.get(
-            "dataUrl"
-        ).get("urlExcludingConfigurableParameters")
-        configurable_parameters = api_config.get(
-            "dataUrl"
-        ).get("configurableParameters", {})
+        data_url_config_dict = api_config["dataUrl"]
+        url_excluding_configurable_parameters = (
+            data_url_config_dict["urlExcludingConfigurableParameters"]
+        )
+        configurable_parameters = (
+            data_url_config_dict.get("configurableParameters", {})
+        )
 
         page_number_param = configurable_parameters.get(
             "pageParameterName", None
@@ -115,14 +125,10 @@ class WebApiConfig:
         composeable_static_parameters = (
             {
                 **(compose_url_param_from_parameter_values_in_env_var(
-                    api_config.get(
-                        "dataUrl"
-                    ).get("parametersFromEnv", [])
+                    data_url_config_dict.get("parametersFromEnv", [])
                 )),
                 **(compose_url_param_from_param_vals_filepath_in_env_var(
-                    api_config.get(
-                        "dataUrl"
-                    ).get("parametersFromFile", [])
+                    data_url_config_dict.get("parametersFromFile", [])
                 )),
             }
         )
@@ -180,16 +186,8 @@ class WebApiConfig:
 
         return WebApiConfig(
             config_as_dict=api_config,
-            gcp_project=(
-                gcp_project or
-                api_config.get("gcpProjectName")
-            ),
-            import_timestamp_field_name=(
-                api_config.get(
-                    "importedTimestampFieldName",
-                    imported_timestamp_field_name
-                )
-            ),
+            gcp_project=api_config["gcpProjectName"],
+            import_timestamp_field_name=api_config["importedTimestampFieldName"],
             dataset_name=api_config.get("dataset", ""),
             table_name=api_config.get("table", ""),
             table_write_disposition=(

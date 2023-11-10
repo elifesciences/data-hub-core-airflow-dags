@@ -18,6 +18,9 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiConfigDict
+)
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -111,7 +114,11 @@ def _iter_dict_for_bigquery_include_exclude_source_config_mock():
         yield mock
 
 
-WEB_API_CONFIG = {
+WEB_API_CONFIG: WebApiConfigDict = {
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
+    'dataset': 'dataset_1',
+    'table': 'table_1',
     'stateFile': {
         'bucketName': '{ENV}-bucket',
         'objectName': '{ENV}/object'
@@ -131,7 +138,7 @@ def get_data_config(
     if conf_dict is None:
         conf_dict = WEB_API_CONFIG
     data_config = WebApiConfig.from_dict(
-        conf_dict, '',
+        conf_dict,
         deployment_env=dep_env
     )
     return data_config
@@ -271,6 +278,7 @@ def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiCo
             'nextPageCursorKeyFromResponseRoot': cursor_path
         },
         'dataUrl': {
+            **WEB_API_CONFIG['dataUrl'],
             'configurableParameters': {
                 'nextPageCursorParameterName': 'cursor'
             }

@@ -4,6 +4,10 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig,
     WebApiConfig
 )
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiConfigDict
+)
+
 
 DATASET_1 = 'dataset_1'
 TABLE_1 = 'table_1'
@@ -17,10 +21,14 @@ BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
     'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
 }
 
-MINIMAL_WEB_API_CONFIG_DICT = {
+MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
     'dataset': DATASET_1,
     'table': TABLE_1,
-    'dataUrl': {}
+    'dataUrl': {
+        'urlExcludingConfigurableParameters': 'url_1'
+    }
 }
 
 

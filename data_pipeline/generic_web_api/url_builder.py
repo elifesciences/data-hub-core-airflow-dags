@@ -10,23 +10,30 @@ from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.pipeline_config import (
     get_resolved_parameter_values_from_file_path_env_name
 )
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    ParameterFromEnvConfigDict
+)
+from data_pipeline.utils.pipeline_config_typing import ParameterFromFileConfigDict
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 def compose_url_param_from_parameter_values_in_env_var(
-        compose_able_static_parameters: list):
+    compose_able_static_parameters: Sequence[ParameterFromEnvConfigDict]
+):
+    # Note: this functionality doesn't seem to be used anymore
     params = {
-        param.get("parameterName"): os.getenv(param.get("envName"))
+        param.get("parameterName"): os.environ[param["envName"]]
         for param in compose_able_static_parameters
-        if os.getenv(param.get("envName"))
+        if os.getenv(param["envName"])
     }
     return params
 
 
 def compose_url_param_from_param_vals_filepath_in_env_var(
-        compose_able_static_parameters: list):
+    compose_able_static_parameters: Sequence[ParameterFromFileConfigDict]
+):
     return get_resolved_parameter_values_from_file_path_env_name(
         compose_able_static_parameters
     )
