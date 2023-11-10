@@ -14,9 +14,24 @@ class ParameterFromEnvConfigDict(TypedDict):
     envName: str
 
 
+class WebApiConfigurableParametersConfigDict(TypedDict):
+    pageParameterName: NotRequired[str]
+    offsetParameterName: NotRequired[str]
+    pageSizeParameterName: NotRequired[str]
+    resultSortParameterName: NotRequired[str]
+    resultSortParameterValue: NotRequired[str]
+    fromDateParameterName: NotRequired[str]
+    toDateParameterName: NotRequired[str]
+    dateFormat: NotRequired[str]
+    nextPageCursorParameterName: NotRequired[str]
+    defaultPageSize: NotRequired[int]
+    defaultStartDate: NotRequired[str]
+    daysDiffFromStartTillEnd: NotRequired[int]
+
+
 class WebApiDataUrlConfigDict(TypedDict):
     urlExcludingConfigurableParameters: str
-    configurableParameters: NotRequired[dict]
+    configurableParameters: NotRequired[WebApiConfigurableParametersConfigDict]
     parametersFromEnv: NotRequired[Sequence[ParameterFromEnvConfigDict]]  # Note: not used anymore
     parametersFromFile: NotRequired[Sequence[ParameterFromFileConfigDict]]
 

@@ -19,7 +19,8 @@ from data_pipeline.utils.pipeline_config import (
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     MultiWebApiConfigDict,
     WebApiBaseConfigDict,
-    WebApiConfigDict
+    WebApiConfigDict,
+    WebApiConfigurableParametersConfigDict
 )
 
 
@@ -110,7 +111,7 @@ class WebApiConfig:
         url_excluding_configurable_parameters = (
             data_url_config_dict["urlExcludingConfigurableParameters"]
         )
-        configurable_parameters = (
+        configurable_parameters: WebApiConfigurableParametersConfigDict = (
             data_url_config_dict.get("configurableParameters", {})
         )
 
