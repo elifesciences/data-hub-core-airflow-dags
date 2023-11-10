@@ -69,7 +69,7 @@ class SemanticScholarConfig(NamedTuple):
             target=BigQueryTargetConfig.from_dict(
                 item_config_dict['target']
             ),
-            batch_size=item_config_dict.get('batchSize', DEFAULT_BATCH_SIZE)
+            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE
         )
 
     @staticmethod
