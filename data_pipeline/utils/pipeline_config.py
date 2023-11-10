@@ -10,6 +10,8 @@ from data_pipeline.utils.pipeline_config_typing import (
     BigQueryTargetConfigDict,
     BigQueryWrappedExcludeSourceConfigDict,
     BigQueryWrappedSourceConfigDict,
+    MappingConfigDict,
+    ParameterFromFileConfigDict,
     StateFileConfigDict
 )
 
@@ -17,6 +19,8 @@ from data_pipeline.utils.pipeline_config_typing import (
 LOGGER = logging.getLogger(__name__)
 
 T = TypeVar('T')
+
+ConfigDictT = TypeVar('ConfigDictT')
 
 
 class ConfigKeys:
@@ -244,7 +248,7 @@ def get_deployment_env() -> str:
 
 
 def get_resolved_parameter_values_from_file_path_env_name(
-    parameters_from_file: Sequence[dict]
+    parameters_from_file: Sequence[ParameterFromFileConfigDict]
 ) -> dict:
     params = {
         param["parameterName"]: read_file_content(os.environ[param["filePathEnvName"]])
@@ -256,7 +260,7 @@ def get_resolved_parameter_values_from_file_path_env_name(
 
 def get_pipeline_config_for_env_name_and_config_parser(
     config_file_path_env_name: str,
-    config_parser_fn: Callable[[dict], T]
+    config_parser_fn: Callable[[ConfigDictT], T]
 ) -> T:
     deployment_env = get_deployment_env()
     LOGGER.info('deployment_env: %s', deployment_env)
@@ -277,8 +281,8 @@ class MappingConfig:
     printable_mapping: Mapping[str, Any]
 
     @staticmethod
-    def from_dict(mapping_config_dict: dict) -> 'MappingConfig':
-        mapping = mapping_config_dict.copy()
+    def from_dict(mapping_config_dict: MappingConfigDict) -> 'MappingConfig':
+        mapping = dict(mapping_config_dict)
         secrets_config_list = mapping.pop('parametersFromFile', [])
         LOGGER.debug('secrets_config_list: %r', secrets_config_list)
         secrets_dict = get_resolved_parameter_values_from_file_path_env_name(

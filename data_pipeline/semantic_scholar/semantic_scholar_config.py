@@ -5,6 +5,12 @@ from data_pipeline.utils.pipeline_config import (
     BigQueryTargetConfig,
     MappingConfig
 )
+from data_pipeline.semantic_scholar.semantic_scholar_config_typing import (
+    SemanticScholarConfigDict,
+    SemanticScholarItemConfigDict,
+    SemanticScholarMatrixConfigDict,
+    SemanticScholarSourceConfigDict
+)
 
 
 DEFAULT_BATCH_SIZE = 1000
@@ -14,7 +20,9 @@ class SemanticScholarMatrixConfig(NamedTuple):
     variables: Mapping[str, BigQueryIncludeExcludeSourceConfig]
 
     @staticmethod
-    def from_dict(matrix_config_dict: dict) -> 'SemanticScholarMatrixConfig':
+    def from_dict(
+        matrix_config_dict: SemanticScholarMatrixConfigDict
+    ) -> 'SemanticScholarMatrixConfig':
         return SemanticScholarMatrixConfig(
             variables={
                 name: BigQueryIncludeExcludeSourceConfig.from_dict(
@@ -31,7 +39,9 @@ class SemanticScholarSourceConfig(NamedTuple):
     headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'SemanticScholarSourceConfig':
+    def from_dict(
+        source_config_dict: SemanticScholarSourceConfigDict
+    ) -> 'SemanticScholarSourceConfig':
         return SemanticScholarSourceConfig(
             api_url=source_config_dict['apiUrl'],
             params=source_config_dict.get('params', {}),
@@ -46,7 +56,9 @@ class SemanticScholarConfig(NamedTuple):
     batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
-    def _from_item_dict(item_config_dict: dict) -> 'SemanticScholarConfig':
+    def _from_item_dict(
+        item_config_dict: SemanticScholarItemConfigDict
+    ) -> 'SemanticScholarConfig':
         return SemanticScholarConfig(
             matrix=SemanticScholarMatrixConfig.from_dict(
                 item_config_dict['matrix']
@@ -57,11 +69,11 @@ class SemanticScholarConfig(NamedTuple):
             target=BigQueryTargetConfig.from_dict(
                 item_config_dict['target']
             ),
-            batch_size=item_config_dict.get('batchSize') or DEFAULT_BATCH_SIZE
+            batch_size=item_config_dict.get('batchSize', DEFAULT_BATCH_SIZE)
         )
 
     @staticmethod
-    def from_dict(config_dict: dict) -> 'SemanticScholarConfig':
+    def from_dict(config_dict: SemanticScholarConfigDict) -> 'SemanticScholarConfig':
         item_config_list = config_dict['semanticScholar']
         return SemanticScholarConfig._from_item_dict(
             item_config_list[0]

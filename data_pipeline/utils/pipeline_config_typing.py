@@ -1,3 +1,4 @@
+from typing import Any, Mapping
 from typing_extensions import NotRequired, TypedDict
 
 
@@ -29,3 +30,16 @@ class BigQueryTargetConfigDict(TypedDict):
 class StateFileConfigDict(TypedDict):
     bucketName: str
     objectName: str
+
+
+class ParameterFromFileConfigDict(TypedDict):
+    parameterName: str
+    filePathEnvName: str
+
+
+# Note: MappingConfigDict may contain `parametersFromFile` of type
+#   `Sequence[ParameterFromFileConfigDict]`
+#   all other keys should have a value type `str`
+#   It seems difficult to express.
+#   Consider moving other keys into `values`.
+MappingConfigDict = Mapping[str, Any]
