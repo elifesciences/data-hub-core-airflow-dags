@@ -37,7 +37,8 @@ class WebApiAuthenticationConfigDict(TypedDict):
     orderedAuthenticationParamValues: NotRequired[Sequence[WebApiAuthenticationValueConfigDict]]
 
 
-class WebApiConfigDict(TypedDict):
+class WebApiBaseConfigDict(TypedDict):
+    dataPipelineId: NotRequired[str]
     dataset: str
     table: str
     dataUrl: WebApiDataUrlConfigDict
@@ -48,6 +49,16 @@ class WebApiConfigDict(TypedDict):
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]
     stateFile: NotRequired[StateFileConfigDict]
-    # added from top-level
+
+
+class WebApiGlobalConfigDict(TypedDict):
     gcpProjectName: str
     importedTimestampFieldName: str
+
+
+class WebApiConfigDict(WebApiBaseConfigDict, WebApiGlobalConfigDict):
+    pass
+
+
+class MultiWebApiConfigDict(WebApiGlobalConfigDict):
+    webApi: Sequence[WebApiBaseConfigDict]

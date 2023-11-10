@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from typing import Optional, Sequence, cast
+from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -17,12 +17,19 @@ from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    MultiWebApiConfigDict,
+    WebApiBaseConfigDict,
     WebApiConfigDict
 )
 
 
-def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
-    web_api_config_id = web_api_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
+def get_web_api_config_id(
+    web_api_config_props: WebApiBaseConfigDict,
+    index: int
+) -> str:
+    web_api_config_id: Optional[str] = (
+        cast(Optional[str], web_api_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID))
+    )
     if not web_api_config_id:
         table_name = web_api_config_props.get('table')
         if table_name:
@@ -37,19 +44,19 @@ def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
 class MultiWebApiConfig:
     def __init__(
             self,
-            multi_web_api_etl_config: dict,
+            multi_web_api_etl_config: MultiWebApiConfigDict,
     ):
         self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
             "importedTimestampFieldName"
         )
-        self.web_api_config = {
-            ind: {
+        self.web_api_config: Mapping[int, WebApiConfigDict] = {
+            ind: cast(WebApiConfigDict, {
                 **web_api,
                 ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_web_api_config_id(web_api, index=ind),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
-            }
+            })
             for ind, web_api in enumerate(
                 multi_web_api_etl_config["webApi"]
             )
