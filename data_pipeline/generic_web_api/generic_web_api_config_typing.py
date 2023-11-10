@@ -42,6 +42,17 @@ class WebApiUrlSourceTypeConfigDict(TypedDict):
     sourceTypeSpecificValues: NotRequired[dict]
 
 
+class WebApiRecordTimestampResponseConfigDict(TypedDict):
+    itemTimestampKeyFromItemRoot: NotRequired[Sequence[str]]
+
+
+class WebApiResponseConfigDict(TypedDict):
+    itemsKeyFromResponseRoot: NotRequired[Sequence[str]]
+    totalItemsCountKeyFromResponseRoot: NotRequired[Sequence[str]]
+    nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
+    recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
+
+
 class WebApiBaseConfigDict(TypedDict):
     dataPipelineId: NotRequired[str]
     dataset: str
@@ -50,7 +61,7 @@ class WebApiBaseConfigDict(TypedDict):
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
     urlSourceType: NotRequired[WebApiUrlSourceTypeConfigDict]
-    response: NotRequired[dict]
+    response: NotRequired[WebApiResponseConfigDict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]
     stateFile: NotRequired[StateFileConfigDict]
