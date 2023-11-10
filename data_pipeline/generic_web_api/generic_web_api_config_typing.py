@@ -37,6 +37,11 @@ class WebApiAuthenticationConfigDict(TypedDict):
     orderedAuthenticationParamValues: NotRequired[Sequence[WebApiAuthenticationValueConfigDict]]
 
 
+class WebApiUrlSourceTypeConfigDict(TypedDict):
+    name: str
+    sourceTypeSpecificValues: NotRequired[dict]
+
+
 class WebApiBaseConfigDict(TypedDict):
     dataPipelineId: NotRequired[str]
     dataset: str
@@ -44,7 +49,7 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
-    urlSourceType: NotRequired[dict]
+    urlSourceType: NotRequired[WebApiUrlSourceTypeConfigDict]
     response: NotRequired[dict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]
