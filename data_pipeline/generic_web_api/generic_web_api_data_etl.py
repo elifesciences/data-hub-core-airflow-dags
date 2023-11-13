@@ -130,6 +130,66 @@ def iter_optional_source_values_from_bigquery(
     )
 
 
+def get_next_url_compose_arg_for_page_data(
+    page_data: Any,
+    items_count: int,
+    latest_record_timestamp: Optional[datetime],
+    fixed_until_date: Optional[datetime],
+    current_url_compose_arg: UrlComposeParam,
+    data_config: WebApiConfig
+) -> Optional[UrlComposeParam]:
+    cursor = get_next_cursor_from_data(
+        page_data,
+        data_config,
+        previous_cursor=current_url_compose_arg.cursor
+    )
+
+    from_date_to_advance, to_reset_page_or_offset_param = (
+        get_next_start_date(
+            items_count,
+            current_url_compose_arg.from_date,
+            latest_record_timestamp,
+            data_config,
+            cursor,
+            current_url_compose_arg.page_number,
+            current_url_compose_arg.page_offset
+        )
+    )
+    page_number = get_next_page_number(
+        items_count,
+        current_url_compose_arg.page_number,
+        data_config,
+        to_reset_page_or_offset_param
+    )
+    offset = get_next_offset(
+        items_count,
+        current_url_compose_arg.page_offset,
+        data_config,
+        to_reset_page_or_offset_param
+    )
+
+    variable_until_date = get_next_until_date(
+        from_date_to_advance,
+        data_config,
+        fixed_until_date
+    )
+
+    if (
+        cursor is None
+        and page_number is None
+        and from_date_to_advance is None
+        and offset is None
+    ):
+        return None
+    return UrlComposeParam(
+        from_date=from_date_to_advance or current_url_compose_arg.from_date,
+        to_date=variable_until_date,
+        cursor=cursor,
+        page_number=page_number,
+        page_offset=offset
+    )
+
+
 # pylint: disable=too-many-locals
 def process_web_api_data_etl_batch(
         data_config: WebApiConfig,
@@ -160,11 +220,18 @@ def process_web_api_data_etl_batch(
     )
     offset = 0 if data_config.url_builder.offset_param else None
     page_number = 1 if data_config.url_builder.page_number_param else None
+    current_url_compose_arg: Optional[UrlComposeParam] = UrlComposeParam(
+        from_date=from_date_to_advance or initial_from_date,
+        to_date=variable_until_date,
+        cursor=cursor,
+        page_number=page_number,
+        page_offset=offset
+    )
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
-        while True:
+        while current_url_compose_arg:
             LOGGER.debug('variable_until_date=%r', variable_until_date)
             page_data = get_data_single_page(
                 data_config=data_config,
@@ -192,35 +259,14 @@ def process_web_api_data_etl_batch(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
-            cursor = get_next_cursor_from_data(
-                page_data, data_config, previous_cursor=cursor
+            current_url_compose_arg = get_next_url_compose_arg_for_page_data(
+                page_data=page_data,
+                items_count=items_count,
+                latest_record_timestamp=latest_record_timestamp,
+                fixed_until_date=until_date,
+                current_url_compose_arg=current_url_compose_arg,
+                data_config=data_config
             )
-
-            from_date_to_advance, to_reset_page_or_offset_param = (
-                get_next_start_date(
-                    items_count, from_date_to_advance,
-                    latest_record_timestamp, data_config,
-                    cursor, page_number, offset
-                )
-            )
-            page_number = get_next_page_number(
-                items_count, page_number,
-                data_config, to_reset_page_or_offset_param
-            )
-            offset = get_next_offset(
-                items_count, offset, data_config,
-                to_reset_page_or_offset_param
-            )
-
-            variable_until_date = get_next_until_date(
-                from_date_to_advance, data_config, until_date
-            )
-
-            if (
-                    cursor is None and page_number is None and
-                    from_date_to_advance is None and offset is None
-            ):
-                break
 
         load_written_data_to_bq(data_config, full_temp_file_location)
         if latest_record_timestamp:
