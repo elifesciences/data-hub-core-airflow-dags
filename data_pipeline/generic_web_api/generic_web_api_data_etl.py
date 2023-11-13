@@ -139,39 +139,39 @@ def get_next_url_compose_arg_for_page_data(
     data_config: WebApiConfig
 ) -> Optional[UrlComposeParam]:
     cursor = get_next_cursor_from_data(
-        page_data,
-        data_config,
+        data=page_data,
+        web_config=data_config,
         previous_cursor=current_url_compose_arg.cursor
     )
 
     from_date_to_advance, to_reset_page_or_offset_param = (
         get_next_start_date(
-            items_count,
-            current_url_compose_arg.from_date,
-            latest_record_timestamp,
-            data_config,
-            cursor,
-            current_url_compose_arg.page_number,
-            current_url_compose_arg.page_offset
+            items_count=items_count,
+            current_start_timestamp=current_url_compose_arg.from_date,
+            latest_record_timestamp=latest_record_timestamp,
+            web_config=data_config,
+            cursor=cursor,
+            page_number=current_url_compose_arg.page_number,
+            offset=current_url_compose_arg.page_offset
         )
     )
     page_number = get_next_page_number(
-        items_count,
-        current_url_compose_arg.page_number,
-        data_config,
-        to_reset_page_or_offset_param
+        items_count=items_count,
+        current_page=current_url_compose_arg.page_number,
+        web_config=data_config,
+        reset_param=to_reset_page_or_offset_param
     )
     offset = get_next_offset(
-        items_count,
-        current_url_compose_arg.page_offset,
-        data_config,
-        to_reset_page_or_offset_param
+        items_count=items_count,
+        current_offset=current_url_compose_arg.page_offset,
+        web_config=data_config,
+        reset_param=to_reset_page_or_offset_param
     )
 
     variable_until_date = get_next_until_date(
-        from_date_to_advance,
-        data_config,
-        fixed_until_date
+        from_date=from_date_to_advance,
+        data_config=data_config,
+        fixed_until_date=fixed_until_date
     )
 
     if (
@@ -268,11 +268,15 @@ def process_web_api_data_etl_batch(
                 data_config=data_config
             )
 
-        load_written_data_to_bq(data_config, full_temp_file_location)
+        load_written_data_to_bq(
+            data_config=data_config,
+            full_temp_file_location=full_temp_file_location
+        )
         if latest_record_timestamp:
             LOGGER.info('updating state to: %r', latest_record_timestamp)
             upload_latest_timestamp_as_pipeline_state(
-                data_config, latest_record_timestamp
+                data_config=data_config,
+                latest_record_timestamp=latest_record_timestamp
             )
         else:
             LOGGER.info('not updating state due to no latest record timestamp')
