@@ -21,6 +21,7 @@ from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
+from data_pipeline.generic_web_api.url_builder import UrlComposeParam
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -438,7 +439,8 @@ class TestGetDataSinglePage:
             url_builder=url_builder
         )
         get_data_single_page(
-            data_config=data_config
+            data_config=data_config,
+            url_compose_arg=UrlComposeParam()
         )
         requests_session_mock.request.assert_called_with(
             method=url_builder.method,
@@ -456,6 +458,7 @@ class TestGetDataSinglePage:
         )
         get_data_single_page(
             data_config=data_config,
+            url_compose_arg=UrlComposeParam(),
             source_values=['value1']
         )
         url_builder.get_json.assert_called_with(
@@ -548,7 +551,10 @@ class TestGenericWebApiDataEtl:
         get_data_single_page_mock.return_value = item_list
         generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
         actual_from_and_until_date_list = [
-            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            (
+                call_args.kwargs['url_compose_arg'].from_date,
+                call_args.kwargs['url_compose_arg'].to_date
+            )
             for call_args in get_data_single_page_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
@@ -565,7 +571,10 @@ class TestGenericWebApiDataEtl:
         get_data_single_page_mock.return_value = item_list
         generic_web_api_data_etl(data_config)
         actual_from_and_until_date_list = [
-            (call_args.kwargs['from_date'], call_args.kwargs['until_date'])
+            (
+                call_args.kwargs['url_compose_arg'].from_date,
+                call_args.kwargs['url_compose_arg'].to_date
+            )
             for call_args in get_data_single_page_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list

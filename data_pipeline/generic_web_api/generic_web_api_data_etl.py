@@ -81,20 +81,9 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 # pylint: disable=fixme,too-many-arguments
 def get_data_single_page(
         data_config: WebApiConfig,
-        cursor: Optional[str] = None,
-        from_date: Optional[datetime] = None,
-        until_date: Optional[datetime] = None,
-        page_number: Optional[int] = None,
-        page_offset: Optional[int] = None,
+        url_compose_arg: UrlComposeParam,
         source_values: Optional[Iterable[dict]] = None
 ) -> Any:
-    url_compose_arg = UrlComposeParam(
-        from_date=from_date,
-        to_date=until_date,
-        page_offset=page_offset,
-        cursor=cursor,
-        page_number=page_number
-    )
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
@@ -179,11 +168,13 @@ def process_web_api_data_etl_batch(
             LOGGER.debug('variable_until_date=%r', variable_until_date)
             page_data = get_data_single_page(
                 data_config=data_config,
-                from_date=from_date_to_advance or initial_from_date,
-                until_date=variable_until_date,
-                cursor=cursor,
-                page_number=page_number,
-                page_offset=offset,
+                url_compose_arg=UrlComposeParam(
+                    from_date=from_date_to_advance or initial_from_date,
+                    to_date=variable_until_date,
+                    cursor=cursor,
+                    page_number=page_number,
+                    page_offset=offset
+                ),
                 source_values=source_values
             )
             LOGGER.debug('page_data: %r', page_data)
