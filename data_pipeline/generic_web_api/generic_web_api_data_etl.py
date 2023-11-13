@@ -217,12 +217,11 @@ def process_web_api_data_etl_batch(
     )
     cursor = None
     latest_record_timestamp = None
-    variable_until_date = get_next_until_date(
-        from_date_to_advance, data_config, until_date
-    )
     current_url_compose_arg: Optional[UrlComposeParam] = UrlComposeParam(
         from_date=from_date_to_advance or initial_from_date,
-        to_date=variable_until_date,
+        to_date=get_next_until_date(
+            from_date_to_advance, data_config, until_date
+        ),
         cursor=cursor,
         page_number=1 if data_config.url_builder.page_number_param else None,
         page_offset=0 if data_config.url_builder.offset_param else None,
