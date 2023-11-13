@@ -81,13 +81,14 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 # pylint: disable=fixme,too-many-arguments
 def get_data_single_page(
         data_config: WebApiConfig,
-        url_compose_arg: UrlComposeParam,
-        source_values: Optional[Iterable[dict]] = None
+        url_compose_arg: UrlComposeParam
 ) -> Any:
     url = data_config.url_builder.get_url(
         url_compose_arg
     )
-    json_data = data_config.url_builder.get_json(source_values=source_values)
+    json_data = data_config.url_builder.get_json(
+        url_compose_param=url_compose_arg
+    )
     LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
 
     with requests_retry_session() as session:
@@ -186,7 +187,8 @@ def get_next_url_compose_arg_for_page_data(
         to_date=variable_until_date,
         cursor=cursor,
         page_number=page_number,
-        page_offset=offset
+        page_offset=offset,
+        source_values=current_url_compose_arg.source_values
     )
 
 
@@ -225,7 +227,8 @@ def process_web_api_data_etl_batch(
         to_date=variable_until_date,
         cursor=cursor,
         page_number=page_number,
-        page_offset=offset
+        page_offset=offset,
+        source_values=source_values
     )
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
@@ -240,9 +243,9 @@ def process_web_api_data_etl_batch(
                     to_date=variable_until_date,
                     cursor=cursor,
                     page_number=page_number,
-                    page_offset=offset
-                ),
-                source_values=source_values
+                    page_offset=offset,
+                    source_values=source_values
+                )
             )
             LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(

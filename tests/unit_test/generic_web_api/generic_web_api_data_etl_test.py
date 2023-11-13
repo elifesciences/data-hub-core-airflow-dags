@@ -449,20 +449,20 @@ class TestGetDataSinglePage:
             headers=data_config.headers.mapping
         )
 
-    def test_should_pass_source_values_to_get_json(self):
+    def test_should_pass_url_compose_arg_to_get_json(self):
         url_builder = MagicMock(name='url_builder')
         url_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
             url_builder=url_builder
         )
+        url_compose_arg = UrlComposeParam(source_values=['value1'])
         get_data_single_page(
             data_config=data_config,
-            url_compose_arg=UrlComposeParam(),
-            source_values=['value1']
+            url_compose_arg=url_compose_arg
         )
         url_builder.get_json.assert_called_with(
-            source_values=['value1']
+            url_compose_param=url_compose_arg
         )
 
 
@@ -596,4 +596,4 @@ class TestGenericWebApiDataEtl:
         iter_dict_for_bigquery_include_exclude_source_config_mock.assert_called()
         get_data_single_page_mock.assert_called()
         _, kwargs = get_data_single_page_mock.call_args
-        assert list(kwargs['source_values']) == ['value 1']
+        assert list(kwargs['url_compose_arg'].source_values) == ['value 1']

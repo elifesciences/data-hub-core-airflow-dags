@@ -57,11 +57,15 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        assert url_builder.get_json(source_values=iter([{
-            'paper_id': 'paper_id1',
-            'title': 'Title 1',
-            'abstract': 'Abstract 1'
-        }])) == [{
+        assert url_builder.get_json(
+            url_compose_param=UrlComposeParam(
+                source_values=iter([{
+                    'paper_id': 'paper_id1',
+                    'title': 'Title 1',
+                    'abstract': 'Abstract 1'
+                }])
+            )
+        ) == [{
             'paper_id': 'paper_id1',
             'title': 'Title 1',
             'abstract': 'Abstract 1'

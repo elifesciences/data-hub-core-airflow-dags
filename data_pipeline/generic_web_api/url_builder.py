@@ -46,6 +46,7 @@ class UrlComposeParam(NamedTuple):
     cursor: Optional[str] = None
     page_size: Optional[int] = None
     page_offset: Optional[int] = None
+    source_values: Optional[Iterable[dict]] = None
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
@@ -69,7 +70,7 @@ class DynamicURLBuilder:
 
     def get_json(  # pylint: disable=unused-argument
         self,
-        source_values: Optional[Iterable[dict]]
+        url_compose_param: UrlComposeParam
     ) -> Optional[Any]:
         return None
 
@@ -210,16 +211,16 @@ class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
 
     def get_json(
         self,
-        source_values: Optional[Iterable[dict]]
+        url_compose_param: UrlComposeParam
     ) -> Sequence[dict]:
-        assert source_values is not None
+        assert url_compose_param.source_values is not None
         return [
             {
                 'paper_id': source_value['paper_id'],
                 'title': source_value['title'],
                 'abstract': source_value['abstract']
             }
-            for source_value in source_values
+            for source_value in url_compose_param.source_values
         ]
 
 
