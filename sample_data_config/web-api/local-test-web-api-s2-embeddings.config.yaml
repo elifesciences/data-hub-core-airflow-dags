@@ -1,3 +1,4 @@
+# To use this configuration file, change WEB_API_CONFIG_FILE_PATH before starting Airflow
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
