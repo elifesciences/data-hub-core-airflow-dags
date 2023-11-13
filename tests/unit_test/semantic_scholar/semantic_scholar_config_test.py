@@ -115,7 +115,8 @@ class TestSemanticScholarConfig:
                     'bigQuery': {
                         'projectName': PROJECT_NAME_1,
                         'sqlQuery': 'query2'
-                    }
+                    },
+                    'keyFieldNameFromInclude': 'doi'
                 }
             }
         }

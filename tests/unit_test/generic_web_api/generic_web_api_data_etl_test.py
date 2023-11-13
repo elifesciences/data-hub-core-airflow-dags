@@ -18,6 +18,9 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiConfigDict
+)
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -103,15 +106,19 @@ def _get_items_list_mock():
         yield mock
 
 
-@pytest.fixture(name='iter_dict_from_bq_query_for_bigquery_source_config_mock')
-def _iter_dict_from_bq_query_for_bigquery_source_config_mock():
+@pytest.fixture(name='iter_dict_for_bigquery_include_exclude_source_config_mock')
+def _iter_dict_for_bigquery_include_exclude_source_config_mock():
     with patch.object(
-        generic_web_api_data_etl_module, 'iter_dict_from_bq_query_for_bigquery_source_config'
+        generic_web_api_data_etl_module, 'iter_dict_for_bigquery_include_exclude_source_config'
     ) as mock:
         yield mock
 
 
-WEB_API_CONFIG = {
+WEB_API_CONFIG: WebApiConfigDict = {
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
+    'dataset': 'dataset_1',
+    'table': 'table_1',
     'stateFile': {
         'bucketName': '{ENV}-bucket',
         'objectName': '{ENV}/object'
@@ -131,7 +138,7 @@ def get_data_config(
     if conf_dict is None:
         conf_dict = WEB_API_CONFIG
     data_config = WebApiConfig.from_dict(
-        conf_dict, '',
+        conf_dict,
         deployment_env=dep_env
     )
     return data_config
@@ -271,6 +278,7 @@ def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiCo
             'nextPageCursorKeyFromResponseRoot': cursor_path
         },
         'dataUrl': {
+            **WEB_API_CONFIG['dataUrl'],
             'configurableParameters': {
                 'nextPageCursorParameterName': 'cursor'
             }
@@ -564,19 +572,19 @@ class TestGenericWebApiDataEtl:
 
     def test_should_load_source_values_from_bigquery_and_pass_to_get_data_single_page(
         self,
-        iter_dict_from_bq_query_for_bigquery_source_config_mock: MagicMock,
+        iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
         conf_dict: dict = {
             **WEB_API_CONFIG,
-            'source': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
+            'source': {'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}}
         }
         data_config = get_data_config(conf_dict)
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.return_value = iter(['value 1'])
+        iter_dict_for_bigquery_include_exclude_source_config_mock.return_value = iter(['value 1'])
 
         generic_web_api_data_etl(data_config)
 
-        iter_dict_from_bq_query_for_bigquery_source_config_mock.assert_called()
+        iter_dict_for_bigquery_include_exclude_source_config_mock.assert_called()
         get_data_single_page_mock.assert_called()
         _, kwargs = get_data_single_page_mock.call_args
         assert list(kwargs['source_values']) == ['value 1']

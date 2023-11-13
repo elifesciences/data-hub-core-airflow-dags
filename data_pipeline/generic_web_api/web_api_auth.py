@@ -1,14 +1,18 @@
 import os
-from typing import Tuple, cast
+from typing import Sequence, Tuple, cast
 
 from data_pipeline.utils.pipeline_file_io import read_file_content
+
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiAuthenticationValueConfigDict
+)
 
 
 class WebApiAuthentication:
     def __init__(
             self,
             auth_type: str,
-            auth_param_val_list: list,
+            auth_param_val_list: Sequence[WebApiAuthenticationValueConfigDict],
     ):
         self.authentication_type = auth_type.lower()
         if auth_type == 'basic':
@@ -22,7 +26,9 @@ class WebApiAuthentication:
         ) if auth_type == 'basic' else None
 
 
-def get_auth_param_value(auth_val_conf: dict):
+def get_auth_param_value(
+    auth_val_conf: WebApiAuthenticationValueConfigDict
+) -> str:
     val = auth_val_conf.get("value", None)
     if not val:
         env_var_key_with_val = auth_val_conf.get("envVariableHoldingAuthValue")
@@ -33,5 +39,5 @@ def get_auth_param_value(auth_val_conf: dict):
         val = read_file_content(
             os.environ[auth_val_conf["envVariableContainingPathToAuthFile"]]
         )
-
+    assert val is not None
     return val

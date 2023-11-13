@@ -5,16 +5,17 @@ from unittest.mock import ANY, MagicMock, patch
 import pytest
 
 from data_pipeline.utils.pipeline_config import (
+    BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
+    BigQueryWrappedExcludeSourceConfig,
+    BigQueryWrappedSourceConfig,
     MappingConfig
 )
 
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarConfig,
     SemanticScholarMatrixConfig,
-    SemanticScholarMatrixVariableConfig,
-    SemanticScholarMatrixVariableSourceConfig,
     SemanticScholarSourceConfig
 )
 
@@ -57,19 +58,20 @@ BIGQUERY_SOURCE_CONFIG_2 = BigQuerySourceConfig(
 )
 
 
-DOI_MATRIX_VARIABLE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
-    include=SemanticScholarMatrixVariableSourceConfig(
+DOI_MATRIX_VARIABLE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
+    include=BigQueryWrappedSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_1
     )
 )
 
 
-DOI_MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = SemanticScholarMatrixVariableConfig(
-    include=SemanticScholarMatrixVariableSourceConfig(
+DOI_MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
+    include=BigQueryWrappedSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_1
     ),
-    exclude=SemanticScholarMatrixVariableSourceConfig(
-        bigquery=BIGQUERY_SOURCE_CONFIG_2
+    exclude=BigQueryWrappedExcludeSourceConfig(
+        bigquery=BIGQUERY_SOURCE_CONFIG_2,
+        key_field_name_from_include='doi'
     )
 )
 

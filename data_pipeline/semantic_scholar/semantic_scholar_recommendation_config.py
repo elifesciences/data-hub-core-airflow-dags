@@ -1,10 +1,17 @@
 from typing import NamedTuple
 
+from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+
 from data_pipeline.semantic_scholar.semantic_scholar_config import (
     SemanticScholarMatrixConfig,
     SemanticScholarSourceConfig
 )
-from data_pipeline.utils.pipeline_config import BigQueryTargetConfig
+from data_pipeline.semantic_scholar.semantic_scholar_config_typing import (
+    SemanticScholarItemConfigDict
+)
+from data_pipeline.semantic_scholar.semantic_scholar_recommendation_config_typing import (
+    SemanticScholarRecommendationConfigDict
+)
 
 
 DEFAULT_BATCH_SIZE = 1000
@@ -17,7 +24,9 @@ class SemanticScholarRecommendationConfig(NamedTuple):
     batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
-    def _from_item_dict(item_config_dict: dict) -> 'SemanticScholarRecommendationConfig':
+    def _from_item_dict(
+        item_config_dict: SemanticScholarItemConfigDict
+    ) -> 'SemanticScholarRecommendationConfig':
         return SemanticScholarRecommendationConfig(
             matrix=SemanticScholarMatrixConfig.from_dict(
                 item_config_dict['matrix']
@@ -32,7 +41,9 @@ class SemanticScholarRecommendationConfig(NamedTuple):
         )
 
     @staticmethod
-    def from_dict(config_dict: dict) -> 'SemanticScholarRecommendationConfig':
+    def from_dict(
+        config_dict: SemanticScholarRecommendationConfigDict
+    ) -> 'SemanticScholarRecommendationConfig':
         item_config_list = config_dict['semanticScholarRecommendation']
         return SemanticScholarRecommendationConfig._from_item_dict(
             item_config_list[0]

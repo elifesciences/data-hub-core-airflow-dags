@@ -5,6 +5,7 @@ import pytest
 
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
+    BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
     MappingConfig,
@@ -15,12 +16,15 @@ from data_pipeline.utils.pipeline_config import (
     str_to_bool,
     get_environment_variable_value
 )
+from data_pipeline.utils.pipeline_config_typing import (
+    BigQuerySourceConfigDict
+)
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-BIGQUERY_SOURCE_CONFIG_DICT_1 = {
+BIGQUERY_SOURCE_CONFIG_DICT_1: BigQuerySourceConfigDict = {
     'projectName': 'project1',
     'sqlQuery': 'query1'
 }
@@ -66,6 +70,49 @@ class TestBigQuerySourceConfig:
             'ignoreNotFound': True
         })
         assert config.ignore_not_found is True
+
+
+class TestBigQueryIncludeExcludeSourceConfig:
+    def test_should_read_include_config_without_exclude(self):
+        config = BigQueryIncludeExcludeSourceConfig.from_dict({
+            'include': {
+                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+            }
+        })
+        assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
+        assert config.include.bigquery.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
+        assert not config.exclude
+
+    def test_should_read_include_with_exclude_and_key_field_name(self):
+        config = BigQueryIncludeExcludeSourceConfig.from_dict({
+            'include': {
+                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+            },
+            'exclude': {
+                'bigQuery': {
+                    'projectName': 'exclude_project_1',
+                    'sqlQuery': 'exclude_query_1'
+                },
+                'keyFieldNameFromInclude': 'key_1'
+            },
+        })
+        assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']
+        assert config.include.bigquery.sql_query == BIGQUERY_SOURCE_CONFIG_DICT_1['sqlQuery']
+        assert config.exclude
+        assert config.exclude.bigquery.project_name == 'exclude_project_1'
+        assert config.exclude.bigquery.sql_query == 'exclude_query_1'
+        assert config.exclude.key_field_name_from_include == 'key_1'
+
+    def test_should_raise_error_if_exclude_is_configured_without_key_field_name(self):
+        with pytest.raises(KeyError):
+            BigQueryIncludeExcludeSourceConfig.from_dict({
+                'include': {
+                    'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                },
+                'exclude': {
+                    'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                }
+            })
 
 
 class TestBigQueryTargetConfig:

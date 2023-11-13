@@ -1,14 +1,26 @@
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, NamedTuple, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Callable, Mapping, Optional, Sequence, Type, TypeVar, Union
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
+from data_pipeline.utils.pipeline_config_typing import (
+    BigQueryIncludeExcludeSourceConfigDict,
+    BigQuerySourceConfigDict,
+    BigQueryTargetConfigDict,
+    BigQueryWrappedExcludeSourceConfigDict,
+    BigQueryWrappedSourceConfigDict,
+    MappingConfigDict,
+    ParameterFromFileConfigDict,
+    StateFileConfigDict
+)
 
 
 LOGGER = logging.getLogger(__name__)
 
 T = TypeVar('T')
+
+ConfigDictT = TypeVar('ConfigDictT')
 
 
 class ConfigKeys:
@@ -26,13 +38,14 @@ DEFAULT_ENVIRONMENT_PLACEHOLDER = '{ENV}'
 SECRET_VALUE_PLACEHOLDER = '***'
 
 
-class BigQuerySourceConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQuerySourceConfig:
     project_name: str
     sql_query: str
     ignore_not_found: bool = False
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'BigQuerySourceConfig':
+    def from_dict(source_config_dict: BigQuerySourceConfigDict) -> 'BigQuerySourceConfig':
         return BigQuerySourceConfig(
             project_name=source_config_dict['projectName'],
             sql_query=source_config_dict['sqlQuery'],
@@ -40,13 +53,82 @@ class BigQuerySourceConfig(NamedTuple):
         )
 
 
-class BigQueryTargetConfig(NamedTuple):
+@dataclass(frozen=True)
+class BigQueryWrappedSourceConfig:
+    bigquery: BigQuerySourceConfig
+
+    @staticmethod
+    def from_dict(
+        source_config_dict: BigQueryWrappedSourceConfigDict
+    ) -> 'BigQueryWrappedSourceConfig':
+        return BigQueryWrappedSourceConfig(
+            bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict['bigQuery']
+            )
+        )
+
+
+@dataclass(frozen=True)
+class BigQueryWrappedExcludeSourceConfig:
+    bigquery: BigQuerySourceConfig
+    key_field_name_from_include: str
+
+    @staticmethod
+    def from_dict(
+        source_config_dict: BigQueryWrappedExcludeSourceConfigDict
+    ) -> 'BigQueryWrappedExcludeSourceConfig':
+        return BigQueryWrappedExcludeSourceConfig(
+            bigquery=BigQuerySourceConfig.from_dict(
+                source_config_dict['bigQuery']
+            ),
+            key_field_name_from_include=source_config_dict['keyFieldNameFromInclude']
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        exclude_config_dict: Optional[BigQueryWrappedExcludeSourceConfigDict]
+    ) -> Optional['BigQueryWrappedExcludeSourceConfig']:
+        if exclude_config_dict is None:
+            return None
+        return BigQueryWrappedExcludeSourceConfig.from_dict(exclude_config_dict)
+
+
+@dataclass(frozen=True)
+class BigQueryIncludeExcludeSourceConfig:
+    include: BigQueryWrappedSourceConfig
+    exclude:  Optional[BigQueryWrappedExcludeSourceConfig] = None
+
+    @staticmethod
+    def from_dict(
+        include_exclude_config_dict: BigQueryIncludeExcludeSourceConfigDict
+    ) -> 'BigQueryIncludeExcludeSourceConfig':
+        LOGGER.debug('include_exclude_config_dict: %r', include_exclude_config_dict)
+        return BigQueryIncludeExcludeSourceConfig(
+            include=BigQueryWrappedSourceConfig.from_dict(
+                include_exclude_config_dict['include']
+            ),
+            exclude=BigQueryWrappedExcludeSourceConfig.from_optional_dict(
+                include_exclude_config_dict.get('exclude')
+            )
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        include_exclude_config_dict: Optional[BigQueryIncludeExcludeSourceConfigDict]
+    ) -> Optional['BigQueryIncludeExcludeSourceConfig']:
+        if include_exclude_config_dict is None:
+            return None
+        return BigQueryIncludeExcludeSourceConfig.from_dict(include_exclude_config_dict)
+
+
+@dataclass(frozen=True)
+class BigQueryTargetConfig:
     project_name: str
     dataset_name: str
     table_name: str
 
     @staticmethod
-    def from_dict(target_config_dict: dict) -> 'BigQueryTargetConfig':
+    def from_dict(target_config_dict: BigQueryTargetConfigDict) -> 'BigQueryTargetConfig':
         return BigQueryTargetConfig(
             project_name=target_config_dict['projectName'],
             dataset_name=target_config_dict['datasetName'],
@@ -54,12 +136,13 @@ class BigQueryTargetConfig(NamedTuple):
         )
 
 
-class StateFileConfig(NamedTuple):
+@dataclass(frozen=True)
+class StateFileConfig:
     bucket_name: str
     object_name: str
 
     @staticmethod
-    def from_dict(state_file_config_dict: dict) -> 'StateFileConfig':
+    def from_dict(state_file_config_dict: StateFileConfigDict) -> 'StateFileConfig':
         return StateFileConfig(
             bucket_name=state_file_config_dict['bucketName'],
             object_name=state_file_config_dict['objectName']
@@ -165,7 +248,7 @@ def get_deployment_env() -> str:
 
 
 def get_resolved_parameter_values_from_file_path_env_name(
-    parameters_from_file: Sequence[dict]
+    parameters_from_file: Sequence[ParameterFromFileConfigDict]
 ) -> dict:
     params = {
         param["parameterName"]: read_file_content(os.environ[param["filePathEnvName"]])
@@ -177,7 +260,7 @@ def get_resolved_parameter_values_from_file_path_env_name(
 
 def get_pipeline_config_for_env_name_and_config_parser(
     config_file_path_env_name: str,
-    config_parser_fn: Callable[[dict], T]
+    config_parser_fn: Callable[[ConfigDictT], T]
 ) -> T:
     deployment_env = get_deployment_env()
     LOGGER.info('deployment_env: %s', deployment_env)
@@ -198,8 +281,8 @@ class MappingConfig:
     printable_mapping: Mapping[str, Any]
 
     @staticmethod
-    def from_dict(mapping_config_dict: dict) -> 'MappingConfig':
-        mapping = mapping_config_dict.copy()
+    def from_dict(mapping_config_dict: MappingConfigDict) -> 'MappingConfig':
+        mapping = dict(mapping_config_dict)
         secrets_config_list = mapping.pop('parametersFromFile', [])
         LOGGER.debug('secrets_config_list: %r', secrets_config_list)
         secrets_dict = get_resolved_parameter_values_from_file_path_env_name(

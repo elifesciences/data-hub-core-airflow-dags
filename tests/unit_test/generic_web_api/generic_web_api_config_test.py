@@ -1,9 +1,13 @@
-from data_pipeline.utils.pipeline_config import BigQuerySourceConfig, ConfigKeys
+from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
     get_web_api_config_id,
     MultiWebApiConfig,
     WebApiConfig
 )
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    WebApiConfigDict
+)
+
 
 DATASET_1 = 'dataset_1'
 TABLE_1 = 'table_1'
@@ -13,10 +17,18 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'sqlQuery': 'query1'
 }
 
-MINIMAL_WEB_API_CONFIG_DICT = {
+BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
+    'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
+}
+
+MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
     'dataset': DATASET_1,
     'table': TABLE_1,
-    'dataUrl': {}
+    'dataUrl': {
+        'urlExcludingConfigurableParameters': 'url_1'
+    }
 }
 
 
@@ -75,11 +87,15 @@ class TestWebApiConfig:
         web_api_config = WebApiConfig.from_dict({
             **MINIMAL_WEB_API_CONFIG_DICT,
             'source': {
-                'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                'include': {
+                    'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1
+                }
             }
         })
         assert web_api_config.source
         assert (
-            web_api_config.source.bigquery
-            == BigQuerySourceConfig.from_dict(BIGQUERY_SOURCE_CONFIG_DICT_1)
+            web_api_config.source
+            == BigQueryIncludeExcludeSourceConfig.from_dict(
+                BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1
+            )
         )

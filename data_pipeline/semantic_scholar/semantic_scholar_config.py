@@ -1,54 +1,31 @@
-from typing import Mapping, NamedTuple, Optional
+from typing import Mapping, NamedTuple
 
 from data_pipeline.utils.pipeline_config import (
-    BigQuerySourceConfig,
+    BigQueryIncludeExcludeSourceConfig,
     BigQueryTargetConfig,
     MappingConfig
+)
+from data_pipeline.semantic_scholar.semantic_scholar_config_typing import (
+    SemanticScholarConfigDict,
+    SemanticScholarItemConfigDict,
+    SemanticScholarMatrixConfigDict,
+    SemanticScholarSourceConfigDict
 )
 
 
 DEFAULT_BATCH_SIZE = 1000
 
 
-class SemanticScholarMatrixVariableSourceConfig(NamedTuple):
-    bigquery: BigQuerySourceConfig
-
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'SemanticScholarMatrixVariableSourceConfig':
-        return SemanticScholarMatrixVariableSourceConfig(
-            bigquery=BigQuerySourceConfig.from_dict(
-                source_config_dict['bigQuery']
-            )
-        )
-
-
-class SemanticScholarMatrixVariableConfig(NamedTuple):
-    include: SemanticScholarMatrixVariableSourceConfig
-    exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
-
-    @staticmethod
-    def from_dict(matrix_variable_config_dict: dict) -> 'SemanticScholarMatrixVariableConfig':
-        exclude:  Optional[SemanticScholarMatrixVariableSourceConfig] = None
-        if matrix_variable_config_dict.get('exclude'):
-            exclude = SemanticScholarMatrixVariableSourceConfig.from_dict(
-                matrix_variable_config_dict['exclude']
-            )
-        return SemanticScholarMatrixVariableConfig(
-            include=SemanticScholarMatrixVariableSourceConfig.from_dict(
-                matrix_variable_config_dict['include']
-            ),
-            exclude=exclude
-        )
-
-
 class SemanticScholarMatrixConfig(NamedTuple):
-    variables: Mapping[str, SemanticScholarMatrixVariableConfig]
+    variables: Mapping[str, BigQueryIncludeExcludeSourceConfig]
 
     @staticmethod
-    def from_dict(matrix_config_dict: dict) -> 'SemanticScholarMatrixConfig':
+    def from_dict(
+        matrix_config_dict: SemanticScholarMatrixConfigDict
+    ) -> 'SemanticScholarMatrixConfig':
         return SemanticScholarMatrixConfig(
             variables={
-                name: SemanticScholarMatrixVariableConfig.from_dict(
+                name: BigQueryIncludeExcludeSourceConfig.from_dict(
                     matrix_variable_config_dict
                 )
                 for name, matrix_variable_config_dict in matrix_config_dict.items()
@@ -62,7 +39,9 @@ class SemanticScholarSourceConfig(NamedTuple):
     headers: MappingConfig = MappingConfig.from_dict({})
 
     @staticmethod
-    def from_dict(source_config_dict: dict) -> 'SemanticScholarSourceConfig':
+    def from_dict(
+        source_config_dict: SemanticScholarSourceConfigDict
+    ) -> 'SemanticScholarSourceConfig':
         return SemanticScholarSourceConfig(
             api_url=source_config_dict['apiUrl'],
             params=source_config_dict.get('params', {}),
@@ -77,7 +56,9 @@ class SemanticScholarConfig(NamedTuple):
     batch_size: int = DEFAULT_BATCH_SIZE
 
     @staticmethod
-    def _from_item_dict(item_config_dict: dict) -> 'SemanticScholarConfig':
+    def _from_item_dict(
+        item_config_dict: SemanticScholarItemConfigDict
+    ) -> 'SemanticScholarConfig':
         return SemanticScholarConfig(
             matrix=SemanticScholarMatrixConfig.from_dict(
                 item_config_dict['matrix']
@@ -92,7 +73,7 @@ class SemanticScholarConfig(NamedTuple):
         )
 
     @staticmethod
-    def from_dict(config_dict: dict) -> 'SemanticScholarConfig':
+    def from_dict(config_dict: SemanticScholarConfigDict) -> 'SemanticScholarConfig':
         item_config_list = config_dict['semanticScholar']
         return SemanticScholarConfig._from_item_dict(
             item_config_list[0]

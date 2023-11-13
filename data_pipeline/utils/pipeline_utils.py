@@ -14,6 +14,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
+    BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig
 )
 
@@ -102,6 +103,20 @@ def iter_dict_for_bigquery_source_config_with_exclusion(
         if not bigquery_source_config.ignore_not_found:
             raise
         LOGGER.info('caught not found, returning empty list')
+
+
+def iter_dict_for_bigquery_include_exclude_source_config(
+    bigquery_include_exclude_source_config: BigQueryIncludeExcludeSourceConfig
+) -> Iterable[dict]:
+    if not bigquery_include_exclude_source_config.exclude:
+        return iter_dict_from_bq_query_for_bigquery_source_config(
+            bigquery_include_exclude_source_config.include.bigquery
+        )
+    return iter_dict_for_bigquery_source_config_with_exclusion(
+        bigquery_include_exclude_source_config.include.bigquery,
+        key_field_name=bigquery_include_exclude_source_config.exclude.key_field_name_from_include,
+        exclude_bigquery_source_config=bigquery_include_exclude_source_config.exclude.bigquery
+    )
 
 
 def get_valid_json_from_response(response: requests.Response) -> dict:

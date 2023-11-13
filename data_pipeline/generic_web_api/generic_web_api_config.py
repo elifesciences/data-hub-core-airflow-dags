@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field, replace
-from typing import Optional, Sequence
+from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -11,15 +11,26 @@ from data_pipeline.generic_web_api.url_builder import (
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
-    BigQuerySourceConfig,
+    BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
     update_deployment_env_placeholder
 )
+from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    MultiWebApiConfigDict,
+    WebApiBaseConfigDict,
+    WebApiConfigDict,
+    WebApiConfigurableParametersConfigDict
+)
 
 
-def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
-    web_api_config_id = web_api_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
+def get_web_api_config_id(
+    web_api_config_props: WebApiBaseConfigDict,
+    index: int
+) -> str:
+    web_api_config_id: Optional[str] = (
+        cast(Optional[str], web_api_config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID))
+    )
     if not web_api_config_id:
         table_name = web_api_config_props.get('table')
         if table_name:
@@ -34,19 +45,19 @@ def get_web_api_config_id(web_api_config_props: dict, index: int) -> str:
 class MultiWebApiConfig:
     def __init__(
             self,
-            multi_web_api_etl_config: dict,
+            multi_web_api_etl_config: MultiWebApiConfigDict,
     ):
         self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
             "importedTimestampFieldName"
         )
-        self.web_api_config = {
-            ind: {
+        self.web_api_config: Mapping[int, WebApiConfigDict] = {
+            ind: cast(WebApiConfigDict, {
                 **web_api,
                 ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_web_api_config_id(web_api, index=ind),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
-            }
+            })
             for ind, web_api in enumerate(
                 multi_web_api_etl_config["webApi"]
             )
@@ -54,27 +65,8 @@ class MultiWebApiConfig:
 
 
 @dataclass(frozen=True)
-class WebApiSourceConfig:
-    bigquery: BigQuerySourceConfig
-
-    @staticmethod
-    def from_dict(source_config_dict: dict) -> 'WebApiSourceConfig':
-        return WebApiSourceConfig(
-            bigquery=BigQuerySourceConfig.from_dict(
-                source_config_dict['bigQuery']
-            )
-        )
-
-    @staticmethod
-    def from_optional_dict(source_config_dict: Optional[dict]) -> Optional['WebApiSourceConfig']:
-        if source_config_dict is None:
-            return None
-        return WebApiSourceConfig.from_dict(source_config_dict)
-
-
-@dataclass(frozen=True)
 class WebApiConfig:
-    config_as_dict: dict
+    config_as_dict: WebApiConfigDict
     import_timestamp_field_name: str
     dataset_name: str
     table_name: str
@@ -94,27 +86,34 @@ class WebApiConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     authentication: Optional[WebApiAuthentication] = None
-    source: Optional[WebApiSourceConfig] = None
+    source: Optional[BigQueryIncludeExcludeSourceConfig] = None
 
     @staticmethod
     def from_dict(
-            web_api_config: dict,
-            gcp_project: Optional[str] = None,
-            imported_timestamp_field_name: Optional[str] = None,
+            web_api_config: WebApiConfigDict,
             deployment_env: Optional[str] = None,
             deployment_env_placeholder: str = "{ENV}"
     ):
-        api_config = update_deployment_env_placeholder(
-            web_api_config, deployment_env,
-            deployment_env_placeholder
-        ) if deployment_env else web_api_config
+        api_config = (
+            cast(
+                WebApiConfigDict,
+                update_deployment_env_placeholder(
+                    cast(dict, web_api_config),
+                    deployment_env,
+                    deployment_env_placeholder
+                )
+            )
+            if deployment_env
+            else web_api_config
+        )
 
-        url_excluding_configurable_parameters = api_config.get(
-            "dataUrl"
-        ).get("urlExcludingConfigurableParameters")
-        configurable_parameters = api_config.get(
-            "dataUrl"
-        ).get("configurableParameters", {})
+        data_url_config_dict = api_config["dataUrl"]
+        url_excluding_configurable_parameters = (
+            data_url_config_dict["urlExcludingConfigurableParameters"]
+        )
+        configurable_parameters: WebApiConfigurableParametersConfigDict = (
+            data_url_config_dict.get("configurableParameters", {})
+        )
 
         page_number_param = configurable_parameters.get(
             "pageParameterName", None
@@ -134,14 +133,10 @@ class WebApiConfig:
         composeable_static_parameters = (
             {
                 **(compose_url_param_from_parameter_values_in_env_var(
-                    api_config.get(
-                        "dataUrl"
-                    ).get("parametersFromEnv", [])
+                    data_url_config_dict.get("parametersFromEnv", [])
                 )),
                 **(compose_url_param_from_param_vals_filepath_in_env_var(
-                    api_config.get(
-                        "dataUrl"
-                    ).get("parametersFromFile", [])
+                    data_url_config_dict.get("parametersFromFile", [])
                 )),
             }
         )
@@ -199,16 +194,8 @@ class WebApiConfig:
 
         return WebApiConfig(
             config_as_dict=api_config,
-            gcp_project=(
-                gcp_project or
-                api_config.get("gcpProjectName")
-            ),
-            import_timestamp_field_name=(
-                api_config.get(
-                    "importedTimestampFieldName",
-                    imported_timestamp_field_name
-                )
-            ),
+            gcp_project=api_config["gcpProjectName"],
+            import_timestamp_field_name=api_config["importedTimestampFieldName"],
             dataset_name=api_config.get("dataset", ""),
             table_name=api_config.get("table", ""),
             table_write_disposition=(
@@ -251,7 +238,7 @@ class WebApiConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             authentication=authentication,
-            source=WebApiSourceConfig.from_optional_dict(api_config.get('source'))
+            source=BigQueryIncludeExcludeSourceConfig.from_optional_dict(api_config.get('source'))
         )
 
     def _replace(self, **kwargs) -> 'WebApiConfig':
