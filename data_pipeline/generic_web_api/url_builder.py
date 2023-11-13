@@ -64,6 +64,7 @@ class DynamicURLBuilder:
     sort_key: Optional[str] = None
     sort_key_value: Optional[str] = None
     method: str = 'GET'
+    max_source_values_per_request: Optional[int] = None
     type_specific_params: Optional[dict] = None
 
     def get_json(  # pylint: disable=unused-argument
@@ -201,7 +202,11 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
 
 class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
     def __init__(self, **kwargs):
-        super().__init__(**{**kwargs, 'method': 'POST'})
+        super().__init__(**{
+            **kwargs,
+            'method': 'POST',
+            'max_source_values_per_request': 16
+        })
 
     def get_json(
         self,

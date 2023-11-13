@@ -45,6 +45,13 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
         )
         assert url_builder.method == 'POST'
 
+    def test_should_set_max_source_values_per_request_to_16(self):
+        url_builder = DynamicS2TitleAbstractEmbeddingsURLBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            compose_able_url_key_val={}
+        )
+        assert url_builder.max_source_values_per_request == 16
+
     def test_should_generate_json_data_for_source_values(self):
         url_builder = DynamicS2TitleAbstractEmbeddingsURLBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
