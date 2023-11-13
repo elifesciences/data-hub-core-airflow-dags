@@ -238,14 +238,7 @@ def process_web_api_data_etl_batch(
             LOGGER.debug('variable_until_date=%r', variable_until_date)
             page_data = get_data_single_page(
                 data_config=data_config,
-                url_compose_arg=UrlComposeParam(
-                    from_date=from_date_to_advance or initial_from_date,
-                    to_date=variable_until_date,
-                    cursor=cursor,
-                    page_number=page_number,
-                    page_offset=offset,
-                    source_values=source_values
-                )
+                url_compose_arg=current_url_compose_arg
             )
             LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(
