@@ -192,7 +192,6 @@ def get_next_url_compose_arg_for_page_data(
     )
 
 
-# pylint: disable=too-many-locals
 def process_web_api_data_etl_batch(
         data_config: WebApiConfig,
         initial_from_date: Optional[datetime] = None,
