@@ -71,7 +71,7 @@ DOI_MATRIX_VARIABLE_WITH_EXCLUDE_CONFIG_1 = BigQueryIncludeExcludeSourceConfig(
     ),
     exclude=BigQueryWrappedExcludeSourceConfig(
         bigquery=BIGQUERY_SOURCE_CONFIG_2,
-        key_field_name='doi'
+        key_field_name_from_include='doi'
     )
 )
 

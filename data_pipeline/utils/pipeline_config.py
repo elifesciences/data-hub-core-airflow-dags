@@ -71,7 +71,7 @@ class BigQueryWrappedSourceConfig:
 @dataclass(frozen=True)
 class BigQueryWrappedExcludeSourceConfig:
     bigquery: BigQuerySourceConfig
-    key_field_name: str
+    key_field_name_from_include: str
 
     @staticmethod
     def from_dict(
@@ -81,7 +81,7 @@ class BigQueryWrappedExcludeSourceConfig:
             bigquery=BigQuerySourceConfig.from_dict(
                 source_config_dict['bigQuery']
             ),
-            key_field_name=source_config_dict['keyFieldNameFromInclude']
+            key_field_name_from_include=source_config_dict['keyFieldNameFromInclude']
         )
 
     @staticmethod

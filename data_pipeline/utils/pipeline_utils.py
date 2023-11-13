@@ -114,7 +114,7 @@ def iter_dict_for_bigquery_include_exclude_source_config(
         )
     return iter_dict_for_bigquery_source_config_with_exclusion(
         bigquery_include_exclude_source_config.include.bigquery,
-        key_field_name=bigquery_include_exclude_source_config.exclude.key_field_name,
+        key_field_name=bigquery_include_exclude_source_config.exclude.key_field_name_from_include,
         exclude_bigquery_source_config=bigquery_include_exclude_source_config.exclude.bigquery
     )
 

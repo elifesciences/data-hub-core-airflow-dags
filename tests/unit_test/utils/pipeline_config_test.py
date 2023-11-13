@@ -101,7 +101,7 @@ class TestBigQueryIncludeExcludeSourceConfig:
         assert config.exclude
         assert config.exclude.bigquery.project_name == 'exclude_project_1'
         assert config.exclude.bigquery.sql_query == 'exclude_query_1'
-        assert config.exclude.key_field_name == 'key_1'
+        assert config.exclude.key_field_name_from_include == 'key_1'
 
     def test_should_raise_error_if_exclude_is_configured_without_key_field_name(self):
         with pytest.raises(KeyError):
