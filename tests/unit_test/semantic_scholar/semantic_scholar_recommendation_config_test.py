@@ -105,7 +105,7 @@ class TestSemanticScholarRecommendationConfig:
                         'projectName': PROJECT_NAME_1,
                         'sqlQuery': 'query2'
                     },
-                    'keyFieldName': 'list_key'
+                    'keyFieldNameFromInclude': 'list_key'
                 }
             }
         }

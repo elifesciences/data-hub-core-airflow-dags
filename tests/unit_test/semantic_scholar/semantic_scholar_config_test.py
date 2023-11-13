@@ -116,7 +116,7 @@ class TestSemanticScholarConfig:
                         'projectName': PROJECT_NAME_1,
                         'sqlQuery': 'query2'
                     },
-                    'keyFieldName': 'doi'
+                    'keyFieldNameFromInclude': 'doi'
                 }
             }
         }

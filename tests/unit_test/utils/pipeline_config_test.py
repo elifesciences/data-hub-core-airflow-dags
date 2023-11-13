@@ -93,7 +93,7 @@ class TestBigQueryIncludeExcludeSourceConfig:
                     'projectName': 'exclude_project_1',
                     'sqlQuery': 'exclude_query_1'
                 },
-                'keyFieldName': 'key_1'
+                'keyFieldNameFromInclude': 'key_1'
             },
         })
         assert config.include.bigquery.project_name == BIGQUERY_SOURCE_CONFIG_DICT_1['projectName']

@@ -81,7 +81,7 @@ class BigQueryWrappedExcludeSourceConfig:
             bigquery=BigQuerySourceConfig.from_dict(
                 source_config_dict['bigQuery']
             ),
-            key_field_name=source_config_dict['keyFieldName']
+            key_field_name=source_config_dict['keyFieldNameFromInclude']
         )
 
     @staticmethod
