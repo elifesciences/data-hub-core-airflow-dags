@@ -203,7 +203,6 @@ def process_web_api_data_etl_batch(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
 
-    from_date_to_advance = initial_from_date
     LOGGER.info(
         "Running ETL from date %s, to date %s",
         datetime_to_string(
@@ -217,9 +216,9 @@ def process_web_api_data_etl_batch(
     )
     latest_record_timestamp = None
     current_url_compose_arg: Optional[UrlComposeParam] = UrlComposeParam(
-        from_date=from_date_to_advance or initial_from_date,
+        from_date=initial_from_date,
         to_date=get_next_until_date(
-            from_date=from_date_to_advance,
+            from_date=initial_from_date,
             data_config=data_config,
             fixed_until_date=until_date
         ),
