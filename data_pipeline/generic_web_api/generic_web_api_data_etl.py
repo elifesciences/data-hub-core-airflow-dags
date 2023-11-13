@@ -233,7 +233,7 @@ def process_web_api_data_etl_batch(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         while current_url_compose_arg:
-            LOGGER.debug('variable_until_date=%r', variable_until_date)
+            LOGGER.debug('current_url_compose_arg=%r', current_url_compose_arg)
             page_data = get_data_single_page(
                 data_config=data_config,
                 url_compose_arg=current_url_compose_arg
