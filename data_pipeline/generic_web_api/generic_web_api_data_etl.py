@@ -160,6 +160,7 @@ def get_next_url_compose_arg_for_page_data(
             all_source_values_iterator=all_source_values_iterator
         )
         if not next_source_values:
+            LOGGER.info('no more source values to process')
             return None
         return current_url_compose_arg._replace(
             source_values=next_source_values
@@ -228,6 +229,7 @@ def get_initial_url_compose_arg(
         all_source_values_iterator=all_source_values_iterator
     )
     if all_source_values_iterator and not initial_source_values:
+        LOGGER.info('no source values to process')
         return None
     return UrlComposeParam(
         from_date=initial_from_date,
