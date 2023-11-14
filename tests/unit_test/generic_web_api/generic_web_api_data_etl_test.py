@@ -514,6 +514,25 @@ class TestGetNextUrlComposeArgForPageData:
         assert next_url_compose_arg
         assert list(next_url_compose_arg.source_values) == ['value 3', 'value 4']
 
+    def test_should_return_none_if_there_are_no_more_source_values(self):
+        data_config = get_data_config_with_max_source_values_per_request(
+            get_data_config(WEB_API_CONFIG),
+            max_source_values_per_request=2
+        )
+        all_source_values_iterator = iter(['value 1', 'value 2'])
+        initial_url_compose_arg = UrlComposeParam(
+            cursor=None,
+            source_values=list(itertools.islice(all_source_values_iterator, 2))
+        )
+        next_url_compose_arg = get_next_url_compose_arg_for_page_data(
+            page_data={},
+            items_count=1,
+            current_url_compose_arg=initial_url_compose_arg,
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        assert next_url_compose_arg is None
+
 
 class TestGetInitialUrlComposeArg:
     def test_should_set_source_values_to_none_if_not_provided(self):
