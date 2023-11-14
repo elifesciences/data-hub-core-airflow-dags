@@ -134,10 +134,10 @@ def iter_optional_source_values_from_bigquery(
 def get_next_url_compose_arg_for_page_data(
     page_data: Any,
     items_count: int,
-    latest_record_timestamp: Optional[datetime],
-    fixed_until_date: Optional[datetime],
     current_url_compose_arg: UrlComposeParam,
-    data_config: WebApiConfig
+    data_config: WebApiConfig,
+    latest_record_timestamp: Optional[datetime] = None,
+    fixed_until_date: Optional[datetime] = None
 ) -> Optional[UrlComposeParam]:
     cursor = get_next_cursor_from_data(
         data=page_data,

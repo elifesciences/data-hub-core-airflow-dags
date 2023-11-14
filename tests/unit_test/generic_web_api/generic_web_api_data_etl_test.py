@@ -9,6 +9,7 @@ from data_pipeline.generic_web_api import (
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_data_single_page,
+    get_next_url_compose_arg_for_page_data,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -464,6 +465,22 @@ class TestGetDataSinglePage:
         url_builder.get_json.assert_called_with(
             url_compose_param=url_compose_arg
         )
+
+
+class TestGetNextUrlComposeArgForPageData:
+    def test_should_return_next_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
+        initial_url_compose_arg = UrlComposeParam(
+            cursor=None
+        )
+        next_url_compose_arg = get_next_url_compose_arg_for_page_data(
+            page_data={'next-cursor': 'cursor_2'},
+            items_count=10,
+            current_url_compose_arg=initial_url_compose_arg,
+            data_config=data_config
+        )
+        assert next_url_compose_arg
+        assert next_url_compose_arg.cursor == 'cursor_2'
 
 
 class TestGenericWebApiDataEtl:
