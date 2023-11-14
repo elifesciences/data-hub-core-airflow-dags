@@ -132,6 +132,19 @@ def iter_optional_source_values_from_bigquery(
     )
 
 
+def get_next_source_values_or_none(
+    data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> Optional[Iterable[dict]]:
+    if all_source_values_iterator is None:
+        return None
+    assert data_config.url_builder.max_source_values_per_request
+    return list(itertools.islice(
+        all_source_values_iterator,
+        data_config.url_builder.max_source_values_per_request
+    ))
+
+
 def get_next_url_compose_arg_for_page_data(
     page_data: Any,
     items_count: int,
@@ -141,15 +154,12 @@ def get_next_url_compose_arg_for_page_data(
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ) -> Optional[UrlComposeParam]:
-    if (
-        all_source_values_iterator is not None
-        and data_config.url_builder.max_source_values_per_request
-    ):
+    if all_source_values_iterator is not None:
         return current_url_compose_arg._replace(
-            source_values=list(itertools.islice(
-                all_source_values_iterator,
-                data_config.url_builder.max_source_values_per_request
-            ))
+            source_values=get_next_source_values_or_none(
+                data_config=data_config,
+                all_source_values_iterator=all_source_values_iterator
+            )
         )
     cursor = get_next_cursor_from_data(
         data=page_data,
@@ -220,16 +230,9 @@ def get_initial_url_compose_arg(
         cursor=None,
         page_number=1 if data_config.url_builder.page_number_param else None,
         page_offset=0 if data_config.url_builder.offset_param else None,
-        source_values=(
-            itertools.islice(
-                all_source_values_iterator,
-                data_config.url_builder.max_source_values_per_request
-            )
-            if (
-                all_source_values_iterator is not None
-                and data_config.url_builder.max_source_values_per_request
-            )
-            else None
+        source_values=get_next_source_values_or_none(
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
         )
     )
 
