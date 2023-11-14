@@ -1,7 +1,7 @@
 import dataclasses
 from datetime import datetime, timedelta
 import itertools
-from typing import Iterator, Sequence
+from typing import Iterator, Sequence, cast
 from unittest.mock import MagicMock, patch, ANY
 import pytest
 
@@ -136,16 +136,13 @@ DEP_ENV = 'test'
 
 
 def get_data_config(
-        conf_dict=None,
-        dep_env=DEP_ENV
-):
-    if conf_dict is None:
-        conf_dict = WEB_API_CONFIG
-    data_config = WebApiConfig.from_dict(
+    conf_dict: WebApiConfigDict,
+    dep_env: str = DEP_ENV
+) -> WebApiConfig:
+    return WebApiConfig.from_dict(
         conf_dict,
         deployment_env=dep_env
     )
-    return data_config
 
 
 def get_data_config_with_max_source_values_per_request(
@@ -289,7 +286,7 @@ class TestGetItemList:
 
 
 def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiConfig:
-    conf_dict: dict = {
+    conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
         **WEB_API_CONFIG,
         'response': {
             'nextPageCursorKeyFromResponseRoot': cursor_path
@@ -300,7 +297,7 @@ def _get_web_api_config_with_cursor_path(cursor_path: Sequence[str]) -> WebApiCo
                 'nextPageCursorParameterName': 'cursor'
             }
         }
-    }
+    })
     return get_data_config(conf_dict)
 
 
@@ -578,12 +575,12 @@ class TestGenericWebApiDataEtl:
         get_data_single_page_mock: MagicMock,
         upload_latest_timestamp_as_pipeline_state_mock: MagicMock
     ):
-        conf_dict: dict = {
-            ** WEB_API_CONFIG,
+        conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
+            **WEB_API_CONFIG,
             'response': {
                 'itemsKeyFromResponseRoot': ['rows']
             }
-        }
+        })
         data_config = get_data_config(conf_dict)
         get_data_single_page_mock.return_value = {'rows': []}
         generic_web_api_data_etl(data_config)
@@ -657,10 +654,10 @@ class TestGenericWebApiDataEtl:
         iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
-        conf_dict: dict = {
+        conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
             **WEB_API_CONFIG,
             'source': {'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}}
-        }
+        })
         data_config = get_data_config_with_max_source_values_per_request(
             get_data_config(conf_dict),
             max_source_values_per_request=2
