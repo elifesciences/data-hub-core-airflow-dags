@@ -17,6 +17,7 @@ webApi:
             FROM `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
             WHERE COALESCE(europepmc_response.title_with_markup, '') <> ''
               AND COALESCE(europepmc_response.abstractText, '') <> ''
+            ORDER BY europepmc_response.doi
             LIMIT 100
       exclude:
         bigQuery:
