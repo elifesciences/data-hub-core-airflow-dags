@@ -1,3 +1,4 @@
+import itertools
 import os
 import logging
 from datetime import datetime, timedelta
@@ -137,8 +138,19 @@ def get_next_url_compose_arg_for_page_data(
     current_url_compose_arg: UrlComposeParam,
     data_config: WebApiConfig,
     latest_record_timestamp: Optional[datetime] = None,
-    fixed_until_date: Optional[datetime] = None
+    fixed_until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
 ) -> Optional[UrlComposeParam]:
+    if (
+        all_source_values_iterator is not None
+        and data_config.url_builder.max_source_values_per_request
+    ):
+        return current_url_compose_arg._replace(
+            source_values=list(itertools.islice(
+                all_source_values_iterator,
+                data_config.url_builder.max_source_values_per_request
+            ))
+        )
     cursor = get_next_cursor_from_data(
         data=page_data,
         web_config=data_config,

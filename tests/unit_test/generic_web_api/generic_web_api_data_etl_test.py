@@ -1,5 +1,6 @@
 import dataclasses
 from datetime import datetime, timedelta
+import itertools
 from typing import Iterator, Sequence
 from unittest.mock import MagicMock, patch, ANY
 import pytest
@@ -481,6 +482,30 @@ class TestGetNextUrlComposeArgForPageData:
         )
         assert next_url_compose_arg
         assert next_url_compose_arg.cursor == 'cursor_2'
+
+    def test_should_return_next_source_values(self):
+        default_data_config = get_data_config(WEB_API_CONFIG)
+        data_config = dataclasses.replace(
+            default_data_config,
+            url_builder=dataclasses.replace(
+                default_data_config.url_builder,
+                max_source_values_per_request=2
+            )
+        )
+        all_source_values_iterator = iter(['value 1', 'value 2', 'value 3', 'value 4', 'value 5'])
+        initial_url_compose_arg = UrlComposeParam(
+            cursor=None,
+            source_values=list(itertools.islice(all_source_values_iterator, 2))
+        )
+        next_url_compose_arg = get_next_url_compose_arg_for_page_data(
+            page_data={},
+            items_count=1,
+            current_url_compose_arg=initial_url_compose_arg,
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        assert next_url_compose_arg
+        assert list(next_url_compose_arg.source_values) == ['value 3', 'value 4']
 
 
 class TestGenericWebApiDataEtl:
