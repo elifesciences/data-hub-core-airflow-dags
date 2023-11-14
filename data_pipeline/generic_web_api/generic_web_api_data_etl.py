@@ -79,7 +79,6 @@ def get_newline_delimited_json_string_as_json_list(json_string):
     ]
 
 
-# pylint: disable=fixme,too-many-arguments
 def get_data_single_page(
         data_config: WebApiConfig,
         url_compose_arg: UrlComposeParam
@@ -145,7 +144,7 @@ def get_next_source_values_or_none(
     ))
 
 
-def get_next_url_compose_arg_for_page_data(
+def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-arguments
     page_data: Any,
     items_count: int,
     current_url_compose_arg: UrlComposeParam,
@@ -456,7 +455,7 @@ def get_next_offset(
     return next_offset
 
 
-def get_next_start_date(
+def get_next_start_date(  # pylint: disable=too-many-arguments
         items_count,
         current_start_timestamp,
         latest_record_timestamp,
