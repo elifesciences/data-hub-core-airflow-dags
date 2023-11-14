@@ -53,7 +53,7 @@ def _requests_retry_session_mock(requests_session_mock: MagicMock) -> Iterator[M
 @pytest.fixture(name='mock_upload_s3_object')
 def _upload_s3_object():
     with patch.object(
-            generic_web_api_data_etl_module, 'upload_s3_object'
+        generic_web_api_data_etl_module, 'upload_s3_object'
     ) as mock:
         yield mock
 
@@ -61,7 +61,7 @@ def _upload_s3_object():
 @pytest.fixture(name='process_downloaded_data_mock')
 def _process_downloaded_data_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'process_downloaded_data'
+        generic_web_api_data_etl_module, 'process_downloaded_data'
     ) as mock:
         yield mock
 
@@ -81,7 +81,7 @@ def _get_start_timestamp_from_state_file_or_optional_default_value_mock():
 @pytest.fixture(name='get_data_single_page_mock', autouse=True)
 def _get_data_single_page_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'get_data_single_page'
+        generic_web_api_data_etl_module, 'get_data_single_page'
     ) as mock:
         yield mock
 
@@ -89,7 +89,7 @@ def _get_data_single_page_mock():
 @pytest.fixture(name='load_written_data_to_bq_mock', autouse=True)
 def _load_written_data_to_bq_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'load_written_data_to_bq'
+        generic_web_api_data_etl_module, 'load_written_data_to_bq'
     ) as mock:
         yield mock
 
@@ -97,7 +97,7 @@ def _load_written_data_to_bq_mock():
 @pytest.fixture(name='upload_latest_timestamp_as_pipeline_state_mock', autouse=True)
 def _upload_latest_timestamp_as_pipeline_state_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'upload_latest_timestamp_as_pipeline_state'
+        generic_web_api_data_etl_module, 'upload_latest_timestamp_as_pipeline_state'
     ) as mock:
         yield mock
 
@@ -105,7 +105,7 @@ def _upload_latest_timestamp_as_pipeline_state_mock():
 @pytest.fixture(name='get_items_list_mock')
 def _get_items_list_mock():
     with patch.object(
-            generic_web_api_data_etl_module, 'get_items_list'
+        generic_web_api_data_etl_module, 'get_items_list'
     ) as mock:
         yield mock
 
@@ -161,8 +161,8 @@ def get_data_config_with_max_source_values_per_request(
 class TestUploadLatestTimestampState:
 
     def test_should_write_latest_date_as_string_to_state_file(
-            self,
-            mock_upload_s3_object
+        self,
+        mock_upload_s3_object
     ):
         latest_timestamp_string = '2020-01-01 01:01:01+0100'
         latest_timestamp = datetime.strptime(
@@ -189,7 +189,7 @@ class TestUploadLatestTimestampState:
 class TestGetItemList:
 
     def test_should_return_all_data_when_data_is_a_list(
-            self
+        self
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = [['first'], ['second'], ['third']]
@@ -200,7 +200,7 @@ class TestGetItemList:
         assert actual_response == data
 
     def test_should_return_all_data_when_no_data_path_key(
-            self
+        self
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key_1': ['first', 'second', 'third']}
@@ -211,7 +211,7 @@ class TestGetItemList:
         assert actual_response == [data]
 
     def test_should_return_key_list_even_the_list_is_empty(
-            self
+        self
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         data = {'key_1': []}
@@ -222,7 +222,7 @@ class TestGetItemList:
         assert actual_response == [data]
 
     def test_should_get_data_when_path_keys_are_all_dict_keys_in_data(
-            self
+        self
     ):
         path_keys = ['data', 'values']
         conf_dict = {
@@ -242,7 +242,7 @@ class TestGetItemList:
         assert actual_response == expected_response
 
     def test_should_get_data_when_path_keys_has_keys_of_dict_in_list_of_dict(
-            self
+        self
     ):
         path_keys = ['data', 'values']
         conf_dict = {
@@ -369,7 +369,7 @@ class TestNextPage:
         )
 
     def test_should_increase_page_by_1_if_item_count_is_equal_to_page_size(
-            self
+        self
     ):
 
         conf_dict = {
@@ -420,7 +420,7 @@ class TestNextOffset:
         )
 
     def test_should_increase_offset_by_pg_size_if_item_count_equals_page_size(
-            self
+        self
     ):
         conf_dict = {
             **WEB_API_CONFIG,

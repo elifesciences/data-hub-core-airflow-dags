@@ -45,7 +45,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
-        data_config: WebApiConfig,
+    data_config: WebApiConfig
 ):
     try:
         stored_state = (
@@ -80,8 +80,8 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 
 
 def get_data_single_page(
-        data_config: WebApiConfig,
-        url_compose_arg: UrlComposeParam
+    data_config: WebApiConfig,
+    url_compose_arg: UrlComposeParam
 ) -> Any:
     url = data_config.url_builder.get_url(
         url_compose_arg
@@ -245,10 +245,10 @@ def get_initial_url_compose_arg(
 
 
 def process_web_api_data_etl_batch(
-        data_config: WebApiConfig,
-        initial_from_date: Optional[datetime] = None,
-        until_date: Optional[datetime] = None,
-        source_values: Optional[Iterable[dict]] = None
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    until_date: Optional[datetime] = None,
+    source_values: Optional[Iterable[dict]] = None
 ):
     assert not isinstance(source_values, list)
 
@@ -371,8 +371,8 @@ def generic_web_api_data_etl(
 
 
 def load_written_data_to_bq(
-        data_config: WebApiConfig,
-        full_temp_file_location: str
+    data_config: WebApiConfig,
+    full_temp_file_location: str
 ):
     if os.path.getsize(full_temp_file_location) > 0:
         create_or_extend_table_schema(
@@ -402,8 +402,8 @@ def get_next_until_date(
     if fixed_until_date:
         until_date = fixed_until_date
     elif (
-            from_date
-            and data_config.start_to_end_date_diff_in_days
+        from_date
+        and data_config.start_to_end_date_diff_in_days
     ):
         until_date = (
             from_date +
@@ -414,9 +414,9 @@ def get_next_until_date(
 
 
 def get_next_page_number(
-        items_count, current_page,
-        web_config: WebApiConfig,
-        reset_param: bool = False
+    items_count, current_page,
+    web_config: WebApiConfig,
+    reset_param: bool = False
 ):
     next_page = None
     if web_config.url_builder.page_number_param:
@@ -433,9 +433,9 @@ def get_next_page_number(
 
 
 def get_next_offset(
-        items_count, current_offset,
-        web_config: WebApiConfig,
-        reset_param: bool = False
+    items_count, current_offset,
+    web_config: WebApiConfig,
+    reset_param: bool = False
 ):
 
     next_offset = None
@@ -456,14 +456,13 @@ def get_next_offset(
 
 
 def get_next_start_date(  # pylint: disable=too-many-arguments
-        items_count,
-        current_start_timestamp,
-        latest_record_timestamp,
-        web_config: WebApiConfig,
-        cursor: Optional[str] = None,
-        page_number: Optional[int] = None,
-        offset: Optional[int] = None
-
+    items_count,
+    current_start_timestamp,
+    latest_record_timestamp,
+    web_config: WebApiConfig,
+    cursor: Optional[str] = None,
+    page_number: Optional[int] = None,
+    offset: Optional[int] = None
 ):
     # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
@@ -477,21 +476,21 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
     if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp
     elif (
-            current_start_timestamp == latest_record_timestamp
-            and not next_page_number and not next_offset
+        current_start_timestamp == latest_record_timestamp
+        and not next_page_number and not next_offset
     ):
         from_timestamp = None
     elif (
-            current_start_timestamp != latest_record_timestamp and
-            (
-                next_page_number or next_offset
-                or not (
-                    web_config.url_builder.offset_param
-                    or web_config.url_builder.page_number_param
-                )
-            ) and
-            web_config.item_timestamp_key_path_from_item_root and
-            items_count
+        current_start_timestamp != latest_record_timestamp and
+        (
+            next_page_number or next_offset
+            or not (
+                web_config.url_builder.offset_param
+                or web_config.url_builder.page_number_param
+            )
+        ) and
+        web_config.item_timestamp_key_path_from_item_root and
+        items_count
     ):
 
         from_timestamp = latest_record_timestamp
@@ -538,12 +537,12 @@ def get_items_list(page_data, web_config):
 
 
 def upload_latest_timestamp_as_pipeline_state(
-        data_config,
-        latest_record_timestamp: datetime
+    data_config,
+    latest_record_timestamp: datetime
 ):
     if (
-            data_config.state_file_object_name and
-            data_config.state_file_bucket_name
+        data_config.state_file_object_name and
+        data_config.state_file_bucket_name
     ):
         latest_record_date = datetime_to_string(
             get_tz_aware_datetime(latest_record_timestamp),
