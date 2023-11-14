@@ -243,6 +243,8 @@ def process_web_api_data_etl_batch(
         until_date: Optional[datetime] = None,
         source_values: Optional[Iterable[dict]] = None
 ):
+    assert not isinstance(source_values, list)
+
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
@@ -296,7 +298,8 @@ def process_web_api_data_etl_batch(
                 latest_record_timestamp=latest_record_timestamp,
                 fixed_until_date=until_date,
                 current_url_compose_arg=current_url_compose_arg,
-                data_config=data_config
+                data_config=data_config,
+                all_source_values_iterator=source_values
             )
 
         load_written_data_to_bq(
