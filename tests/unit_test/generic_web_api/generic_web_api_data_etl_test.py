@@ -226,7 +226,7 @@ class TestGetItemList:
     ):
         path_keys = ['data', 'values']
         conf_dict = {
-            ** WEB_API_CONFIG,
+            **WEB_API_CONFIG,
             'response': {
                 'itemsKeyFromResponseRoot': path_keys
             }
@@ -246,7 +246,7 @@ class TestGetItemList:
     ):
         path_keys = ['data', 'values']
         conf_dict = {
-            ** WEB_API_CONFIG,
+            **WEB_API_CONFIG,
             'response': {
                 'itemsKeyFromResponseRoot': path_keys
             }
@@ -273,7 +273,7 @@ class TestGetItemList:
     ):
         path_keys = ['data', 'values']
         conf_dict = {
-            ** WEB_API_CONFIG,
+            **WEB_API_CONFIG,
             'response': {
                 'itemsKeyFromResponseRoot': path_keys
             }
