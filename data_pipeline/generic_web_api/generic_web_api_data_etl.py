@@ -204,6 +204,26 @@ def get_next_url_compose_arg_for_page_data(
     )
 
 
+def get_initial_url_compose_arg(
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    fixed_until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> UrlComposeParam:
+    return UrlComposeParam(
+        from_date=initial_from_date,
+        to_date=get_next_until_date(
+            from_date=initial_from_date,
+            data_config=data_config,
+            fixed_until_date=fixed_until_date
+        ),
+        cursor=None,
+        page_number=1 if data_config.url_builder.page_number_param else None,
+        page_offset=0 if data_config.url_builder.offset_param else None,
+        source_values=all_source_values_iterator
+    )
+
+
 def process_web_api_data_etl_batch(
         data_config: WebApiConfig,
         initial_from_date: Optional[datetime] = None,
@@ -226,17 +246,11 @@ def process_web_api_data_etl_batch(
         )
     )
     latest_record_timestamp = None
-    current_url_compose_arg: Optional[UrlComposeParam] = UrlComposeParam(
-        from_date=initial_from_date,
-        to_date=get_next_until_date(
-            from_date=initial_from_date,
-            data_config=data_config,
-            fixed_until_date=until_date
-        ),
-        cursor=None,
-        page_number=1 if data_config.url_builder.page_number_param else None,
-        page_offset=0 if data_config.url_builder.offset_param else None,
-        source_values=source_values
+    current_url_compose_arg: Optional[UrlComposeParam] = get_initial_url_compose_arg(
+        data_config=data_config,
+        initial_from_date=initial_from_date,
+        fixed_until_date=until_date,
+        all_source_values_iterator=source_values
     )
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
