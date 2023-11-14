@@ -151,7 +151,7 @@ def get_data_config(
 def get_data_config_with_max_source_values_per_request(
     data_config: WebApiConfig,
     max_source_values_per_request: int
-):
+) -> WebApiConfig:
     return dataclasses.replace(
         data_config,
         url_builder=dataclasses.replace(
