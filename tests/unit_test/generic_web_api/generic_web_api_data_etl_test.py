@@ -148,6 +148,19 @@ def get_data_config(
     return data_config
 
 
+def get_data_config_with_max_source_values_per_request(
+    data_config: WebApiConfig,
+    max_source_values_per_request: int
+):
+    return dataclasses.replace(
+        data_config,
+        url_builder=dataclasses.replace(
+            data_config.url_builder,
+            max_source_values_per_request=max_source_values_per_request
+        )
+    )
+
+
 class TestUploadLatestTimestampState:
 
     def test_should_write_latest_date_as_string_to_state_file(
@@ -485,13 +498,9 @@ class TestGetNextUrlComposeArgForPageData:
         assert next_url_compose_arg.cursor == 'cursor_2'
 
     def test_should_return_next_source_values(self):
-        default_data_config = get_data_config(WEB_API_CONFIG)
-        data_config = dataclasses.replace(
-            default_data_config,
-            url_builder=dataclasses.replace(
-                default_data_config.url_builder,
-                max_source_values_per_request=2
-            )
+        data_config = get_data_config_with_max_source_values_per_request(
+            get_data_config(WEB_API_CONFIG),
+            max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2', 'value 3', 'value 4', 'value 5'])
         initial_url_compose_arg = UrlComposeParam(
@@ -518,13 +527,9 @@ class TestGetInitialUrlComposeArg:
         assert initial_url_compose_arg.source_values is None
 
     def test_should_take_initial_batch_of_source_values(self):
-        default_data_config = get_data_config(WEB_API_CONFIG)
-        data_config = dataclasses.replace(
-            default_data_config,
-            url_builder=dataclasses.replace(
-                default_data_config.url_builder,
-                max_source_values_per_request=2
-            )
+        data_config = get_data_config_with_max_source_values_per_request(
+            get_data_config(WEB_API_CONFIG),
+            max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2', 'value 3'])
         initial_url_compose_arg = get_initial_url_compose_arg(
@@ -656,13 +661,9 @@ class TestGenericWebApiDataEtl:
             **WEB_API_CONFIG,
             'source': {'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}}
         }
-        default_data_config = get_data_config(conf_dict)
-        data_config = dataclasses.replace(
-            default_data_config,
-            url_builder=dataclasses.replace(
-                default_data_config.url_builder,
-                max_source_values_per_request=2
-            )
+        data_config = get_data_config_with_max_source_values_per_request(
+            get_data_config(conf_dict),
+            max_source_values_per_request=2
         )
         iter_dict_for_bigquery_include_exclude_source_config_mock.return_value = iter(['value 1'])
 
