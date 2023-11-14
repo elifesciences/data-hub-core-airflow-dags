@@ -222,7 +222,13 @@ def get_initial_url_compose_arg(
     initial_from_date: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> UrlComposeParam:
+) -> Optional[UrlComposeParam]:
+    initial_source_values = get_next_source_values_or_none(
+        data_config=data_config,
+        all_source_values_iterator=all_source_values_iterator
+    )
+    if all_source_values_iterator and not initial_source_values:
+        return None
     return UrlComposeParam(
         from_date=initial_from_date,
         to_date=get_next_until_date(
@@ -233,10 +239,7 @@ def get_initial_url_compose_arg(
         cursor=None,
         page_number=1 if data_config.url_builder.page_number_param else None,
         page_offset=0 if data_config.url_builder.offset_param else None,
-        source_values=get_next_source_values_or_none(
-            data_config=data_config,
-            all_source_values_iterator=all_source_values_iterator
-        )
+        source_values=initial_source_values
     )
 
 
@@ -270,6 +273,9 @@ def process_web_api_data_etl_batch(
         fixed_until_date=until_date,
         all_source_values_iterator=source_values
     )
+    if not current_url_compose_arg:
+        LOGGER.info('not data to process')
+        return
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")

@@ -554,6 +554,18 @@ class TestGetInitialUrlComposeArg:
         )
         assert list(initial_url_compose_arg.source_values) == ['value 1', 'value 2']
 
+    def test_should_return_none_if_source_values_are_empty(self):
+        data_config = get_data_config_with_max_source_values_per_request(
+            get_data_config(WEB_API_CONFIG),
+            max_source_values_per_request=2
+        )
+        all_source_values_iterator = iter([])
+        initial_url_compose_arg = get_initial_url_compose_arg(
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        assert initial_url_compose_arg is None
+
 
 class TestGenericWebApiDataEtl:
     def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(
