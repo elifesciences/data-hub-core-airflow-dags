@@ -10,6 +10,7 @@ from data_pipeline.generic_web_api import (
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_data_single_page,
+    get_initial_url_compose_arg,
     get_next_url_compose_arg_for_page_data,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
@@ -508,6 +509,31 @@ class TestGetNextUrlComposeArgForPageData:
         assert list(next_url_compose_arg.source_values) == ['value 3', 'value 4']
 
 
+class TestGetInitialUrlComposeArg:
+    def test_should_set_source_values_to_none_if_not_provided(self):
+        initial_url_compose_arg = get_initial_url_compose_arg(
+            data_config=get_data_config(WEB_API_CONFIG),
+            all_source_values_iterator=None
+        )
+        assert initial_url_compose_arg.source_values is None
+
+    def test_should_take_initial_batch_of_source_values(self):
+        default_data_config = get_data_config(WEB_API_CONFIG)
+        data_config = dataclasses.replace(
+            default_data_config,
+            url_builder=dataclasses.replace(
+                default_data_config.url_builder,
+                max_source_values_per_request=2
+            )
+        )
+        all_source_values_iterator = iter(['value 1', 'value 2', 'value 3'])
+        initial_url_compose_arg = get_initial_url_compose_arg(
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        assert list(initial_url_compose_arg.source_values) == ['value 1', 'value 2']
+
+
 class TestGenericWebApiDataEtl:
     def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(
         self,
@@ -630,7 +656,14 @@ class TestGenericWebApiDataEtl:
             **WEB_API_CONFIG,
             'source': {'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}}
         }
-        data_config = get_data_config(conf_dict)
+        default_data_config = get_data_config(conf_dict)
+        data_config = dataclasses.replace(
+            default_data_config,
+            url_builder=dataclasses.replace(
+                default_data_config.url_builder,
+                max_source_values_per_request=2
+            )
+        )
         iter_dict_for_bigquery_include_exclude_source_config_mock.return_value = iter(['value 1'])
 
         generic_web_api_data_etl(data_config)

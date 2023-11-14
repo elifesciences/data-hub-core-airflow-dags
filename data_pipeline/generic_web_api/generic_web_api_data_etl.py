@@ -220,7 +220,17 @@ def get_initial_url_compose_arg(
         cursor=None,
         page_number=1 if data_config.url_builder.page_number_param else None,
         page_offset=0 if data_config.url_builder.offset_param else None,
-        source_values=all_source_values_iterator
+        source_values=(
+            itertools.islice(
+                all_source_values_iterator,
+                data_config.url_builder.max_source_values_per_request
+            )
+            if (
+                all_source_values_iterator is not None
+                and data_config.url_builder.max_source_values_per_request
+            )
+            else None
+        )
     )
 
 
