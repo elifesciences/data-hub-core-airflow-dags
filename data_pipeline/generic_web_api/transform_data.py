@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Iterable, List, Optional, Sequence
+from typing import Iterable, List, Optional, Sequence
 import dateparser
 
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
@@ -51,7 +51,7 @@ def extract_content_from_response(
 
 
 def process_record_in_list(
-        record_list,
+        record_list: Iterable[dict],
         provenance: Optional[dict] = None,
         bq_schema=None
 ) -> Iterable:
@@ -148,7 +148,7 @@ def filter_record_by_schema(record_object, record_object_schema):
 
 
 def iter_record_timestamp_from_record_list(
-    record_list: Iterable[Any],
+    record_list: Iterable[dict],
     item_timestamp_key_path_from_item_root: Sequence[str]
 ) -> Iterable[datetime]:
     if not item_timestamp_key_path_from_item_root:
@@ -175,7 +175,7 @@ def iter_record_timestamp_from_record_list(
 
 
 def get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
-    record_list: Iterable[Any],
+    record_list: Iterable[dict],
     previous_latest_timestamp: Optional[datetime],
     item_timestamp_key_path_from_item_root: Optional[Sequence[str]]
 ) -> Optional[datetime]:
@@ -198,7 +198,7 @@ def get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
 
 
 def get_latest_record_list_timestamp(
-    record_list: Iterable[Any],
+    record_list: Iterable[dict],
     previous_latest_timestamp: Optional[datetime],
     data_config: WebApiConfig
 ):
@@ -210,7 +210,7 @@ def get_latest_record_list_timestamp(
 
 
 def iter_processed_record_for_api_item_list_response(
-    record_list: list,
+    record_list: Iterable[dict],
     data_config: WebApiConfig,
     provenance: dict
 ) -> Iterable[dict]:
@@ -232,7 +232,7 @@ def get_web_api_provenance(
 
 
 def process_downloaded_data(
-        record_list: list,
+        record_list: Iterable[dict],
         data_config: WebApiConfig,
         data_etl_timestamp,
         file_location,
