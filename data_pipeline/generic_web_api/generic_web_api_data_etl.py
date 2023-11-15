@@ -81,13 +81,13 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 
 def get_data_single_page(
     data_config: WebApiConfig,
-    url_compose_arg: UrlComposeParam
+    url_compose_param: UrlComposeParam
 ) -> Any:
     url = data_config.url_builder.get_url(
-        url_compose_arg
+        url_compose_param
     )
     json_data = data_config.url_builder.get_json(
-        url_compose_param=url_compose_arg
+        url_compose_param=url_compose_param
     )
     LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
 
@@ -144,10 +144,10 @@ def get_next_source_values_or_none(
     ))
 
 
-def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-arguments
+def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-arguments
     page_data: Any,
     items_count: int,
-    current_url_compose_arg: UrlComposeParam,
+    current_url_compose_param: UrlComposeParam,
     data_config: WebApiConfig,
     latest_record_timestamp: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
@@ -155,11 +155,11 @@ def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-argument
 ) -> Optional[UrlComposeParam]:
     if all_source_values_iterator is not None:
         # Note: added assert for currently unsupported other parameters when using source values
-        assert not current_url_compose_arg.cursor
-        assert not current_url_compose_arg.page_number
-        assert not current_url_compose_arg.page_offset
-        assert not current_url_compose_arg.from_date
-        assert not current_url_compose_arg.to_date
+        assert not current_url_compose_param.cursor
+        assert not current_url_compose_param.page_number
+        assert not current_url_compose_param.page_offset
+        assert not current_url_compose_param.from_date
+        assert not current_url_compose_param.to_date
         next_source_values = get_next_source_values_or_none(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
@@ -167,35 +167,35 @@ def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-argument
         if not next_source_values:
             LOGGER.info('no more source values to process')
             return None
-        return current_url_compose_arg._replace(
+        return current_url_compose_param._replace(
             source_values=next_source_values
         )
     cursor = get_next_cursor_from_data(
         data=page_data,
         web_config=data_config,
-        previous_cursor=current_url_compose_arg.cursor
+        previous_cursor=current_url_compose_param.cursor
     )
 
     from_date_to_advance, to_reset_page_or_offset_param = (
         get_next_start_date(
             items_count=items_count,
-            current_start_timestamp=current_url_compose_arg.from_date,
+            current_start_timestamp=current_url_compose_param.from_date,
             latest_record_timestamp=latest_record_timestamp,
             web_config=data_config,
             cursor=cursor,
-            page_number=current_url_compose_arg.page_number,
-            offset=current_url_compose_arg.page_offset
+            page_number=current_url_compose_param.page_number,
+            offset=current_url_compose_param.page_offset
         )
     )
     page_number = get_next_page_number(
         items_count=items_count,
-        current_page=current_url_compose_arg.page_number,
+        current_page=current_url_compose_param.page_number,
         web_config=data_config,
         reset_param=to_reset_page_or_offset_param
     )
     offset = get_next_offset(
         items_count=items_count,
-        current_offset=current_url_compose_arg.page_offset,
+        current_offset=current_url_compose_param.page_offset,
         web_config=data_config,
         reset_param=to_reset_page_or_offset_param
     )
@@ -214,16 +214,16 @@ def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-argument
     ):
         return None
     return UrlComposeParam(
-        from_date=from_date_to_advance or current_url_compose_arg.from_date,
+        from_date=from_date_to_advance or current_url_compose_param.from_date,
         to_date=variable_until_date,
         cursor=cursor,
         page_number=page_number,
         page_offset=offset,
-        source_values=current_url_compose_arg.source_values
+        source_values=current_url_compose_param.source_values
     )
 
 
-def get_initial_url_compose_arg(
+def get_initial_url_compose_param(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
@@ -274,24 +274,24 @@ def process_web_api_data_etl_batch(
         )
     )
     latest_record_timestamp = None
-    current_url_compose_arg: Optional[UrlComposeParam] = get_initial_url_compose_arg(
+    current_url_compose_param: Optional[UrlComposeParam] = get_initial_url_compose_param(
         data_config=data_config,
         initial_from_date=initial_from_date,
         fixed_until_date=until_date,
         all_source_values_iterator=all_source_values_iterator
     )
-    if not current_url_compose_arg:
+    if not current_url_compose_param:
         LOGGER.info('not data to process')
         return
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
-        while current_url_compose_arg:
-            LOGGER.debug('current_url_compose_arg=%r', current_url_compose_arg)
+        while current_url_compose_param:
+            LOGGER.debug('current_url_compose_param=%r', current_url_compose_param)
             page_data = get_data_single_page(
                 data_config=data_config,
-                url_compose_arg=current_url_compose_arg
+                url_compose_param=current_url_compose_param
             )
             LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(
@@ -308,12 +308,12 @@ def process_web_api_data_etl_batch(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
-            current_url_compose_arg = get_next_url_compose_arg_for_page_data(
+            current_url_compose_param = get_next_url_compose_param_for_page_data(
                 page_data=page_data,
                 items_count=items_count,
                 latest_record_timestamp=latest_record_timestamp,
                 fixed_until_date=until_date,
-                current_url_compose_arg=current_url_compose_arg,
+                current_url_compose_param=current_url_compose_param,
                 data_config=data_config,
                 all_source_values_iterator=all_source_values_iterator
             )
