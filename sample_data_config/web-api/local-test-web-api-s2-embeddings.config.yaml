@@ -15,10 +15,10 @@ webApi:
               europepmc_response.title_with_markup AS title,
               europepmc_response.abstractText AS abstract,
             FROM `elife-data-pipeline.prod.v_latest_europepmc_preprint_servers_response` AS europepmc_response
-            WHERE europepmc_response.doi IN (
-              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
-              '10.1101/2022.09.28.509871'
-            )
+            WHERE COALESCE(europepmc_response.title_with_markup, '') <> ''
+              AND COALESCE(europepmc_response.abstractText, '') <> ''
+            ORDER BY europepmc_response.doi
+            LIMIT 100
       exclude:
         bigQuery:
           ignoreNotFound: true

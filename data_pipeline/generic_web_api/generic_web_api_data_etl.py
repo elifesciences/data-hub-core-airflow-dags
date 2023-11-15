@@ -1,3 +1,4 @@
+import itertools
 import os
 import logging
 from datetime import datetime, timedelta
@@ -44,7 +45,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
-        data_config: WebApiConfig,
+    data_config: WebApiConfig
 ):
     try:
         stored_state = (
@@ -78,27 +79,16 @@ def get_newline_delimited_json_string_as_json_list(json_string):
     ]
 
 
-# pylint: disable=fixme,too-many-arguments
 def get_data_single_page(
-        data_config: WebApiConfig,
-        cursor: Optional[str] = None,
-        from_date: Optional[datetime] = None,
-        until_date: Optional[datetime] = None,
-        page_number: Optional[int] = None,
-        page_offset: Optional[int] = None,
-        source_values: Optional[Iterable[dict]] = None
+    data_config: WebApiConfig,
+    url_compose_param: UrlComposeParam
 ) -> Any:
-    url_compose_arg = UrlComposeParam(
-        from_date=from_date,
-        to_date=until_date,
-        page_offset=page_offset,
-        cursor=cursor,
-        page_number=page_number
-    )
     url = data_config.url_builder.get_url(
-        url_compose_arg
+        url_compose_param
     )
-    json_data = data_config.url_builder.get_json(source_values=source_values)
+    json_data = data_config.url_builder.get_json(
+        url_compose_param=url_compose_param
+    )
     LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
 
     with requests_retry_session() as session:
@@ -141,18 +131,137 @@ def iter_optional_source_values_from_bigquery(
     )
 
 
-# pylint: disable=too-many-locals
+def get_next_source_values_or_none(
+    data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> Optional[Iterable[dict]]:
+    if all_source_values_iterator is None:
+        return None
+    assert data_config.url_builder.max_source_values_per_request
+    return list(itertools.islice(
+        all_source_values_iterator,
+        data_config.url_builder.max_source_values_per_request
+    ))
+
+
+def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-arguments
+    page_data: Any,
+    items_count: int,
+    current_url_compose_param: UrlComposeParam,
+    data_config: WebApiConfig,
+    latest_record_timestamp: Optional[datetime] = None,
+    fixed_until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> Optional[UrlComposeParam]:
+    if all_source_values_iterator is not None:
+        # Note: added assert for currently unsupported other parameters when using source values
+        assert not current_url_compose_param.cursor
+        assert not current_url_compose_param.page_number
+        assert not current_url_compose_param.page_offset
+        assert not current_url_compose_param.from_date
+        assert not current_url_compose_param.to_date
+        next_source_values = get_next_source_values_or_none(
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        if not next_source_values:
+            LOGGER.info('no more source values to process')
+            return None
+        return current_url_compose_param._replace(
+            source_values=next_source_values
+        )
+    cursor = get_next_cursor_from_data(
+        data=page_data,
+        web_config=data_config,
+        previous_cursor=current_url_compose_param.cursor
+    )
+
+    from_date_to_advance, to_reset_page_or_offset_param = (
+        get_next_start_date(
+            items_count=items_count,
+            current_start_timestamp=current_url_compose_param.from_date,
+            latest_record_timestamp=latest_record_timestamp,
+            web_config=data_config,
+            cursor=cursor,
+            page_number=current_url_compose_param.page_number,
+            offset=current_url_compose_param.page_offset
+        )
+    )
+    page_number = get_next_page_number(
+        items_count=items_count,
+        current_page=current_url_compose_param.page_number,
+        web_config=data_config,
+        reset_param=to_reset_page_or_offset_param
+    )
+    offset = get_next_offset(
+        items_count=items_count,
+        current_offset=current_url_compose_param.page_offset,
+        web_config=data_config,
+        reset_param=to_reset_page_or_offset_param
+    )
+
+    variable_until_date = get_next_until_date(
+        from_date=from_date_to_advance,
+        data_config=data_config,
+        fixed_until_date=fixed_until_date
+    )
+
+    if (
+        cursor is None
+        and page_number is None
+        and from_date_to_advance is None
+        and offset is None
+    ):
+        return None
+    return UrlComposeParam(
+        from_date=from_date_to_advance or current_url_compose_param.from_date,
+        to_date=variable_until_date,
+        cursor=cursor,
+        page_number=page_number,
+        page_offset=offset,
+        source_values=current_url_compose_param.source_values
+    )
+
+
+def get_initial_url_compose_param(
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    fixed_until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> Optional[UrlComposeParam]:
+    initial_source_values = get_next_source_values_or_none(
+        data_config=data_config,
+        all_source_values_iterator=all_source_values_iterator
+    )
+    if all_source_values_iterator and not initial_source_values:
+        LOGGER.info('no source values to process')
+        return None
+    return UrlComposeParam(
+        from_date=initial_from_date,
+        to_date=get_next_until_date(
+            from_date=initial_from_date,
+            data_config=data_config,
+            fixed_until_date=fixed_until_date
+        ),
+        cursor=None,
+        page_number=1 if data_config.url_builder.page_number_param else None,
+        page_offset=0 if data_config.url_builder.offset_param else None,
+        source_values=initial_source_values
+    )
+
+
 def process_web_api_data_etl_batch(
-        data_config: WebApiConfig,
-        initial_from_date: Optional[datetime] = None,
-        until_date: Optional[datetime] = None,
-        source_values: Optional[Iterable[dict]] = None
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
+    assert not isinstance(all_source_values_iterator, list)
+
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
     )
 
-    from_date_to_advance = initial_from_date
     LOGGER.info(
         "Running ETL from date %s, to date %s",
         datetime_to_string(
@@ -164,27 +273,25 @@ def process_web_api_data_etl_batch(
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
     )
-    cursor = None
     latest_record_timestamp = None
-    variable_until_date = get_next_until_date(
-        from_date_to_advance, data_config, until_date
+    current_url_compose_param: Optional[UrlComposeParam] = get_initial_url_compose_param(
+        data_config=data_config,
+        initial_from_date=initial_from_date,
+        fixed_until_date=until_date,
+        all_source_values_iterator=all_source_values_iterator
     )
-    offset = 0 if data_config.url_builder.offset_param else None
-    page_number = 1 if data_config.url_builder.page_number_param else None
+    if not current_url_compose_param:
+        LOGGER.info('not data to process')
+        return
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
-        while True:
-            LOGGER.debug('variable_until_date=%r', variable_until_date)
+        while current_url_compose_param:
+            LOGGER.debug('current_url_compose_param=%r', current_url_compose_param)
             page_data = get_data_single_page(
                 data_config=data_config,
-                from_date=from_date_to_advance or initial_from_date,
-                until_date=variable_until_date,
-                cursor=cursor,
-                page_number=page_number,
-                page_offset=offset,
-                source_values=source_values
+                url_compose_param=current_url_compose_param
             )
             LOGGER.debug('page_data: %r', page_data)
             items_list = get_items_list(
@@ -201,41 +308,25 @@ def process_web_api_data_etl_batch(
                 prev_page_latest_timestamp=latest_record_timestamp
             )
             items_count = len(items_list)
-            cursor = get_next_cursor_from_data(
-                page_data, data_config, previous_cursor=cursor
+            current_url_compose_param = get_next_url_compose_param_for_page_data(
+                page_data=page_data,
+                items_count=items_count,
+                latest_record_timestamp=latest_record_timestamp,
+                fixed_until_date=until_date,
+                current_url_compose_param=current_url_compose_param,
+                data_config=data_config,
+                all_source_values_iterator=all_source_values_iterator
             )
 
-            from_date_to_advance, to_reset_page_or_offset_param = (
-                get_next_start_date(
-                    items_count, from_date_to_advance,
-                    latest_record_timestamp, data_config,
-                    cursor, page_number, offset
-                )
-            )
-            page_number = get_next_page_number(
-                items_count, page_number,
-                data_config, to_reset_page_or_offset_param
-            )
-            offset = get_next_offset(
-                items_count, offset, data_config,
-                to_reset_page_or_offset_param
-            )
-
-            variable_until_date = get_next_until_date(
-                from_date_to_advance, data_config, until_date
-            )
-
-            if (
-                    cursor is None and page_number is None and
-                    from_date_to_advance is None and offset is None
-            ):
-                break
-
-        load_written_data_to_bq(data_config, full_temp_file_location)
+        load_written_data_to_bq(
+            data_config=data_config,
+            full_temp_file_location=full_temp_file_location
+        )
         if latest_record_timestamp:
             LOGGER.info('updating state to: %r', latest_record_timestamp)
             upload_latest_timestamp_as_pipeline_state(
-                data_config, latest_record_timestamp
+                data_config=data_config,
+                latest_record_timestamp=latest_record_timestamp
             )
         else:
             LOGGER.info('not updating state due to no latest record timestamp')
@@ -260,7 +351,7 @@ def generic_web_api_data_etl(
     if not end_timestamp and current_from_timestamp:
         end_timestamp = get_current_timestamp()
     LOGGER.info('end_timestamp: %r', end_timestamp)
-    source_values = iter_optional_source_values_from_bigquery(data_config)
+    all_source_values_iterator = iter_optional_source_values_from_bigquery(data_config)
     while True:
         next_from_timestamp = get_next_batch_from_timestamp_for_config(
             data_config=data_config,
@@ -270,7 +361,7 @@ def generic_web_api_data_etl(
             data_config=data_config,
             initial_from_date=current_from_timestamp,
             until_date=next_from_timestamp,
-            source_values=source_values
+            all_source_values_iterator=all_source_values_iterator
         )
         if (
             not next_from_timestamp
@@ -286,8 +377,8 @@ def generic_web_api_data_etl(
 
 
 def load_written_data_to_bq(
-        data_config: WebApiConfig,
-        full_temp_file_location: str
+    data_config: WebApiConfig,
+    full_temp_file_location: str
 ):
     if os.path.getsize(full_temp_file_location) > 0:
         create_or_extend_table_schema(
@@ -317,8 +408,8 @@ def get_next_until_date(
     if fixed_until_date:
         until_date = fixed_until_date
     elif (
-            from_date
-            and data_config.start_to_end_date_diff_in_days
+        from_date
+        and data_config.start_to_end_date_diff_in_days
     ):
         until_date = (
             from_date +
@@ -329,9 +420,9 @@ def get_next_until_date(
 
 
 def get_next_page_number(
-        items_count, current_page,
-        web_config: WebApiConfig,
-        reset_param: bool = False
+    items_count, current_page,
+    web_config: WebApiConfig,
+    reset_param: bool = False
 ):
     next_page = None
     if web_config.url_builder.page_number_param:
@@ -348,9 +439,9 @@ def get_next_page_number(
 
 
 def get_next_offset(
-        items_count, current_offset,
-        web_config: WebApiConfig,
-        reset_param: bool = False
+    items_count, current_offset,
+    web_config: WebApiConfig,
+    reset_param: bool = False
 ):
 
     next_offset = None
@@ -370,15 +461,14 @@ def get_next_offset(
     return next_offset
 
 
-def get_next_start_date(
-        items_count,
-        current_start_timestamp,
-        latest_record_timestamp,
-        web_config: WebApiConfig,
-        cursor: Optional[str] = None,
-        page_number: Optional[int] = None,
-        offset: Optional[int] = None
-
+def get_next_start_date(  # pylint: disable=too-many-arguments
+    items_count,
+    current_start_timestamp,
+    latest_record_timestamp,
+    web_config: WebApiConfig,
+    cursor: Optional[str] = None,
+    page_number: Optional[int] = None,
+    offset: Optional[int] = None
 ):
     # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
@@ -392,21 +482,21 @@ def get_next_start_date(
     if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp
     elif (
-            current_start_timestamp == latest_record_timestamp
-            and not next_page_number and not next_offset
+        current_start_timestamp == latest_record_timestamp
+        and not next_page_number and not next_offset
     ):
         from_timestamp = None
     elif (
-            current_start_timestamp != latest_record_timestamp and
-            (
-                next_page_number or next_offset
-                or not (
-                    web_config.url_builder.offset_param
-                    or web_config.url_builder.page_number_param
-                )
-            ) and
-            web_config.item_timestamp_key_path_from_item_root and
-            items_count
+        current_start_timestamp != latest_record_timestamp and
+        (
+            next_page_number or next_offset
+            or not (
+                web_config.url_builder.offset_param
+                or web_config.url_builder.page_number_param
+            )
+        ) and
+        web_config.item_timestamp_key_path_from_item_root and
+        items_count
     ):
 
         from_timestamp = latest_record_timestamp
@@ -453,12 +543,12 @@ def get_items_list(page_data, web_config):
 
 
 def upload_latest_timestamp_as_pipeline_state(
-        data_config,
-        latest_record_timestamp: datetime
+    data_config,
+    latest_record_timestamp: datetime
 ):
     if (
-            data_config.state_file_object_name and
-            data_config.state_file_bucket_name
+        data_config.state_file_object_name and
+        data_config.state_file_bucket_name
     ):
         latest_record_date = datetime_to_string(
             get_tz_aware_datetime(latest_record_timestamp),
