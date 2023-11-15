@@ -154,6 +154,12 @@ def get_next_url_compose_arg_for_page_data(  # pylint: disable=too-many-argument
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ) -> Optional[UrlComposeParam]:
     if all_source_values_iterator is not None:
+        # Note: added assert for currently unsupported other parameters when using source values
+        assert not current_url_compose_arg.cursor
+        assert not current_url_compose_arg.page_number
+        assert not current_url_compose_arg.page_offset
+        assert not current_url_compose_arg.from_date
+        assert not current_url_compose_arg.to_date
         next_source_values = get_next_source_values_or_none(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator

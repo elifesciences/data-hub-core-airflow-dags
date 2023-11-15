@@ -683,8 +683,10 @@ class TestGenericWebApiDataEtl:
     def test_should_load_source_values_from_bigquery_and_pass_to_get_data_single_page(
         self,
         iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock,
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
         get_data_single_page_mock: MagicMock
     ):
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = None
         conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
             **WEB_API_CONFIG,
             'source': {'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}}
