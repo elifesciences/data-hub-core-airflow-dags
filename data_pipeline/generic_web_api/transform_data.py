@@ -209,6 +209,19 @@ def get_latest_record_list_timestamp(
     )
 
 
+def iter_processed_record_for_api_item_list_response(
+    record_list: list,
+    data_config: WebApiConfig,
+    provenance: dict
+) -> Iterable[dict]:
+    bq_schema = get_bq_schema(data_config)
+    return process_record_in_list(
+        record_list=record_list,
+        bq_schema=bq_schema,
+        provenance=provenance
+    )
+
+
 def process_downloaded_data(
         record_list: list,
         data_config: WebApiConfig,
@@ -220,9 +233,9 @@ def process_downloaded_data(
         data_config.import_timestamp_field_name:
             data_etl_timestamp
     }
-    bq_schema = get_bq_schema(data_config)
-    processed_record_list = process_record_in_list(
-        record_list=record_list, bq_schema=bq_schema,
+    processed_record_list = iter_processed_record_for_api_item_list_response(
+        record_list=record_list,
+        data_config=data_config,
         provenance=provenance
     )
     processed_record_list = iter_write_jsonl_to_file(
