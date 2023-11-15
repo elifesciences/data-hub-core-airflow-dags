@@ -13,7 +13,6 @@ from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     convert_bq_schema_field_list_to_dict,
     standardize_field_name,
 )
-from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
@@ -229,30 +228,6 @@ def get_web_api_provenance(
     return {
         data_config.import_timestamp_field_name: data_etl_timestamp
     }
-
-
-def process_downloaded_data(
-        record_list: Iterable[dict],
-        data_config: WebApiConfig,
-        data_etl_timestamp,
-        file_location,
-        prev_page_latest_timestamp: Optional[datetime] = None
-):
-    processed_record_list = iter_processed_record_for_api_item_list_response(
-        record_list=record_list,
-        data_config=data_config,
-        provenance=get_web_api_provenance(
-            data_config=data_config,
-            data_etl_timestamp=data_etl_timestamp
-        )
-    )
-    processed_record_list = iter_write_jsonl_to_file(
-        processed_record_list, file_location
-    )
-    current_page_latest_timestamp = get_latest_record_list_timestamp(
-        processed_record_list, prev_page_latest_timestamp, data_config
-    )
-    return current_page_latest_timestamp
 
 
 def get_bq_schema(data_config: WebApiConfig,):

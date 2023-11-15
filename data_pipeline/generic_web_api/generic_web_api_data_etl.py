@@ -11,7 +11,9 @@ from typing import Any, Iterable, Optional, Tuple, cast
 from botocore.exceptions import ClientError
 
 from data_pipeline.generic_web_api.transform_data import (
-    process_downloaded_data,
+    get_latest_record_list_timestamp,
+    get_web_api_provenance,
+    iter_processed_record_for_api_item_list_response,
     get_dict_values_from_path_as_list
 )
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
@@ -24,6 +26,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     create_or_extend_table_schema
 )
 from data_pipeline.utils.json import remove_key_with_null_value
+from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
 from data_pipeline.utils.web_api import requests_retry_session
 
@@ -300,13 +303,24 @@ def process_web_api_data_etl_batch(
             LOGGER.debug('items_list: %r', items_list)
             items_list = remove_key_with_null_value(items_list)
             LOGGER.debug('items_list after removed null values: %r', items_list)
-            latest_record_timestamp = process_downloaded_data(
-                data_config=data_config,
+            processed_record_list = iter_processed_record_for_api_item_list_response(
                 record_list=items_list,
-                data_etl_timestamp=imported_timestamp,
-                file_location=full_temp_file_location,
-                prev_page_latest_timestamp=latest_record_timestamp
+                data_config=data_config,
+                provenance=get_web_api_provenance(
+                    data_config=data_config,
+                    data_etl_timestamp=imported_timestamp
+                )
             )
+            processed_record_list = iter_write_jsonl_to_file(
+                processed_record_list,
+                full_temp_file_location=full_temp_file_location
+            )
+            latest_record_timestamp = get_latest_record_list_timestamp(
+                processed_record_list,
+                previous_latest_timestamp=latest_record_timestamp,
+                data_config=data_config
+            )
+            LOGGER.debug('latest_record_timestamp: %r', latest_record_timestamp)
             items_count = len(items_list)
             current_url_compose_param = get_next_url_compose_param_for_page_data(
                 page_data=page_data,
