@@ -222,6 +222,15 @@ def iter_processed_record_for_api_item_list_response(
     )
 
 
+def get_web_api_provenance(
+    data_config: WebApiConfig,
+    data_etl_timestamp: datetime
+) -> dict:
+    return {
+        data_config.import_timestamp_field_name: data_etl_timestamp
+    }
+
+
 def process_downloaded_data(
         record_list: list,
         data_config: WebApiConfig,
@@ -229,14 +238,13 @@ def process_downloaded_data(
         file_location,
         prev_page_latest_timestamp: Optional[datetime] = None
 ):
-    provenance = {
-        data_config.import_timestamp_field_name:
-            data_etl_timestamp
-    }
     processed_record_list = iter_processed_record_for_api_item_list_response(
         record_list=record_list,
         data_config=data_config,
-        provenance=provenance
+        provenance=get_web_api_provenance(
+            data_config=data_config,
+            data_etl_timestamp=data_etl_timestamp
+        )
     )
     processed_record_list = iter_write_jsonl_to_file(
         processed_record_list, file_location
