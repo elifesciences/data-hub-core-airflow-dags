@@ -248,9 +248,9 @@ def process_web_api_data_etl_batch(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
-    source_values: Optional[Iterable[dict]] = None
+    all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
-    assert not isinstance(source_values, list)
+    assert not isinstance(all_source_values_iterator, list)
 
     imported_timestamp = get_current_timestamp_as_string(
         ModuleConstant.DATA_IMPORT_TIMESTAMP_FORMAT
@@ -272,7 +272,7 @@ def process_web_api_data_etl_batch(
         data_config=data_config,
         initial_from_date=initial_from_date,
         fixed_until_date=until_date,
-        all_source_values_iterator=source_values
+        all_source_values_iterator=all_source_values_iterator
     )
     if not current_url_compose_arg:
         LOGGER.info('not data to process')
@@ -309,7 +309,7 @@ def process_web_api_data_etl_batch(
                 fixed_until_date=until_date,
                 current_url_compose_arg=current_url_compose_arg,
                 data_config=data_config,
-                all_source_values_iterator=source_values
+                all_source_values_iterator=all_source_values_iterator
             )
 
         load_written_data_to_bq(
@@ -345,7 +345,7 @@ def generic_web_api_data_etl(
     if not end_timestamp and current_from_timestamp:
         end_timestamp = get_current_timestamp()
     LOGGER.info('end_timestamp: %r', end_timestamp)
-    source_values = iter_optional_source_values_from_bigquery(data_config)
+    all_source_values_iterator = iter_optional_source_values_from_bigquery(data_config)
     while True:
         next_from_timestamp = get_next_batch_from_timestamp_for_config(
             data_config=data_config,
@@ -355,7 +355,7 @@ def generic_web_api_data_etl(
             data_config=data_config,
             initial_from_date=current_from_timestamp,
             until_date=next_from_timestamp,
-            source_values=source_values
+            all_source_values_iterator=all_source_values_iterator
         )
         if (
             not next_from_timestamp
