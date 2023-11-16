@@ -87,6 +87,7 @@ class WebApiConfig:
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     authentication: Optional[WebApiAuthentication] = None
     source: Optional[BigQueryIncludeExcludeSourceConfig] = None
+    batch_size: Optional[int] = None
 
     @staticmethod
     def from_dict(
@@ -238,7 +239,8 @@ class WebApiConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             authentication=authentication,
-            source=BigQueryIncludeExcludeSourceConfig.from_optional_dict(api_config.get('source'))
+            source=BigQueryIncludeExcludeSourceConfig.from_optional_dict(api_config.get('source')),
+            batch_size=api_config.get('batchSize')
         )
 
     def _replace(self, **kwargs) -> 'WebApiConfig':
