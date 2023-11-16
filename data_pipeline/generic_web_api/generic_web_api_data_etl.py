@@ -3,7 +3,6 @@ import os
 import logging
 from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
-from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
 from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
@@ -364,9 +363,7 @@ def process_web_api_data_etl_batch(
     ):
         LOGGER.debug('processed_record_list: %r', batch_processed_record_iterable)
         with TemporaryDirectory() as tmp_dir:
-            full_temp_file_location = str(
-                Path(tmp_dir, "downloaded_jsonl_data.jsonl")
-            )
+            full_temp_file_location = os.path.join(tmp_dir, 'downloaded_jsonl_data.jsonl')
             batch_processed_record_iterable = iter_write_jsonl_to_file(
                 batch_processed_record_iterable,
                 full_temp_file_location=full_temp_file_location
