@@ -225,12 +225,12 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
 
 
 def get_web_api_request_builder_class(
-    url_source_type: str = ''
+    request_builder_name: str = ''
 ) -> Type[WebApiDynamicRequestBuilder]:
-    if url_source_type.strip().lower() == 'civi':
+    if request_builder_name.strip().lower() == 'civi':
         return CiviWebApiDynamicRequestBuilder
-    if url_source_type == 'biorxiv_medrxiv_api':
+    if request_builder_name == 'biorxiv_medrxiv_api':
         return BioRxivWebApiDynamicRequestBuilder
-    if url_source_type == 's2_title_abstract_embeddings_api':
+    if request_builder_name == 's2_title_abstract_embeddings_api':
         return S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
     return WebApiDynamicRequestBuilder
