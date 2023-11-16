@@ -80,6 +80,7 @@ class WebApiBaseConfigDict(TypedDict):
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]
     stateFile: NotRequired[StateFileConfigDict]
+    batchSize: NotRequired[int]
 
 
 class WebApiGlobalConfigDict(TypedDict):

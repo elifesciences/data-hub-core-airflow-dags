@@ -99,3 +99,14 @@ class TestWebApiConfig:
                 BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1
             )
         )
+
+    def test_should_set_batch_size_to_none_by_default(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.batch_size is None
+
+    def test_should_read_batch_size(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'batchSize': 123
+        })
+        assert web_api_config.batch_size == 123

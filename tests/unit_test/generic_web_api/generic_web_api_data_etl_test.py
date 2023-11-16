@@ -1,8 +1,10 @@
 import dataclasses
 from datetime import datetime, timedelta
+import functools
 import itertools
-from typing import Iterator, Sequence, cast
-from unittest.mock import MagicMock, patch, ANY
+import logging
+from typing import Iterator, List, Sequence, cast
+from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api import (
@@ -25,6 +27,10 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
 from data_pipeline.generic_web_api.url_builder import UrlComposeParam
+from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -58,11 +64,39 @@ def _upload_s3_object():
         yield mock
 
 
-@pytest.fixture(name='process_downloaded_data_mock')
-def _process_downloaded_data_mock():
+@pytest.fixture(name='iter_processed_record_for_api_item_list_response_mock')
+def _iter_processed_record_for_api_item_list_response_mock():
     with patch.object(
-        generic_web_api_data_etl_module, 'process_downloaded_data'
+        generic_web_api_data_etl_module, 'iter_processed_record_for_api_item_list_response'
     ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='iter_write_jsonl_to_file_mock_json_lists')
+def _iter_write_jsonl_to_file_mock_json_lists() -> List[List[dict]]:
+    return []
+
+
+def _iter_write_jsonl_to_file_side_effect(*args, json_lists: List[List[dict]], **kwargs):
+    # capture passed in json_lists while replicating behaviour of iter_write_jsonl_to_file
+    # this is a bit more difficult because the passed in iterable will be consumed
+    json_lists.append([])
+    for record in iter_write_jsonl_to_file(*args, **kwargs):
+        json_lists[-1].append(record)
+        yield record
+
+
+@pytest.fixture(name='iter_write_jsonl_to_file_mock')
+def _iter_write_jsonl_to_file_mock(
+    iter_write_jsonl_to_file_mock_json_lists: List[List[dict]]
+) -> Iterator[MagicMock]:
+    with patch.object(
+        generic_web_api_data_etl_module, 'iter_write_jsonl_to_file'
+    ) as mock:
+        mock.side_effect = functools.partial(
+            _iter_write_jsonl_to_file_side_effect,
+            json_lists=iter_write_jsonl_to_file_mock_json_lists
+        )
         yield mock
 
 
@@ -132,6 +166,16 @@ WEB_API_CONFIG: WebApiConfigDict = {
             'urlExcludingConfigurableParameters'
     }
 }
+
+WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
+    **WEB_API_CONFIG,
+    'response': {
+        'recordTimestamp': {
+            'itemTimestampKeyFromItemRoot': ['timestamp']
+        }
+    }
+})
+
 DEP_ENV = 'test'
 
 
@@ -568,37 +612,58 @@ class TestGetInitialUrlComposeArg:
 
 
 class TestGenericWebApiDataEtl:
-    def test_should_pass_null_value_removed_item_list_to_process_downloaded_data(
+    def test_should_pass_null_value_removed_item_list_to_iter_processed_record(
         self,
         get_items_list_mock: MagicMock,
-        process_downloaded_data_mock: MagicMock
+        iter_processed_record_for_api_item_list_response_mock: MagicMock
     ):
         data_config = get_data_config(WEB_API_CONFIG)
         get_items_list_mock.return_value = [{'key_1': ['value1'], 'key_2': []}]
         generic_web_api_data_etl(data_config)
-        process_downloaded_data_mock.assert_called_with(
-            data_config=data_config,
-            record_list=[{'key_1': ['value1']}],
-            data_etl_timestamp=ANY,
-            file_location=ANY,
-            prev_page_latest_timestamp=ANY
-        )
+        iter_processed_record_for_api_item_list_response_mock.assert_called()
+        _, kwargs = iter_processed_record_for_api_item_list_response_mock.call_args
+        assert list(kwargs['record_list']) == [{'key_1': ['value1']}]
+
+    def test_should_batch_data_written_to_bigquery(
+        self,
+        get_items_list_mock: MagicMock,
+        iter_write_jsonl_to_file_mock: MagicMock,
+        iter_write_jsonl_to_file_mock_json_lists: List[List[dict]]
+    ):
+        data_config = get_data_config(cast(WebApiConfigDict, {
+            **WEB_API_CONFIG,
+            'batchSize': 2
+        }))
+        get_items_list_mock.return_value = [
+            {'key': 'record_1'}, {'key': 'record_2'}, {'key': 'record_3'}
+        ]
+
+        generic_web_api_data_etl(data_config)
+
+        iter_write_jsonl_to_file_mock.assert_called()
+        actual_key_lists = [
+            [record['key'] for record in json_list]
+            for json_list in iter_write_jsonl_to_file_mock_json_lists
+        ]
+        LOGGER.debug('actual_key_lists: %r', actual_key_lists)
+        assert actual_key_lists == [
+            ['record_1', 'record_2'],
+            ['record_3']
+        ]
 
     def test_should_update_state_file(
         self,
         get_items_list_mock: MagicMock,
-        process_downloaded_data_mock: MagicMock,
         upload_latest_timestamp_as_pipeline_state_mock: MagicMock
     ):
         timestamp_string = '2020-01-01T01:01:01+00:00'
         timestamp = datetime.fromisoformat(timestamp_string)
-        data_config = get_data_config(WEB_API_CONFIG)
-        get_items_list_mock.return_value = [{'timestamp': timestamp}]
-        process_downloaded_data_mock.return_value = timestamp
+        data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
+        get_items_list_mock.return_value = [{'timestamp': timestamp_string}]
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
             data_config=data_config,
-            latest_record_timestamp=process_downloaded_data_mock.return_value
+            latest_record_timestamp=timestamp
         )
 
     def test_should_not_update_state_with_empty_list_in_response(
