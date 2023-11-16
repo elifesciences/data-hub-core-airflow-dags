@@ -3,7 +3,7 @@ from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
-from data_pipeline.generic_web_api.url_builder import (
+from data_pipeline.generic_web_api.request_builder import (
     compose_url_param_from_parameter_values_in_env_var,
     compose_url_param_from_param_vals_filepath_in_env_var,
     get_web_api_request_builder_class,

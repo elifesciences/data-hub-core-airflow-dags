@@ -70,7 +70,7 @@ class WebApiDynamicRequestBuilder:
 
     def get_json(  # pylint: disable=unused-argument
         self,
-        url_compose_param: WebApiDynamicRequestParameters
+        dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> Optional[Any]:
         return None
 
@@ -98,24 +98,24 @@ class WebApiDynamicRequestBuilder:
 
     def get_url(
             self,
-            url_compose_param: WebApiDynamicRequestParameters,
+            dynamic_request_parameters: WebApiDynamicRequestParameters,
     ):
         start_date = datetime_to_string(
-            url_compose_param.from_date, self.date_format
+            dynamic_request_parameters.from_date, self.date_format
         )
 
         end_date = datetime_to_string(
-            url_compose_param.to_date, self.date_format
+            dynamic_request_parameters.to_date, self.date_format
         )
         param_dict = dict((key, value) for key, value in [
             (self.from_date_param, start_date),
-            (self.next_page_cursor, url_compose_param.cursor),
+            (self.next_page_cursor, dynamic_request_parameters.cursor),
             (self.to_date_param, end_date),
-            (self.page_number_param, url_compose_param.page_number),
-            (self.offset_param, url_compose_param.page_offset),
+            (self.page_number_param, dynamic_request_parameters.page_number),
+            (self.offset_param, dynamic_request_parameters.page_offset),
             (
                 self.page_size_param,
-                url_compose_param.page_size or self.page_size
+                dynamic_request_parameters.page_size or self.page_size
             ),
             (self.sort_key, self.sort_key_value)
             ] if key and value)
@@ -131,17 +131,17 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
             self,
-            url_compose_param: WebApiDynamicRequestParameters,
+            dynamic_request_parameters: WebApiDynamicRequestParameters,
     ):
 
         start_date = datetime_to_string(
-            url_compose_param.from_date, self.date_format
+            dynamic_request_parameters.from_date, self.date_format
         )
         options = dict((key, value) for key, value in [
-            (self.offset_param, url_compose_param.page_offset),
+            (self.offset_param, dynamic_request_parameters.page_offset),
             (
                 self.page_size_param,
-                url_compose_param.page_size or self.page_size
+                dynamic_request_parameters.page_size or self.page_size
             ),
             ("sort", self.sort_key_value)
         ] if key and value)
@@ -188,16 +188,16 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
         self,
-        url_compose_param: WebApiDynamicRequestParameters
+        dynamic_request_parameters: WebApiDynamicRequestParameters
     ):
-        assert url_compose_param.from_date is not None
-        assert url_compose_param.to_date is not None
-        assert url_compose_param.page_offset is not None
+        assert dynamic_request_parameters.from_date is not None
+        assert dynamic_request_parameters.to_date is not None
+        assert dynamic_request_parameters.page_offset is not None
         return '/'.join([
             self.url_excluding_configurable_parameters,
-            url_compose_param.from_date.strftime(r'%Y-%m-%d'),
-            url_compose_param.to_date.strftime(r'%Y-%m-%d'),
-            str(url_compose_param.page_offset)
+            dynamic_request_parameters.from_date.strftime(r'%Y-%m-%d'),
+            dynamic_request_parameters.to_date.strftime(r'%Y-%m-%d'),
+            str(dynamic_request_parameters.page_offset)
         ])
 
 
@@ -211,16 +211,16 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
 
     def get_json(
         self,
-        url_compose_param: WebApiDynamicRequestParameters
+        dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> Sequence[dict]:
-        assert url_compose_param.source_values is not None
+        assert dynamic_request_parameters.source_values is not None
         return [
             {
                 'paper_id': source_value['paper_id'],
                 'title': source_value['title'],
                 'abstract': source_value['abstract']
             }
-            for source_value in url_compose_param.source_values
+            for source_value in dynamic_request_parameters.source_values
         ]
 
 

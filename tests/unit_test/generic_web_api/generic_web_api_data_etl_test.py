@@ -12,8 +12,8 @@ from data_pipeline.generic_web_api import (
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_data_single_page,
-    get_initial_url_compose_param,
-    get_next_url_compose_param_for_page_data,
+    get_initial_dynamic_request_parameters,
+    get_next_dynamic_request_parameters_for_page_data,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -26,7 +26,7 @@ from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
-from data_pipeline.generic_web_api.url_builder import WebApiDynamicRequestParameters
+from data_pipeline.generic_web_api.request_builder import WebApiDynamicRequestParameters
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 
@@ -497,7 +497,7 @@ class TestGetDataSinglePage:
         )
         get_data_single_page(
             data_config=data_config,
-            url_compose_param=WebApiDynamicRequestParameters()
+            dynamic_request_parameters=WebApiDynamicRequestParameters()
         )
         requests_session_mock.request.assert_called_with(
             method=url_builder.method,
@@ -506,37 +506,37 @@ class TestGetDataSinglePage:
             headers=data_config.headers.mapping
         )
 
-    def test_should_pass_url_compose_param_to_get_json(self):
+    def test_should_pass_dynamic_request_parameters_to_get_json(self):
         url_builder = MagicMock(name='url_builder')
         url_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
             url_builder=url_builder
         )
-        url_compose_param = WebApiDynamicRequestParameters(source_values=['value1'])
+        dynamic_request_parameters = WebApiDynamicRequestParameters(source_values=['value1'])
         get_data_single_page(
             data_config=data_config,
-            url_compose_param=url_compose_param
+            dynamic_request_parameters=dynamic_request_parameters
         )
         url_builder.get_json.assert_called_with(
-            url_compose_param=url_compose_param
+            dynamic_request_parameters=dynamic_request_parameters
         )
 
 
 class TestGetNextUrlComposeArgForPageData:
     def test_should_return_next_cursor(self):
         data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
-        initial_url_compose_param = WebApiDynamicRequestParameters(
+        initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
             cursor=None
         )
-        next_url_compose_param = get_next_url_compose_param_for_page_data(
+        next_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
             page_data={'next-cursor': 'cursor_2'},
             items_count=10,
-            current_url_compose_param=initial_url_compose_param,
+            current_dynamic_request_parameters=initial_dynamic_request_parameters,
             data_config=data_config
         )
-        assert next_url_compose_param
-        assert next_url_compose_param.cursor == 'cursor_2'
+        assert next_dynamic_request_parameters
+        assert next_dynamic_request_parameters.cursor == 'cursor_2'
 
     def test_should_return_next_source_values(self):
         data_config = get_data_config_with_max_source_values_per_request(
@@ -544,19 +544,19 @@ class TestGetNextUrlComposeArgForPageData:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2', 'value 3', 'value 4', 'value 5'])
-        initial_url_compose_param = WebApiDynamicRequestParameters(
+        initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
             cursor=None,
             source_values=list(itertools.islice(all_source_values_iterator, 2))
         )
-        next_url_compose_param = get_next_url_compose_param_for_page_data(
+        next_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
             page_data={},
             items_count=1,
-            current_url_compose_param=initial_url_compose_param,
+            current_dynamic_request_parameters=initial_dynamic_request_parameters,
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
-        assert next_url_compose_param
-        assert list(next_url_compose_param.source_values) == ['value 3', 'value 4']
+        assert next_dynamic_request_parameters
+        assert list(next_dynamic_request_parameters.source_values) == ['value 3', 'value 4']
 
     def test_should_return_none_if_there_are_no_more_source_values(self):
         data_config = get_data_config_with_max_source_values_per_request(
@@ -564,27 +564,27 @@ class TestGetNextUrlComposeArgForPageData:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2'])
-        initial_url_compose_param = WebApiDynamicRequestParameters(
+        initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
             cursor=None,
             source_values=list(itertools.islice(all_source_values_iterator, 2))
         )
-        next_url_compose_param = get_next_url_compose_param_for_page_data(
+        next_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
             page_data={},
             items_count=1,
-            current_url_compose_param=initial_url_compose_param,
+            current_dynamic_request_parameters=initial_dynamic_request_parameters,
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
-        assert next_url_compose_param is None
+        assert next_dynamic_request_parameters is None
 
 
 class TestGetInitialUrlComposeArg:
     def test_should_set_source_values_to_none_if_not_provided(self):
-        initial_url_compose_param = get_initial_url_compose_param(
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
             data_config=get_data_config(WEB_API_CONFIG),
             all_source_values_iterator=None
         )
-        assert initial_url_compose_param.source_values is None
+        assert initial_dynamic_request_parameters.source_values is None
 
     def test_should_take_initial_batch_of_source_values(self):
         data_config = get_data_config_with_max_source_values_per_request(
@@ -592,11 +592,11 @@ class TestGetInitialUrlComposeArg:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2', 'value 3'])
-        initial_url_compose_param = get_initial_url_compose_param(
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
-        assert list(initial_url_compose_param.source_values) == ['value 1', 'value 2']
+        assert list(initial_dynamic_request_parameters.source_values) == ['value 1', 'value 2']
 
     def test_should_return_none_if_source_values_are_empty(self):
         data_config = get_data_config_with_max_source_values_per_request(
@@ -604,11 +604,11 @@ class TestGetInitialUrlComposeArg:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter([])
-        initial_url_compose_param = get_initial_url_compose_param(
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
-        assert initial_url_compose_param is None
+        assert initial_dynamic_request_parameters is None
 
 
 class TestGenericWebApiDataEtl:
@@ -718,8 +718,8 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
         actual_from_and_until_date_list = [
             (
-                call_args.kwargs['url_compose_param'].from_date,
-                call_args.kwargs['url_compose_param'].to_date
+                call_args.kwargs['dynamic_request_parameters'].from_date,
+                call_args.kwargs['dynamic_request_parameters'].to_date
             )
             for call_args in get_data_single_page_mock.call_args_list
         ]
@@ -738,8 +738,8 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config)
         actual_from_and_until_date_list = [
             (
-                call_args.kwargs['url_compose_param'].from_date,
-                call_args.kwargs['url_compose_param'].to_date
+                call_args.kwargs['dynamic_request_parameters'].from_date,
+                call_args.kwargs['dynamic_request_parameters'].to_date
             )
             for call_args in get_data_single_page_mock.call_args_list
         ]
@@ -767,4 +767,4 @@ class TestGenericWebApiDataEtl:
         iter_dict_for_bigquery_include_exclude_source_config_mock.assert_called()
         get_data_single_page_mock.assert_called()
         _, kwargs = get_data_single_page_mock.call_args
-        assert list(kwargs['url_compose_param'].source_values) == ['value 1']
+        assert list(kwargs['dynamic_request_parameters'].source_values) == ['value 1']
