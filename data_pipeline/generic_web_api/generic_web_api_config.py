@@ -6,8 +6,8 @@ from google.cloud.bigquery import WriteDisposition
 from data_pipeline.generic_web_api.url_builder import (
     compose_url_param_from_parameter_values_in_env_var,
     compose_url_param_from_param_vals_filepath_in_env_var,
-    get_url_builder_class,
-    DynamicURLBuilder
+    get_web_api_request_builder_class,
+    WebApiDynamicRequestBuilder
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
@@ -72,7 +72,7 @@ class WebApiConfig:
     table_name: str
     table_write_disposition: str
     headers: MappingConfig
-    url_builder: DynamicURLBuilder
+    url_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
@@ -155,7 +155,7 @@ class WebApiConfig:
         ).get(
             'sourceTypeSpecificValues', {}
         )
-        url_builder_class = get_url_builder_class(
+        url_builder_class = get_web_api_request_builder_class(
             api_config.get(
                 "urlSourceType", {}
             ).get(

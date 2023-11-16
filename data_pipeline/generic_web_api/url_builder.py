@@ -3,7 +3,7 @@ import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, NamedTuple, Optional, Sequence
+from typing import Any, Iterable, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
@@ -51,7 +51,7 @@ class UrlComposeParam(NamedTuple):
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 @dataclass(frozen=True)
-class DynamicURLBuilder:
+class WebApiDynamicRequestBuilder:
     url_excluding_configurable_parameters: str
     compose_able_url_key_val: dict
     from_date_param: Optional[str] = None
@@ -127,7 +127,7 @@ class DynamicURLBuilder:
         return self.compose_url(param_dict)
 
 
-class DynamicCiviURLBuilder(DynamicURLBuilder):
+class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
             self,
@@ -176,7 +176,7 @@ class DynamicCiviURLBuilder(DynamicURLBuilder):
         return field_to_return_param
 
 
-class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
+class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     #  setting none configurable parameters with dummy values
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -201,7 +201,7 @@ class DynamicBioRxivMedRxivURLBuilder(DynamicURLBuilder):
         ])
 
 
-class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
+class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
             **kwargs,
@@ -224,11 +224,13 @@ class DynamicS2TitleAbstractEmbeddingsURLBuilder(DynamicURLBuilder):
         ]
 
 
-def get_url_builder_class(url_source_type: str = ''):
+def get_web_api_request_builder_class(
+    url_source_type: str = ''
+) -> Type[WebApiDynamicRequestBuilder]:
     if url_source_type.strip().lower() == 'civi':
-        return DynamicCiviURLBuilder
+        return CiviWebApiDynamicRequestBuilder
     if url_source_type == 'biorxiv_medrxiv_api':
-        return DynamicBioRxivMedRxivURLBuilder
+        return BioRxivWebApiDynamicRequestBuilder
     if url_source_type == 's2_title_abstract_embeddings_api':
-        return DynamicS2TitleAbstractEmbeddingsURLBuilder
-    return DynamicURLBuilder
+        return S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
+    return WebApiDynamicRequestBuilder

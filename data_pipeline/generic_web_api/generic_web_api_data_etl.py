@@ -280,11 +280,13 @@ def iter_processed_web_api_data_etl_batch_data(
         )
     )
     latest_record_timestamp: Optional[datetime] = None
-    current_url_compose_param: Optional[UrlComposeParam] = get_initial_url_compose_param(
-        data_config=data_config,
-        initial_from_date=initial_from_date,
-        fixed_until_date=until_date,
-        all_source_values_iterator=all_source_values_iterator
+    current_url_compose_param: Optional[UrlComposeParam] = (
+        get_initial_url_compose_param(
+            data_config=data_config,
+            initial_from_date=initial_from_date,
+            fixed_until_date=until_date,
+            all_source_values_iterator=all_source_values_iterator
+        )
     )
     if not current_url_compose_param:
         LOGGER.info('not data to process')
