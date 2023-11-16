@@ -357,10 +357,10 @@ def process_web_api_data_etl_batch(
         all_source_values_iterator=all_source_values_iterator
     )
     LOGGER.debug('all_processed_record_list: %r', all_processed_record_iterable)
-    for batch_processed_record_iterable in iter_optional_batch_iterable(
+    for batch_index, batch_processed_record_iterable in enumerate(iter_optional_batch_iterable(
         all_processed_record_iterable,
         batch_size=data_config.batch_size
-    ):
+    )):
         LOGGER.debug('processed_record_list: %r', batch_processed_record_iterable)
         with TemporaryDirectory() as tmp_dir:
             full_temp_file_location = os.path.join(tmp_dir, 'downloaded_jsonl_data.jsonl')
@@ -387,6 +387,7 @@ def process_web_api_data_etl_batch(
                 )
             else:
                 LOGGER.info('not updating state due to no latest record timestamp')
+        LOGGER.info('completed batch: %d', 1 + batch_index)
 
 
 def get_next_batch_from_timestamp_for_config(
