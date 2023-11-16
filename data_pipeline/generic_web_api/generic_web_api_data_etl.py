@@ -351,30 +351,28 @@ def process_web_api_data_etl_batch(
     until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
-    all_processed_record_list = iter_processed_web_api_data_etl_batch_data(
+    all_processed_record_iterable = iter_processed_web_api_data_etl_batch_data(
         data_config=data_config,
         initial_from_date=initial_from_date,
         until_date=until_date,
         all_source_values_iterator=all_source_values_iterator
     )
-    # all_processed_record_list = list(all_processed_record_list)
-    LOGGER.debug('all_processed_record_list: %r', all_processed_record_list)
-    for processed_record_list in iter_optional_batch_iterable(
-        all_processed_record_list,
+    LOGGER.debug('all_processed_record_list: %r', all_processed_record_iterable)
+    for batch_processed_record_iterable in iter_optional_batch_iterable(
+        all_processed_record_iterable,
         batch_size=data_config.batch_size
     ):
-        # processed_record_list = list(processed_record_list)
-        LOGGER.debug('processed_record_list: %r', processed_record_list)
+        LOGGER.debug('processed_record_list: %r', batch_processed_record_iterable)
         with TemporaryDirectory() as tmp_dir:
             full_temp_file_location = str(
                 Path(tmp_dir, "downloaded_jsonl_data")
             )
-            processed_record_list = iter_write_jsonl_to_file(
-                processed_record_list,
+            batch_processed_record_iterable = iter_write_jsonl_to_file(
+                batch_processed_record_iterable,
                 full_temp_file_location=full_temp_file_location
             )
             latest_record_timestamp = get_latest_record_list_timestamp(
-                processed_record_list,
+                batch_processed_record_iterable,
                 previous_latest_timestamp=None,
                 data_config=data_config
             )
