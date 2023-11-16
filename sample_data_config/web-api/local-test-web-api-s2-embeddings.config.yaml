@@ -34,3 +34,4 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - preds
+    batchSize: 32
