@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 import json
 from json.decoder import JSONDecodeError
-from typing import Any, Iterable, Optional, Tuple, cast
+from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
 
 from botocore.exceptions import ClientError
 
@@ -17,6 +17,7 @@ from data_pipeline.generic_web_api.transform_data import (
     get_dict_values_from_path_as_list
 )
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
+from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string,
     upload_s3_object
@@ -45,6 +46,9 @@ from data_pipeline.utils.data_pipeline_timestamp import (
 )
 
 LOGGER = logging.getLogger(__name__)
+
+
+T = TypeVar('T')
 
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
@@ -330,45 +334,64 @@ def iter_processed_web_api_data_etl_batch_data(
         )
 
 
+def iter_optional_batch_iterable(
+    iterable: Iterable[T],
+    batch_size: Optional[int]
+) -> Iterable[Iterable[T]]:
+    if not batch_size:
+        LOGGER.debug('no batch_size configured')
+        return [iterable]
+    LOGGER.debug('batch_size: %r', batch_size)
+    return iter_batch_iterable(iterable, batch_size)
+
+
 def process_web_api_data_etl_batch(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
-    processed_record_list = iter_processed_web_api_data_etl_batch_data(
+    all_processed_record_list = iter_processed_web_api_data_etl_batch_data(
         data_config=data_config,
         initial_from_date=initial_from_date,
         until_date=until_date,
         all_source_values_iterator=all_source_values_iterator
     )
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        processed_record_list = iter_write_jsonl_to_file(
-            processed_record_list,
-            full_temp_file_location=full_temp_file_location
-        )
-        latest_record_timestamp = get_latest_record_list_timestamp(
-            processed_record_list,
-            previous_latest_timestamp=None,
-            data_config=data_config
-        )
-        LOGGER.debug('latest_record_timestamp (for state): %r', latest_record_timestamp)
-
-        load_written_data_to_bq(
-            data_config=data_config,
-            full_temp_file_location=full_temp_file_location
-        )
-        if latest_record_timestamp:
-            LOGGER.info('updating state to: %r', latest_record_timestamp)
-            upload_latest_timestamp_as_pipeline_state(
-                data_config=data_config,
-                latest_record_timestamp=latest_record_timestamp
+    # all_processed_record_list = list(all_processed_record_list)
+    LOGGER.debug('all_processed_record_list: %r', all_processed_record_list)
+    for processed_record_list in iter_optional_batch_iterable(
+        all_processed_record_list,
+        batch_size=data_config.batch_size
+    ):
+        # processed_record_list = list(processed_record_list)
+        LOGGER.debug('processed_record_list: %r', processed_record_list)
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
             )
-        else:
-            LOGGER.info('not updating state due to no latest record timestamp')
+            processed_record_list = iter_write_jsonl_to_file(
+                processed_record_list,
+                full_temp_file_location=full_temp_file_location
+            )
+            latest_record_timestamp = get_latest_record_list_timestamp(
+                processed_record_list,
+                previous_latest_timestamp=None,
+                data_config=data_config
+            )
+            LOGGER.debug('latest_record_timestamp (for state): %r', latest_record_timestamp)
+
+            load_written_data_to_bq(
+                data_config=data_config,
+                full_temp_file_location=full_temp_file_location
+            )
+            if latest_record_timestamp:
+                LOGGER.info('updating state to: %r', latest_record_timestamp)
+                upload_latest_timestamp_as_pipeline_state(
+                    data_config=data_config,
+                    latest_record_timestamp=latest_record_timestamp
+                )
+            else:
+                LOGGER.info('not updating state due to no latest record timestamp')
 
 
 def get_next_batch_from_timestamp_for_config(
