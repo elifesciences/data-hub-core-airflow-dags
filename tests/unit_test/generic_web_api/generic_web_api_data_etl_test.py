@@ -26,7 +26,7 @@ from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
-from data_pipeline.generic_web_api.url_builder import UrlComposeParam
+from data_pipeline.generic_web_api.url_builder import WebApiDynamicRequestParameters
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 
@@ -497,7 +497,7 @@ class TestGetDataSinglePage:
         )
         get_data_single_page(
             data_config=data_config,
-            url_compose_param=UrlComposeParam()
+            url_compose_param=WebApiDynamicRequestParameters()
         )
         requests_session_mock.request.assert_called_with(
             method=url_builder.method,
@@ -513,7 +513,7 @@ class TestGetDataSinglePage:
             get_data_config(WEB_API_CONFIG),
             url_builder=url_builder
         )
-        url_compose_param = UrlComposeParam(source_values=['value1'])
+        url_compose_param = WebApiDynamicRequestParameters(source_values=['value1'])
         get_data_single_page(
             data_config=data_config,
             url_compose_param=url_compose_param
@@ -526,7 +526,7 @@ class TestGetDataSinglePage:
 class TestGetNextUrlComposeArgForPageData:
     def test_should_return_next_cursor(self):
         data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
-        initial_url_compose_param = UrlComposeParam(
+        initial_url_compose_param = WebApiDynamicRequestParameters(
             cursor=None
         )
         next_url_compose_param = get_next_url_compose_param_for_page_data(
@@ -544,7 +544,7 @@ class TestGetNextUrlComposeArgForPageData:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2', 'value 3', 'value 4', 'value 5'])
-        initial_url_compose_param = UrlComposeParam(
+        initial_url_compose_param = WebApiDynamicRequestParameters(
             cursor=None,
             source_values=list(itertools.islice(all_source_values_iterator, 2))
         )
@@ -564,7 +564,7 @@ class TestGetNextUrlComposeArgForPageData:
             max_source_values_per_request=2
         )
         all_source_values_iterator = iter(['value 1', 'value 2'])
-        initial_url_compose_param = UrlComposeParam(
+        initial_url_compose_param = WebApiDynamicRequestParameters(
             cursor=None,
             source_values=list(itertools.islice(all_source_values_iterator, 2))
         )

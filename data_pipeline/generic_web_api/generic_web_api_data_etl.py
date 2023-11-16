@@ -34,7 +34,7 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
 from data_pipeline.generic_web_api.url_builder import (
-    UrlComposeParam
+    WebApiDynamicRequestParameters
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp,
@@ -87,7 +87,7 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 
 def get_data_single_page(
     data_config: WebApiConfig,
-    url_compose_param: UrlComposeParam
+    url_compose_param: WebApiDynamicRequestParameters
 ) -> Any:
     url = data_config.url_builder.get_url(
         url_compose_param
@@ -153,12 +153,12 @@ def get_next_source_values_or_none(
 def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-arguments
     page_data: Any,
     items_count: int,
-    current_url_compose_param: UrlComposeParam,
+    current_url_compose_param: WebApiDynamicRequestParameters,
     data_config: WebApiConfig,
     latest_record_timestamp: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[UrlComposeParam]:
+) -> Optional[WebApiDynamicRequestParameters]:
     if all_source_values_iterator is not None:
         # Note: added assert for currently unsupported other parameters when using source values
         assert not current_url_compose_param.cursor
@@ -219,7 +219,7 @@ def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-argume
         and offset is None
     ):
         return None
-    return UrlComposeParam(
+    return WebApiDynamicRequestParameters(
         from_date=from_date_to_advance or current_url_compose_param.from_date,
         to_date=variable_until_date,
         cursor=cursor,
@@ -234,7 +234,7 @@ def get_initial_url_compose_param(
     initial_from_date: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[UrlComposeParam]:
+) -> Optional[WebApiDynamicRequestParameters]:
     initial_source_values = get_next_source_values_or_none(
         data_config=data_config,
         all_source_values_iterator=all_source_values_iterator
@@ -242,7 +242,7 @@ def get_initial_url_compose_param(
     if all_source_values_iterator and not initial_source_values:
         LOGGER.info('no source values to process')
         return None
-    return UrlComposeParam(
+    return WebApiDynamicRequestParameters(
         from_date=initial_from_date,
         to_date=get_next_until_date(
             from_date=initial_from_date,
@@ -280,7 +280,7 @@ def iter_processed_web_api_data_etl_batch_data(
         )
     )
     latest_record_timestamp: Optional[datetime] = None
-    current_url_compose_param: Optional[UrlComposeParam] = (
+    current_url_compose_param: Optional[WebApiDynamicRequestParameters] = (
         get_initial_url_compose_param(
             data_config=data_config,
             initial_from_date=initial_from_date,

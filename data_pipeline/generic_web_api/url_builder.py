@@ -39,7 +39,7 @@ def compose_url_param_from_param_vals_filepath_in_env_var(
     )
 
 
-class UrlComposeParam(NamedTuple):
+class WebApiDynamicRequestParameters(NamedTuple):
     from_date: Optional[datetime] = None
     to_date: Optional[datetime] = None
     page_number: Optional[int] = None
@@ -70,7 +70,7 @@ class WebApiDynamicRequestBuilder:
 
     def get_json(  # pylint: disable=unused-argument
         self,
-        url_compose_param: UrlComposeParam
+        url_compose_param: WebApiDynamicRequestParameters
     ) -> Optional[Any]:
         return None
 
@@ -98,7 +98,7 @@ class WebApiDynamicRequestBuilder:
 
     def get_url(
             self,
-            url_compose_param: UrlComposeParam,
+            url_compose_param: WebApiDynamicRequestParameters,
     ):
         start_date = datetime_to_string(
             url_compose_param.from_date, self.date_format
@@ -131,7 +131,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
             self,
-            url_compose_param: UrlComposeParam,
+            url_compose_param: WebApiDynamicRequestParameters,
     ):
 
         start_date = datetime_to_string(
@@ -188,7 +188,7 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
         self,
-        url_compose_param: UrlComposeParam
+        url_compose_param: WebApiDynamicRequestParameters
     ):
         assert url_compose_param.from_date is not None
         assert url_compose_param.to_date is not None
@@ -211,7 +211,7 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
 
     def get_json(
         self,
-        url_compose_param: UrlComposeParam
+        url_compose_param: WebApiDynamicRequestParameters
     ) -> Sequence[dict]:
         assert url_compose_param.source_values is not None
         return [

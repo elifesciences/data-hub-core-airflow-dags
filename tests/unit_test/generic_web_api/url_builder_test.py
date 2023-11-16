@@ -4,7 +4,7 @@ from data_pipeline.generic_web_api.url_builder import (
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
     get_web_api_request_builder_class,
     BioRxivWebApiDynamicRequestBuilder,
-    UrlComposeParam
+    WebApiDynamicRequestParameters
 )
 
 
@@ -26,7 +26,7 @@ class TestDynamicBioRxivMedRxivURLBuilder:
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        url = url_builder.get_url(url_compose_param=UrlComposeParam(
+        url = url_builder.get_url(url_compose_param=WebApiDynamicRequestParameters(
             from_date=datetime.fromisoformat('2001-01-01'),
             to_date=datetime.fromisoformat('2001-01-02'),
             page_offset=10
@@ -58,7 +58,7 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
             compose_able_url_key_val={}
         )
         assert url_builder.get_json(
-            url_compose_param=UrlComposeParam(
+            url_compose_param=WebApiDynamicRequestParameters(
                 source_values=iter([{
                     'paper_id': 'paper_id1',
                     'title': 'Title 1',
