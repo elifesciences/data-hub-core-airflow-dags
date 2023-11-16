@@ -253,12 +253,12 @@ def get_initial_url_compose_param(
     )
 
 
-def process_web_api_data_etl_batch(
+def iter_processed_web_api_data_etl_batch_data(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-):
+) -> Iterable[dict]:
     assert not isinstance(all_source_values_iterator, list)
 
     imported_timestamp = get_current_timestamp_as_string(
@@ -276,7 +276,7 @@ def process_web_api_data_etl_batch(
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
     )
-    latest_record_timestamp = None
+    latest_record_timestamp: Optional[datetime] = None
     current_url_compose_param: Optional[UrlComposeParam] = get_initial_url_compose_param(
         data_config=data_config,
         initial_from_date=initial_from_date,
@@ -286,51 +286,76 @@ def process_web_api_data_etl_batch(
     if not current_url_compose_param:
         LOGGER.info('not data to process')
         return
+    while current_url_compose_param:
+        LOGGER.debug('current_url_compose_param=%r', current_url_compose_param)
+        page_data = get_data_single_page(
+            data_config=data_config,
+            url_compose_param=current_url_compose_param
+        )
+        LOGGER.debug('page_data: %r', page_data)
+        items_list = get_items_list(
+            page_data, data_config
+        )
+        LOGGER.debug('items_list: %r', items_list)
+        items_list = remove_key_with_null_value(items_list)
+        LOGGER.debug('items_list after removed null values: %r', items_list)
+        processed_record_list = iter_processed_record_for_api_item_list_response(
+            record_list=items_list,
+            data_config=data_config,
+            provenance=get_web_api_provenance(
+                data_config=data_config,
+                data_etl_timestamp=imported_timestamp
+            )
+        )
+
+        for processed_record in processed_record_list:
+            yield processed_record
+
+            latest_record_timestamp = get_latest_record_list_timestamp(
+                [processed_record],
+                previous_latest_timestamp=latest_record_timestamp,
+                data_config=data_config
+            )
+
+        LOGGER.debug('latest_record_timestamp: %r', latest_record_timestamp)
+        items_count = len(items_list)
+        current_url_compose_param = get_next_url_compose_param_for_page_data(
+            page_data=page_data,
+            items_count=items_count,
+            latest_record_timestamp=latest_record_timestamp,
+            fixed_until_date=until_date,
+            current_url_compose_param=current_url_compose_param,
+            data_config=data_config,
+            all_source_values_iterator=all_source_values_iterator
+        )
+
+
+def process_web_api_data_etl_batch(
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+):
+    processed_record_list = iter_processed_web_api_data_etl_batch_data(
+        data_config=data_config,
+        initial_from_date=initial_from_date,
+        until_date=until_date,
+        all_source_values_iterator=all_source_values_iterator
+    )
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
-        while current_url_compose_param:
-            LOGGER.debug('current_url_compose_param=%r', current_url_compose_param)
-            page_data = get_data_single_page(
-                data_config=data_config,
-                url_compose_param=current_url_compose_param
-            )
-            LOGGER.debug('page_data: %r', page_data)
-            items_list = get_items_list(
-                page_data, data_config
-            )
-            LOGGER.debug('items_list: %r', items_list)
-            items_list = remove_key_with_null_value(items_list)
-            LOGGER.debug('items_list after removed null values: %r', items_list)
-            processed_record_list = iter_processed_record_for_api_item_list_response(
-                record_list=items_list,
-                data_config=data_config,
-                provenance=get_web_api_provenance(
-                    data_config=data_config,
-                    data_etl_timestamp=imported_timestamp
-                )
-            )
-            processed_record_list = iter_write_jsonl_to_file(
-                processed_record_list,
-                full_temp_file_location=full_temp_file_location
-            )
-            latest_record_timestamp = get_latest_record_list_timestamp(
-                processed_record_list,
-                previous_latest_timestamp=latest_record_timestamp,
-                data_config=data_config
-            )
-            LOGGER.debug('latest_record_timestamp: %r', latest_record_timestamp)
-            items_count = len(items_list)
-            current_url_compose_param = get_next_url_compose_param_for_page_data(
-                page_data=page_data,
-                items_count=items_count,
-                latest_record_timestamp=latest_record_timestamp,
-                fixed_until_date=until_date,
-                current_url_compose_param=current_url_compose_param,
-                data_config=data_config,
-                all_source_values_iterator=all_source_values_iterator
-            )
+        processed_record_list = iter_write_jsonl_to_file(
+            processed_record_list,
+            full_temp_file_location=full_temp_file_location
+        )
+        latest_record_timestamp = get_latest_record_list_timestamp(
+            processed_record_list,
+            previous_latest_timestamp=None,
+            data_config=data_config
+        )
+        LOGGER.debug('latest_record_timestamp (for state): %r', latest_record_timestamp)
 
         load_written_data_to_bq(
             data_config=data_config,
