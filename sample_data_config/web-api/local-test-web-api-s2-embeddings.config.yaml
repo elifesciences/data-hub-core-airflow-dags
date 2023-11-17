@@ -3,6 +3,9 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   - dataPipelineId: web_s2_embeddings
+    description:
+      Retrieve embeddings from S2's model-apis via Title and Abstract.
+      Those embeddings will then be imported into OpenSearch."
     dataset: '{ENV}'
     table: test_s2_specter_v1_embeddings
     source:

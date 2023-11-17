@@ -110,11 +110,12 @@ services:
     scheduler:
         depends_on:
             - postgres
+        volumes: *airflow-volumes
         image:  elifesciences/data-hub-core-dags-dev
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
-    
+
     worker:
         environment: *airflow-env
         depends_on:

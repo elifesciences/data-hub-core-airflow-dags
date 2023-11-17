@@ -2,7 +2,10 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   #observer api
-  - dataset: '{ENV}'
+  - dataPipelineId: observer_published_research_article
+    description:
+      Retrieve legacy POA and VOR publication dates from Observer.
+    dataset: '{ENV}'
     table: test_published_research_article
     dataUrl:
       urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json

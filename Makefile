@@ -131,6 +131,10 @@ airflow-start:
 	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
 
 
+airflow-start-detach:
+	$(DOCKER_COMPOSE) up --detach worker webserver test-ftpserver
+
+
 airflow-stop:
 	$(DOCKER_COMPOSE) down
 
