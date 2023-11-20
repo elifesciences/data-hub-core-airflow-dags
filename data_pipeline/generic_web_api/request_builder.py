@@ -71,7 +71,7 @@ class WebApiDynamicRequestBuilder:
     def get_url(
             self,
             dynamic_request_parameters: WebApiDynamicRequestParameters,
-    ):
+    ) -> str:
         start_date = datetime_to_string(
             dynamic_request_parameters.from_date, self.date_format
         )
@@ -104,7 +104,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def get_url(
             self,
             dynamic_request_parameters: WebApiDynamicRequestParameters,
-    ):
+    ) -> str:
 
         start_date = datetime_to_string(
             dynamic_request_parameters.from_date, self.date_format
@@ -161,7 +161,7 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def get_url(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
-    ):
+    ) -> str:
         assert dynamic_request_parameters.from_date is not None
         assert dynamic_request_parameters.to_date is not None
         assert dynamic_request_parameters.page_offset is not None
