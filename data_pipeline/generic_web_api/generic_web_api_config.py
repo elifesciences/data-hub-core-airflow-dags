@@ -4,7 +4,7 @@ from typing import Mapping, Optional, Sequence, cast
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.request_builder import (
-    compose_url_param_from_parameter_values_in_env_var,
+    get_resolved_parameter_values_from_env_name,
     get_web_api_request_builder_class,
     WebApiDynamicRequestBuilder
 )
@@ -133,7 +133,7 @@ class WebApiConfig:
         )
         composeable_static_parameters = (
             {
-                **(compose_url_param_from_parameter_values_in_env_var(
+                **(get_resolved_parameter_values_from_env_name(
                     data_url_config_dict.get("parametersFromEnv", [])
                 )),
                 **(get_resolved_parameter_values_from_file_path_env_name(

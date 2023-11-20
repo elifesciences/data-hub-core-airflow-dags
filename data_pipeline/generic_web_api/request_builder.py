@@ -15,7 +15,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
 LOGGER = logging.getLogger(__name__)
 
 
-def compose_url_param_from_parameter_values_in_env_var(
+def get_resolved_parameter_values_from_env_name(
     compose_able_static_parameters: Sequence[ParameterFromEnvConfigDict]
 ):
     # Note: this functionality doesn't seem to be used anymore
