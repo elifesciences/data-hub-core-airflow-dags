@@ -1,5 +1,4 @@
 import logging
-import os
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -7,25 +6,9 @@ from typing import Any, Iterable, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
-from data_pipeline.generic_web_api.generic_web_api_config_typing import (
-    ParameterFromEnvConfigDict
-)
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_resolved_parameter_values_from_env_name(
-    parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
-):
-    # Note: this functionality doesn't seem to be used anymore
-    #       instead we are using get_resolved_parameter_values_from_file_path_env_name
-    params = {
-        param.get("parameterName"): os.environ[param["envName"]]
-        for param in parameters_from_env_name
-        if os.getenv(param["envName"])
-    }
-    return params
 
 
 class WebApiDynamicRequestParameters(NamedTuple):

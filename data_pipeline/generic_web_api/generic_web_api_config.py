@@ -1,10 +1,10 @@
+import os
 from dataclasses import dataclass, field, replace
 from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.request_builder import (
-    get_resolved_parameter_values_from_env_name,
     get_web_api_request_builder_class,
     WebApiDynamicRequestBuilder
 )
@@ -18,10 +18,24 @@ from data_pipeline.utils.pipeline_config import (
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     MultiWebApiConfigDict,
+    ParameterFromEnvConfigDict,
     WebApiBaseConfigDict,
     WebApiConfigDict,
     WebApiConfigurableParametersConfigDict
 )
+
+
+def get_resolved_parameter_values_from_env_name(
+    parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
+):
+    # Note: this functionality doesn't seem to be used anymore
+    #       instead we are using get_resolved_parameter_values_from_file_path_env_name
+    params = {
+        param.get("parameterName"): os.environ[param["envName"]]
+        for param in parameters_from_env_name
+        if os.getenv(param["envName"])
+    }
+    return params
 
 
 def get_web_api_config_id(
