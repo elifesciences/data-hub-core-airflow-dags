@@ -57,7 +57,7 @@ class WebApiDynamicRequestBuilder:
             url_separator = "?"
         return url_separator
 
-    def compose_url(self, parameters_key_value: dict):
+    def compose_url(self, parameters_key_value: dict) -> str:
         url = self.url_excluding_configurable_parameters
         url_separator = self._get_url_separator()
         params = parse.urlencode(
