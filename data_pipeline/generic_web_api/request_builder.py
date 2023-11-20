@@ -130,7 +130,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
             self.from_date_param: {">=": start_date}
         } if start_date else {}
 
-        field_to_return_param = self.get_fields_to_return()
+        field_to_return_param = self.get_fields_to_return_dict()
         url_query_json_arg: dict = {
             "sequential": 1,
             **start_date_param,
@@ -146,7 +146,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         url_no_options = self.compose_url(param_dict)
         return url_no_options + "&json=" + url_query_json_arg_as_str
 
-    def get_fields_to_return(self) -> CiviFieldsToReturnDict:
+    def get_fields_to_return_dict(self) -> CiviFieldsToReturnDict:
         field_to_return_param: CiviFieldsToReturnDict = {}
         assert self.request_builder_parameters is not None
         field_to_return_list = self.request_builder_parameters.get(
