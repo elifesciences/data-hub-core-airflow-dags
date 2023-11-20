@@ -19,6 +19,7 @@ def get_resolved_parameter_values_from_env_name(
     parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
 ):
     # Note: this functionality doesn't seem to be used anymore
+    #       instead we are using get_resolved_parameter_values_from_file_path_env_name
     params = {
         param.get("parameterName"): os.environ[param["envName"]]
         for param in parameters_from_env_name
