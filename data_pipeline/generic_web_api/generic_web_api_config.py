@@ -59,8 +59,8 @@ def get_web_api_config_id(
 # pylint: disable=too-many-locals
 class MultiWebApiConfig:
     def __init__(
-            self,
-            multi_web_api_etl_config: MultiWebApiConfigDict,
+        self,
+        multi_web_api_etl_config: MultiWebApiConfigDict,
     ):
         self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
@@ -106,9 +106,9 @@ class WebApiConfig:
 
     @staticmethod
     def from_dict(
-            web_api_config: WebApiConfigDict,
-            deployment_env: Optional[str] = None,
-            deployment_env_placeholder: str = "{ENV}"
+        web_api_config: WebApiConfigDict,
+        deployment_env: Optional[str] = None,
+        deployment_env_placeholder: str = "{ENV}"
     ):
         api_config = (
             cast(
