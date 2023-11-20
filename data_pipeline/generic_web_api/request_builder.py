@@ -70,8 +70,8 @@ class WebApiDynamicRequestBuilder:
         return url + url_separator + params
 
     def get_url(
-            self,
-            dynamic_request_parameters: WebApiDynamicRequestParameters,
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters,
     ) -> str:
         start_date = datetime_to_string(
             dynamic_request_parameters.from_date, self.date_format
@@ -111,8 +111,8 @@ CiviFieldsToReturnDict = TypedDict(
 class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
-            self,
-            dynamic_request_parameters: WebApiDynamicRequestParameters,
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters,
     ) -> str:
 
         start_date = datetime_to_string(
