@@ -5,7 +5,6 @@ from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.generic_web_api.request_builder import (
     compose_url_param_from_parameter_values_in_env_var,
-    compose_url_param_from_param_vals_filepath_in_env_var,
     get_web_api_request_builder_class,
     WebApiDynamicRequestBuilder
 )
@@ -14,6 +13,7 @@ from data_pipeline.utils.pipeline_config import (
     BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
+    get_resolved_parameter_values_from_file_path_env_name,
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
@@ -136,7 +136,7 @@ class WebApiConfig:
                 **(compose_url_param_from_parameter_values_in_env_var(
                     data_url_config_dict.get("parametersFromEnv", [])
                 )),
-                **(compose_url_param_from_param_vals_filepath_in_env_var(
+                **(get_resolved_parameter_values_from_file_path_env_name(
                     data_url_config_dict.get("parametersFromFile", [])
                 )),
             }
