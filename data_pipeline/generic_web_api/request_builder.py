@@ -109,12 +109,10 @@ CiviFieldsToReturnDict = TypedDict(
 
 
 class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
-
     def get_url(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters,
     ) -> str:
-
         start_date = datetime_to_string(
             dynamic_request_parameters.from_date, self.date_format
         )
