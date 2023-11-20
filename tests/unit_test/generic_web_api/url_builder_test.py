@@ -76,9 +76,11 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
 
 class TestGetUrlBuilderClass:
     def test_should_return_biorxiv_api_class(self):
-        url_builder_class = get_web_api_request_builder_class('biorxiv_medrxiv_api')
-        assert url_builder_class == BioRxivWebApiDynamicRequestBuilder
+        dynamic_request_builder_class = get_web_api_request_builder_class('biorxiv_medrxiv_api')
+        assert dynamic_request_builder_class == BioRxivWebApiDynamicRequestBuilder
 
     def test_should_return_s2_title_abstract_embeddings_api_class(self):
-        url_builder_class = get_web_api_request_builder_class('s2_title_abstract_embeddings_api')
-        assert url_builder_class == S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
+        dynamic_request_builder_class = get_web_api_request_builder_class(
+            's2_title_abstract_embeddings_api'
+        )
+        assert dynamic_request_builder_class == S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder

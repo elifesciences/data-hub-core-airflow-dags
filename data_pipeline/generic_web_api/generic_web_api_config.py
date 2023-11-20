@@ -155,7 +155,7 @@ class WebApiConfig:
         ).get(
             'sourceTypeSpecificValues', {}
         )
-        url_builder_class = get_web_api_request_builder_class(
+        dynamic_request_builder_class = get_web_api_request_builder_class(
             api_config.get(
                 "urlSourceType", {}
             ).get(
@@ -167,7 +167,7 @@ class WebApiConfig:
             configurable_parameters.get("defaultPageSize", None)
         )
 
-        dynamic_request_builder = url_builder_class(
+        dynamic_request_builder = dynamic_request_builder_class(
             url_excluding_configurable_parameters=url_excluding_configurable_parameters,
             from_date_param=from_date_param,
             to_date_param=to_date_param,
