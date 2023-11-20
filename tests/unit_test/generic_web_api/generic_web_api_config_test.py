@@ -126,7 +126,7 @@ class TestWebApiConfig:
             web_api_config.dynamic_request_builder,
             CiviWebApiDynamicRequestBuilder
         )
-        assert web_api_config.dynamic_request_builder.type_specific_params == {
+        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
             'fieldsToReturn': ['field1', 'field2']
         }
 
@@ -144,6 +144,6 @@ class TestWebApiConfig:
             web_api_config.dynamic_request_builder,
             CiviWebApiDynamicRequestBuilder
         )
-        assert web_api_config.dynamic_request_builder.type_specific_params == {
+        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
             'fieldsToReturn': ['field1', 'field2']
         }

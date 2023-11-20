@@ -195,7 +195,7 @@ class WebApiConfig:
             static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
-            type_specific_params=request_builder_parameters
+            request_builder_parameters=request_builder_parameters
         )
 
         auth_type = api_config.get("authentication", {}).get(

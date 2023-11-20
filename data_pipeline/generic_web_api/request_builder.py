@@ -38,7 +38,7 @@ class WebApiDynamicRequestBuilder:
     sort_key_value: Optional[str] = None
     method: str = 'GET'
     max_source_values_per_request: Optional[int] = None
-    type_specific_params: Optional[dict] = None
+    request_builder_parameters: Optional[dict] = None
 
     def get_json(  # pylint: disable=unused-argument
         self,
@@ -139,7 +139,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_fields_to_return(self):
         field_to_return_param = {}
-        field_to_return_list = self.type_specific_params.get(
+        field_to_return_list = self.request_builder_parameters.get(
             "fieldsToReturn")
         if field_to_return_list:
             field_to_return_param = {
