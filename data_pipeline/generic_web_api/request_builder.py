@@ -16,12 +16,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_resolved_parameter_values_from_env_name(
-    compose_able_static_parameters: Sequence[ParameterFromEnvConfigDict]
+    parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
 ):
     # Note: this functionality doesn't seem to be used anymore
     params = {
         param.get("parameterName"): os.environ[param["envName"]]
-        for param in compose_able_static_parameters
+        for param in parameters_from_env_name
         if os.getenv(param["envName"])
     }
     return params
