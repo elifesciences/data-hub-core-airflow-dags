@@ -195,8 +195,8 @@ def get_data_config_with_max_source_values_per_request(
 ) -> WebApiConfig:
     return dataclasses.replace(
         data_config,
-        url_builder=dataclasses.replace(
-            data_config.url_builder,
+        dynamic_request_builder=dataclasses.replace(
+            data_config.dynamic_request_builder,
             max_source_values_per_request=max_source_values_per_request
         )
     )
@@ -489,36 +489,36 @@ class TestGetDataSinglePage:
         self,
         requests_session_mock: MagicMock
     ):
-        url_builder = MagicMock(name='url_builder')
-        url_builder.method = 'POST'
+        dynamic_request_builder = MagicMock(name='dynamic_request_builder')
+        dynamic_request_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
-            url_builder=url_builder
+            dynamic_request_builder=dynamic_request_builder
         )
         get_data_single_page(
             data_config=data_config,
             dynamic_request_parameters=WebApiDynamicRequestParameters()
         )
         requests_session_mock.request.assert_called_with(
-            method=url_builder.method,
-            url=url_builder.get_url.return_value,
-            json=url_builder.get_json.return_value,
+            method=dynamic_request_builder.method,
+            url=dynamic_request_builder.get_url.return_value,
+            json=dynamic_request_builder.get_json.return_value,
             headers=data_config.headers.mapping
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
-        url_builder = MagicMock(name='url_builder')
-        url_builder.method = 'POST'
+        dynamic_request_builder = MagicMock(name='dynamic_request_builder')
+        dynamic_request_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
-            url_builder=url_builder
+            dynamic_request_builder=dynamic_request_builder
         )
         dynamic_request_parameters = WebApiDynamicRequestParameters(source_values=['value1'])
         get_data_single_page(
             data_config=data_config,
             dynamic_request_parameters=dynamic_request_parameters
         )
-        url_builder.get_json.assert_called_with(
+        dynamic_request_builder.get_json.assert_called_with(
             dynamic_request_parameters=dynamic_request_parameters
         )
 

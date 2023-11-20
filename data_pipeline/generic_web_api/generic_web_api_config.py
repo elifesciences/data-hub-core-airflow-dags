@@ -72,7 +72,7 @@ class WebApiConfig:
     table_name: str
     table_write_disposition: str
     headers: MappingConfig
-    url_builder: WebApiDynamicRequestBuilder
+    dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
@@ -167,7 +167,7 @@ class WebApiConfig:
             configurable_parameters.get("defaultPageSize", None)
         )
 
-        url_builder = url_builder_class(
+        dynamic_request_builder = url_builder_class(
             url_excluding_configurable_parameters=url_excluding_configurable_parameters,
             from_date_param=from_date_param,
             to_date_param=to_date_param,
@@ -221,7 +221,7 @@ class WebApiConfig:
                 configurable_parameters.get("defaultStartDate", None)
             ),
             page_size=page_size,
-            url_builder=url_builder,
+            dynamic_request_builder=dynamic_request_builder,
             start_to_end_date_diff_in_days=(
                 configurable_parameters.get("daysDiffFromStartTillEnd", None)
             ),

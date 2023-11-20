@@ -70,7 +70,7 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
                 data_config.default_start_date
             ) if (
                 data_config.default_start_date and
-                data_config.url_builder.date_format
+                data_config.dynamic_request_builder.date_format
             ) else None
 
         else:
@@ -89,13 +89,18 @@ def get_data_single_page(
     data_config: WebApiConfig,
     dynamic_request_parameters: WebApiDynamicRequestParameters
 ) -> Any:
-    url = data_config.url_builder.get_url(
+    url = data_config.dynamic_request_builder.get_url(
         dynamic_request_parameters
     )
-    json_data = data_config.url_builder.get_json(
+    json_data = data_config.dynamic_request_builder.get_json(
         dynamic_request_parameters=dynamic_request_parameters
     )
-    LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
+    LOGGER.info(
+        "Request URL: %s %s (json: %r)",
+        data_config.dynamic_request_builder.method,
+        url,
+        json_data
+    )
 
     with requests_retry_session() as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
@@ -105,7 +110,7 @@ def get_data_single_page(
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
         session_response = session.request(
-            method=data_config.url_builder.method,
+            method=data_config.dynamic_request_builder.method,
             url=url,
             json=json_data,
             headers=data_config.headers.mapping
@@ -143,10 +148,10 @@ def get_next_source_values_or_none(
 ) -> Optional[Iterable[dict]]:
     if all_source_values_iterator is None:
         return None
-    assert data_config.url_builder.max_source_values_per_request
+    assert data_config.dynamic_request_builder.max_source_values_per_request
     return list(itertools.islice(
         all_source_values_iterator,
-        data_config.url_builder.max_source_values_per_request
+        data_config.dynamic_request_builder.max_source_values_per_request
     ))
 
 
@@ -250,8 +255,8 @@ def get_initial_dynamic_request_parameters(
             fixed_until_date=fixed_until_date
         ),
         cursor=None,
-        page_number=1 if data_config.url_builder.page_number_param else None,
-        page_offset=0 if data_config.url_builder.offset_param else None,
+        page_number=1 if data_config.dynamic_request_builder.page_number_param else None,
+        page_offset=0 if data_config.dynamic_request_builder.offset_param else None,
         source_values=initial_source_values
     )
 
@@ -485,7 +490,7 @@ def get_next_page_number(
     reset_param: bool = False
 ):
     next_page = None
-    if web_config.url_builder.page_number_param:
+    if web_config.dynamic_request_builder.page_number_param:
         if reset_param:
             next_page = 1
         else:
@@ -505,7 +510,7 @@ def get_next_offset(
 ):
 
     next_offset = None
-    if web_config.url_builder.offset_param:
+    if web_config.dynamic_request_builder.offset_param:
         if reset_param:
             next_offset = 0
         else:
@@ -551,8 +556,8 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
         (
             next_page_number or next_offset
             or not (
-                web_config.url_builder.offset_param
-                or web_config.url_builder.page_number_param
+                web_config.dynamic_request_builder.offset_param
+                or web_config.dynamic_request_builder.page_number_param
             )
         ) and
         web_config.item_timestamp_key_path_from_item_root and
@@ -570,7 +575,7 @@ def get_next_cursor_from_data(
     previous_cursor: Optional[str]
 ) -> Optional[str]:
     LOGGER.debug('previous_cursor: %r', previous_cursor)
-    if web_config.url_builder.next_page_cursor:
+    if web_config.dynamic_request_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
             web_config.next_page_cursor_key_path_from_response_root

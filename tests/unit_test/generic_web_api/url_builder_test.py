@@ -13,51 +13,53 @@ TEST_API_URL_1 = 'https://test/api1'
 
 class TestDynamicBioRxivMedRxivURLBuilder:
     def test_should_initialize_dummy_parameteres(self):
-        url_builder = BioRxivWebApiDynamicRequestBuilder(
+        dynamic_request_builder = BioRxivWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        assert url_builder.from_date_param
-        assert url_builder.to_date_param
-        assert url_builder.offset_param
+        assert dynamic_request_builder.from_date_param
+        assert dynamic_request_builder.to_date_param
+        assert dynamic_request_builder.offset_param
 
     def test_should_include_interval_and_offset_in_url(self):
-        url_builder = BioRxivWebApiDynamicRequestBuilder(
+        dynamic_request_builder = BioRxivWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        url = url_builder.get_url(dynamic_request_parameters=WebApiDynamicRequestParameters(
-            from_date=datetime.fromisoformat('2001-01-01'),
-            to_date=datetime.fromisoformat('2001-01-02'),
-            page_offset=10
-        ))
+        url = dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                from_date=datetime.fromisoformat('2001-01-01'),
+                to_date=datetime.fromisoformat('2001-01-02'),
+                page_offset=10
+            )
+        )
         assert url == (
-            url_builder.url_excluding_configurable_parameters
+            dynamic_request_builder.url_excluding_configurable_parameters
             + '/2001-01-01/2001-01-02/10'
         )
 
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):
-        url_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
+        dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        assert url_builder.method == 'POST'
+        assert dynamic_request_builder.method == 'POST'
 
     def test_should_set_max_source_values_per_request_to_16(self):
-        url_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
+        dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        assert url_builder.max_source_values_per_request == 16
+        assert dynamic_request_builder.max_source_values_per_request == 16
 
     def test_should_generate_json_data_for_source_values(self):
-        url_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
+        dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             compose_able_url_key_val={}
         )
-        assert url_builder.get_json(
+        assert dynamic_request_builder.get_json(
             dynamic_request_parameters=WebApiDynamicRequestParameters(
                 source_values=iter([{
                     'paper_id': 'paper_id1',
