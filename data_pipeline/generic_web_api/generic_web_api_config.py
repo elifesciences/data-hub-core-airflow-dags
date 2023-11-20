@@ -21,7 +21,8 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     ParameterFromEnvConfigDict,
     WebApiBaseConfigDict,
     WebApiConfigDict,
-    WebApiConfigurableParametersConfigDict
+    WebApiConfigurableParametersConfigDict,
+    WebApiUrlSourceTypeConfigDict
 )
 
 
@@ -164,17 +165,17 @@ class WebApiConfig:
         next_page_cursor = configurable_parameters.get(
             "nextPageCursorParameterName", None
         )
-        type_specific_param = api_config.get(
-            "urlSourceType", {}
-        ).get(
-            'sourceTypeSpecificValues', {}
+        request_builder_config_dict = cast(
+            WebApiUrlSourceTypeConfigDict,
+            api_config.get(
+                'requestBuilder', api_config.get('urlSourceType', {})
+            )
+        )
+        request_builder_parameters = request_builder_config_dict.get(
+            'parameters', request_builder_config_dict.get('sourceTypeSpecificValues', {})
         )
         dynamic_request_builder_class = get_web_api_request_builder_class(
-            api_config.get(
-                "urlSourceType", {}
-            ).get(
-                'name', ''
-            )
+            request_builder_config_dict.get('name', '')
         )
 
         page_size = (
@@ -194,7 +195,7 @@ class WebApiConfig:
             compose_able_url_key_val=composeable_static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
-            type_specific_params=type_specific_param
+            type_specific_params=request_builder_parameters
         )
 
         auth_type = api_config.get("authentication", {}).get(

@@ -112,6 +112,24 @@ class TestWebApiConfig:
         })
         assert web_api_config.batch_size == 123
 
+    def test_should_read_request_builder_name_and_parameters(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'civi',
+                'parameters': {
+                    'fieldsToReturn': ['field1', 'field2']
+                }
+            }
+        })
+        assert isinstance(
+            web_api_config.dynamic_request_builder,
+            CiviWebApiDynamicRequestBuilder
+        )
+        assert web_api_config.dynamic_request_builder.type_specific_params == {
+            'fieldsToReturn': ['field1', 'field2']
+        }
+
     def test_should_read_deprecated_request_builder_name_and_parameters(self):
         web_api_config = WebApiConfig.from_dict({
             **MINIMAL_WEB_API_CONFIG_DICT,
