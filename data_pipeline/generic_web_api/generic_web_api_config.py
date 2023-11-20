@@ -22,7 +22,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiBaseConfigDict,
     WebApiConfigDict,
     WebApiConfigurableParametersConfigDict,
-    WebApiUrlSourceTypeConfigDict
+    WebApiRequestBuilderConfigDict
 )
 
 
@@ -166,7 +166,7 @@ class WebApiConfig:
             "nextPageCursorParameterName", None
         )
         request_builder_config_dict = cast(
-            WebApiUrlSourceTypeConfigDict,
+            WebApiRequestBuilderConfigDict,
             api_config.get(
                 'requestBuilder', api_config.get('urlSourceType', {})
             )
