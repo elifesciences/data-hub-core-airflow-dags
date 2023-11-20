@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Iterable, NamedTuple, Optional, Sequence, Type
 from urllib import parse
+from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 
@@ -99,6 +100,14 @@ class WebApiDynamicRequestBuilder:
         return self.compose_url(param_dict)
 
 
+CiviFieldsToReturnDict = TypedDict(
+    'CiviFieldsToReturnDict',
+    {
+        'return': NotRequired[str]
+    }
+)
+
+
 class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
     def get_url(
@@ -137,10 +146,12 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         url_no_options = self.compose_url(param_dict)
         return url_no_options + "&json=" + url_query_json_arg_as_str
 
-    def get_fields_to_return(self):
-        field_to_return_param = {}
+    def get_fields_to_return(self) -> CiviFieldsToReturnDict:
+        field_to_return_param: CiviFieldsToReturnDict = {}
+        assert self.request_builder_parameters is not None
         field_to_return_list = self.request_builder_parameters.get(
-            "fieldsToReturn")
+            "fieldsToReturn"
+        )
         if field_to_return_list:
             field_to_return_param = {
                 "return": ",".join(field_to_return_list)
