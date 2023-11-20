@@ -25,7 +25,7 @@ class WebApiDynamicRequestParameters(NamedTuple):
 @dataclass(frozen=True)
 class WebApiDynamicRequestBuilder:
     url_excluding_configurable_parameters: str
-    compose_able_url_key_val: dict
+    static_parameters: dict
     from_date_param: Optional[str] = None
     to_date_param: Optional[str] = None
     date_format: Optional[str] = None
@@ -93,7 +93,7 @@ class WebApiDynamicRequestBuilder:
             ] if key and value)
         param_dict = {
             **param_dict,
-            **self.compose_able_url_key_val
+            **self.static_parameters
         }
 
         return self.compose_url(param_dict)
@@ -132,7 +132,7 @@ class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
             url_query_json_arg
         )
         param_dict = {
-            **self.compose_able_url_key_val
+            **self.static_parameters
         }
         url_no_options = self.compose_url(param_dict)
         return url_no_options + "&json=" + url_query_json_arg_as_str

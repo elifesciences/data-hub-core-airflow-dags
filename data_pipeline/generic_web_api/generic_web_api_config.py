@@ -192,7 +192,7 @@ class WebApiConfig:
             offset_param=offset_param,
             page_size_param=page_size_param,
             page_size=page_size,
-            compose_able_url_key_val=static_parameters,
+            static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
             type_specific_params=request_builder_parameters

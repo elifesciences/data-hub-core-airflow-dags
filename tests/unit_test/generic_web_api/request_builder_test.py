@@ -15,7 +15,7 @@ class TestDynamicBioRxivMedRxivURLBuilder:
     def test_should_initialize_dummy_parameteres(self):
         dynamic_request_builder = BioRxivWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
-            compose_able_url_key_val={}
+            static_parameters={}
         )
         assert dynamic_request_builder.from_date_param
         assert dynamic_request_builder.to_date_param
@@ -24,7 +24,7 @@ class TestDynamicBioRxivMedRxivURLBuilder:
     def test_should_include_interval_and_offset_in_url(self):
         dynamic_request_builder = BioRxivWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
-            compose_able_url_key_val={}
+            static_parameters={}
         )
         url = dynamic_request_builder.get_url(
             dynamic_request_parameters=WebApiDynamicRequestParameters(
@@ -43,21 +43,21 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):
         dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
-            compose_able_url_key_val={}
+            static_parameters={}
         )
         assert dynamic_request_builder.method == 'POST'
 
     def test_should_set_max_source_values_per_request_to_16(self):
         dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
-            compose_able_url_key_val={}
+            static_parameters={}
         )
         assert dynamic_request_builder.max_source_values_per_request == 16
 
     def test_should_generate_json_data_for_source_values(self):
         dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
-            compose_able_url_key_val={}
+            static_parameters={}
         )
         assert dynamic_request_builder.get_json(
             dynamic_request_parameters=WebApiDynamicRequestParameters(
