@@ -41,7 +41,7 @@ def get_multi_web_api_config() -> MultiWebApiConfig:
 
 def web_api_data_etl(config_id: str, **_kwargs):
     multi_web_api_config = get_multi_web_api_config()
-    data_config_dict = multi_web_api_config.web_api_config[config_id]
+    data_config_dict = multi_web_api_config.web_api_config_dict_by_pipeline_id[config_id]
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
@@ -58,7 +58,9 @@ def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) ->
 
 def create_web_api_dags():
     multi_web_api_config = get_multi_web_api_config()
-    for config_id, web_api_config_dict in multi_web_api_config.web_api_config.items():
+    for config_id, web_api_config_dict in (
+        multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
+    ):
         with create_dag(
             dag_id=get_dag_id_for_web_api_config_dict(web_api_config_dict),
             description=web_api_config_dict.get('description'),
