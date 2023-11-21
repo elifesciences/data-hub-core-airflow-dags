@@ -7,7 +7,7 @@ from dags.web_api_data_import_pipeline import (
     get_dag_id_for_web_api_config_dict
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import WebApiConfigDict
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
+from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig,
     MultiWebApiConfig
@@ -22,11 +22,10 @@ from tests.end2end_test import (
 
 
 def get_test_web_api_config_dict() -> WebApiConfigDict:
-    conf_file_path = os.getenv(
-        WEB_API_CONFIG_FILE_PATH_ENV_NAME
+    multi_data_config = get_pipeline_config_for_env_name_and_config_parser(
+        WEB_API_CONFIG_FILE_PATH_ENV_NAME,
+        MultiWebApiConfig
     )
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    multi_data_config = MultiWebApiConfig(data_config_dict)
     return list(
         multi_data_config.web_api_config.values()
     )[0]

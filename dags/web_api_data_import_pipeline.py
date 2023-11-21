@@ -18,7 +18,6 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task,
 )
 from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 
 LOGGER = logging.getLogger(__name__)
