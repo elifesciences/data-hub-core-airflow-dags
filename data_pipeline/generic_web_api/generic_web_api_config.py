@@ -1,27 +1,42 @@
+import os
 from dataclasses import dataclass, field, replace
 from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
-from data_pipeline.generic_web_api.url_builder import (
-    compose_url_param_from_parameter_values_in_env_var,
-    compose_url_param_from_param_vals_filepath_in_env_var,
-    get_url_builder_class,
-    DynamicURLBuilder
+from data_pipeline.generic_web_api.request_builder import (
+    get_web_api_request_builder_class,
+    WebApiDynamicRequestBuilder
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
     BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
+    get_resolved_parameter_values_from_file_path_env_name,
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     MultiWebApiConfigDict,
+    ParameterFromEnvConfigDict,
     WebApiBaseConfigDict,
     WebApiConfigDict,
-    WebApiConfigurableParametersConfigDict
+    WebApiConfigurableParametersConfigDict,
+    WebApiRequestBuilderConfigDict
 )
+
+
+def get_resolved_parameter_values_from_env_name(
+    parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
+):
+    # Note: this functionality doesn't seem to be used anymore
+    #       instead we are using get_resolved_parameter_values_from_file_path_env_name
+    params = {
+        param.get("parameterName"): os.environ[param["envName"]]
+        for param in parameters_from_env_name
+        if os.getenv(param["envName"])
+    }
+    return params
 
 
 def get_web_api_config_id(
@@ -44,8 +59,8 @@ def get_web_api_config_id(
 # pylint: disable=too-many-locals
 class MultiWebApiConfig:
     def __init__(
-            self,
-            multi_web_api_etl_config: MultiWebApiConfigDict,
+        self,
+        multi_web_api_etl_config: MultiWebApiConfigDict,
     ):
         self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
@@ -72,7 +87,7 @@ class WebApiConfig:
     table_name: str
     table_write_disposition: str
     headers: MappingConfig
-    url_builder: DynamicURLBuilder
+    dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
@@ -91,9 +106,9 @@ class WebApiConfig:
 
     @staticmethod
     def from_dict(
-            web_api_config: WebApiConfigDict,
-            deployment_env: Optional[str] = None,
-            deployment_env_placeholder: str = "{ENV}"
+        web_api_config: WebApiConfigDict,
+        deployment_env: Optional[str] = None,
+        deployment_env_placeholder: str = "{ENV}"
     ):
         api_config = (
             cast(
@@ -131,12 +146,12 @@ class WebApiConfig:
         result_sort_param_value = configurable_parameters.get(
             "resultSortParameterValue", None
         )
-        composeable_static_parameters = (
+        static_parameters = (
             {
-                **(compose_url_param_from_parameter_values_in_env_var(
+                **(get_resolved_parameter_values_from_env_name(
                     data_url_config_dict.get("parametersFromEnv", [])
                 )),
-                **(compose_url_param_from_param_vals_filepath_in_env_var(
+                **(get_resolved_parameter_values_from_file_path_env_name(
                     data_url_config_dict.get("parametersFromFile", [])
                 )),
             }
@@ -150,24 +165,24 @@ class WebApiConfig:
         next_page_cursor = configurable_parameters.get(
             "nextPageCursorParameterName", None
         )
-        type_specific_param = api_config.get(
-            "urlSourceType", {}
-        ).get(
-            'sourceTypeSpecificValues', {}
-        )
-        url_builder_class = get_url_builder_class(
+        request_builder_config_dict = cast(
+            WebApiRequestBuilderConfigDict,
             api_config.get(
-                "urlSourceType", {}
-            ).get(
-                'name', ''
+                'requestBuilder', api_config.get('urlSourceType', {})
             )
+        )
+        request_builder_parameters = request_builder_config_dict.get(
+            'parameters', request_builder_config_dict.get('sourceTypeSpecificValues', {})
+        )
+        dynamic_request_builder_class = get_web_api_request_builder_class(
+            request_builder_config_dict.get('name', '')
         )
 
         page_size = (
             configurable_parameters.get("defaultPageSize", None)
         )
 
-        url_builder = url_builder_class(
+        dynamic_request_builder = dynamic_request_builder_class(
             url_excluding_configurable_parameters=url_excluding_configurable_parameters,
             from_date_param=from_date_param,
             to_date_param=to_date_param,
@@ -177,10 +192,10 @@ class WebApiConfig:
             offset_param=offset_param,
             page_size_param=page_size_param,
             page_size=page_size,
-            compose_able_url_key_val=composeable_static_parameters,
+            static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
-            type_specific_params=type_specific_param
+            request_builder_parameters=request_builder_parameters
         )
 
         auth_type = api_config.get("authentication", {}).get(
@@ -221,7 +236,7 @@ class WebApiConfig:
                 configurable_parameters.get("defaultStartDate", None)
             ),
             page_size=page_size,
-            url_builder=url_builder,
+            dynamic_request_builder=dynamic_request_builder,
             start_to_end_date_diff_in_days=(
                 configurable_parameters.get("daysDiffFromStartTillEnd", None)
             ),

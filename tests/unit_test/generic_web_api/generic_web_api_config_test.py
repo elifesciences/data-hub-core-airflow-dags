@@ -1,3 +1,4 @@
+from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
 from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
     get_web_api_config_id,
@@ -110,3 +111,39 @@ class TestWebApiConfig:
             'batchSize': 123
         })
         assert web_api_config.batch_size == 123
+
+    def test_should_read_request_builder_name_and_parameters(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'civi',
+                'parameters': {
+                    'fieldsToReturn': ['field1', 'field2']
+                }
+            }
+        })
+        assert isinstance(
+            web_api_config.dynamic_request_builder,
+            CiviWebApiDynamicRequestBuilder
+        )
+        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
+            'fieldsToReturn': ['field1', 'field2']
+        }
+
+    def test_should_read_deprecated_request_builder_name_and_parameters(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'urlSourceType': {
+                'name': 'civi',
+                'sourceTypeSpecificValues': {
+                    'fieldsToReturn': ['field1', 'field2']
+                }
+            }
+        })
+        assert isinstance(
+            web_api_config.dynamic_request_builder,
+            CiviWebApiDynamicRequestBuilder
+        )
+        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
+            'fieldsToReturn': ['field1', 'field2']
+        }
