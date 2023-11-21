@@ -17,6 +17,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task,
 )
+from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 
@@ -32,11 +33,10 @@ WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
 
 
 def get_multi_web_api_config() -> MultiWebApiConfig:
-    conf_file_path = os.getenv(
-        WEB_API_CONFIG_FILE_PATH_ENV_NAME
+    return get_pipeline_config_for_env_name_and_config_parser(
+        WEB_API_CONFIG_FILE_PATH_ENV_NAME,
+        MultiWebApiConfig
     )
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    return MultiWebApiConfig(data_config_dict)
 
 
 def web_api_data_etl(config_id: str, **_kwargs):
