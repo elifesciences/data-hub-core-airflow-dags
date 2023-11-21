@@ -68,6 +68,8 @@ x-airflow-volumes:
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
+    # only needed for webserver:
+    - ./config/webserver_config.py:/opt/airflow/webserver_config.py
 
 services:
     data-hub-dags:
@@ -99,8 +101,7 @@ services:
         image:  elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
         command: webserver
-        volumes:
-            - ./config/webserver_config.py:/opt/airflow/webserver_config.py
+        volumes: *airflow-volumes
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8080"]
             interval: 30s
