@@ -52,9 +52,10 @@ class WebApiAuthenticationConfigDict(TypedDict):
     orderedAuthenticationParamValues: NotRequired[Sequence[WebApiAuthenticationValueConfigDict]]
 
 
-class WebApiUrlSourceTypeConfigDict(TypedDict):
+class WebApiRequestBuilderConfigDict(TypedDict):
     name: str
-    sourceTypeSpecificValues: NotRequired[dict]
+    parameters: NotRequired[dict]
+    sourceTypeSpecificValues: NotRequired[dict]  # deprecated
 
 
 class WebApiRecordTimestampResponseConfigDict(TypedDict):
@@ -75,7 +76,8 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
-    urlSourceType: NotRequired[WebApiUrlSourceTypeConfigDict]
+    requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
+    urlSourceType: NotRequired[WebApiRequestBuilderConfigDict]  # deprecated
     response: NotRequired[WebApiResponseConfigDict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]

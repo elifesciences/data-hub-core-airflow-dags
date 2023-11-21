@@ -33,8 +33,8 @@ from data_pipeline.utils.web_api import requests_retry_session
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
-from data_pipeline.generic_web_api.url_builder import (
-    UrlComposeParam
+from data_pipeline.generic_web_api.request_builder import (
+    WebApiDynamicRequestParameters
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp,
@@ -70,7 +70,7 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
                 data_config.default_start_date
             ) if (
                 data_config.default_start_date and
-                data_config.url_builder.date_format
+                data_config.dynamic_request_builder.date_format
             ) else None
 
         else:
@@ -87,15 +87,20 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 
 def get_data_single_page(
     data_config: WebApiConfig,
-    url_compose_param: UrlComposeParam
+    dynamic_request_parameters: WebApiDynamicRequestParameters
 ) -> Any:
-    url = data_config.url_builder.get_url(
-        url_compose_param
+    url = data_config.dynamic_request_builder.get_url(
+        dynamic_request_parameters
     )
-    json_data = data_config.url_builder.get_json(
-        url_compose_param=url_compose_param
+    json_data = data_config.dynamic_request_builder.get_json(
+        dynamic_request_parameters=dynamic_request_parameters
     )
-    LOGGER.info("Request URL: %s %s (json: %r)", data_config.url_builder.method, url, json_data)
+    LOGGER.info(
+        "Request URL: %s %s (json: %r)",
+        data_config.dynamic_request_builder.method,
+        url,
+        json_data
+    )
 
     with requests_retry_session() as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
@@ -105,7 +110,7 @@ def get_data_single_page(
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
         session_response = session.request(
-            method=data_config.url_builder.method,
+            method=data_config.dynamic_request_builder.method,
             url=url,
             json=json_data,
             headers=data_config.headers.mapping
@@ -143,29 +148,29 @@ def get_next_source_values_or_none(
 ) -> Optional[Iterable[dict]]:
     if all_source_values_iterator is None:
         return None
-    assert data_config.url_builder.max_source_values_per_request
+    assert data_config.dynamic_request_builder.max_source_values_per_request
     return list(itertools.islice(
         all_source_values_iterator,
-        data_config.url_builder.max_source_values_per_request
+        data_config.dynamic_request_builder.max_source_values_per_request
     ))
 
 
-def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-arguments
+def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-many-arguments
     page_data: Any,
     items_count: int,
-    current_url_compose_param: UrlComposeParam,
+    current_dynamic_request_parameters: WebApiDynamicRequestParameters,
     data_config: WebApiConfig,
     latest_record_timestamp: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[UrlComposeParam]:
+) -> Optional[WebApiDynamicRequestParameters]:
     if all_source_values_iterator is not None:
         # Note: added assert for currently unsupported other parameters when using source values
-        assert not current_url_compose_param.cursor
-        assert not current_url_compose_param.page_number
-        assert not current_url_compose_param.page_offset
-        assert not current_url_compose_param.from_date
-        assert not current_url_compose_param.to_date
+        assert not current_dynamic_request_parameters.cursor
+        assert not current_dynamic_request_parameters.page_number
+        assert not current_dynamic_request_parameters.page_offset
+        assert not current_dynamic_request_parameters.from_date
+        assert not current_dynamic_request_parameters.to_date
         next_source_values = get_next_source_values_or_none(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
@@ -173,35 +178,35 @@ def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-argume
         if not next_source_values:
             LOGGER.info('no more source values to process')
             return None
-        return current_url_compose_param._replace(
+        return current_dynamic_request_parameters._replace(
             source_values=next_source_values
         )
     cursor = get_next_cursor_from_data(
         data=page_data,
         web_config=data_config,
-        previous_cursor=current_url_compose_param.cursor
+        previous_cursor=current_dynamic_request_parameters.cursor
     )
 
     from_date_to_advance, to_reset_page_or_offset_param = (
         get_next_start_date(
             items_count=items_count,
-            current_start_timestamp=current_url_compose_param.from_date,
+            current_start_timestamp=current_dynamic_request_parameters.from_date,
             latest_record_timestamp=latest_record_timestamp,
             web_config=data_config,
             cursor=cursor,
-            page_number=current_url_compose_param.page_number,
-            offset=current_url_compose_param.page_offset
+            page_number=current_dynamic_request_parameters.page_number,
+            offset=current_dynamic_request_parameters.page_offset
         )
     )
     page_number = get_next_page_number(
         items_count=items_count,
-        current_page=current_url_compose_param.page_number,
+        current_page=current_dynamic_request_parameters.page_number,
         web_config=data_config,
         reset_param=to_reset_page_or_offset_param
     )
     offset = get_next_offset(
         items_count=items_count,
-        current_offset=current_url_compose_param.page_offset,
+        current_offset=current_dynamic_request_parameters.page_offset,
         web_config=data_config,
         reset_param=to_reset_page_or_offset_param
     )
@@ -219,22 +224,22 @@ def get_next_url_compose_param_for_page_data(  # pylint: disable=too-many-argume
         and offset is None
     ):
         return None
-    return UrlComposeParam(
-        from_date=from_date_to_advance or current_url_compose_param.from_date,
+    return WebApiDynamicRequestParameters(
+        from_date=from_date_to_advance or current_dynamic_request_parameters.from_date,
         to_date=variable_until_date,
         cursor=cursor,
         page_number=page_number,
         page_offset=offset,
-        source_values=current_url_compose_param.source_values
+        source_values=current_dynamic_request_parameters.source_values
     )
 
 
-def get_initial_url_compose_param(
+def get_initial_dynamic_request_parameters(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[UrlComposeParam]:
+) -> Optional[WebApiDynamicRequestParameters]:
     initial_source_values = get_next_source_values_or_none(
         data_config=data_config,
         all_source_values_iterator=all_source_values_iterator
@@ -242,7 +247,7 @@ def get_initial_url_compose_param(
     if all_source_values_iterator and not initial_source_values:
         LOGGER.info('no source values to process')
         return None
-    return UrlComposeParam(
+    return WebApiDynamicRequestParameters(
         from_date=initial_from_date,
         to_date=get_next_until_date(
             from_date=initial_from_date,
@@ -250,8 +255,8 @@ def get_initial_url_compose_param(
             fixed_until_date=fixed_until_date
         ),
         cursor=None,
-        page_number=1 if data_config.url_builder.page_number_param else None,
-        page_offset=0 if data_config.url_builder.offset_param else None,
+        page_number=1 if data_config.dynamic_request_builder.page_number_param else None,
+        page_offset=0 if data_config.dynamic_request_builder.offset_param else None,
         source_values=initial_source_values
     )
 
@@ -280,20 +285,22 @@ def iter_processed_web_api_data_etl_batch_data(
         )
     )
     latest_record_timestamp: Optional[datetime] = None
-    current_url_compose_param: Optional[UrlComposeParam] = get_initial_url_compose_param(
-        data_config=data_config,
-        initial_from_date=initial_from_date,
-        fixed_until_date=until_date,
-        all_source_values_iterator=all_source_values_iterator
+    current_dynamic_request_parameters: Optional[WebApiDynamicRequestParameters] = (
+        get_initial_dynamic_request_parameters(
+            data_config=data_config,
+            initial_from_date=initial_from_date,
+            fixed_until_date=until_date,
+            all_source_values_iterator=all_source_values_iterator
+        )
     )
-    if not current_url_compose_param:
+    if not current_dynamic_request_parameters:
         LOGGER.info('not data to process')
         return
-    while current_url_compose_param:
-        LOGGER.debug('current_url_compose_param=%r', current_url_compose_param)
+    while current_dynamic_request_parameters:
+        LOGGER.debug('current_dynamic_request_parameters=%r', current_dynamic_request_parameters)
         page_data = get_data_single_page(
             data_config=data_config,
-            url_compose_param=current_url_compose_param
+            dynamic_request_parameters=current_dynamic_request_parameters
         )
         LOGGER.debug('page_data: %r', page_data)
         items_list = get_items_list(
@@ -322,12 +329,12 @@ def iter_processed_web_api_data_etl_batch_data(
 
         LOGGER.debug('latest_record_timestamp: %r', latest_record_timestamp)
         items_count = len(items_list)
-        current_url_compose_param = get_next_url_compose_param_for_page_data(
+        current_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
             page_data=page_data,
             items_count=items_count,
             latest_record_timestamp=latest_record_timestamp,
             fixed_until_date=until_date,
-            current_url_compose_param=current_url_compose_param,
+            current_dynamic_request_parameters=current_dynamic_request_parameters,
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
@@ -483,7 +490,7 @@ def get_next_page_number(
     reset_param: bool = False
 ):
     next_page = None
-    if web_config.url_builder.page_number_param:
+    if web_config.dynamic_request_builder.page_number_param:
         if reset_param:
             next_page = 1
         else:
@@ -503,7 +510,7 @@ def get_next_offset(
 ):
 
     next_offset = None
-    if web_config.url_builder.offset_param:
+    if web_config.dynamic_request_builder.offset_param:
         if reset_param:
             next_offset = 0
         else:
@@ -549,8 +556,8 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
         (
             next_page_number or next_offset
             or not (
-                web_config.url_builder.offset_param
-                or web_config.url_builder.page_number_param
+                web_config.dynamic_request_builder.offset_param
+                or web_config.dynamic_request_builder.page_number_param
             )
         ) and
         web_config.item_timestamp_key_path_from_item_root and
@@ -568,7 +575,7 @@ def get_next_cursor_from_data(
     previous_cursor: Optional[str]
 ) -> Optional[str]:
     LOGGER.debug('previous_cursor: %r', previous_cursor)
-    if web_config.url_builder.next_page_cursor:
+    if web_config.dynamic_request_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
             web_config.next_page_cursor_key_path_from_response_root
