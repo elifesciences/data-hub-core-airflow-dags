@@ -1,5 +1,6 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
+import functools
 import os
 import logging
 from datetime import timedelta
@@ -26,18 +27,6 @@ DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 DAG_ID = "Generic_Web_Api_Data_Pipeline"
 
 
-def web_api_data_etl(**kwargs):
-    data_config_dict = kwargs["dag_run"].conf
-    dep_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-
-    data_config = WebApiConfig.from_dict(data_config_dict, deployment_env=dep_env)
-    generic_web_api_data_etl(
-        data_config=data_config,
-    )
-
-
 WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
     "WEB_API_CONFIG_FILE_PATH"
 )
@@ -51,17 +40,36 @@ def get_multi_web_api_config() -> MultiWebApiConfig:
     return MultiWebApiConfig(data_config_dict)
 
 
-MULTI_WEB_API_CONFIG = get_multi_web_api_config()
-
-for web_api_config_dict in MULTI_WEB_API_CONFIG.web_api_config.values():
-    GENERIC_WEB_API_DATA = create_dag(
-        dag_id=f'Web_API.{web_api_config_dict["dataPipelineId"]}',
-        description=web_api_config_dict.get('description'),
-        schedule=None,
-        dagrun_timeout=timedelta(days=1)
+def web_api_data_etl(config_id: str, **_kwargs):
+    multi_web_api_config = get_multi_web_api_config()
+    data_config_dict = multi_web_api_config.web_api_config[config_id]
+    dep_env = os.getenv(
+        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
 
-    GENERIC_WEB_API_DATA_ETL_TASK = create_python_task(
-        GENERIC_WEB_API_DATA, "web_api_data_etl",
-        web_api_data_etl,
+    data_config = WebApiConfig.from_dict(data_config_dict, deployment_env=dep_env)
+    generic_web_api_data_etl(
+        data_config=data_config,
     )
+
+
+def create_web_api_dags():
+    multi_web_api_config = get_multi_web_api_config()
+    for config_id, web_api_config_dict in multi_web_api_config.web_api_config.items():
+        with create_dag(
+            dag_id=f'Web_API.{web_api_config_dict["dataPipelineId"]}',
+            description=web_api_config_dict.get('description'),
+            schedule=None,
+            dagrun_timeout=timedelta(days=1)
+        ) as dag:
+            create_python_task(
+                dag=dag,
+                task_id="web_api_data_etl",
+                python_callable=functools.partial(
+                    web_api_data_etl,
+                    config_id=config_id
+                )
+            )
+
+
+create_web_api_dags()
