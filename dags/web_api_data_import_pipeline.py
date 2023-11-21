@@ -5,6 +5,8 @@ import os
 import logging
 from datetime import timedelta
 
+import airflow
+
 from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig,
     WebApiConfig
@@ -55,7 +57,8 @@ def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) ->
     return f'Web_API.{web_api_config_dict["dataPipelineId"]}'
 
 
-def create_web_api_dags():
+def create_web_api_dags() -> airflow.DAG:
+    dags = []
     multi_web_api_config = get_multi_web_api_config()
     for config_id, web_api_config_dict in (
         multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
@@ -74,6 +77,8 @@ def create_web_api_dags():
                     config_id=config_id
                 )
             )
+            dags.append(dag)
+    return dags
 
 
-create_web_api_dags()
+DAGS = create_web_api_dags()
