@@ -20,7 +20,10 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task,
 )
-from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
+from data_pipeline.utils.pipeline_config import (
+    get_environment_variable_value,
+    get_pipeline_config_for_env_name_and_config_parser
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -46,7 +49,10 @@ def get_multi_web_api_config() -> MultiWebApiConfig:
 
 
 def get_default_schedule() -> Optional[str]:
-    return os.getenv(WEB_API_SCHEDULE_INTERVAL_ENV_NAME)
+    return get_environment_variable_value(
+        WEB_API_SCHEDULE_INTERVAL_ENV_NAME,
+        default_value=None
+    )
 
 
 def web_api_data_etl(config_id: str, **_kwargs):
