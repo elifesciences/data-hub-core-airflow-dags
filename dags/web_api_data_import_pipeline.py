@@ -4,6 +4,7 @@ import functools
 import os
 import logging
 from datetime import timedelta
+from typing import Sequence
 
 import airflow
 
@@ -57,7 +58,7 @@ def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) ->
     return f'Web_API.{web_api_config_dict["dataPipelineId"]}'
 
 
-def create_web_api_dags() -> airflow.DAG:
+def create_web_api_dags() -> Sequence[airflow.DAG]:
     dags = []
     multi_web_api_config = get_multi_web_api_config()
     for config_id, web_api_config_dict in (
@@ -82,3 +83,5 @@ def create_web_api_dags() -> airflow.DAG:
 
 
 DAGS = create_web_api_dags()
+
+FIRST_DAG = DAGS[0]
