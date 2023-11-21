@@ -85,6 +85,8 @@ services:
             dockerfile: Dockerfile
             args:
                 install_dev: "y"
+        environment: *airflow-env
+        volumes: *airflow-volumes
         image:  elifesciences/data-hub-core-dags-dev
         command: /bin/sh -c exit 0
         entrypoint: []
