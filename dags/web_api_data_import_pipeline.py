@@ -9,6 +9,7 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig,
     WebApiConfig
 )
+from data_pipeline.generic_web_api.generic_web_api_config_typing import WebApiConfigDict
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     generic_web_api_data_etl
 )
@@ -23,8 +24,6 @@ LOGGER = logging.getLogger(__name__)
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
-
-DAG_ID = "Generic_Web_Api_Data_Pipeline"
 
 
 WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
@@ -53,11 +52,15 @@ def web_api_data_etl(config_id: str, **_kwargs):
     )
 
 
+def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) -> str:
+    return f'Web_API.{web_api_config_dict["dataPipelineId"]}'
+
+
 def create_web_api_dags():
     multi_web_api_config = get_multi_web_api_config()
     for config_id, web_api_config_dict in multi_web_api_config.web_api_config.items():
         with create_dag(
-            dag_id=f'Web_API.{web_api_config_dict["dataPipelineId"]}',
+            dag_id=get_dag_id_for_web_api_config_dict(web_api_config_dict),
             description=web_api_config_dict.get('description'),
             schedule=None,
             dagrun_timeout=timedelta(days=1)
