@@ -4,7 +4,7 @@ import functools
 import os
 import logging
 from datetime import timedelta
-from typing import Sequence
+from typing import Optional, Sequence
 
 import airflow
 
@@ -29,6 +29,10 @@ DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
 DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 
+WEB_API_SCHEDULE_INTERVAL_ENV_NAME = (
+    "WEB_API_SCHEDULE_INTERVAL"
+)
+
 WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
     "WEB_API_CONFIG_FILE_PATH"
 )
@@ -39,6 +43,10 @@ def get_multi_web_api_config() -> MultiWebApiConfig:
         WEB_API_CONFIG_FILE_PATH_ENV_NAME,
         MultiWebApiConfig
     )
+
+
+def get_default_schedule() -> Optional[str]:
+    return os.getenv(WEB_API_SCHEDULE_INTERVAL_ENV_NAME)
 
 
 def web_api_data_etl(config_id: str, **_kwargs):
@@ -58,7 +66,9 @@ def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) ->
     return f'Web_API.{web_api_config_dict["dataPipelineId"]}'
 
 
-def create_web_api_dags() -> Sequence[airflow.DAG]:
+def create_web_api_dags(
+    default_schedule: Optional[str] = None
+) -> Sequence[airflow.DAG]:
     dags = []
     multi_web_api_config = get_multi_web_api_config()
     for config_id, web_api_config_dict in (
@@ -67,7 +77,7 @@ def create_web_api_dags() -> Sequence[airflow.DAG]:
         with create_dag(
             dag_id=get_dag_id_for_web_api_config_dict(web_api_config_dict),
             description=web_api_config_dict.get('description'),
-            schedule=None,
+            schedule=default_schedule,
             dagrun_timeout=timedelta(days=1)
         ) as dag:
             create_python_task(
@@ -82,6 +92,6 @@ def create_web_api_dags() -> Sequence[airflow.DAG]:
     return dags
 
 
-DAGS = create_web_api_dags()
+DAGS = create_web_api_dags(default_schedule=get_default_schedule())
 
 FIRST_DAG = DAGS[0]
