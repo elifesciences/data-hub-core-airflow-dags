@@ -1,6 +1,7 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
+  # Note: the first configuration is used by the end2end test
   #observer api
   - dataPipelineId: observer_published_research_article
     description:
@@ -9,6 +10,7 @@ webApi:
     table: test_published_research_article
     dataUrl:
       urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
+
   #elifescience people api
   # - dataset: '{ENV}'
   #   table: test_people_api
