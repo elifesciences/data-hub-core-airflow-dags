@@ -2,7 +2,8 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   # Note: the first configuration is used by the end2end test
-  #observer api
+
+  # Observer API (used by end2end test)
   - dataPipelineId: observer_published_research_article
     description:
       Retrieve legacy POA and VOR publication dates from Observer.
@@ -11,15 +12,15 @@ webApi:
     dataUrl:
       urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
 
-  #elifescience people api
-  # - dataset: '{ENV}'
-  #   table: test_people_api
-  #   dataUrl:
-  #     urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
-  #     configurableParameters:
-  #       pageSizeParameterName: per-page
-  #       defaultPageSize: 100
-  #       pageParameterName: page
-  #   response:
-  #     itemsKeyFromResponseRoot:
-  #       - items
+  # elifescience people API
+  - dataset: '{ENV}'
+    table: test_people_api
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
+      configurableParameters:
+        pageSizeParameterName: per-page
+        defaultPageSize: 100
+        pageParameterName: page
+    response:
+      itemsKeyFromResponseRoot:
+        - items
