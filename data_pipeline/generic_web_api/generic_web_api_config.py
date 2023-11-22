@@ -77,6 +77,10 @@ class MultiWebApiConfig:
                 multi_web_api_etl_config["webApi"]
             )
         }
+        self.web_api_config_dict_by_pipeline_id = {
+            web_api_config_dict['dataPipelineId']: web_api_config_dict
+            for web_api_config_dict in self.web_api_config.values()
+        }
 
 
 @dataclass(frozen=True)

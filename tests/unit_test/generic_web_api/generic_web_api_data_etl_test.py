@@ -153,6 +153,7 @@ def _iter_dict_for_bigquery_include_exclude_source_config_mock():
 
 
 WEB_API_CONFIG: WebApiConfigDict = {
+    'dataPipelineId': 'pipeline_1',
     'gcpProjectName': 'project_1',
     'importedTimestampFieldName': 'imported_timestamp_1',
     'dataset': 'dataset_1',
