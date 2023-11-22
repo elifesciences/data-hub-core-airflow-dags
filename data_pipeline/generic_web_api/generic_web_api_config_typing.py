@@ -71,6 +71,7 @@ class WebApiResponseConfigDict(TypedDict):
 
 class WebApiBaseConfigDict(TypedDict):
     dataPipelineId: NotRequired[str]
+    description: NotRequired[str]
     dataset: str
     table: str
     dataUrl: WebApiDataUrlConfigDict
