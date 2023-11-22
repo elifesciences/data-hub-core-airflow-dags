@@ -81,7 +81,7 @@ def create_web_api_dags(
                 task_id="web_api_data_etl",
                 python_callable=functools.partial(
                     web_api_data_etl,
-                    config_id=data_pipeline_id
+                    data_pipeline_id=data_pipeline_id
                 )
             )
             dags.append(dag)
