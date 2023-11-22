@@ -1,9 +1,5 @@
-import os
-
 from dags.web_api_data_import_pipeline import (
     WEB_API_CONFIG_FILE_PATH_ENV_NAME,
-    DEFAULT_DEPLOYMENT_ENV_VALUE,
-    DEPLOYMENT_ENV_ENV_NAME,
     get_dag_id_for_web_api_config_dict
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import WebApiConfigDict
@@ -32,14 +28,7 @@ def get_test_web_api_config_dict() -> WebApiConfigDict:
 
 
 def get_etl_pipeline_cloud_resource(web_api_config: WebApiConfigDict) -> DataPipelineCloudResource:
-    dep_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-    single_web_api_config = WebApiConfig.from_dict(
-        web_api_config=web_api_config,
-        deployment_env=dep_env
-    )
+    single_web_api_config = WebApiConfig.from_dict(web_api_config=web_api_config)
 
     return DataPipelineCloudResource(
         single_web_api_config.gcp_project,

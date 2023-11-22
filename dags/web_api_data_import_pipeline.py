@@ -1,7 +1,6 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
 import functools
-import os
 import logging
 from datetime import timedelta
 from typing import Optional, Sequence
@@ -27,9 +26,6 @@ from data_pipeline.utils.pipeline_config import (
 
 
 LOGGER = logging.getLogger(__name__)
-
-DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
-DEFAULT_DEPLOYMENT_ENV_VALUE = "ci"
 
 
 WEB_API_SCHEDULE_INTERVAL_ENV_NAME = (
@@ -58,14 +54,8 @@ def get_default_schedule() -> Optional[str]:
 def web_api_data_etl(config_id: str, **_kwargs):
     multi_web_api_config = get_multi_web_api_config()
     data_config_dict = multi_web_api_config.web_api_config_dict_by_pipeline_id[config_id]
-    dep_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-
-    data_config = WebApiConfig.from_dict(data_config_dict, deployment_env=dep_env)
-    generic_web_api_data_etl(
-        data_config=data_config,
-    )
+    data_config = WebApiConfig.from_dict(data_config_dict)
+    generic_web_api_data_etl(data_config=data_config)
 
 
 def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) -> str:
