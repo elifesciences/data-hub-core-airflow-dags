@@ -351,12 +351,29 @@ def iter_optional_batch_iterable(
     return iter_batch_iterable(iterable, batch_size)
 
 
-def process_web_api_data_etl_batch(
+def iter_source_values_as_placeholders_for_config(
     data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+) -> Iterable[dict]:
+    if all_source_values_iterator is None:
+        # no source values configured, provide empty placeholders
+        return [{}]
+    if data_config.dynamic_request_builder.max_source_values_per_request:
+        # source values configured, but we want to use them for pagination
+        # provide empty placeholders
+        return [{}]
+    # provide placeholders as source values
+    return all_source_values_iterator
+
+
+def process_web_api_data_etl_batch_with_placeholders(
+    data_config: WebApiConfig,
+    placeholder_dict: dict,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
+    LOGGER.info('placeholder_dict: %r', placeholder_dict)
     all_processed_record_iterable = iter_processed_web_api_data_etl_batch_data(
         data_config=data_config,
         initial_from_date=initial_from_date,
@@ -395,6 +412,26 @@ def process_web_api_data_etl_batch(
             else:
                 LOGGER.info('not updating state due to no latest record timestamp')
         LOGGER.info('completed batch: %d', 1 + batch_index)
+
+
+def process_web_api_data_etl_batch(
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+):
+    source_values_as_placeholders = iter_source_values_as_placeholders_for_config(
+        data_config=data_config,
+        all_source_values_iterator=all_source_values_iterator
+    )
+    for placeholders_dict in source_values_as_placeholders:
+        process_web_api_data_etl_batch_with_placeholders(
+            data_config=data_config,
+            placeholder_dict=placeholders_dict,
+            initial_from_date=initial_from_date,
+            until_date=until_date,
+            all_source_values_iterator=all_source_values_iterator
+        )
 
 
 def get_next_batch_from_timestamp_for_config(
