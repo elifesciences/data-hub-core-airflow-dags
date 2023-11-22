@@ -51,9 +51,9 @@ def get_default_schedule() -> Optional[str]:
     )
 
 
-def web_api_data_etl(config_id: str, **_kwargs):
+def web_api_data_etl(data_pipeline_id: str, **_kwargs):
     multi_web_api_config = get_multi_web_api_config()
-    data_config_dict = multi_web_api_config.web_api_config_dict_by_pipeline_id[config_id]
+    data_config_dict = multi_web_api_config.web_api_config_dict_by_pipeline_id[data_pipeline_id]
     data_config = WebApiConfig.from_dict(data_config_dict)
     generic_web_api_data_etl(data_config=data_config)
 
@@ -67,7 +67,7 @@ def create_web_api_dags(
 ) -> Sequence[airflow.DAG]:
     dags = []
     multi_web_api_config = get_multi_web_api_config()
-    for config_id, web_api_config_dict in (
+    for data_pipeline_id, web_api_config_dict in (
         multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
     ):
         with create_dag(
@@ -81,7 +81,7 @@ def create_web_api_dags(
                 task_id="web_api_data_etl",
                 python_callable=functools.partial(
                     web_api_data_etl,
-                    config_id=config_id
+                    config_id=data_pipeline_id
                 )
             )
             dags.append(dag)
