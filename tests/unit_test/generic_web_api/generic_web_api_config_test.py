@@ -23,6 +23,7 @@ BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
 }
 
 MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
+    'dataPipelineId': 'pipeline_1',
     'gcpProjectName': 'project_1',
     'importedTimestampFieldName': 'imported_timestamp_1',
     'dataset': DATASET_1,

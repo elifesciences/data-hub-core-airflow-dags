@@ -13,7 +13,8 @@ webApi:
       urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
 
   # elifescience people API
-  - dataset: '{ENV}'
+  - dataPipelineId: people_api
+    dataset: '{ENV}'
     table: test_people_api
     dataUrl:
       urlExcludingConfigurableParameters: https://api.elifesciences.org/people?
