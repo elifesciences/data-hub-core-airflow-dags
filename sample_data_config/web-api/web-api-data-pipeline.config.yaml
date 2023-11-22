@@ -63,3 +63,42 @@ webApi:
       itemsKeyFromResponseRoot:
         - preds
     batchSize: 32
+
+  # Crossref
+  - dataPipelineId: crossref_by_doi_prefix
+    dataset: '{ENV}'
+    table: crossref_response
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-by-doi-prefix-{doi_prefix}.json'
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery: |
+            SELECT doi_prefix
+            FROM UNNEST([
+              '10.7554'  -- eLife
+            ]) AS doi_prefix
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.crossref.org/{doi_prefix}
+      configurableParameters:
+        nextPageCursorParameterName: 'cursor'
+        fromDateParameterName: 'from-collected-date'
+        toDateParameterName: 'until-collected-date'
+        daysDiffFromStartTillEnd: 1  # load data one day at a time
+        defaultStartDate: '2017-01-01+00:00'
+        dateFormat: '%Y-%m-%d'
+    response:
+      nextPageCursorKeyFromResponseRoot:
+        - message
+        - next-cursor
+      itemsKeyFromResponseRoot:
+        - message
+        - events
+      totalItemsCountKeyFromResponseRoot:
+        - message
+        - total-results
+      recordTimestamp:
+        itemTimestampKeyFromItemRoot:
+          - timestamp
