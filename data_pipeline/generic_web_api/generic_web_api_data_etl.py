@@ -7,6 +7,8 @@ import json
 from json.decoder import JSONDecodeError
 from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
 
+import objsize
+
 from botocore.exceptions import ClientError
 
 from data_pipeline.generic_web_api.transform_data import (
@@ -117,7 +119,6 @@ def get_data_single_page(
         )
         session_response.raise_for_status()
         resp = session_response.content
-        LOGGER.info('Response size (bytes): %s', f'{len(resp):,}')
         try:
             json_resp = json.loads(resp)
         except JSONDecodeError:
@@ -125,6 +126,12 @@ def get_data_single_page(
             json_resp = get_newline_delimited_json_string_as_json_list(
                 resp.decode("utf-8")
             )
+        parsed_response_size = objsize.get_deep_size(json_resp)
+        LOGGER.info(
+            'Response size (bytes): %s, parsed: %s',
+            f'{len(resp):,}',
+            f'{parsed_response_size:,}'
+        )
     return json_resp
 
 
