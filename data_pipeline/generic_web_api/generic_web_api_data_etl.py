@@ -30,6 +30,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
+from data_pipeline.utils.text import format_byte_count
 from data_pipeline.utils.web_api import requests_retry_session
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -128,9 +129,9 @@ def get_data_single_page(
             )
         parsed_response_size = objsize.get_deep_size(json_resp)
         LOGGER.info(
-            'Response size (bytes): %s, parsed: %s',
-            f'{len(resp):,}',
-            f'{parsed_response_size:,}'
+            'Response size: %s, parsed: %s',
+            format_byte_count(len(resp)),
+            format_byte_count(parsed_response_size)
         )
     return json_resp
 
