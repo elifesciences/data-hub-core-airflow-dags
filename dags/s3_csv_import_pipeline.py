@@ -2,11 +2,13 @@
 
 import json
 import os
+import logging
 from datetime import timedelta
 
 from airflow.models import Variable
 from airflow.models.dagrun import DagRun
 from airflow.operators.python import ShortCircuitOperator
+from airflow.exceptions import AirflowSkipException
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
@@ -27,6 +29,8 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
+
+LOGGER = logging.getLogger(__name__)
 
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
     "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
@@ -133,6 +137,9 @@ def etl_new_csv_files(**context):
         obj_pattern_with_latest_dates,
         data_config.s3_bucket_name
     )
+    if not new_s3_files:
+        LOGGER.info('No new file found and skipped the task.')
+        raise AirflowSkipException
     for object_key_pattern, matching_files_list in new_s3_files.items():
         record_import_timestamp_as_string = get_current_timestamp_as_string()
         sorted_matching_files_list = (
