@@ -179,24 +179,6 @@ SHOULD_REMAINING_TASK_EXECUTE = ShortCircuitOperator(
     python_callable=is_dag_etl_running,
     dag=S3_CSV_ETL_DAG)
 
-
-NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
-    task_id='s3_key_sensor_task',
-    poke_interval=60 * 5,
-    timeout=60,
-    retries=0,
-    state_info_extract_from_config_callable=get_stored_state,
-    default_initial_s3_last_modified_date=(
-        get_default_initial_s3_last_modified_date()
-    ),
-    dag=S3_CSV_ETL_DAG,
-    deployment_environment=os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-)
-
-
 LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID = create_python_task(
     S3_CSV_ETL_DAG, "Update_Previous_RunID_Variable_Value_For_DagRun_Locking",
     update_prev_run_id_var_val,
@@ -212,6 +194,5 @@ ETL_CSV = create_python_task(
 (
         SHOULD_REMAINING_TASK_EXECUTE >>
         LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID >>
-        NEW_S3_FILE_SENSOR >>
         ETL_CSV
 )
