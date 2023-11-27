@@ -2,11 +2,13 @@
 
 import json
 import os
+import logging
 from datetime import timedelta
 
 from airflow.models import Variable
 from airflow.models.dagrun import DagRun
 from airflow.operators.python import ShortCircuitOperator
+from airflow.exceptions import AirflowSkipException
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
 from data_pipeline.s3_csv_data.s3_csv_etl import (
@@ -17,7 +19,6 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     NamedLiterals
 )
 from data_pipeline.utils.dags.airflow_s3_util_extension import (
-    S3NewKeyFromLastDataDownloadDateSensor,
     S3HookNewFileMonitor
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
@@ -28,6 +29,8 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
+
+LOGGER = logging.getLogger(__name__)
 
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
     "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
@@ -134,6 +137,9 @@ def etl_new_csv_files(**context):
         obj_pattern_with_latest_dates,
         data_config.s3_bucket_name
     )
+    if not new_s3_files:
+        LOGGER.info('No new file found and skipped the task.')
+        raise AirflowSkipException
     for object_key_pattern, matching_files_list in new_s3_files.items():
         record_import_timestamp_as_string = get_current_timestamp_as_string()
         sorted_matching_files_list = (
@@ -179,24 +185,6 @@ SHOULD_REMAINING_TASK_EXECUTE = ShortCircuitOperator(
     python_callable=is_dag_etl_running,
     dag=S3_CSV_ETL_DAG)
 
-
-NEW_S3_FILE_SENSOR = S3NewKeyFromLastDataDownloadDateSensor(
-    task_id='s3_key_sensor_task',
-    poke_interval=60 * 5,
-    timeout=60,
-    retries=0,
-    state_info_extract_from_config_callable=get_stored_state,
-    default_initial_s3_last_modified_date=(
-        get_default_initial_s3_last_modified_date()
-    ),
-    dag=S3_CSV_ETL_DAG,
-    deployment_environment=os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME,
-        DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-)
-
-
 LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID = create_python_task(
     S3_CSV_ETL_DAG, "Update_Previous_RunID_Variable_Value_For_DagRun_Locking",
     update_prev_run_id_var_val,
@@ -212,6 +200,5 @@ ETL_CSV = create_python_task(
 (
         SHOULD_REMAINING_TASK_EXECUTE >>
         LOCK_DAGRUN_UPDATE_PREVIOUS_RUNID >>
-        NEW_S3_FILE_SENSOR >>
         ETL_CSV
 )
