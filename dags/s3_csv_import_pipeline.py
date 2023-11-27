@@ -17,7 +17,6 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     NamedLiterals
 )
 from data_pipeline.utils.dags.airflow_s3_util_extension import (
-    S3NewKeyFromLastDataDownloadDateSensor,
     S3HookNewFileMonitor
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
