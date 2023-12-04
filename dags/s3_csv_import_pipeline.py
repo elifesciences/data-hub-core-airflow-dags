@@ -9,7 +9,11 @@ from typing import Optional, Sequence
 import airflow
 from airflow.exceptions import AirflowSkipException
 
-from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig, S3BaseCsvConfig
+from data_pipeline.s3_csv_data.s3_csv_config import (
+    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
+    MultiS3CsvConfig,
+    S3BaseCsvConfig
+)
 from data_pipeline.s3_csv_data.s3_csv_config_typing import S3CsvConfigDict
 from data_pipeline.s3_csv_data.s3_csv_etl import (
     transform_load_data,
@@ -38,8 +42,6 @@ LOGGER = logging.getLogger(__name__)
 INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
     "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
 )
-DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-04-11 21:10:13"
-
 
 S3_CSV_SCHEDULE_INTERVAL_ENV_NAME = (
     "S3_CSV_SCHEDULE_INTERVAL"
