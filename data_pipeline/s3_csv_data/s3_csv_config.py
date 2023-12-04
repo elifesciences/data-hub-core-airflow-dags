@@ -1,4 +1,5 @@
 import hashlib
+from typing import Optional
 
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
@@ -23,6 +24,10 @@ class MultiS3CsvConfig:
             )
             for s3_csv in multi_s3_csv_config["s3Csv"]
         ]
+        self.s3_csv_config_dict_by_pipeline_id = {
+            s3_csv_config_dict['dataPipelineId']: s3_csv_config_dict
+            for s3_csv_config_dict in self.s3_csv_config
+        }
 
 
 def extend_s3_csv_config_with_state_file_info(
@@ -79,7 +84,7 @@ class S3BaseCsvConfig(BaseCsvConfig):
     def __init__(
             self,
             csv_sheet_config: dict,
-            deployment_env: str,
+            deployment_env: Optional[str] = None,
             environment_placeholder: str = "{ENV}"
     ):
         updated_config = (
@@ -88,6 +93,8 @@ class S3BaseCsvConfig(BaseCsvConfig):
                 deployment_env=deployment_env,
                 environment_placeholder=environment_placeholder
             )
+            if deployment_env
+            else csv_sheet_config
         )
         super().__init__(
             csv_sheet_config=updated_config,

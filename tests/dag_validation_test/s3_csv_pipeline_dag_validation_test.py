@@ -1,29 +1,25 @@
-import pytest
+import airflow
 
-from dags.s3_csv_import_controller import (
-    DAG_ID as CONTROLLER_DAG_ID,
-    TARGET_DAG as TARGET_DAG_ID
+from dags.s3_csv_import_pipeline import (
+    get_dag_id_for_s3_csv_config_dict,
+    get_multi_csv_pipeline_config
 )
+from data_pipeline.s3_csv_data.s3_csv_config_typing import S3CsvConfigDict
+
 from tests.dag_validation_test import (
     dag_should_contain_named_tasks
 )
 
 
-def test_controller_dag_should_contain_one_task(dagbag):
-    controller_dag = dagbag.get_dag(CONTROLLER_DAG_ID)
-    assert len(controller_dag.tasks) == 1
+def get_test_csv_pipeline_config_dict() -> S3CsvConfigDict:
+    multi_data_config = get_multi_csv_pipeline_config()
+    return multi_data_config.s3_csv_config[0]
 
 
-@pytest.mark.parametrize(
-    "dag_id, task_list",
-    [
-        (CONTROLLER_DAG_ID, ['trigger_s3_csv_etl_dag']),
-        (TARGET_DAG_ID,
-         ['Should_Remaining_Tasks_Execute',
-          'Update_Previous_RunID_Variable_Value_For_DagRun_Locking',
-          'Etl_Csv'
-          ])
-    ],
-)
-def test_dag_should_contain_named_tasks(dagbag, dag_id, task_list):
-    dag_should_contain_named_tasks(dagbag, dag_id, task_list)
+def test_dag_should_contain_named_tasks(dagbag: airflow.models.dagbag.DagBag):
+    s3_csv_config_dict = get_test_csv_pipeline_config_dict()
+    dag_should_contain_named_tasks(
+        dagbag,
+        dag_id=get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict),
+        task_list=['csv_etl']
+    )
