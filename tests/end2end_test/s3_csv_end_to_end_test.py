@@ -1,17 +1,13 @@
-import os
 import logging
 
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
-from data_pipeline.s3_csv_data.s3_csv_config import (
-    S3BaseCsvConfig, MultiS3CsvConfig
-)
-from dags.s3_csv_import_controller import (
-    DAG_ID,
-    TARGET_DAG,
-    S3_CSV_CONFIG_FILE_PATH_ENV_NAME,
-)
 from dags.s3_csv_import_pipeline import (
-    DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
+    get_dag_id_for_s3_csv_config_dict,
+    get_multi_csv_pipeline_config
+)
+from data_pipeline.s3_csv_data.s3_csv_config_typing import S3CsvConfigDict
+
+from data_pipeline.s3_csv_data.s3_csv_config import (
+    S3BaseCsvConfig
 )
 from tests.end2end_test import (
     trigger_run_test_pipeline,
@@ -21,45 +17,34 @@ from tests.end2end_test.end_to_end_test_helper import (
     AirflowAPI
 )
 
-
 LOGGER = logging.getLogger(__name__)
 
 
-def test_dag_runs_data_imported():
-    airflow_api = AirflowAPI()
+def get_test_csv_pipeline_config_dict() -> S3CsvConfigDict:
+    multi_data_config = get_multi_csv_pipeline_config()
+    return multi_data_config.s3_csv_config[0]
 
+
+def get_data_pipeline_cloud_resource(csv_config_dict: S3CsvConfigDict) -> DataPipelineCloudResource:
+    single_s3_csv_config = S3BaseCsvConfig(csv_config_dict)
+
+    return DataPipelineCloudResource(
+        single_s3_csv_config.gcp_project,
+        single_s3_csv_config.dataset_name,
+        single_s3_csv_config.table_name,
+        single_s3_csv_config.state_file_bucket_name,
+        single_s3_csv_config.state_file_object_name
+    )
+
+
+def test_dag_runs_data_imported():
+    single_csv_pipeline_config_dict = get_test_csv_pipeline_config_dict()
+    airflow_api = AirflowAPI()
     data_pipeline_cloud_resource = (
-        get_data_pipeline_cloud_resource()
+        get_data_pipeline_cloud_resource(single_csv_pipeline_config_dict)
     )
     trigger_run_test_pipeline(
         airflow_api=airflow_api,
-        dag_id=DAG_ID,
-        target_dag=TARGET_DAG,
+        dag_id=get_dag_id_for_s3_csv_config_dict(single_csv_pipeline_config_dict),
         pipeline_cloud_resource=data_pipeline_cloud_resource
-    )
-
-
-def get_data_pipeline_cloud_resource():
-    conf_file_path = os.getenv(
-        S3_CSV_CONFIG_FILE_PATH_ENV_NAME
-    )
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    dep_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-    multi_data_config = MultiS3CsvConfig(data_config_dict, )
-    multi_s3_object_pattern_config_dict = list(
-        multi_data_config.s3_csv_config
-    )[0]
-
-    multi_s3_object_pattern_config = S3BaseCsvConfig(
-        multi_s3_object_pattern_config_dict, dep_env
-    )
-
-    return DataPipelineCloudResource(
-        multi_s3_object_pattern_config.gcp_project,
-        multi_s3_object_pattern_config.dataset_name,
-        multi_s3_object_pattern_config.table_name,
-        multi_s3_object_pattern_config.state_file_bucket_name,
-        multi_s3_object_pattern_config.state_file_object_name
     )
