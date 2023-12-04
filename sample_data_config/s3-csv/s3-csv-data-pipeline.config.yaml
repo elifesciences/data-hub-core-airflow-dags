@@ -4,6 +4,8 @@ stateFile:
   defaultBucketName: ci-elife-data-pipeline
   defaultSystemGeneratedObjectPrefix: "airflow-config/{ENV}-s3-csv/state/s3-csv"
 s3Csv:
+  # Note: the first configuration is used by the end2end test
+
   #- bucketName: elife-ejp-ftp
   #  objectKeyPattern:
   #    - ejp_query_tool_query_id_15a* # the pattern of the s3 object to be monitored
@@ -55,3 +57,21 @@ s3Csv:
         metadataLineIndex: 1
     recordProcessingSteps: # html
       - html_unescape
+
+
+  # The following configuration items will not be used by end2end test:
+
+  - dataPipelineId: s3_csv_test_sciety_events
+    bucketName: sciety-data-extractions
+    objectKeyPattern:
+      - events-from-cronjob.csv
+    headerLineIndex: 0
+    dataValuesStartLineIndex: 1
+    datasetName: "{ENV}"
+    tableName: 's3_csv_test_sciety_event'
+    tableWriteAppend: False
+    stateFile:
+      bucketName: ci-elife-data-pipeline
+      objectName: "airflow_test/state/s3-csv/state-sciety-events.json"
+    recordProcessingSteps:
+      - parse_json_value
