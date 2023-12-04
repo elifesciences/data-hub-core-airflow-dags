@@ -1,4 +1,5 @@
 from data_pipeline.utils.record_processing import (
+    parse_json_value,
     unescape_html_escaped_values_in_string,
     strip_quotes,
     process_record_values
@@ -34,6 +35,22 @@ class TestStripQuotes:
             for val in test_data
         ]
         assert result == expected_result
+
+
+class TestParseJsonValue:
+    def test_should_return_none_if_passed_in_value_is_none(self):
+        assert parse_json_value(None) is None
+
+    def test_should_return_passed_in_value_if_not_string(self):
+        assert parse_json_value(123) == 123
+
+    def test_should_return_passed_in_value_if_not_starting_and_ending_with_curly_bracket(self):
+        assert parse_json_value('test') == 'test'
+        assert parse_json_value('{test') == '{test'
+        assert parse_json_value('test}') == 'test}'
+
+    def test_should_return_parse_json_value_if_starting_and_ending_with_curly_bracket(self):
+        assert parse_json_value('{"key": "value"}') == {'key': 'value'}
 
 
 class TestProcessRecordValues:

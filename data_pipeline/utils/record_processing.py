@@ -1,4 +1,5 @@
 import html
+import json
 from typing import List
 
 DEFAULT_PROCESSING_STEPS = ['strip_quotes']
@@ -49,7 +50,14 @@ def strip_quotes(val):
     return n_val
 
 
+def parse_json_value(value: str):
+    if isinstance(value, str) and value.startswith('{') and value.endswith('}'):
+        return json.loads(value)
+    return value
+
+
 FUNCTION_NAME_MAPPING = {
     "html_unescape": unescape_html_escaped_values_in_string,
-    "strip_quotes": strip_quotes
+    "strip_quotes": strip_quotes,
+    "parse_json_value": parse_json_value
 }
