@@ -18,12 +18,10 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     merge_record_with_metadata
 )
 from data_pipeline.s3_csv_data.s3_csv_config import (
+    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
     S3BaseCsvConfig
 )
 from data_pipeline.utils.record_processing import DEFAULT_PROCESSING_STEPS
-from dags.s3_csv_import_pipeline import (
-    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-)
 
 
 # pylint: disable=trailing-whitespace

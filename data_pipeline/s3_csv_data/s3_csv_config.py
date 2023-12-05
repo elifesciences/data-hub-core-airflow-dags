@@ -7,6 +7,9 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 
+DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-04-11 21:10:13"
+
+
 class MultiS3CsvConfig:
     def __init__(self,
                  multi_s3_csv_config: dict,
