@@ -62,6 +62,9 @@ s3Csv:
   # The following configuration items will not be used by end2end test:
 
   - dataPipelineId: s3_csv_test_sciety_events
+    description:
+      Load Sciety Events from CSV to BigQuery.
+      Parse "payload" as JSON.
     bucketName: sciety-data-extractions
     objectKeyPattern:
       - events-from-cronjob.csv
