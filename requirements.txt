@@ -7,7 +7,7 @@ boto3==1.24.59
 aiobotocore==2.4.0
 botocore==1.27.59
 cattrs==23.1.2
-cloudpickle==2.2.1
+cloudpickle==3.0.0
 dateparser==1.1.8
 objsize==0.7.0
 regex==2023.10.3
