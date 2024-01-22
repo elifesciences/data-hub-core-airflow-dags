@@ -6,7 +6,7 @@ bigquery-views-manager==1.0.6
 boto3==1.24.59
 aiobotocore==2.4.0
 botocore==1.27.59
-cattrs==23.1.2
+cattrs==23.2.3
 cloudpickle==3.0.0
 dateparser==1.2.0
 objsize==0.7.0
