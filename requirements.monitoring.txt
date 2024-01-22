@@ -4,5 +4,5 @@ pandas-gbq==0.17.9
 pyarrow>=6.0.1, <16.0.0
 tqdm==4.66.1
 requests==2.31.0
-fsspec==2022.8.2
-s3fs==2022.8.2
+fsspec>=2023.10.0
+s3fs==2023.12.2
