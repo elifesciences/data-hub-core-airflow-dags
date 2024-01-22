@@ -8,6 +8,7 @@ from typing import Optional, Sequence
 
 import airflow
 from airflow.exceptions import AirflowSkipException
+from airflow.models.baseoperator import DEFAULT_QUEUE
 
 from data_pipeline.s3_csv_data.s3_csv_config import (
     DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
@@ -48,6 +49,10 @@ S3_CSV_SCHEDULE_INTERVAL_ENV_NAME = (
 )
 S3_CSV_CONFIG_FILE_PATH_ENV_NAME = (
     "S3_CSV_CONFIG_FILE_PATH"
+)
+
+S3_CSV_QUEUE_ENV_NAME = (
+    "S3_CSV_QUEUE"
 )
 
 
@@ -119,6 +124,13 @@ def get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict: S3CsvConfigDict) -> st
     return f'CSV.{s3_csv_config_dict["dataPipelineId"]}'
 
 
+def get_queue() -> str:
+    return os.getenv(
+        S3_CSV_QUEUE_ENV_NAME,
+        DEFAULT_QUEUE
+    )
+
+
 def create_csv_pipeline_dags(
     default_schedule: Optional[str] = None
 ) -> Sequence[airflow.DAG]:
@@ -139,7 +151,8 @@ def create_csv_pipeline_dags(
                 python_callable=functools.partial(
                     csv_etl,
                     data_pipeline_id=data_pipeline_id
-                )
+                ),
+                queue=get_queue()
             )
             dags.append(dag)
     return dags
