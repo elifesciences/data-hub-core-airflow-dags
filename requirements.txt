@@ -1,5 +1,5 @@
 apache-airflow[crypto,celery,postgres,jdbc,ssh]==2.7.1
-apache-airflow-providers-amazon==7.3.0
+apache-airflow-providers-amazon==8.16.0
 backoff==2.2.1
 bigquery-schema-generator==1.6.1
 bigquery-views-manager==1.0.6
