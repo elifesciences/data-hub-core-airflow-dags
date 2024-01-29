@@ -94,25 +94,25 @@ class WebApiResponseConfig:
 
     @staticmethod
     def from_dict(
-        wep_api_response_config: Optional[WebApiResponseConfigDict]
+        web_api_response_config: Optional[WebApiResponseConfigDict]
     ) -> 'WebApiResponseConfig':
-        if not wep_api_response_config:
+        if not web_api_response_config:
             return WebApiResponseConfig()
         return WebApiResponseConfig(
             items_key_path_from_response_root=(
-                wep_api_response_config.get("itemsKeyFromResponseRoot", [])
+                web_api_response_config.get("itemsKeyFromResponseRoot", [])
             ),
             total_item_count_key_path_from_response_root=(
-                wep_api_response_config.get("totalItemsCountKeyFromResponseRoot", [])
+                web_api_response_config.get("totalItemsCountKeyFromResponseRoot", [])
             ),
             next_page_cursor_key_path_from_response_root=(
-                wep_api_response_config.get("nextPageCursorKeyFromResponseRoot", [])
+                web_api_response_config.get("nextPageCursorKeyFromResponseRoot", [])
             ),
             item_timestamp_key_path_from_item_root=(
-                wep_api_response_config.get("recordTimestamp", {})
+                web_api_response_config.get("recordTimestamp", {})
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
-            fields_to_return=wep_api_response_config.get('fieldsToReturn')
+            fields_to_return=web_api_response_config.get('fieldsToReturn')
         )
 
 
