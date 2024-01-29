@@ -69,7 +69,7 @@ webApi:
     dataset: '{ENV}'
     table: test_osf_io_api_response
     dataUrl:
-      urlExcludingConfigurableParameters: https://api.osf.io/v2/preprints/?page=2&filter[date_modified]>=2024-01-29
+      urlExcludingConfigurableParameters: https://api.osf.io/v2/preprints/?page=2&filter[date_modified]=2024-01-29&page[size]=1
     response:
       itemsKeyFromResponseRoot:
         - data
