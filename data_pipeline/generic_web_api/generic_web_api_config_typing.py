@@ -67,6 +67,7 @@ class WebApiResponseConfigDict(TypedDict):
     totalItemsCountKeyFromResponseRoot: NotRequired[Sequence[str]]
     nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
+    fieldsToReturn: NotRequired[Sequence[str]]
 
 
 class WebApiBaseConfigDict(TypedDict):

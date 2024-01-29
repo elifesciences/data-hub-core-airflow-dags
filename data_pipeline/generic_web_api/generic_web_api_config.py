@@ -90,6 +90,7 @@ class WebApiResponseConfig:
     total_item_count_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
+    fields_to_return: Optional[Sequence[str]] = None
 
     @staticmethod
     def from_dict(
@@ -110,7 +111,8 @@ class WebApiResponseConfig:
             item_timestamp_key_path_from_item_root=(
                 wep_api_response_config.get("recordTimestamp", {})
                 .get("itemTimestampKeyFromItemRoot", [])
-            )
+            ),
+            fields_to_return=wep_api_response_config.get('fieldsToReturn')
         )
 
 

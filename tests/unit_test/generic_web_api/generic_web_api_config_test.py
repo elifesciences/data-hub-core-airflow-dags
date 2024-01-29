@@ -96,6 +96,12 @@ class TestWebApiResponseConfig:
         })
         assert response_config.item_timestamp_key_path_from_item_root == ['timestamp-1']
 
+    def test_should_read_fields_to_return(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'fieldsToReturn': ['field-1', 'field-2']
+        })
+        assert response_config.fields_to_return == ['field-1', 'field-2']
+
 
 class TestWebApiConfig:
     def test_should_parse_dataset_and_table(self):
