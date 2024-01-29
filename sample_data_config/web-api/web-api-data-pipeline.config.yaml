@@ -63,3 +63,13 @@ webApi:
       itemsKeyFromResponseRoot:
         - preds
     batchSize: 32
+
+  # OSF API
+  - dataPipelineId: osf_io_api
+    dataset: '{ENV}'
+    table: test_osf_io_api_response
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.osf.io/v2/preprints/?page=2&filter[date_modified]>=2024-01-29
+    response:
+      itemsKeyFromResponseRoot:
+        - data
