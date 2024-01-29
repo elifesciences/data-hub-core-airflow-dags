@@ -148,6 +148,15 @@ class TestFilterRecordBySchema:
 
 
 class TestProcessRecordInList:
+    def test_should_select_fields_to_return(self):
+        updated_records = list(process_record_in_list([{
+            'key_1': 'value 1',
+            'key_2': 'value 2'
+        }], fields_to_return=['key_1']))
+        assert updated_records == [{
+            'key_1': 'value 1'
+        }]
+
     def test_should_standardize_field_names(self):
         updated_records = list(process_record_in_list([{
             'key-1': 'value 1'

@@ -49,13 +49,28 @@ def extract_content_from_response(
     return extracted_data
 
 
+def get_record_with_fields_to_return(
+    record: dict,
+    fields_to_return: Optional[Sequence[str]]
+) -> dict:
+    if not fields_to_return or not record:
+        return record
+    return {
+        key: value
+        for key, value in record.items()
+        if key in fields_to_return
+    }
+
+
 def process_record_in_list(
         record_list: Iterable[dict],
         provenance: Optional[dict] = None,
-        bq_schema=None
+        bq_schema=None,
+        fields_to_return: Optional[Sequence[str]] = None
 ) -> Iterable[dict]:
     for record in record_list:
-        n_record = standardize_record_keys(record)
+        n_record = get_record_with_fields_to_return(record, fields_to_return=fields_to_return)
+        n_record = standardize_record_keys(n_record)
         if bq_schema:
             n_record = filter_record_by_schema(n_record, bq_schema)
         if provenance:
