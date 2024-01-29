@@ -204,7 +204,9 @@ def get_latest_record_list_timestamp(
     return get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
         record_list,
         previous_latest_timestamp=previous_latest_timestamp,
-        item_timestamp_key_path_from_item_root=data_config.item_timestamp_key_path_from_item_root
+        item_timestamp_key_path_from_item_root=(
+            data_config.response.item_timestamp_key_path_from_item_root
+        )
     )
 
 

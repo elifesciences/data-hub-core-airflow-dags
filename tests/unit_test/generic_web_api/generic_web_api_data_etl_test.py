@@ -21,7 +21,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_next_offset,
     generic_web_api_data_etl
 )
-from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig
+from data_pipeline.generic_web_api.generic_web_api_config import WebApiConfig, WebApiResponseConfig
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
@@ -706,7 +706,9 @@ class TestGenericWebApiDataEtl:
         data_config = (
             get_data_config(WEB_API_CONFIG)
             ._replace(
-                item_timestamp_key_path_from_item_root=['timestamp'],
+                response=WebApiResponseConfig(
+                    item_timestamp_key_path_from_item_root=['timestamp']
+                ),
                 start_to_end_date_diff_in_days=batch_size_in_days,
                 default_start_date=timestamp_string_1
             )

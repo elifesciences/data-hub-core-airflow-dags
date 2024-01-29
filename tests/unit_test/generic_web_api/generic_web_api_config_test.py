@@ -1,12 +1,14 @@
 from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
 from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
 from data_pipeline.generic_web_api.generic_web_api_config import (
+    WebApiResponseConfig,
     get_web_api_config_id,
     MultiWebApiConfig,
     WebApiConfig
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
-    WebApiConfigDict
+    WebApiConfigDict,
+    WebApiResponseConfigDict
 )
 
 
@@ -31,6 +33,10 @@ MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
     'dataUrl': {
         'urlExcludingConfigurableParameters': 'url_1'
     }
+}
+
+RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {
+    'itemsKeyFromResponseRoot': ['items']
 }
 
 
@@ -67,6 +73,30 @@ class TestMultiWebApiConfig:
         ] == 'table1_0'
 
 
+class TestWebApiResponseConfig:
+    def test_should_return_object_for_none(self):
+        response_config = WebApiResponseConfig.from_dict(None)
+        assert response_config is not None
+
+    def test_should_read_from_root_paths(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'itemsKeyFromResponseRoot': ['item-1'],
+            'nextPageCursorKeyFromResponseRoot': ['next-cursor-1'],
+            'totalItemsCountKeyFromResponseRoot': ['total-1']
+        })
+        assert response_config.items_key_path_from_response_root == ['item-1']
+        assert response_config.next_page_cursor_key_path_from_response_root == ['next-cursor-1']
+        assert response_config.total_item_count_key_path_from_response_root == ['total-1']
+
+    def test_should_read_record_timestamp_path(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'recordTimestamp': {
+                'itemTimestampKeyFromItemRoot': ['timestamp-1']
+            }
+        })
+        assert response_config.item_timestamp_key_path_from_item_root == ['timestamp-1']
+
+
 class TestWebApiConfig:
     def test_should_parse_dataset_and_table(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
@@ -101,6 +131,13 @@ class TestWebApiConfig:
                 BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1
             )
         )
+
+    def test_should_read_response_config(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'response': RESPONSE_CONFIG_DICT_1
+        })
+        assert web_api_config.response == WebApiResponseConfig.from_dict(RESPONSE_CONFIG_DICT_1)
 
     def test_should_set_batch_size_to_none_by_default(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
