@@ -7,13 +7,14 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
-    WebApiConfigDict,
     WebApiResponseConfigDict
 )
+from tests.unit_test.generic_web_api.test_data import (
+    DATASET_1,
+    MINIMAL_WEB_API_CONFIG_DICT,
+    TABLE_1
+)
 
-
-DATASET_1 = 'dataset_1'
-TABLE_1 = 'table_1'
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'projectName': 'project1',
@@ -22,17 +23,6 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 
 BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
     'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
-}
-
-MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
-    'dataPipelineId': 'pipeline_1',
-    'gcpProjectName': 'project_1',
-    'importedTimestampFieldName': 'imported_timestamp_1',
-    'dataset': DATASET_1,
-    'table': TABLE_1,
-    'dataUrl': {
-        'urlExcludingConfigurableParameters': 'url_1'
-    }
 }
 
 RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {

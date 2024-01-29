@@ -28,6 +28,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
 )
 from data_pipeline.generic_web_api.request_builder import WebApiDynamicRequestParameters
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
+
 from tests.unit_test.generic_web_api.test_data import DEP_ENV, get_data_config
 
 
