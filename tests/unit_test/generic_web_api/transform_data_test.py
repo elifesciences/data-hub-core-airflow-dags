@@ -3,7 +3,8 @@ import pytest
 from data_pipeline.generic_web_api.transform_data import (
     filter_record_by_schema,
     get_dict_values_from_path_as_list,
-    get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root
+    get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root,
+    process_record_in_list
 )
 from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp_from_str
 
@@ -144,3 +145,22 @@ class TestFilterRecordBySchema:
             record_object_schema=[TIMESTAMP_FIELD_SCHEMA]
         )
         assert result == {TIMESTAMP_FIELD_NAME: None}
+
+
+class TestProcessRecordInList:
+    def test_should_standardize_field_names(self):
+        updated_records = list(process_record_in_list([{
+            'key-1': 'value 1'
+        }]))
+        assert updated_records == [{
+            'key_1': 'value 1'
+        }]
+
+    def test_should_add_provenance(self):
+        updated_records = list(process_record_in_list([{
+            'key_1': 'value 1'
+        }], provenance={'provenance_field_1': 'provenance value 1'}))
+        assert updated_records == [{
+            'key_1': 'value 1',
+            'provenance_field_1': 'provenance value 1'
+        }]
