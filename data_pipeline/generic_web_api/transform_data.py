@@ -53,7 +53,7 @@ def process_record_in_list(
         record_list: Iterable[dict],
         provenance: Optional[dict] = None,
         bq_schema=None
-) -> Iterable:
+) -> Iterable[dict]:
     for record in record_list:
         n_record = standardize_record_keys(record)
         if bq_schema:
