@@ -9,7 +9,7 @@ from data_pipeline.generic_web_api.transform_data import (
 )
 from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp_from_str
 from tests.unit_test.generic_web_api.generic_web_api_config_test import MINIMAL_WEB_API_CONFIG_DICT
-from tests.unit_test.generic_web_api.generic_web_api_data_etl_test import get_data_config
+from tests.unit_test.generic_web_api.test_data import get_data_config
 
 
 TIMESTAMP_FIELD_NAME = 'ts'

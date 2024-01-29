@@ -28,6 +28,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
 )
 from data_pipeline.generic_web_api.request_builder import WebApiDynamicRequestParameters
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
+from tests.unit_test.generic_web_api.test_data import DEP_ENV, get_data_config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -176,18 +177,6 @@ WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
         }
     }
 })
-
-DEP_ENV = 'test'
-
-
-def get_data_config(
-    conf_dict: WebApiConfigDict,
-    dep_env: str = DEP_ENV
-) -> WebApiConfig:
-    return WebApiConfig.from_dict(
-        conf_dict,
-        deployment_env=dep_env
-    )
 
 
 def get_data_config_with_max_source_values_per_request(
