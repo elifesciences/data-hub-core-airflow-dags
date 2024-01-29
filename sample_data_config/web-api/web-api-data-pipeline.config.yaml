@@ -84,3 +84,7 @@ webApi:
       itemsKeyFromResponseRoot:
         - message
         - items
+      fieldsToReturn:
+        - 'DOI'
+        - 'group-title'
+        - 'abstract'
