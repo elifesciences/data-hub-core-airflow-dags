@@ -233,6 +233,7 @@ def iter_processed_record_for_api_item_list_response(
     bq_schema = get_bq_schema(data_config)
     return process_record_in_list(
         record_list=record_list,
+        fields_to_return=data_config.response.fields_to_return,
         bq_schema=bq_schema,
         provenance=provenance
     )

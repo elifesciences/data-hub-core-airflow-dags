@@ -4,9 +4,12 @@ from data_pipeline.generic_web_api.transform_data import (
     filter_record_by_schema,
     get_dict_values_from_path_as_list,
     get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root,
+    iter_processed_record_for_api_item_list_response,
     process_record_in_list
 )
 from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp_from_str
+from tests.unit_test.generic_web_api.generic_web_api_config_test import MINIMAL_WEB_API_CONFIG_DICT
+from tests.unit_test.generic_web_api.generic_web_api_data_etl_test import get_data_config
 
 
 TIMESTAMP_FIELD_NAME = 'ts'
@@ -169,6 +172,51 @@ class TestProcessRecordInList:
         updated_records = list(process_record_in_list([{
             'key_1': 'value 1'
         }], provenance={'provenance_field_1': 'provenance value 1'}))
+        assert updated_records == [{
+            'key_1': 'value 1',
+            'provenance_field_1': 'provenance value 1'
+        }]
+
+
+class TestIterProcessedRecordForApiItemListResponse:
+    def test_should_select_fields_to_return(self):
+        updated_records = list(iter_processed_record_for_api_item_list_response(
+            [{
+                'key_1': 'value 1',
+                'key_2': 'value 2'
+            }],
+            data_config=get_data_config({
+                **MINIMAL_WEB_API_CONFIG_DICT,
+                'response': {
+                    'fieldsToReturn': ['key_1']
+                }
+            }),
+            provenance={}
+        ))
+        assert updated_records == [{
+            'key_1': 'value 1'
+        }]
+
+    def test_should_standardize_field_names(self):
+        updated_records = list(iter_processed_record_for_api_item_list_response(
+            [{
+                'key-1': 'value 1'
+            }],
+            data_config=get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
+            provenance={}
+        ))
+        assert updated_records == [{
+            'key_1': 'value 1'
+        }]
+
+    def test_should_add_provenance(self):
+        updated_records = list(iter_processed_record_for_api_item_list_response(
+            [{
+                'key_1': 'value 1'
+            }],
+            data_config=get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
+            provenance={'provenance_field_1': 'provenance value 1'}
+        ))
         assert updated_records == [{
             'key_1': 'value 1',
             'provenance_field_1': 'provenance value 1'
