@@ -88,3 +88,4 @@ webApi:
         - 'DOI'
         - 'group-title'
         - 'abstract'
+        - 'indexed'
