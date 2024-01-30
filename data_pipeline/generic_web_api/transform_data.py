@@ -20,6 +20,8 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
+from data_pipeline.utils.json import get_recursively_transformed_object_values_at_any_level
+from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 
 
 LOGGER = logging.getLogger(__name__)
@@ -64,12 +66,18 @@ def get_record_with_fields_to_return(
 
 def process_record_in_list(
         record_list: Iterable[dict],
+        record_processing_step_function: Optional[RecordProcessingStepFunction] = None,
         provenance: Optional[dict] = None,
         bq_schema=None,
-        fields_to_return: Optional[Sequence[str]] = None
+        fields_to_return: Optional[Sequence[str]] = None,
 ) -> Iterable[dict]:
     for record in record_list:
         n_record = get_record_with_fields_to_return(record, fields_to_return=fields_to_return)
+        if record_processing_step_function:
+            n_record = get_recursively_transformed_object_values_at_any_level(
+                n_record,
+                value_transform_fn=record_processing_step_function
+            )
         n_record = standardize_record_keys(n_record)
         if bq_schema:
             n_record = filter_record_by_schema(n_record, bq_schema)
@@ -234,6 +242,7 @@ def iter_processed_record_for_api_item_list_response(
     return process_record_in_list(
         record_list=record_list,
         fields_to_return=data_config.response.fields_to_return,
+        record_processing_step_function=data_config.response.record_processing_step_functions,
         bq_schema=bq_schema,
         provenance=provenance
     )

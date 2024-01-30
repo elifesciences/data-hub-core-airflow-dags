@@ -1,3 +1,4 @@
+import dataclasses
 import pytest
 
 from data_pipeline.generic_web_api.transform_data import (
@@ -223,4 +224,23 @@ class TestIterProcessedRecordForApiItemListResponse:
         assert updated_records == [{
             'key_1': 'value 1',
             'provenance_field_1': 'provenance value 1'
+        }]
+
+    def test_should_transform_values(self):
+        default_config = get_data_config(MINIMAL_WEB_API_CONFIG_DICT)
+        updated_records = list(iter_processed_record_for_api_item_list_response(
+            [{'key_1': 'old value 1'}],
+            data_config=dataclasses.replace(
+                get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
+                response=dataclasses.replace(
+                    default_config.response,
+                    record_processing_step_functions=(
+                        lambda value: 'new value 1' if value == 'old value 1' else value
+                    )
+                )
+            ),
+            provenance={}
+        ))
+        assert updated_records == [{
+            'key_1': 'new value 1'
         }]
