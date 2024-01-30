@@ -68,3 +68,13 @@ def get_resolved_record_processing_step_functions(
         FUNCTION_NAME_MAPPING[function_name]
         for function_name in record_processing_step_function_names
     ]
+
+
+def get_single_record_processing_step_function_for_function_names(
+    record_processing_step_function_names: Optional[Sequence[str]]
+) -> RecordProcessingStepFunction:
+    return ChainedRecordProcessingStepFunction(
+        get_resolved_record_processing_step_functions(
+            record_processing_step_function_names
+        )
+    )

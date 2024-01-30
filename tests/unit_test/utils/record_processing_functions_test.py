@@ -1,6 +1,7 @@
 from data_pipeline.utils.record_processing_functions import (
     ChainedRecordProcessingStepFunction,
     get_resolved_record_processing_step_functions,
+    get_single_record_processing_step_function_for_function_names,
     parse_json_value,
     unescape_html_escaped_values_in_string,
     strip_quotes
@@ -75,3 +76,16 @@ class TestGetResolvedRecordProcessingStepFunctions:
         assert get_resolved_record_processing_step_functions([
             'html_unescape'
         ]) == [unescape_html_escaped_values_in_string]
+
+
+class TestGetSingleRecordProcessingStepFunctionForFunctionNames:
+    def test_should_return_chain_function_with_resolved_functions(self):
+        record_processing_step_function = (
+            get_single_record_processing_step_function_for_function_names([
+                'html_unescape'
+            ])
+        )
+        assert isinstance(record_processing_step_function,  ChainedRecordProcessingStepFunction)
+        assert record_processing_step_function.record_processing_functions == [
+            unescape_html_escaped_values_in_string
+        ]
