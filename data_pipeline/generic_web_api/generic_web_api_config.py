@@ -27,8 +27,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
 )
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
-    get_single_record_processing_step_function_for_function_names,
-    identity_record_processing_step_function
+    get_single_record_processing_step_function_for_function_names_or_none
 )
 
 
@@ -96,9 +95,7 @@ class WebApiResponseConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     fields_to_return: Optional[Sequence[str]] = None
-    record_processing_step_function: RecordProcessingStepFunction = (
-        identity_record_processing_step_function
-    )
+    record_processing_step_function: Optional[RecordProcessingStepFunction] = None
 
     @staticmethod
     def from_dict(
@@ -122,7 +119,7 @@ class WebApiResponseConfig:
             ),
             fields_to_return=web_api_response_config.get('fieldsToReturn'),
             record_processing_step_function=(
-                get_single_record_processing_step_function_for_function_names(
+                get_single_record_processing_step_function_for_function_names_or_none(
                     web_api_response_config.get('recordProcessingSteps')
                 )
             )

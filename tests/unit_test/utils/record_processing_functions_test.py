@@ -1,7 +1,7 @@
 from data_pipeline.utils.record_processing_functions import (
     ChainedRecordProcessingStepFunction,
     get_resolved_record_processing_step_functions,
-    get_single_record_processing_step_function_for_function_names,
+    get_single_record_processing_step_function_for_function_names_or_none,
     parse_json_value,
     transform_crossref_api_date_parts,
     unescape_html_escaped_values_in_string,
@@ -102,7 +102,7 @@ class TestGetResolvedRecordProcessingStepFunctions:
 class TestGetSingleRecordProcessingStepFunctionForFunctionNames:
     def test_should_return_chain_function_with_resolved_functions(self):
         record_processing_step_function = (
-            get_single_record_processing_step_function_for_function_names([
+            get_single_record_processing_step_function_for_function_names_or_none([
                 'html_unescape'
             ])
         )

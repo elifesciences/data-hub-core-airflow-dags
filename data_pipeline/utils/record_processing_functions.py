@@ -12,10 +12,6 @@ class RecordProcessingStepFunction(Protocol):
         pass
 
 
-def identity_record_processing_step_function(value: Any) -> Any:
-    return value
-
-
 def unescape_html_escaped_values_in_string(val):
     n_val = val
     if isinstance(val, str):
@@ -88,11 +84,11 @@ def get_resolved_record_processing_step_functions(
     ]
 
 
-def get_single_record_processing_step_function_for_function_names(
+def get_single_record_processing_step_function_for_function_names_or_none(
     record_processing_step_function_names: Optional[Sequence[str]]
-) -> RecordProcessingStepFunction:
+) -> Optional[RecordProcessingStepFunction]:
     if not record_processing_step_function_names:
-        return identity_record_processing_step_function
+        return None
     return ChainedRecordProcessingStepFunction(
         get_resolved_record_processing_step_functions(
             record_processing_step_function_names

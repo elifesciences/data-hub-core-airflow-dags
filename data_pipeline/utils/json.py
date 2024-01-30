@@ -70,8 +70,6 @@ def get_recursively_transformed_object_values_at_any_level(
     obj: Any,
     value_transform_fn: Callable[[Any], Any]
 ) -> Any:
-    if not bool(value_transform_fn):
-        return obj
     obj = value_transform_fn(obj)
     if isinstance(obj, dict):
         return {
