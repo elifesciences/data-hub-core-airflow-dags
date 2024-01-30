@@ -66,6 +66,32 @@ def get_recursively_transformed_object(
     return obj
 
 
+def get_recursively_transformed_object_values_at_any_level(
+    obj: Any,
+    value_transform_fn: Callable[[Any], Any]
+) -> Any:
+    if not bool(value_transform_fn):
+        return obj
+    obj = value_transform_fn(obj)
+    if isinstance(obj, dict):
+        return {
+            key: get_recursively_transformed_object_values_at_any_level(
+                value,
+                value_transform_fn=value_transform_fn
+            )
+            for key, value in obj.items()
+        }
+    if isinstance(obj, list):
+        return [
+            get_recursively_transformed_object_values_at_any_level(
+                value,
+                value_transform_fn=value_transform_fn
+            )
+            for value in obj
+        ]
+    return obj
+
+
 def is_empty_value(value) -> bool:
     try:
         if not len(value):  # pylint: disable=use-implicit-booleaness-not-len
