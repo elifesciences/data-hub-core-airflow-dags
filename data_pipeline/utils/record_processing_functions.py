@@ -1,6 +1,10 @@
 import html
 import json
-from typing import Any, Callable, Mapping, Sequence
+import logging
+from typing import Any, Callable, Mapping, Optional, Sequence
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 RecordProcessingStepFunction = Callable[[Any], Any]
@@ -47,3 +51,18 @@ FUNCTION_NAME_MAPPING: Mapping[str, RecordProcessingStepFunction] = {
     'strip_quotes': strip_quotes,
     'parse_json_value': parse_json_value
 }
+
+
+def get_resolved_record_processing_step_functions(
+    record_processing_step_function_names: Optional[Sequence[str]]
+) -> Sequence[RecordProcessingStepFunction]:
+    LOGGER.debug(
+        'record_processing_step_function_names: %r',
+        record_processing_step_function_names
+    )
+    if not record_processing_step_function_names:
+        return []
+    return [
+        FUNCTION_NAME_MAPPING[function_name]
+        for function_name in record_processing_step_function_names
+    ]

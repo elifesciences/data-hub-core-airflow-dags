@@ -1,5 +1,6 @@
 from data_pipeline.utils.record_processing_functions import (
     ChainedRecordProcessingStepFunction,
+    get_resolved_record_processing_step_functions,
     parse_json_value,
     unescape_html_escaped_values_in_string,
     strip_quotes
@@ -55,12 +56,22 @@ class TestParseJsonValue:
 
 class TestChainedRecordProcessingStepFunction:
     def test_should_return_passed_in_value_with_empty_processing_functions(self):
-        f = ChainedRecordProcessingStepFunction([])
-        assert f('test') == 'test'
+        record_processing_function = ChainedRecordProcessingStepFunction([])
+        assert record_processing_function('test') == 'test'
 
     def test_should_use_passed_in_functions(self):
-        f = ChainedRecordProcessingStepFunction([
+        record_processing_function = ChainedRecordProcessingStepFunction([
             lambda value: f'f1:{value}',
             lambda value: f'f2:{value}'
         ])
-        assert f('test') == 'f2:f1:test'
+        assert record_processing_function('test') == 'f2:f1:test'
+
+
+class TestGetResolvedRecordProcessingStepFunctions:
+    def test_should_return_empty_list_for_none(self):
+        assert get_resolved_record_processing_step_functions(None) == []
+
+    def test_should_return_resolved_function(self):
+        assert get_resolved_record_processing_step_functions([
+            'html_unescape'
+        ]) == [unescape_html_escaped_values_in_string]
