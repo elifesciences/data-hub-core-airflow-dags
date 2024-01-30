@@ -54,6 +54,9 @@ class ChainedRecordProcessingStepFunction(RecordProcessingStepFunction):
     def __init__(self, record_processing_functions: Sequence[RecordProcessingStepFunction]):
         self.record_processing_functions = record_processing_functions
 
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}({self.record_processing_functions})'
+
     def __call__(self, value: Any) -> Any:
         result = value
         for record_processing_function in self.record_processing_functions:
