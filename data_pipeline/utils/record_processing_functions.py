@@ -1,6 +1,6 @@
 import html
 import json
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
 
 RecordProcessingStepFunction = Callable[[Any], Any]
@@ -31,7 +31,7 @@ def parse_json_value(value: str):
     return value
 
 
-FUNCTION_NAME_MAPPING = {
+FUNCTION_NAME_MAPPING: Mapping[str, RecordProcessingStepFunction] = {
     'html_unescape': unescape_html_escaped_values_in_string,
     'strip_quotes': strip_quotes,
     'parse_json_value': parse_json_value
