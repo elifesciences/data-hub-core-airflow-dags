@@ -41,6 +41,19 @@ def parse_json_value(value: str):
     return value
 
 
+def transform_crossref_api_date_parts(value: Any) -> Any:
+    LOGGER.debug('value: %r', value)
+    if isinstance(value, dict):
+        date_parts = value.get('date-parts')
+        LOGGER.debug('date_parts: %r', date_parts)
+        if date_parts:
+            return {
+                **value,
+                'date-parts': dict(zip(['year', 'month', 'day'], date_parts[0]))
+            }
+    return value
+
+
 class ChainedRecordProcessingStepFunction(RecordProcessingStepFunction):
     def __init__(self, record_processing_functions: Sequence[RecordProcessingStepFunction]):
         self.record_processing_functions = record_processing_functions
@@ -55,7 +68,8 @@ class ChainedRecordProcessingStepFunction(RecordProcessingStepFunction):
 FUNCTION_NAME_MAPPING: Mapping[str, RecordProcessingStepFunction] = {
     'html_unescape': unescape_html_escaped_values_in_string,
     'strip_quotes': strip_quotes,
-    'parse_json_value': parse_json_value
+    'parse_json_value': parse_json_value,
+    'transform_crossref_api_date_parts': transform_crossref_api_date_parts
 }
 
 

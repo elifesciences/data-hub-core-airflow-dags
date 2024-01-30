@@ -3,6 +3,7 @@ from data_pipeline.utils.record_processing_functions import (
     get_resolved_record_processing_step_functions,
     get_single_record_processing_step_function_for_function_names,
     parse_json_value,
+    transform_crossref_api_date_parts,
     unescape_html_escaped_values_in_string,
     strip_quotes
 )
@@ -53,6 +54,26 @@ class TestParseJsonValue:
 
     def test_should_return_parse_json_value_if_starting_and_ending_with_curly_bracket(self):
         assert parse_json_value('{"key": "value"}') == {'key': 'value'}
+
+
+class TestTransformCrossrefApiDateParts:
+    def test_should_return_passed_in_string_value(self):
+        assert transform_crossref_api_date_parts('test') == 'test'
+
+    def test_should_return_passed_in_dict_without_date_parts(self):
+        assert transform_crossref_api_date_parts(
+            {'key_1': 'value 1'}
+        ) == {'key_1': 'value 1'}
+
+    def test_should_replace_date_parts_with_dict(self):
+        assert transform_crossref_api_date_parts(
+            {'date-parts': [[2001, 2, 3]]}
+        ) == {'date-parts': {'year': 2001, 'month': 2, 'day': 3}}
+
+    def test_should_retain_other_keys(self):
+        assert transform_crossref_api_date_parts(
+            {'date-parts': [[2001, 2, 3]], 'other_key': 'other_value'}
+        ) == {'date-parts': {'year': 2001, 'month': 2, 'day': 3}, 'other_key': 'other_value'}
 
 
 class TestChainedRecordProcessingStepFunction:
