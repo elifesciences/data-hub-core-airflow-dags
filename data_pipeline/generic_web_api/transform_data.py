@@ -242,7 +242,7 @@ def iter_processed_record_for_api_item_list_response(
     return process_record_in_list(
         record_list=record_list,
         fields_to_return=data_config.response.fields_to_return,
-        record_processing_step_function=data_config.response.record_processing_step_functions,
+        record_processing_step_function=data_config.response.record_processing_step_function,
         bq_schema=bq_schema,
         provenance=provenance
     )

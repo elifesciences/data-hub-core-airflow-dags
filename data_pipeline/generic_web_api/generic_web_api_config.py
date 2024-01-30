@@ -96,7 +96,7 @@ class WebApiResponseConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     fields_to_return: Optional[Sequence[str]] = None
-    record_processing_step_functions: RecordProcessingStepFunction = (
+    record_processing_step_function: RecordProcessingStepFunction = (
         identity_record_processing_step_function
     )
 
@@ -121,7 +121,7 @@ class WebApiResponseConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             fields_to_return=web_api_response_config.get('fieldsToReturn'),
-            record_processing_step_functions=(
+            record_processing_step_function=(
                 get_single_record_processing_step_function_for_function_names(
                     web_api_response_config.get('recordProcessingSteps')
                 )

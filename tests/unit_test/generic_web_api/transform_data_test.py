@@ -234,7 +234,7 @@ class TestIterProcessedRecordForApiItemListResponse:
                 get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
                 response=dataclasses.replace(
                     default_config.response,
-                    record_processing_step_functions=(
+                    record_processing_step_function=(
                         lambda value: 'new value 1' if value == 'old value 1' else value
                     )
                 )

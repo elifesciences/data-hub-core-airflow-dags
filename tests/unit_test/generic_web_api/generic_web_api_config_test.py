@@ -122,7 +122,7 @@ class TestWebApiResponseConfig:
         response_config = WebApiResponseConfig.from_dict({
             'recordProcessingSteps': ['function-1']
         })
-        assert response_config.record_processing_step_functions == (
+        assert response_config.record_processing_step_function == (
             get_single_record_processing_step_function_for_function_names_mock.return_value
         )
 
