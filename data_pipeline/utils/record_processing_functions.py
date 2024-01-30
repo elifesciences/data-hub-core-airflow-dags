@@ -1,13 +1,15 @@
 import html
 import json
 import logging
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Protocol, Sequence
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-RecordProcessingStepFunction = Callable[[Any], Any]
+class RecordProcessingStepFunction(Protocol):
+    def __call__(self, value: Any) -> Any:
+        pass
 
 
 def unescape_html_escaped_values_in_string(val):
