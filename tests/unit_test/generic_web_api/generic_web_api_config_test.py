@@ -37,11 +37,11 @@ RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {
 }
 
 
-@pytest.fixture(name='parse_and_resolve_record_processing_steps_mock')
-def _parse_and_resolve_record_processing_steps_mock() -> Iterator[MagicMock]:
+@pytest.fixture(name='get_single_record_processing_step_function_for_function_names_mock')
+def _get_single_record_processing_step_function_for_function_names_mock() -> Iterator[MagicMock]:
     with patch.object(
         generic_web_api_config_module,
-        'parse_and_resolve_record_processing_steps'
+        'get_single_record_processing_step_function_for_function_names'
     ) as mock:
         yield mock
 
@@ -114,16 +114,16 @@ class TestWebApiResponseConfig:
 
     def test_should_read_record_processing_steps(
         self,
-        parse_and_resolve_record_processing_steps_mock: MagicMock
+        get_single_record_processing_step_function_for_function_names_mock: MagicMock
     ):
-        parse_and_resolve_record_processing_steps_mock.return_value = [
+        get_single_record_processing_step_function_for_function_names_mock.return_value = (
             dummy_record_processing_function
-        ]
+        )
         response_config = WebApiResponseConfig.from_dict({
             'recordProcessingSteps': ['function-1']
         })
         assert response_config.record_processing_step_functions == (
-            parse_and_resolve_record_processing_steps_mock.return_value
+            get_single_record_processing_step_function_for_function_names_mock.return_value
         )
 
 

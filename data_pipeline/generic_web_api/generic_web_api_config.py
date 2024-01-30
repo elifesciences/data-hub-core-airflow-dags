@@ -14,7 +14,6 @@ from data_pipeline.utils.pipeline_config import (
     ConfigKeys,
     MappingConfig,
     get_resolved_parameter_values_from_file_path_env_name,
-    parse_and_resolve_record_processing_steps,
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
@@ -27,6 +26,10 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiResponseConfigDict
 )
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
+from data_pipeline.utils.record_processing_functions import (
+    get_single_record_processing_step_function_for_function_names,
+    identity_record_processing_step_function
+)
 
 
 def get_resolved_parameter_values_from_env_name(
@@ -93,8 +96,8 @@ class WebApiResponseConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     fields_to_return: Optional[Sequence[str]] = None
-    record_processing_step_functions: Sequence[RecordProcessingStepFunction] = (
-        field(default_factory=list)
+    record_processing_step_functions: RecordProcessingStepFunction = (
+        identity_record_processing_step_function
     )
 
     @staticmethod
@@ -118,8 +121,10 @@ class WebApiResponseConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             fields_to_return=web_api_response_config.get('fieldsToReturn'),
-            record_processing_step_functions=parse_and_resolve_record_processing_steps(
-                web_api_response_config.get('recordProcessingSteps')
+            record_processing_step_functions=(
+                get_single_record_processing_step_function_for_function_names(
+                    web_api_response_config.get('recordProcessingSteps')
+                )
             )
         )
 
