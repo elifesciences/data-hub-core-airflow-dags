@@ -1,5 +1,12 @@
+from typing import Iterator
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
 from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
+
+from data_pipeline.generic_web_api import generic_web_api_config as generic_web_api_config_module
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiResponseConfig,
     get_web_api_config_id,
@@ -28,6 +35,19 @@ BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
 RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {
     'itemsKeyFromResponseRoot': ['items']
 }
+
+
+@pytest.fixture(name='parse_and_resolve_record_processing_steps_mock')
+def _parse_and_resolve_record_processing_steps_mock() -> Iterator[MagicMock]:
+    with patch.object(
+        generic_web_api_config_module,
+        'parse_and_resolve_record_processing_steps'
+    ) as mock:
+        yield mock
+
+
+def dummy_record_processing_function(record: dict) -> dict:
+    return record
 
 
 class TestGetWebApiConfigId:
@@ -91,6 +111,20 @@ class TestWebApiResponseConfig:
             'fieldsToReturn': ['field-1', 'field-2']
         })
         assert response_config.fields_to_return == ['field-1', 'field-2']
+
+    def test_should_read_record_processing_steps(
+        self,
+        parse_and_resolve_record_processing_steps_mock: MagicMock
+    ):
+        parse_and_resolve_record_processing_steps_mock.return_value = [
+            dummy_record_processing_function
+        ]
+        response_config = WebApiResponseConfig.from_dict({
+            'recordProcessingSteps': ['function-1']
+        })
+        assert response_config.record_processing_step_functions == (
+            parse_and_resolve_record_processing_steps_mock.return_value
+        )
 
 
 class TestWebApiConfig:
