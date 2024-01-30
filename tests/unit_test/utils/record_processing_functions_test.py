@@ -1,4 +1,5 @@
 from data_pipeline.utils.record_processing_functions import (
+    ChainedRecordProcessingStepFunction,
     parse_json_value,
     unescape_html_escaped_values_in_string,
     strip_quotes
@@ -50,3 +51,16 @@ class TestParseJsonValue:
 
     def test_should_return_parse_json_value_if_starting_and_ending_with_curly_bracket(self):
         assert parse_json_value('{"key": "value"}') == {'key': 'value'}
+
+
+class TestChainedRecordProcessingStepFunction:
+    def test_should_return_passed_in_value_with_empty_processing_functions(self):
+        f = ChainedRecordProcessingStepFunction([])
+        assert f('test') == 'test'
+
+    def test_should_use_passed_in_functions(self):
+        f = ChainedRecordProcessingStepFunction([
+            lambda value: f'f1:{value}',
+            lambda value: f'f2:{value}'
+        ])
+        assert f('test') == 'f2:f1:test'

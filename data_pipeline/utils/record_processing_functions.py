@@ -1,6 +1,6 @@
 import html
 import json
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, Sequence
 
 
 RecordProcessingStepFunction = Callable[[Any], Any]
@@ -29,6 +29,17 @@ def parse_json_value(value: str):
     if isinstance(value, str) and value.startswith('{') and value.endswith('}'):
         return json.loads(value)
     return value
+
+
+class ChainedRecordProcessingStepFunction(RecordProcessingStepFunction):
+    def __init__(self, record_processing_functions: Sequence[RecordProcessingStepFunction]):
+        self.record_processing_functions = record_processing_functions
+
+    def __call__(self, value: Any) -> Any:
+        result = value
+        for record_processing_function in self.record_processing_functions:
+            result = record_processing_function(result)
+        return result
 
 
 FUNCTION_NAME_MAPPING: Mapping[str, RecordProcessingStepFunction] = {
