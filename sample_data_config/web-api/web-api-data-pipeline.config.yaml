@@ -84,10 +84,10 @@ webApi:
       itemsKeyFromResponseRoot:
         - message
         - items
-      fieldsToReturn:
-        - 'DOI'
-        - 'group-title'
-        - 'abstract'
-        - 'indexed'
+      # fieldsToReturn:
+      #   - 'DOI'
+      #   - 'group-title'
+      #   - 'abstract'
+      #   - 'indexed'
       recordProcessingSteps:
         - transform_crossref_api_date_parts
