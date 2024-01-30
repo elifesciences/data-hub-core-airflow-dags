@@ -1,8 +1,11 @@
 import html
 import json
-from typing import List
+from typing import Callable, List
 
 DEFAULT_PROCESSING_STEPS = ['strip_quotes']
+
+
+RecordProcessingStepFunction = Callable[[dict], dict]
 
 
 def process_record_values(record, function_list: List[str]):

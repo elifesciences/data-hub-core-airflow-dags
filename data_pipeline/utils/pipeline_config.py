@@ -15,6 +15,7 @@ from data_pipeline.utils.pipeline_config_typing import (
     RecordProcessingStepConfigList,
     StateFileConfigDict
 )
+from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 
 
 LOGGER = logging.getLogger(__name__)
@@ -319,9 +320,6 @@ def parse_required_non_empty_key_path(
     if not parsed_key_path:
         raise ValueError('key path required')
     return parsed_key_path
-
-
-RecordProcessingStepFunction = Callable[[dict], dict]
 
 
 def parse_and_resolve_record_processing_steps(
