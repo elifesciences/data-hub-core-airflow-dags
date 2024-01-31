@@ -6,8 +6,6 @@ from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
-from tomlkit import value
-
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 
 
