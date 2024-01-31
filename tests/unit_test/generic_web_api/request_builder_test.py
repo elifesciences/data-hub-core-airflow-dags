@@ -41,6 +41,36 @@ class TestDynamicBioRxivMedRxivURLBuilder:
         )
 
 
+class TestCrossrefMetadataWebApiDynamicRequestBuilder:
+    def test_should_pass_cursor_value_to_url(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            next_page_cursor='cursor',
+            static_parameters={}
+        )
+        url = urlparse(dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                cursor='cursor-1'
+            )
+        ))
+        params = parse_qs(url.query)
+        assert params.get('cursor') == ['cursor-1']
+
+    def test_should_pass_asterisk_as_initial_cursor(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            next_page_cursor='cursor',
+            static_parameters={}
+        )
+        url = urlparse(dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                cursor=None
+            )
+        ))
+        params = parse_qs(url.query)
+        assert params.get('cursor') == ['*']
+
+
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):
         dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
@@ -74,36 +104,6 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
             'title': 'Title 1',
             'abstract': 'Abstract 1'
         }]
-
-
-class TestCrossrefMetadataWebApiDynamicRequestBuilder:
-    def test_should_pass_cursor_value_to_url(self):
-        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
-            url_excluding_configurable_parameters=TEST_API_URL_1,
-            next_page_cursor='cursor',
-            static_parameters={}
-        )
-        url = urlparse(dynamic_request_builder.get_url(
-            dynamic_request_parameters=WebApiDynamicRequestParameters(
-                cursor='cursor-1'
-            )
-        ))
-        params = parse_qs(url.query)
-        assert params.get('cursor') == ['cursor-1']
-
-    def test_should_pass_asterisk_as_initial_cursor(self):
-        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
-            url_excluding_configurable_parameters=TEST_API_URL_1,
-            next_page_cursor='cursor',
-            static_parameters={}
-        )
-        url = urlparse(dynamic_request_builder.get_url(
-            dynamic_request_parameters=WebApiDynamicRequestParameters(
-                cursor=None
-            )
-        ))
-        params = parse_qs(url.query)
-        assert params.get('cursor') == ['*']
 
 
 class TestGetUrlBuilderClass:
