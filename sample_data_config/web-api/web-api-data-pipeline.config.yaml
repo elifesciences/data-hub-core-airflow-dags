@@ -84,7 +84,7 @@ webApi:
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.31219/works
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.31219/works?sort=indexed&order=asc
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
         fromDateParameterName: 'from-index-date'
