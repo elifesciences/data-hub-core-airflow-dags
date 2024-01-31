@@ -84,7 +84,7 @@ webApi:
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?rows=10
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
         fromDateParameterName: 'from-index-date'
@@ -92,6 +92,8 @@ webApi:
         daysDiffFromStartTillEnd: 1  # load data one day at a time
         defaultStartDate: '2024-01-29+00:00'
         dateFormat: '%Y-%m-%d'
+        pageSizeParameterName: rows
+        defaultPageSize: 10
     response:
       nextPageCursorKeyFromResponseRoot:
         - message
