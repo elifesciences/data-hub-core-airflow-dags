@@ -78,8 +78,10 @@ webApi:
   - dataPipelineId: crossref_metadata_api
     dataset: '{ENV}'
     table: test_crossref_metadata_api_response
+    urlSourceType:
+      name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?filter=from-index-date:2024-01-29&rows=10&cursor=*
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?filter=from-index-date:2024-01-29&rows=10
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
     response:

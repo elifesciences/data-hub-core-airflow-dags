@@ -182,6 +182,19 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         ])
 
 
+class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def get_url(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> str:
+        if not dynamic_request_parameters.cursor:
+            dynamic_request_parameters = dynamic_request_parameters._replace(
+                cursor='*'
+            )
+        LOGGER.debug('dynamic_request_parameters: %r', dynamic_request_parameters)
+        return super().get_url(dynamic_request_parameters)
+
+
 class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -214,4 +227,6 @@ def get_web_api_request_builder_class(
         return BioRxivWebApiDynamicRequestBuilder
     if request_builder_name == 's2_title_abstract_embeddings_api':
         return S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
+    if request_builder_name == 'crossref_metadata_api':
+        return CrossrefMetadataWebApiDynamicRequestBuilder
     return WebApiDynamicRequestBuilder
