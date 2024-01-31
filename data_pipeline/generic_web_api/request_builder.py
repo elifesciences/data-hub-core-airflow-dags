@@ -2,7 +2,7 @@ import logging
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, NamedTuple, Optional, Sequence, Type
+from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
@@ -218,15 +218,18 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
+    'civi': CiviWebApiDynamicRequestBuilder,
+    'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
+    's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
+    'crossref_metadata_api': CrossrefMetadataWebApiDynamicRequestBuilder
+}
+
+
 def get_web_api_request_builder_class(
     request_builder_name: str = ''
 ) -> Type[WebApiDynamicRequestBuilder]:
-    if request_builder_name.strip().lower() == 'civi':
-        return CiviWebApiDynamicRequestBuilder
-    if request_builder_name == 'biorxiv_medrxiv_api':
-        return BioRxivWebApiDynamicRequestBuilder
-    if request_builder_name == 's2_title_abstract_embeddings_api':
-        return S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
-    if request_builder_name == 'crossref_metadata_api':
-        return CrossrefMetadataWebApiDynamicRequestBuilder
-    return WebApiDynamicRequestBuilder
+    return WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP.get(
+        request_builder_name.strip().lower(),
+        WebApiDynamicRequestBuilder
+    )
