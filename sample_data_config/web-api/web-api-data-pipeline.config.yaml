@@ -79,8 +79,13 @@ webApi:
     dataset: '{ENV}'
     table: test_crossref_metadata_api_response
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?filter=from-index-date:2024-01-29&rows=10
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?filter=from-index-date:2024-01-29&rows=10&cursor=*
+      configurableParameters:
+        nextPageCursorParameterName: 'cursor'
     response:
+      nextPageCursorKeyFromResponseRoot:
+        - message
+        - next-cursor
       itemsKeyFromResponseRoot:
         - message
         - items
