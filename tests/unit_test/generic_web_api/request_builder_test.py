@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from urllib.parse import parse_qs, urlparse
 
 from data_pipeline.generic_web_api.request_builder import (
@@ -8,6 +9,9 @@ from data_pipeline.generic_web_api.request_builder import (
     BioRxivWebApiDynamicRequestBuilder,
     WebApiDynamicRequestParameters
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 TEST_API_URL_1 = 'https://test/api1'
@@ -69,6 +73,42 @@ class TestCrossrefMetadataWebApiDynamicRequestBuilder:
         ))
         params = parse_qs(url.query)
         assert params.get('cursor') == ['*']
+
+    def test_should_pass_from_date_as_filter_parameter(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            from_date_param='from-index-date',
+            date_format=r'%Y-%m-%d',
+            static_parameters={}
+        )
+        LOGGER.debug('dynamic_request_builder: %r', dynamic_request_builder)
+        url = urlparse(dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                from_date=datetime.fromisoformat('2024-01-29+00:00')
+            )
+        ))
+        LOGGER.debug('url: %r', url)
+        params = parse_qs(url.query)
+        assert params.get('filter') == ['from-index-date:2024-01-29']
+
+    def test_should_pass_from_and_to_date_as_filter_parameter(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            from_date_param='from-index-date',
+            to_date_param='until-index-date',
+            date_format=r'%Y-%m-%d',
+            static_parameters={}
+        )
+        LOGGER.debug('dynamic_request_builder: %r', dynamic_request_builder)
+        url = urlparse(dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                from_date=datetime.fromisoformat('2024-01-29+00:00'),
+                to_date=datetime.fromisoformat('2024-01-30+00:00')
+            )
+        ))
+        LOGGER.debug('url: %r', url)
+        params = parse_qs(url.query)
+        assert params.get('filter') == ['from-index-date:2024-01-29,until-index-date:2024-01-30']
 
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:

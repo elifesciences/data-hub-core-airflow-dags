@@ -78,12 +78,20 @@ webApi:
   - dataPipelineId: crossref_metadata_api
     dataset: '{ENV}'
     table: test_crossref_metadata_api_response
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state-10.35542.json'
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?filter=from-index-date:2024-01-29&rows=10
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works?rows=10
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
+        fromDateParameterName: 'from-index-date'
+        toDateParameterName: 'until-index-date'
+        daysDiffFromStartTillEnd: 1  # load data one day at a time
+        defaultStartDate: '2024-01-29+00:00'
+        dateFormat: '%Y-%m-%d'
     response:
       nextPageCursorKeyFromResponseRoot:
         - message
@@ -91,6 +99,10 @@ webApi:
       itemsKeyFromResponseRoot:
         - message
         - items
+      recordTimestamp:
+        itemTimestampKeyFromItemRoot:
+          - 'indexed'
+          - 'date_time'  # this is after the record was processed
       # fieldsToReturn:
       #   - 'DOI'
       #   - 'group-title'
