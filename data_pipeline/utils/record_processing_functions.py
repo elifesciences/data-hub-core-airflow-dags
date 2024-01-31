@@ -12,16 +12,16 @@ class RecordProcessingStepFunction(Protocol):
         pass
 
 
-def unescape_html_escaped_values_in_string(val):
-    n_val = val
-    if isinstance(val, str):
-        n_val = html.unescape(val)
+def unescape_html_escaped_values_in_string(value):
+    n_val = value
+    if isinstance(value, str):
+        n_val = html.unescape(value)
     return n_val
 
 
-def strip_quotes(val):
-    n_val = val
-    if isinstance(val, str):
+def strip_quotes(value):
+    n_val = value
+    if isinstance(value, str):
         for to_strip_away in ["'", '"']:
             n_val = n_val.strip()
             if n_val.endswith(to_strip_away) and n_val.startswith(
