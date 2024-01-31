@@ -232,6 +232,7 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
         and from_date_to_advance is None
         and offset is None
     ):
+        LOGGER.info('End reached, no next cursor, page number, offset or from date')
         return None
     return WebApiDynamicRequestParameters(
         from_date=from_date_to_advance or current_dynamic_request_parameters.from_date,
