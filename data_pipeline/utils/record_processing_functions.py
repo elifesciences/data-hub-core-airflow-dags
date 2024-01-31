@@ -12,14 +12,14 @@ class RecordProcessingStepFunction(Protocol):
         pass
 
 
-def unescape_html_escaped_values_in_string(value):
+def unescape_html_escaped_values_in_string(value: Any) -> Any:
     n_val = value
     if isinstance(value, str):
         n_val = html.unescape(value)
     return n_val
 
 
-def strip_quotes(value):
+def strip_quotes(value: Any) -> Any:
     n_val = value
     if isinstance(value, str):
         for to_strip_away in ["'", '"']:
@@ -31,7 +31,7 @@ def strip_quotes(value):
     return n_val
 
 
-def parse_json_value(value: str):
+def parse_json_value(value: Any) -> Any:
     if isinstance(value, str) and value.startswith('{') and value.endswith('}'):
         return json.loads(value)
     return value
