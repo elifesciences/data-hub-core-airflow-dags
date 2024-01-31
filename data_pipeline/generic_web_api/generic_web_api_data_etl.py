@@ -590,8 +590,10 @@ def get_next_cursor_from_data(
             data,
             web_config.response.next_page_cursor_key_path_from_response_root
         )
-        if next_cursor != previous_cursor:
-            return next_cursor
+        if next_cursor and next_cursor == previous_cursor:
+            LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+            return None
+        return next_cursor
     return None
 
 
