@@ -89,11 +89,11 @@ webApi:
         nextPageCursorParameterName: 'cursor'
         fromDateParameterName: 'from-index-date'
         toDateParameterName: 'until-index-date'
-        daysDiffFromStartTillEnd: 1  # load data one day at a time
-        defaultStartDate: '2024-01-29+00:00'
+        daysDiffFromStartTillEnd: 1000  # load data one day at a time
+        defaultStartDate: '2022-01-01+00:00'
         dateFormat: '%Y-%m-%d'
         pageSizeParameterName: rows
-        defaultPageSize: 10
+        defaultPageSize: 1000
     response:
       nextPageCursorKeyFromResponseRoot:
         - message
