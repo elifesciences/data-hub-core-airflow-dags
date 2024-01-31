@@ -80,11 +80,11 @@ webApi:
     table: test_crossref_metadata_api_response
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state-10.35542.json'
+      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state-10.31219.json'
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.35542/works
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/10.31219/works
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
         fromDateParameterName: 'from-index-date'
