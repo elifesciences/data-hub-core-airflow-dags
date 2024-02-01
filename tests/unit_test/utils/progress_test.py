@@ -11,4 +11,4 @@ class TestProgressMonitor:
         progress_monitor = ProgressMonitor(message_prefix='test:')
         progress_monitor.set_total(100)
         progress_monitor.increment(10)
-        assert str(progress_monitor) == 'test:10 of 100'
+        assert str(progress_monitor) == 'test:10 of 100 (10.0%)'

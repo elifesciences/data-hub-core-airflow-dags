@@ -19,7 +19,8 @@ class ProgressMonitor:
 
     def get_progress_message(self) -> str:
         if self.total:
-            return f'{self.message_prefix}{self.current} of {self.total}'
+            percent = 100 * self.current / self.total
+            return f'{self.message_prefix}{self.current} of {self.total} ({percent:.1f}%)'
         return f'{self.message_prefix}{self.current} (unknown total)'
 
     def __repr__(self):
