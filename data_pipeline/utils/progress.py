@@ -18,7 +18,7 @@ class ProgressMonitor:
         self.total = total
 
     def is_incomplete(self) -> bool:
-        return self.total and self.current < self.total
+        return bool(self.total and self.current < self.total)
 
     def get_progress_message(self) -> str:
         if self.total:
