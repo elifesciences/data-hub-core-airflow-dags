@@ -325,6 +325,9 @@ def iter_processed_web_api_data_etl_batch_data(
             page_data, data_config
         )
         LOGGER.debug('items_list: %r', items_list)
+        if not items_list:
+            LOGGER.info('Item list is empty, end reached')
+            break
         items_list = remove_key_with_null_value(items_list)
         progress_monitor.increment(len(items_list))
         LOGGER.debug('items_list after removed null values: %r', items_list)
@@ -605,8 +608,13 @@ def get_next_cursor_from_data(
             web_config.response.next_page_cursor_key_path_from_response_root
         )
         if next_cursor and next_cursor == previous_cursor:
-            LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
-            return None
+            if not web_config.dynamic_request_builder.allow_same_next_page_cursor:
+                LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+                return None
+            LOGGER.info(
+                'Proceeding with cursor that is the same as previous cursor: %r',
+                next_cursor
+            )
         return next_cursor
     return None
 
