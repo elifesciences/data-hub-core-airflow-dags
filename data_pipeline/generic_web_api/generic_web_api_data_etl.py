@@ -30,6 +30,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
+from data_pipeline.utils.progress import ProgressMonitor
 from data_pipeline.utils.text import format_byte_count
 from data_pipeline.utils.web_api import requests_retry_session_for_config
 
@@ -308,6 +309,7 @@ def iter_processed_web_api_data_etl_batch_data(
     if not current_dynamic_request_parameters:
         LOGGER.info('not data to process')
         return
+    progress_monitor = ProgressMonitor(message_prefix='Processed records (before BigQuery): ')
     while current_dynamic_request_parameters:
         LOGGER.debug('current_dynamic_request_parameters=%r', current_dynamic_request_parameters)
         page_data = get_data_single_page(
@@ -315,11 +317,16 @@ def iter_processed_web_api_data_etl_batch_data(
             dynamic_request_parameters=current_dynamic_request_parameters
         )
         LOGGER.debug('page_data: %r', page_data)
+        total_count = get_optional_total_count(page_data, data_config)
+        if total_count:
+            LOGGER.info('Total items (reported by API): %d', total_count)
+            progress_monitor.set_total(total_count)
         items_list = get_items_list(
             page_data, data_config
         )
         LOGGER.debug('items_list: %r', items_list)
         items_list = remove_key_with_null_value(items_list)
+        progress_monitor.increment(len(items_list))
         LOGGER.debug('items_list after removed null values: %r', items_list)
         processed_record_list = iter_processed_record_for_api_item_list_response(
             record_list=items_list,
@@ -339,6 +346,8 @@ def iter_processed_web_api_data_etl_batch_data(
                 data_config=data_config
             )
 
+        LOGGER.info('%s', progress_monitor)
+
         LOGGER.debug('latest_record_timestamp: %r', latest_record_timestamp)
         items_count = len(items_list)
         current_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
@@ -350,6 +359,9 @@ def iter_processed_web_api_data_etl_batch_data(
             data_config=data_config,
             all_source_values_iterator=all_source_values_iterator
         )
+
+    if progress_monitor.is_incomplete():
+        LOGGER.warning('Not all of the expected records received from API')
 
 
 def iter_optional_batch_iterable(
@@ -596,6 +608,15 @@ def get_next_cursor_from_data(
             LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
             return None
         return next_cursor
+    return None
+
+
+def get_optional_total_count(page_data, web_config: WebApiConfig) -> Optional[int]:
+    if web_config.response.total_item_count_key_path_from_response_root:
+        return get_dict_values_from_path_as_list(
+            page_data,
+            web_config.response.total_item_count_key_path_from_response_root
+        )
     return None
 
 

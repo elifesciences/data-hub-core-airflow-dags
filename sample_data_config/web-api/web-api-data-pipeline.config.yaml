@@ -99,6 +99,9 @@ webApi:
       itemsKeyFromResponseRoot:
         - message
         - items
+      totalItemsCountKeyFromResponseRoot:
+        - message
+        - total-results
       recordTimestamp:
         itemTimestampKeyFromItemRoot:
           - 'indexed'
