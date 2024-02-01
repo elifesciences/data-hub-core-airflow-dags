@@ -13,6 +13,12 @@ class TestProgressMonitor:
         progress_monitor.increment(10)
         assert str(progress_monitor) == 'test:10 of 100 (10.0%)'
 
+    def test_should_use_thousands_separator_for_large_numbers(self):
+        progress_monitor = ProgressMonitor(message_prefix='test:')
+        progress_monitor.set_total(123456789)
+        progress_monitor.increment(123456789)
+        assert str(progress_monitor) == 'test:123,456,789 of 123,456,789 (100.0%)'
+
     def test_should_report_incomplete_if_total_is_known_and_current_is_less(self):
         progress_monitor = ProgressMonitor(total=100)
         progress_monitor.increment(10)
