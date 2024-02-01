@@ -360,6 +360,9 @@ def iter_processed_web_api_data_etl_batch_data(
             all_source_values_iterator=all_source_values_iterator
         )
 
+    if progress_monitor.is_incomplete():
+        LOGGER.warning('Not all of the expected records received from API')
+
 
 def iter_optional_batch_iterable(
     iterable: Iterable[T],

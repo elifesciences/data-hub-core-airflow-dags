@@ -11,11 +11,14 @@ class ProgressMonitor:
         self.current = 0
         self.message_prefix = message_prefix
 
-    def increment(self, n: int = 1):
-        self.current += n
+    def increment(self, delta: int = 1):
+        self.current += delta
 
     def set_total(self, total: Optional[int]):
         self.total = total
+
+    def is_incomplete(self) -> bool:
+        return self.total and self.current < self.total
 
     def get_progress_message(self) -> str:
         if self.total:
