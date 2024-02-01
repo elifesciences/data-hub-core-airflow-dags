@@ -325,6 +325,9 @@ def iter_processed_web_api_data_etl_batch_data(
             page_data, data_config
         )
         LOGGER.debug('items_list: %r', items_list)
+        if not items_list:
+            LOGGER.info('Item list is empty, end reached')
+            break
         items_list = remove_key_with_null_value(items_list)
         progress_monitor.increment(len(items_list))
         LOGGER.debug('items_list after removed null values: %r', items_list)

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import functools
 import itertools
 import logging
-from typing import Iterator, List, Sequence, cast
+from typing import Iterable, Iterator, List, Sequence, cast
 from unittest.mock import MagicMock, patch
 import pytest
 
@@ -15,6 +15,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_initial_dynamic_request_parameters,
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
+    iter_processed_web_api_data_etl_batch_data,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -158,10 +159,12 @@ def _iter_dict_for_bigquery_include_exclude_source_config_mock():
         yield mock
 
 
+TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
+
 WEB_API_CONFIG: WebApiConfigDict = {
     'dataPipelineId': 'pipeline_1',
     'gcpProjectName': 'project_1',
-    'importedTimestampFieldName': 'imported_timestamp_1',
+    'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
     'dataset': 'dataset_1',
     'table': 'table_1',
     'stateFile': {
@@ -195,6 +198,17 @@ def get_data_config_with_max_source_values_per_request(
             max_source_values_per_request=max_source_values_per_request
         )
     )
+
+
+def _remove_imported_timestamp_from_record_list(record_list: Iterable[dict]) -> Sequence[dict]:
+    return [
+        {
+            key: value
+            for key, value in record.items()
+            if key != TEST_IMPORTED_TIMESTAMP_FIELD_NAME
+        }
+        for record in record_list
+    ]
 
 
 class TestUploadLatestTimestampState:
@@ -637,6 +651,52 @@ class TestGetInitialUrlComposeArg:
             all_source_values_iterator=all_source_values_iterator
         )
         assert initial_dynamic_request_parameters is None
+
+
+class TestIterProcessedWebApiDataEtlBatchData:
+    def test_should_paginate_and_return_all_processed_results_combined_and_stop_when_empty(
+        self,
+        get_data_single_page_mock: MagicMock
+    ):
+        conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
+            **WEB_API_CONFIG,
+            'dataUrl': {
+                **WEB_API_CONFIG['dataUrl'],
+                'configurableParameters': {
+                    'nextPageCursorParameterName': 'cursor'
+                }
+            },
+            'response': {
+                'itemsKeyFromResponseRoot': ['rows'],
+                'nextPageCursorKeyFromResponseRoot': ['cursor']
+            }
+        })
+        data_config = get_data_config(conf_dict)
+        LOGGER.debug('data_config: %r', data_config)
+        item_lists_with_data = [
+            [{'key_1': 'value 1'}],
+            [{'key_1': 'value 2'}],
+            [{'key_1': 'value 3'}]
+        ]
+        expected_combined_item_list_with_data = [
+            item
+            for item_list in item_lists_with_data
+            for item in item_list
+        ]
+        item_lists_incl_empty_and_dummy_data = item_lists_with_data + [
+            [],  # empty results
+            [{'key_1': 'should not be called'}],
+        ]
+        responses = [
+            {'rows': item_list, 'cursor': f'next-{index}'}
+            for index, item_list in enumerate(item_lists_incl_empty_and_dummy_data)
+        ]
+        get_data_single_page_mock.side_effect = responses
+        record_list = list(_remove_imported_timestamp_from_record_list(
+            iter_processed_web_api_data_etl_batch_data(data_config)
+        ))
+        LOGGER.debug('record_list: %r', record_list)
+        assert record_list == expected_combined_item_list_with_data
 
 
 class TestGenericWebApiDataEtl:
