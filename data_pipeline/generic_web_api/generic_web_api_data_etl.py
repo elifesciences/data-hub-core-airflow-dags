@@ -605,8 +605,13 @@ def get_next_cursor_from_data(
             web_config.response.next_page_cursor_key_path_from_response_root
         )
         if next_cursor and next_cursor == previous_cursor:
-            LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
-            return None
+            if not web_config.dynamic_request_builder.allow_same_next_page_cursor:
+                LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+                return None
+            LOGGER.info(
+                'Proceeding with cursor that is the same as previous cursor: %r',
+                next_cursor
+            )
         return next_cursor
     return None
 

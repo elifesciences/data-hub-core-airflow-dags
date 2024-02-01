@@ -380,13 +380,28 @@ class TestNextCursor:
         )
         assert actual_next_cursor == 'cursor1'
 
-    def test_should_ignore_get_cursor_value_when_matching_previous_cursor(self):
+    def test_should_ignore_get_cursor_value_when_matching_previous_cursor_by_default(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
         data = {'cursor_key1': 'cursor1'}
         actual_next_cursor = get_next_cursor_from_data(
             data, data_config, previous_cursor='cursor1'
         )
         assert actual_next_cursor is None
+
+    def test_should_not_ignore_same_cursor_if_configured_to_allow_it(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data_config = dataclasses.replace(
+            data_config,
+            dynamic_request_builder=dataclasses.replace(
+                data_config.dynamic_request_builder,
+                allow_same_next_page_cursor=True
+            )
+        )
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor1'
+        )
+        assert actual_next_cursor == 'cursor1'
 
     def test_should_be_none_when_configured_but_not_in_data(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])

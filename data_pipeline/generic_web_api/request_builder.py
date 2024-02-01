@@ -36,6 +36,7 @@ class WebApiDynamicRequestBuilder:
     to_date_param: Optional[str] = None
     date_format: Optional[str] = None
     next_page_cursor: Optional[str] = None
+    allow_same_next_page_cursor: bool = False
     page_number_param: Optional[str] = None
     offset_param: Optional[str] = None
     page_size_param: Optional[str] = None
@@ -193,7 +194,9 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         super().__init__(**{
             **kwargs,
             # We need to disable retry due to Crossref API with cursor not being stateless
-            'retry_config': DISABLED_WEB_API_RETRY_CONFIG
+            'retry_config': DISABLED_WEB_API_RETRY_CONFIG,
+            # We are allowing the next page cursor to be the same as the previous cursor
+            'allow_same_next_page_cursor': True
         })
 
     def get_url(
