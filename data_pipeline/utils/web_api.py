@@ -5,10 +5,15 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 
+DEFAULT_MAX_RETRY_COUNT = 10
+DEFAULT_RETRY_BACKOFF_FACTOR = 0.3
+DEFAULT_RETRY_ON_RESPONSE_STATUS_LIST = (500, 502, 504)
+
+
 def requests_retry_session(
-    retries: int = 10,
-    backoff_factor: float = 0.3,
-    status_forcelist: Optional[Collection[int]] = (500, 502, 504),
+    retries: int = DEFAULT_MAX_RETRY_COUNT,
+    backoff_factor: float = DEFAULT_RETRY_BACKOFF_FACTOR,
+    status_forcelist: Optional[Collection[int]] = DEFAULT_RETRY_ON_RESPONSE_STATUS_LIST,
     session: Optional[requests.Session] = None,
     **kwargs
 ) -> requests.Session:
