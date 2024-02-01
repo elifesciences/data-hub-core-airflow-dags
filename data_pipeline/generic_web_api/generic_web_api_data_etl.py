@@ -315,6 +315,9 @@ def iter_processed_web_api_data_etl_batch_data(
             dynamic_request_parameters=current_dynamic_request_parameters
         )
         LOGGER.debug('page_data: %r', page_data)
+        total_count = get_optional_total_count(page_data, data_config)
+        if total_count:
+            LOGGER.info('Total items (reported by API): %d', total_count)
         items_list = get_items_list(
             page_data, data_config
         )
@@ -596,6 +599,15 @@ def get_next_cursor_from_data(
             LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
             return None
         return next_cursor
+    return None
+
+
+def get_optional_total_count(page_data, web_config: WebApiConfig) -> Optional[int]:
+    if web_config.response.total_item_count_key_path_from_response_root:
+        return get_dict_values_from_path_as_list(
+            page_data,
+            web_config.response.total_item_count_key_path_from_response_root
+        )
     return None
 
 

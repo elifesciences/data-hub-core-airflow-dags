@@ -14,6 +14,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_data_single_page,
     get_initial_dynamic_request_parameters,
     get_next_dynamic_request_parameters_for_page_data,
+    get_optional_total_count,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -222,6 +223,24 @@ class TestUploadLatestTimestampState:
             object_key=state_file_name_key,
             data_object=latest_timestamp_string,
         )
+
+
+class TestGetOptionalTotalCount:
+    def test_should_return_none_if_no_total_path_configured(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        data = {'total': 123}
+        assert get_optional_total_count(data, data_config) is None
+
+    def test_should_return_total_from_response(self):
+        conf_dict = {
+            **WEB_API_CONFIG,
+            'response': {
+                'totalItemsCountKeyFromResponseRoot': ['total']
+            }
+        }
+        data_config = get_data_config(conf_dict)
+        data = {'total': 123}
+        assert get_optional_total_count(data, data_config) == 123
 
 
 class TestGetItemList:
