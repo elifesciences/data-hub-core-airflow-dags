@@ -2,7 +2,7 @@ import logging
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, NamedTuple, Optional, Sequence, Type
+from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
@@ -182,6 +182,55 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         ])
 
 
+class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def get_url(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> str:
+        if not dynamic_request_parameters.cursor:
+            dynamic_request_parameters = dynamic_request_parameters._replace(
+                cursor='*'
+            )
+        LOGGER.debug('dynamic_request_parameters: %r', dynamic_request_parameters)
+        start_date = datetime_to_string(
+            dynamic_request_parameters.from_date, self.date_format
+        )
+        end_date = datetime_to_string(
+            dynamic_request_parameters.to_date, self.date_format
+        )
+        filter_dict = {
+            key: value
+            for key, value in [
+                (self.from_date_param, start_date),
+                (self.to_date_param, end_date),
+            ] if key and value
+        }
+        filter_value = ','.join([
+            f'{key}:{value}'
+            for key, value in filter_dict.items()
+        ])
+        param_dict = {
+            key: value
+            for key, value in [
+                ('filter', filter_value),
+                (self.next_page_cursor, dynamic_request_parameters.cursor),
+                (self.page_number_param, dynamic_request_parameters.page_number),
+                (self.offset_param, dynamic_request_parameters.page_offset),
+                (
+                    self.page_size_param,
+                    dynamic_request_parameters.page_size or self.page_size
+                ),
+                (self.sort_key, self.sort_key_value)
+            ]
+            if key and value
+        }
+        param_dict = {
+            **param_dict,
+            **self.static_parameters
+        }
+        return self.compose_url(param_dict)
+
+
 class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -205,13 +254,18 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
+    'civi': CiviWebApiDynamicRequestBuilder,
+    'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
+    's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
+    'crossref_metadata_api': CrossrefMetadataWebApiDynamicRequestBuilder
+}
+
+
 def get_web_api_request_builder_class(
     request_builder_name: str = ''
 ) -> Type[WebApiDynamicRequestBuilder]:
-    if request_builder_name.strip().lower() == 'civi':
-        return CiviWebApiDynamicRequestBuilder
-    if request_builder_name == 'biorxiv_medrxiv_api':
-        return BioRxivWebApiDynamicRequestBuilder
-    if request_builder_name == 's2_title_abstract_embeddings_api':
-        return S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder
-    return WebApiDynamicRequestBuilder
+    return WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP.get(
+        request_builder_name.strip().lower(),
+        WebApiDynamicRequestBuilder
+    )

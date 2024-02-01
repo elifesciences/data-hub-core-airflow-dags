@@ -232,6 +232,7 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
         and from_date_to_advance is None
         and offset is None
     ):
+        LOGGER.info('End reached, no next cursor, page number, offset or from date')
         return None
     return WebApiDynamicRequestParameters(
         from_date=from_date_to_advance or current_dynamic_request_parameters.from_date,
@@ -569,7 +570,7 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
                 or web_config.dynamic_request_builder.page_number_param
             )
         ) and
-        web_config.item_timestamp_key_path_from_item_root and
+        web_config.response.item_timestamp_key_path_from_item_root and
         items_count
     ):
 
@@ -587,29 +588,31 @@ def get_next_cursor_from_data(
     if web_config.dynamic_request_builder.next_page_cursor:
         next_cursor = get_dict_values_from_path_as_list(
             data,
-            web_config.next_page_cursor_key_path_from_response_root
+            web_config.response.next_page_cursor_key_path_from_response_root
         )
-        if next_cursor != previous_cursor:
-            return next_cursor
+        if next_cursor and next_cursor == previous_cursor:
+            LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+            return None
+        return next_cursor
     return None
 
 
-def get_items_list(page_data, web_config):
+def get_items_list(page_data, web_config: WebApiConfig):
     item_list = page_data
     if isinstance(page_data, dict):
         item_list = get_dict_values_from_path_as_list(
             page_data,
-            web_config.items_key_path_from_response_root
+            web_config.response.items_key_path_from_response_root
         )
     if item_list is None:
         LOGGER.error(
             'item list not found in response, key path: %r, page_data= %s',
-            web_config.items_key_path_from_response_root,
+            web_config.response.items_key_path_from_response_root,
             page_data
         )
         raise ValueError(
             f'item list not found in response, \
-                key path: {web_config.items_key_path_from_response_root}'
+                key path: {web_config.response.items_key_path_from_response_root}'
         )
     if isinstance(item_list, dict):
         return [item_list]
@@ -617,7 +620,7 @@ def get_items_list(page_data, web_config):
 
 
 def upload_latest_timestamp_as_pipeline_state(
-    data_config,
+    data_config: WebApiConfig,
     latest_record_timestamp: datetime
 ):
     if (

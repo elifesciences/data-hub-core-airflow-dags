@@ -6,6 +6,7 @@ from data_pipeline.utils.json import (
     get_json_compatible_value,
     get_recursive_json_compatible_value,
     get_recursively_transformed_object,
+    get_recursively_transformed_object_values_at_any_level,
     remove_key_with_null_value,
     is_empty_value
 )
@@ -112,6 +113,36 @@ class TestGetRecursivelyTransformedObject:
                 (key, 'new value1' if key == 'key1' else value)
             )
         ) == [{'key1': 'new value1'}]
+
+
+class TestGetRecursivelyTransformedObjectValuesAtAnyLevel:
+    def test_should_replace_root_dict_leaf_value(self):
+        assert get_recursively_transformed_object_values_at_any_level(
+            {'key1': 'old value1'},
+            lambda value: 'new value1' if value == 'old value1' else value
+        ) == {'key1': 'new value1'}
+
+    def test_should_replace_root_list_value(self):
+        assert get_recursively_transformed_object_values_at_any_level(
+            ['old value1'],
+            lambda value: 'new value1' if value == 'old value1' else value
+        ) == ['new value1']
+
+    def test_should_replace_nested_dict_in_list_leaf_value(self):
+        assert get_recursively_transformed_object_values_at_any_level(
+            [{'parent': {'key1': 'old value1'}}],
+            lambda value: 'new value1' if value == 'old value1' else value
+        ) == [{'parent': {'key1': 'new value1'}}]
+
+    def test_should_replace_nested_non_leaf_dict_value(self):
+        assert get_recursively_transformed_object_values_at_any_level(
+            [{'parent': {'key1': 'old value1'}}],
+            lambda value: (
+                'child'
+                if isinstance(value, dict) and 'key1' in value.keys()
+                else value
+            )
+        ) == [{'parent': 'child'}]
 
 
 class TestRemoveKeyWithNullValue:

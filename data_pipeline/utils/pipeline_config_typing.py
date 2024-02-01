@@ -1,4 +1,4 @@
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 from typing_extensions import NotRequired, TypedDict
 
 
@@ -35,6 +35,9 @@ class StateFileConfigDict(TypedDict):
 class ParameterFromFileConfigDict(TypedDict):
     parameterName: str
     filePathEnvName: str
+
+
+RecordProcessingStepConfigList = Sequence[str]
 
 
 # Note: MappingConfigDict may contain `parametersFromFile` of type
