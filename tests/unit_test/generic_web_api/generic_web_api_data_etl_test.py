@@ -53,7 +53,10 @@ def _requests_session_mock() -> MagicMock:
 
 @pytest.fixture(name='requests_retry_session_mock', autouse=True)
 def _requests_retry_session_mock(requests_session_mock: MagicMock) -> Iterator[MagicMock]:
-    with patch.object(generic_web_api_data_etl_module, 'requests_retry_session') as mock:
+    with patch.object(
+        generic_web_api_data_etl_module,
+        'requests_retry_session_for_config'
+    ) as mock:
         mock.return_value.__enter__.return_value = requests_session_mock
         yield mock
 
