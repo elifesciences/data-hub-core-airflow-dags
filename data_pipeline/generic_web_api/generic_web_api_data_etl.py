@@ -31,7 +31,7 @@ from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
 from data_pipeline.utils.text import format_byte_count
-from data_pipeline.utils.web_api import requests_retry_session
+from data_pipeline.utils.web_api import requests_retry_session_for_config
 
 from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
@@ -105,7 +105,9 @@ def get_data_single_page(
         json_data
     )
 
-    with requests_retry_session() as session:
+    with requests_retry_session_for_config(
+        data_config.dynamic_request_builder.retry_config
+    ) as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
             assert data_config.authentication.authentication_type == "basic"
             assert data_config.authentication.auth_val_list
