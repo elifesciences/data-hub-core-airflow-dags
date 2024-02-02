@@ -106,6 +106,7 @@ bigQueryToOpenSearch:
                     author_list:
                       type: "nested"
     batchSize: 100
+
   - dataPipelineId: bigquery_to_opensearch_data_pipeline_europepmc
     source:
       bigQuery:
