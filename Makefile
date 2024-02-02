@@ -188,6 +188,10 @@ ci-build-and-end2end-test:
 		build-dev \
 		end2end-test
 
+ci-end2end-test-clear-logs:
+	$(DOCKER_COMPOSE_CI) exec -T worker bash -c \
+		'rm -rf logs/*'
+
 ci-end2end-test-logs:
 	$(DOCKER_COMPOSE_CI) exec -T worker bash -c \
 		'cat logs/*/*/*/*.log'
