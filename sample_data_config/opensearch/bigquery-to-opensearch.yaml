@@ -293,7 +293,7 @@ bigQueryToOpenSearch:
                 ) AS author_list
             ) AS crossref
 
-          FROM `elife-data-pipeline.de_proto.v_latest_crossref_metadata_api_response` AS crossref_response
+          FROM `elife-data-pipeline.prod.v_latest_crossref_metadata_api_response` AS crossref_response
 
           -- Filter DOIs for test only
           WHERE crossref_response.doi IN (
