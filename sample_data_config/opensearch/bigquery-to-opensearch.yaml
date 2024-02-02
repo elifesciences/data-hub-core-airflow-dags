@@ -203,53 +203,6 @@ bigQueryToOpenSearch:
         operationMode: 'update'
         upsert: True
     batchSize: 100
-  - dataPipelineId: bigquery_to_opensearch_data_pipeline_sciety
-    source:
-      bigQuery:
-        projectName: 'elife-data-pipeline'
-        sqlQuery: |-
-          SELECT
-            event.article_doi AS doi,
-            STRUCT(
-              MAX(event_timestamp) AS last_event_timestamp,
-              COUNT(DISTINCT event.evaluation_locator) AS evaluation_count
-            ) AS sciety
-          FROM `elife-data-pipeline.prod.v_sciety_event` AS event
-          WHERE event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
-            AND NOT event.is_deleted
-            AND event.article_doi IN (
-              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
-              '10.1101/2022.09.28.509871'
-            )
-          GROUP BY event.article_doi
-    fieldNamesFor:
-      id: doi
-      timestamp: sciety.last_event_timestamp
-    state:
-      initialState:
-        startTimestamp: '2019-01-01+00:00'
-      stateFile:
-        bucketName: '{ENV}-elife-data-pipeline'
-        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state-sciety.json'
-    target:
-      openSearch:
-        hostname: 'opensearch'
-        port: 9200
-        timeout: 60
-        # disable verification of certificates in development
-        verifyCertificates: False
-        secrets:
-          parametersFromFile:
-            - parameterName: username
-              filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
-            - parameterName: password
-              filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
-        indexName: 'dev_preprints_v2'
-        updateIndexSettings: False
-        updateMappings: True
-        operationMode: 'update'
-        upsert: True
-    batchSize: 100
 
   - dataPipelineId: bigquery_to_opensearch_data_pipeline_crossref_metadata
     source:
@@ -315,6 +268,54 @@ bigQueryToOpenSearch:
         hostname: 'opensearch'
         port: 9200
         timeout: 60
+        verifyCertificates: False
+        secrets:
+          parametersFromFile:
+            - parameterName: username
+              filePathEnvName: OPENSEARCH_USERNAME_FILE_PATH
+            - parameterName: password
+              filePathEnvName: OPENSEARCH_PASSWORD_FILE_PATH
+        indexName: 'dev_preprints_v2'
+        updateIndexSettings: False
+        updateMappings: True
+        operationMode: 'update'
+        upsert: True
+    batchSize: 100
+
+  - dataPipelineId: bigquery_to_opensearch_data_pipeline_sciety
+    source:
+      bigQuery:
+        projectName: 'elife-data-pipeline'
+        sqlQuery: |-
+          SELECT
+            event.article_doi AS doi,
+            STRUCT(
+              MAX(event_timestamp) AS last_event_timestamp,
+              COUNT(DISTINCT event.evaluation_locator) AS evaluation_count
+            ) AS sciety
+          FROM `elife-data-pipeline.prod.v_sciety_event` AS event
+          WHERE event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
+            AND NOT event.is_deleted
+            AND event.article_doi IN (
+              '10.1101/2020.07.24.219204', '10.1101/2023.03.30.534978', '10.1101/2022.08.24.504515',
+              '10.1101/2022.09.28.509871'
+            )
+          GROUP BY event.article_doi
+    fieldNamesFor:
+      id: doi
+      timestamp: sciety.last_event_timestamp
+    state:
+      initialState:
+        startTimestamp: '2019-01-01+00:00'
+      stateFile:
+        bucketName: '{ENV}-elife-data-pipeline'
+        objectName: 'airflow-config/bigquery-to-opensearch/{ENV}-state-sciety.json'
+    target:
+      openSearch:
+        hostname: 'opensearch'
+        port: 9200
+        timeout: 60
+        # disable verification of certificates in development
         verifyCertificates: False
         secrets:
           parametersFromFile:
