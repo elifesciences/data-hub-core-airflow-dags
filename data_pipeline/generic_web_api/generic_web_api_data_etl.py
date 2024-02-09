@@ -96,7 +96,7 @@ def get_newline_delimited_json_string_as_json_list(json_string):
 @dataclasses.dataclass(frozen=True)
 class WebApiPageResponse:
     response_json: Any
-    request_provenance: dict
+    request_provenance: dict = dataclasses.field(default_factory=dict)
 
 
 def get_data_single_page_response(
