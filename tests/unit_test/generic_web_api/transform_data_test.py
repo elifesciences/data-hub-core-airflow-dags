@@ -250,10 +250,10 @@ class TestIterProcessedRecordForApiItemListResponse:
 class TestGetWebApiProvenance:
     def test_should_include_imported_timestamp_with_configured_key(self):
         data_config = get_data_config(MINIMAL_WEB_API_CONFIG_DICT)
-        proveance_dict = get_web_api_provenance(
+        provenance_dict = get_web_api_provenance(
             data_config=data_config,
             data_etl_timestamp=TIMESTAMP_STR_1
         )
-        assert proveance_dict == {
+        assert provenance_dict == {
             data_config.import_timestamp_field_name: TIMESTAMP_STR_1
         }
