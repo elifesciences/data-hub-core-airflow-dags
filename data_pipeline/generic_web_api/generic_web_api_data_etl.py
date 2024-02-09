@@ -332,11 +332,12 @@ def iter_processed_web_api_data_etl_batch_data(
     progress_monitor = ProgressMonitor(message_prefix='Processed records (before BigQuery): ')
     while current_dynamic_request_parameters:
         LOGGER.debug('current_dynamic_request_parameters=%r', current_dynamic_request_parameters)
-        page_data = get_data_single_page(
+        page_response = get_data_single_page_response(
             data_config=data_config,
             dynamic_request_parameters=current_dynamic_request_parameters
         )
-        LOGGER.debug('page_data: %r', page_data)
+        LOGGER.debug('page_response: %r', page_response)
+        page_data = page_response.response_json
         total_count = get_optional_total_count(page_data, data_config)
         if total_count:
             LOGGER.info('Total items (reported by API): %d', total_count)
