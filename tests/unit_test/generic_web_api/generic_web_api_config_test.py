@@ -134,7 +134,7 @@ class TestWebApiResponseConfig:
 
     def test_should_read_detailed_provenance_config(self):
         response_config = WebApiResponseConfig.from_dict({
-            'detailedProvenance': True
+            'provenanceEnabled': True
         })
         assert response_config.detailed_provenance_enabled
 

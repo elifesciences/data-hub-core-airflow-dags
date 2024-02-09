@@ -125,7 +125,7 @@ class WebApiResponseConfig:
                 )
             ),
             detailed_provenance_enabled=web_api_response_config.get(
-                'detailedProvenance', False
+                'provenanceEnabled', False
             )
         )
 
