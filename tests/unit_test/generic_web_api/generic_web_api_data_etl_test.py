@@ -43,13 +43,16 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 }
 
 
+@pytest.fixture(name='requests_response_mock')
+def _requests_response_mock() -> MagicMock:
+    response_mock = MagicMock(name='response_mock')
+    response_mock.content = b'{}'
+    return response_mock
+
+
 @pytest.fixture(name='requests_session_mock')
 def _requests_session_mock() -> MagicMock:
     requests_session_mock = MagicMock(name='requests_session_mock')
-    response_mock = MagicMock(name='response_mock')
-    response_mock.content = b'{}'
-    requests_session_mock.get.return_value = response_mock
-    requests_session_mock.request.return_value = response_mock
     return requests_session_mock
 
 
@@ -60,6 +63,18 @@ def _requests_retry_session_mock(requests_session_mock: MagicMock) -> Iterator[M
         'requests_retry_session_for_config'
     ) as mock:
         mock.return_value.__enter__.return_value = requests_session_mock
+        yield mock
+
+
+@pytest.fixture(name='get_response_and_provenance_from_api_mock', autouse=True)
+def _get_response_and_provenance_from_api_mock(
+    requests_response_mock: MagicMock
+) -> Iterator[MagicMock]:
+    with patch.object(
+        generic_web_api_data_etl_module,
+        'get_response_and_provenance_from_api'
+    ) as mock:
+        mock.return_value = (requests_response_mock, MagicMock(name='provenance'))
         yield mock
 
 
@@ -529,7 +544,8 @@ class TestNextOffset:
 class TestGetDataSinglePage:
     def test_should_pass_method_url_and_header_to_session_request(
         self,
-        requests_session_mock: MagicMock
+        requests_session_mock: MagicMock,
+        get_response_and_provenance_from_api_mock: MagicMock
     ):
         dynamic_request_builder = MagicMock(name='dynamic_request_builder')
         dynamic_request_builder.method = 'POST'
@@ -541,11 +557,13 @@ class TestGetDataSinglePage:
             data_config=data_config,
             dynamic_request_parameters=WebApiDynamicRequestParameters()
         )
-        requests_session_mock.request.assert_called_with(
-            method=dynamic_request_builder.method,
+        get_response_and_provenance_from_api_mock.assert_called_with(
+            session=requests_session_mock,
+            method=data_config.dynamic_request_builder.method,
             url=dynamic_request_builder.get_url.return_value,
-            json=dynamic_request_builder.get_json.return_value,
-            headers=data_config.headers.mapping
+            json_data=dynamic_request_builder.get_json.return_value,
+            headers=data_config.headers.mapping,
+            raise_on_status=True
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
