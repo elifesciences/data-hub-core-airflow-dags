@@ -357,7 +357,8 @@ def iter_processed_web_api_data_etl_batch_data(
             data_config=data_config,
             provenance=get_web_api_provenance(
                 data_config=data_config,
-                data_etl_timestamp=imported_timestamp
+                data_etl_timestamp=imported_timestamp,
+                request_provenance=page_response.request_provenance
             )
         )
 
