@@ -70,6 +70,7 @@ class WebApiResponseConfigDict(TypedDict):
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
     fieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
+    detailedProvenance: NotRequired[bool]
 
 
 class WebApiBaseConfigDict(TypedDict):
