@@ -1,7 +1,9 @@
 import dataclasses
 import pytest
+from data_pipeline.generic_web_api.generic_web_api_config import WebApiResponseConfig
 
 from data_pipeline.generic_web_api.transform_data import (
+    DETAILED_PROVENANCE_FIELD_NAME,
     filter_record_by_schema,
     get_dict_values_from_path_as_list,
     get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root,
@@ -28,6 +30,11 @@ TIMESTAMP_STR_1 = '2001-01-01T00:00:00+00:00'
 TIMESTAMP_STR_2 = '2001-01-02T00:00:00+00:00'
 TIMESTAMP_STR_3 = '2001-01-03T00:00:00+00:00'
 TIMESTAMP_STR_4 = '2001-01-04T00:00:00+00:00'
+
+
+REQUEST_PROVENANCE_1 = {
+    'api_url': 'url-1'
+}
 
 
 class TestGetDictValuesFromPathAsList:
@@ -257,3 +264,31 @@ class TestGetWebApiProvenance:
         assert provenance_dict == {
             data_config.import_timestamp_field_name: TIMESTAMP_STR_1
         }
+
+    def test_should_not_include_detailed_provenance_if_disabled(self):
+        data_config = dataclasses.replace(
+            get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
+            response=WebApiResponseConfig(
+                detailed_provenance_enabled=False
+            )
+        )
+        provenance_dict = get_web_api_provenance(
+            data_config=data_config,
+            data_etl_timestamp=TIMESTAMP_STR_1,
+            request_provenance=REQUEST_PROVENANCE_1
+        )
+        assert DETAILED_PROVENANCE_FIELD_NAME not in provenance_dict
+
+    def test_should_include_request_provenance_if_enabled(self):
+        data_config = dataclasses.replace(
+            get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
+            response=WebApiResponseConfig(
+                detailed_provenance_enabled=True
+            )
+        )
+        provenance_dict = get_web_api_provenance(
+            data_config=data_config,
+            data_etl_timestamp=TIMESTAMP_STR_1,
+            request_provenance=REQUEST_PROVENANCE_1
+        )
+        assert provenance_dict.get(DETAILED_PROVENANCE_FIELD_NAME) == REQUEST_PROVENANCE_1
