@@ -130,13 +130,13 @@ class TestWebApiResponseConfig:
     def test_should_not_enable_detailed_provenance_by_default(self):
         response_config = WebApiResponseConfig.from_dict({
         })
-        assert not response_config.detailed_provenance_enabled
+        assert not response_config.provenance_enabled
 
     def test_should_read_detailed_provenance_config(self):
         response_config = WebApiResponseConfig.from_dict({
             'provenanceEnabled': True
         })
-        assert response_config.detailed_provenance_enabled
+        assert response_config.provenance_enabled
 
 
 class TestWebApiConfig:

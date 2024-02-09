@@ -96,7 +96,7 @@ class WebApiResponseConfig:
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     fields_to_return: Optional[Sequence[str]] = None
     record_processing_step_function: Optional[RecordProcessingStepFunction] = None
-    detailed_provenance_enabled: bool = False
+    provenance_enabled: bool = False
 
     @staticmethod
     def from_dict(
@@ -124,7 +124,7 @@ class WebApiResponseConfig:
                     web_api_response_config.get('recordProcessingSteps')
                 )
             ),
-            detailed_provenance_enabled=web_api_response_config.get(
+            provenance_enabled=web_api_response_config.get(
                 'provenanceEnabled', False
             )
         )

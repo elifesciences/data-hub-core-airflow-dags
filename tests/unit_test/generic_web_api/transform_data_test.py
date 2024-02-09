@@ -269,7 +269,7 @@ class TestGetWebApiProvenance:
         data_config = dataclasses.replace(
             get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
             response=WebApiResponseConfig(
-                detailed_provenance_enabled=False
+                provenance_enabled=False
             )
         )
         provenance_dict = get_web_api_provenance(
@@ -283,7 +283,7 @@ class TestGetWebApiProvenance:
         data_config = dataclasses.replace(
             get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
             response=WebApiResponseConfig(
-                detailed_provenance_enabled=True
+                provenance_enabled=True
             )
         )
         provenance_dict = get_web_api_provenance(

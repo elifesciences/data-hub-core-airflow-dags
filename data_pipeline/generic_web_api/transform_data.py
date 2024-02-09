@@ -259,7 +259,7 @@ def get_web_api_provenance(
     result: dict = {
         data_config.import_timestamp_field_name: data_etl_timestamp
     }
-    if data_config.response.detailed_provenance_enabled and request_provenance:
+    if data_config.response.provenance_enabled and request_provenance:
         result[DETAILED_PROVENANCE_FIELD_NAME] = request_provenance
     return result
 
