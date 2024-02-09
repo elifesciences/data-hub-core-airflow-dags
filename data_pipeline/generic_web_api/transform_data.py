@@ -27,7 +27,7 @@ from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 LOGGER = logging.getLogger(__name__)
 
 
-DETAILED_PROVENANCE_FIELD_NAME = 'provenance'
+PROVENANCE_FIELD_NAME = 'provenance'
 
 
 def get_dict_values_from_path_as_list(
@@ -260,7 +260,7 @@ def get_web_api_provenance(
         data_config.import_timestamp_field_name: data_etl_timestamp
     }
     if data_config.response.provenance_enabled and request_provenance:
-        result[DETAILED_PROVENANCE_FIELD_NAME] = request_provenance
+        result[PROVENANCE_FIELD_NAME] = request_provenance
     return result
 
 

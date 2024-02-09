@@ -3,7 +3,7 @@ import pytest
 from data_pipeline.generic_web_api.generic_web_api_config import WebApiResponseConfig
 
 from data_pipeline.generic_web_api.transform_data import (
-    DETAILED_PROVENANCE_FIELD_NAME,
+    PROVENANCE_FIELD_NAME,
     filter_record_by_schema,
     get_dict_values_from_path_as_list,
     get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root,
@@ -277,7 +277,7 @@ class TestGetWebApiProvenance:
             data_etl_timestamp=TIMESTAMP_STR_1,
             request_provenance=REQUEST_PROVENANCE_1
         )
-        assert DETAILED_PROVENANCE_FIELD_NAME not in provenance_dict
+        assert PROVENANCE_FIELD_NAME not in provenance_dict
 
     def test_should_include_request_provenance_if_enabled(self):
         data_config = dataclasses.replace(
@@ -291,4 +291,4 @@ class TestGetWebApiProvenance:
             data_etl_timestamp=TIMESTAMP_STR_1,
             request_provenance=REQUEST_PROVENANCE_1
         )
-        assert provenance_dict.get(DETAILED_PROVENANCE_FIELD_NAME) == REQUEST_PROVENANCE_1
+        assert provenance_dict.get(PROVENANCE_FIELD_NAME) == REQUEST_PROVENANCE_1
