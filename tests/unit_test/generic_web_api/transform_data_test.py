@@ -265,7 +265,7 @@ class TestGetWebApiProvenance:
             data_config.import_timestamp_field_name: TIMESTAMP_STR_1
         }
 
-    def test_should_not_include_detailed_provenance_if_disabled(self):
+    def test_should_not_include_provenance_if_disabled(self):
         data_config = dataclasses.replace(
             get_data_config(MINIMAL_WEB_API_CONFIG_DICT),
             response=WebApiResponseConfig(
