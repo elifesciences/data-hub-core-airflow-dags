@@ -1,3 +1,4 @@
+import dataclasses
 import itertools
 import os
 import logging
@@ -92,10 +93,16 @@ def get_newline_delimited_json_string_as_json_list(json_string):
     ]
 
 
-def get_data_single_page(
+@dataclasses.dataclass(frozen=True)
+class WebApiPageResponse:
+    response_json: Any
+    request_provenance: dict
+
+
+def get_data_single_page_response(
     data_config: WebApiConfig,
     dynamic_request_parameters: WebApiDynamicRequestParameters
-) -> Any:
+) -> WebApiPageResponse:
     url = data_config.dynamic_request_builder.get_url(
         dynamic_request_parameters
     )
@@ -141,7 +148,15 @@ def get_data_single_page(
             format_byte_count(len(resp)),
             format_byte_count(parsed_response_size)
         )
-    return json_resp
+    return WebApiPageResponse(
+        response_json=json_resp,
+        request_provenance=request_provenance
+    )
+
+
+def get_data_single_page(*args, **kwargs) -> Any:
+    page_response = get_data_single_page_response(*args, **kwargs)
+    return page_response.response_json
 
 
 def iter_optional_source_values_from_bigquery(
