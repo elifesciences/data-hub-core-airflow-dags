@@ -250,7 +250,7 @@ def iter_processed_record_for_api_item_list_response(
 
 def get_web_api_provenance(
     data_config: WebApiConfig,
-    data_etl_timestamp: datetime
+    data_etl_timestamp: str
 ) -> dict:
     return {
         data_config.import_timestamp_field_name: data_etl_timestamp
