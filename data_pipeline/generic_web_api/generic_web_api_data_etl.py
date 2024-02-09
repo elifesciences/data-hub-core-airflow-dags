@@ -154,11 +154,6 @@ def get_data_single_page_response(
     )
 
 
-def get_data_single_page(*args, **kwargs) -> Any:
-    page_response = get_data_single_page_response(*args, **kwargs)
-    return page_response.response_json
-
-
 def iter_optional_source_values_from_bigquery(
     data_config: WebApiConfig
 ) -> Optional[Iterable[dict]]:
