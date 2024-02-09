@@ -5,6 +5,7 @@ from data_pipeline.generic_web_api.transform_data import (
     filter_record_by_schema,
     get_dict_values_from_path_as_list,
     get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root,
+    get_web_api_provenance,
     iter_processed_record_for_api_item_list_response,
     process_record_in_list
 )
@@ -244,3 +245,15 @@ class TestIterProcessedRecordForApiItemListResponse:
         assert updated_records == [{
             'key_1': 'new value 1'
         }]
+
+
+class TestGetWebApiProvenance:
+    def test_should_include_imported_timestamp_with_configured_key(self):
+        data_config = get_data_config(MINIMAL_WEB_API_CONFIG_DICT)
+        proveance_dict = get_web_api_provenance(
+            data_config=data_config,
+            data_etl_timestamp=TIMESTAMP_STR_1
+        )
+        assert proveance_dict == {
+            data_config.import_timestamp_field_name: TIMESTAMP_STR_1
+        }
