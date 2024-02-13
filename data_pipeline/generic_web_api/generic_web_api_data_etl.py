@@ -1,3 +1,4 @@
+import dataclasses
 import itertools
 import os
 import logging
@@ -29,7 +30,10 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
-from data_pipeline.utils.pipeline_utils import iter_dict_for_bigquery_include_exclude_source_config
+from data_pipeline.utils.pipeline_utils import (
+    get_response_and_provenance_from_api,
+    iter_dict_for_bigquery_include_exclude_source_config
+)
 from data_pipeline.utils.progress import ProgressMonitor
 from data_pipeline.utils.text import format_byte_count
 from data_pipeline.utils.web_api import requests_retry_session_for_config
@@ -89,10 +93,16 @@ def get_newline_delimited_json_string_as_json_list(json_string):
     ]
 
 
-def get_data_single_page(
+@dataclasses.dataclass(frozen=True)
+class WebApiPageResponse:
+    response_json: Any
+    request_provenance: dict = dataclasses.field(default_factory=dict)
+
+
+def get_data_single_page_response(
     data_config: WebApiConfig,
     dynamic_request_parameters: WebApiDynamicRequestParameters
-) -> Any:
+) -> WebApiPageResponse:
     url = data_config.dynamic_request_builder.get_url(
         dynamic_request_parameters
     )
@@ -115,13 +125,15 @@ def get_data_single_page(
             session.auth = cast(Tuple[str, str], tuple(data_config.authentication.auth_val_list))
         session.verify = False
         LOGGER.info("Headers: %s", data_config.headers)
-        session_response = session.request(
+        session_response, request_provenance = get_response_and_provenance_from_api(
+            session=session,
             method=data_config.dynamic_request_builder.method,
             url=url,
-            json=json_data,
-            headers=data_config.headers.mapping
+            json_data=json_data,
+            headers=data_config.headers.mapping,
+            raise_on_status=True
         )
-        session_response.raise_for_status()
+        LOGGER.info('Request Provenance: %r', request_provenance)
         resp = session_response.content
         try:
             json_resp = json.loads(resp)
@@ -136,7 +148,10 @@ def get_data_single_page(
             format_byte_count(len(resp)),
             format_byte_count(parsed_response_size)
         )
-    return json_resp
+    return WebApiPageResponse(
+        response_json=json_resp,
+        request_provenance=request_provenance
+    )
 
 
 def iter_optional_source_values_from_bigquery(
@@ -312,11 +327,12 @@ def iter_processed_web_api_data_etl_batch_data(
     progress_monitor = ProgressMonitor(message_prefix='Processed records (before BigQuery): ')
     while current_dynamic_request_parameters:
         LOGGER.debug('current_dynamic_request_parameters=%r', current_dynamic_request_parameters)
-        page_data = get_data_single_page(
+        page_response = get_data_single_page_response(
             data_config=data_config,
             dynamic_request_parameters=current_dynamic_request_parameters
         )
-        LOGGER.debug('page_data: %r', page_data)
+        LOGGER.debug('page_response: %r', page_response)
+        page_data = page_response.response_json
         total_count = get_optional_total_count(page_data, data_config)
         if total_count:
             LOGGER.info('Total items (reported by API): %d', total_count)
@@ -336,7 +352,8 @@ def iter_processed_web_api_data_etl_batch_data(
             data_config=data_config,
             provenance=get_web_api_provenance(
                 data_config=data_config,
-                data_etl_timestamp=imported_timestamp
+                data_etl_timestamp=imported_timestamp,
+                request_provenance=page_response.request_provenance
             )
         )
 

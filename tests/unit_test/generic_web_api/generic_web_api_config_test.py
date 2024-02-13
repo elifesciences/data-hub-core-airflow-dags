@@ -127,6 +127,17 @@ class TestWebApiResponseConfig:
             get_single_record_processing_step_function_for_function_names_or_none_mock.return_value
         )
 
+    def test_should_not_enable_provenance_by_default(self):
+        response_config = WebApiResponseConfig.from_dict({
+        })
+        assert not response_config.provenance_enabled
+
+    def test_should_read_provenance_enabled_config(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'provenanceEnabled': True
+        })
+        assert response_config.provenance_enabled
+
 
 class TestWebApiConfig:
     def test_should_parse_dataset_and_table(self):

@@ -11,7 +11,8 @@ from data_pipeline.generic_web_api import (
     generic_web_api_data_etl as generic_web_api_data_etl_module
 )
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
-    get_data_single_page,
+    WebApiPageResponse,
+    get_data_single_page_response,
     get_initial_dynamic_request_parameters,
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
@@ -42,14 +43,21 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'sqlQuery': 'query1'
 }
 
+REQUEST_PROVENANCE_1 = {
+    'api_url': 'url-1'
+}
+
+
+@pytest.fixture(name='requests_response_mock')
+def _requests_response_mock() -> MagicMock:
+    response_mock = MagicMock(name='response_mock')
+    response_mock.content = b'{}'
+    return response_mock
+
 
 @pytest.fixture(name='requests_session_mock')
 def _requests_session_mock() -> MagicMock:
     requests_session_mock = MagicMock(name='requests_session_mock')
-    response_mock = MagicMock(name='response_mock')
-    response_mock.content = b'{}'
-    requests_session_mock.get.return_value = response_mock
-    requests_session_mock.request.return_value = response_mock
     return requests_session_mock
 
 
@@ -60,6 +68,18 @@ def _requests_retry_session_mock(requests_session_mock: MagicMock) -> Iterator[M
         'requests_retry_session_for_config'
     ) as mock:
         mock.return_value.__enter__.return_value = requests_session_mock
+        yield mock
+
+
+@pytest.fixture(name='get_response_and_provenance_from_api_mock', autouse=True)
+def _get_response_and_provenance_from_api_mock(
+    requests_response_mock: MagicMock
+) -> Iterator[MagicMock]:
+    with patch.object(
+        generic_web_api_data_etl_module,
+        'get_response_and_provenance_from_api'
+    ) as mock:
+        mock.return_value = (requests_response_mock, MagicMock(name='provenance'))
         yield mock
 
 
@@ -119,10 +139,10 @@ def _get_start_timestamp_from_state_file_or_optional_default_value_mock():
         yield mock
 
 
-@pytest.fixture(name='get_data_single_page_mock', autouse=True)
-def _get_data_single_page_mock():
+@pytest.fixture(name='get_data_single_page_response_mock', autouse=True)
+def _get_data_single_page_response_mock():
     with patch.object(
-        generic_web_api_data_etl_module, 'get_data_single_page'
+        generic_web_api_data_etl_module, 'get_data_single_page_response'
     ) as mock:
         yield mock
 
@@ -529,7 +549,8 @@ class TestNextOffset:
 class TestGetDataSinglePage:
     def test_should_pass_method_url_and_header_to_session_request(
         self,
-        requests_session_mock: MagicMock
+        requests_session_mock: MagicMock,
+        get_response_and_provenance_from_api_mock: MagicMock
     ):
         dynamic_request_builder = MagicMock(name='dynamic_request_builder')
         dynamic_request_builder.method = 'POST'
@@ -537,15 +558,17 @@ class TestGetDataSinglePage:
             get_data_config(WEB_API_CONFIG),
             dynamic_request_builder=dynamic_request_builder
         )
-        get_data_single_page(
+        get_data_single_page_response(
             data_config=data_config,
             dynamic_request_parameters=WebApiDynamicRequestParameters()
         )
-        requests_session_mock.request.assert_called_with(
-            method=dynamic_request_builder.method,
+        get_response_and_provenance_from_api_mock.assert_called_with(
+            session=requests_session_mock,
+            method=data_config.dynamic_request_builder.method,
             url=dynamic_request_builder.get_url.return_value,
-            json=dynamic_request_builder.get_json.return_value,
-            headers=data_config.headers.mapping
+            json_data=dynamic_request_builder.get_json.return_value,
+            headers=data_config.headers.mapping,
+            raise_on_status=True
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
@@ -556,7 +579,7 @@ class TestGetDataSinglePage:
             dynamic_request_builder=dynamic_request_builder
         )
         dynamic_request_parameters = WebApiDynamicRequestParameters(source_values=['value1'])
-        get_data_single_page(
+        get_data_single_page_response(
             data_config=data_config,
             dynamic_request_parameters=dynamic_request_parameters
         )
@@ -656,7 +679,7 @@ class TestGetInitialUrlComposeArg:
 class TestIterProcessedWebApiDataEtlBatchData:
     def test_should_paginate_and_return_all_processed_results_combined_and_stop_when_empty(
         self,
-        get_data_single_page_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock
     ):
         conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
             **WEB_API_CONFIG,
@@ -688,10 +711,12 @@ class TestIterProcessedWebApiDataEtlBatchData:
             [{'key_1': 'should not be called'}],
         ]
         responses = [
-            {'rows': item_list, 'cursor': f'next-{index}'}
+            WebApiPageResponse(
+                {'rows': item_list, 'cursor': f'next-{index}'}
+            )
             for index, item_list in enumerate(item_lists_incl_empty_and_dummy_data)
         ]
-        get_data_single_page_mock.side_effect = responses
+        get_data_single_page_response_mock.side_effect = responses
         record_list = list(_remove_imported_timestamp_from_record_list(
             iter_processed_web_api_data_etl_batch_data(data_config)
         ))
@@ -756,7 +781,7 @@ class TestGenericWebApiDataEtl:
 
     def test_should_not_update_state_with_empty_list_in_response(
         self,
-        get_data_single_page_mock: MagicMock,
+        get_data_single_page_response_mock: MagicMock,
         upload_latest_timestamp_as_pipeline_state_mock: MagicMock
     ):
         conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
@@ -766,14 +791,16 @@ class TestGenericWebApiDataEtl:
             }
         })
         data_config = get_data_config(conf_dict)
-        get_data_single_page_mock.return_value = {'rows': []}
+        get_data_single_page_response_mock.return_value = WebApiPageResponse(
+            {'rows': []}
+        )
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_not_called()
 
     def test_should_retrieve_data_in_date_range_batches(
         self,
         get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
-        get_data_single_page_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock
     ):
         timestamp_string_1 = '2020-01-01+00:00'
         timestamp_string_2 = '2020-01-02+00:00'
@@ -804,34 +831,34 @@ class TestGenericWebApiDataEtl:
             initial_timestamp
         )
         item_list = [{'timestamp': timestamp_string_2}]
-        get_data_single_page_mock.return_value = item_list
+        get_data_single_page_response_mock.return_value = WebApiPageResponse(item_list)
         generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
         actual_from_and_until_date_list = [
             (
                 call_args.kwargs['dynamic_request_parameters'].from_date,
                 call_args.kwargs['dynamic_request_parameters'].to_date
             )
-            for call_args in get_data_single_page_mock.call_args_list
+            for call_args in get_data_single_page_response_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
 
     def test_should_pass_none_from_and_until_dates_if_not_configured(
         self,
         get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
-        get_data_single_page_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock
     ):
         expected_from_and_until_date_list = [(None, None)]
         data_config = get_data_config(WEB_API_CONFIG)
         get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = None
         item_list = [{'key': 'value'}]
-        get_data_single_page_mock.return_value = item_list
+        get_data_single_page_response_mock.return_value = WebApiPageResponse(item_list)
         generic_web_api_data_etl(data_config)
         actual_from_and_until_date_list = [
             (
                 call_args.kwargs['dynamic_request_parameters'].from_date,
                 call_args.kwargs['dynamic_request_parameters'].to_date
             )
-            for call_args in get_data_single_page_mock.call_args_list
+            for call_args in get_data_single_page_response_mock.call_args_list
         ]
         assert actual_from_and_until_date_list == expected_from_and_until_date_list
 
@@ -839,7 +866,7 @@ class TestGenericWebApiDataEtl:
         self,
         iter_dict_for_bigquery_include_exclude_source_config_mock: MagicMock,
         get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
-        get_data_single_page_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock
     ):
         get_start_timestamp_from_state_file_or_optional_default_value_mock.return_value = None
         conf_dict: WebApiConfigDict = cast(WebApiConfigDict, {
@@ -855,6 +882,6 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config)
 
         iter_dict_for_bigquery_include_exclude_source_config_mock.assert_called()
-        get_data_single_page_mock.assert_called()
-        _, kwargs = get_data_single_page_mock.call_args
+        get_data_single_page_response_mock.assert_called()
+        _, kwargs = get_data_single_page_response_mock.call_args
         assert list(kwargs['dynamic_request_parameters'].source_values) == ['value 1']

@@ -27,6 +27,9 @@ from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 LOGGER = logging.getLogger(__name__)
 
 
+PROVENANCE_FIELD_NAME = 'provenance'
+
+
 def get_dict_values_from_path_as_list(
         page_data, path_keys: Sequence[str]
 ):
@@ -250,11 +253,15 @@ def iter_processed_record_for_api_item_list_response(
 
 def get_web_api_provenance(
     data_config: WebApiConfig,
-    data_etl_timestamp: datetime
+    data_etl_timestamp: str,
+    request_provenance: Optional[dict] = None
 ) -> dict:
-    return {
+    result: dict = {
         data_config.import_timestamp_field_name: data_etl_timestamp
     }
+    if data_config.response.provenance_enabled and request_provenance:
+        result[PROVENANCE_FIELD_NAME] = request_provenance
+    return result
 
 
 def get_bq_schema(data_config: WebApiConfig,):
