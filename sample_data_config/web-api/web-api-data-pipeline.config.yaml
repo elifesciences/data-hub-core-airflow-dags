@@ -87,7 +87,7 @@ webApi:
             FROM UNNEST(['10.31219', '10.31235']) AS doi_prefix
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state-{doi_prefix}.json'
+      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state/{doi_prefix}.json'
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
