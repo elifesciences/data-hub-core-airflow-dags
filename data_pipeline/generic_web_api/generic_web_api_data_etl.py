@@ -443,19 +443,39 @@ def process_web_api_data_etl_batch_with_batch_source_value(
         LOGGER.info('completed batch: %d', 1 + batch_index)
 
 
+def should_iterate_over_source_values(
+    data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]]
+) -> bool:
+    return (
+        all_source_values_iterator is not None
+        and not data_config.dynamic_request_builder.max_source_values_per_request
+    )
+
+
 def process_web_api_data_etl_batch(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
-    process_web_api_data_etl_batch_with_batch_source_value(
-        data_config=data_config,
-        initial_from_date=initial_from_date,
-        until_date=until_date,
-        all_source_values_iterator=all_source_values_iterator,
-        batch_source_value=None
-    )
+    if should_iterate_over_source_values(data_config, all_source_values_iterator):
+        for batch_source_value in all_source_values_iterator:
+            process_web_api_data_etl_batch_with_batch_source_value(
+                data_config=data_config,
+                initial_from_date=initial_from_date,
+                until_date=until_date,
+                all_source_values_iterator=None,
+                batch_source_value=batch_source_value
+            )
+    else:
+        process_web_api_data_etl_batch_with_batch_source_value(
+            data_config=data_config,
+            initial_from_date=initial_from_date,
+            until_date=until_date,
+            all_source_values_iterator=all_source_values_iterator,
+            batch_source_value=None
+        )
 
 
 def get_next_batch_from_timestamp_for_config(

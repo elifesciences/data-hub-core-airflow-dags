@@ -766,7 +766,14 @@ class TestProcessWebApiDataEtlBatch:
         self,
         process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
     ):
-        data_config = get_data_config(WEB_API_CONFIG)
+        default_data_config = get_data_config(WEB_API_CONFIG)
+        data_config = dataclasses.replace(
+            default_data_config,
+            dynamic_request_builder=dataclasses.replace(
+                default_data_config.dynamic_request_builder,
+                max_source_values_per_request=2
+            )
+        )
         all_source_values_iterator = iter([SOURCE_VALUE_1])
         process_web_api_data_etl_batch(
             data_config=data_config,
@@ -780,6 +787,26 @@ class TestProcessWebApiDataEtlBatch:
             until_date=None,
             all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
+        )
+
+    def test_should_iterate_over_source_values_and_pass_on_batch_source_value(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        all_source_values_iterator = iter([SOURCE_VALUE_1])
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=None,
+            batch_source_value=SOURCE_VALUE_1
         )
 
 
