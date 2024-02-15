@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 import dataclasses
 from datetime import datetime, timedelta
 import functools
