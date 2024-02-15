@@ -292,7 +292,7 @@ def get_initial_dynamic_request_parameters(
     )
 
 
-def iter_processed_web_api_data_etl_batch_data(
+def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-locals
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
