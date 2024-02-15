@@ -460,6 +460,7 @@ def process_web_api_data_etl_batch(
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
     if should_iterate_over_source_values(data_config, all_source_values_iterator):
+        assert all_source_values_iterator is not None
         for batch_source_value in all_source_values_iterator:
             process_web_api_data_etl_batch_with_batch_source_value(
                 data_config=data_config,
