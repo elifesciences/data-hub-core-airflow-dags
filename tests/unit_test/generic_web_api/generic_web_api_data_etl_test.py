@@ -54,6 +54,9 @@ TIMESTAMP_STRING_2 = '2020-01-02+00:00'
 TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
 
+SOURCE_VALUE_1 = {'source': 'value 1'}
+SOURCE_VALUE_2 = {'source': 'value 2'}
+
 
 @pytest.fixture(name='requests_response_mock')
 def _requests_response_mock() -> MagicMock:
@@ -756,6 +759,26 @@ class TestProcessWebApiDataEtlBatch:
             initial_from_date=TIMESTAMP_1,
             until_date=TIMESTAMP_2,
             all_source_values_iterator=None,
+            batch_source_value=None
+        )
+
+    def test_should_pass_all_source_values_iterator_to_process_with_batch_source_value_function(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        all_source_values_iterator = iter([SOURCE_VALUE_1])
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
         )
 
