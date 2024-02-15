@@ -32,7 +32,8 @@ from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import (
     get_response_and_provenance_from_api,
-    iter_dict_for_bigquery_include_exclude_source_config
+    iter_dict_for_bigquery_include_exclude_source_config,
+    replace_placeholders
 )
 from data_pipeline.utils.progress import ProgressMonitor
 from data_pipeline.utils.text import format_byte_count
@@ -707,7 +708,8 @@ def get_items_list(page_data, web_config: WebApiConfig):
 
 def upload_latest_timestamp_as_pipeline_state(
     data_config: WebApiConfig,
-    latest_record_timestamp: datetime
+    latest_record_timestamp: datetime,
+    placeholder_values: Optional[dict] = None
 ):
     if (
         data_config.state_file_object_name and
@@ -717,7 +719,10 @@ def upload_latest_timestamp_as_pipeline_state(
             get_tz_aware_datetime(latest_record_timestamp),
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
-        state_file_name_key = data_config.state_file_object_name
+        state_file_name_key = replace_placeholders(
+            data_config.state_file_object_name,
+            placeholder_values
+        )
         state_file_bucket = data_config.state_file_bucket_name
         upload_s3_object(
             bucket=state_file_bucket,

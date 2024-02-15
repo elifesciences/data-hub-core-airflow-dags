@@ -4,7 +4,7 @@ import functools
 import itertools
 import logging
 from typing import Iterable, Iterator, List, Sequence, cast
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api import (
@@ -250,7 +250,6 @@ def _remove_imported_timestamp_from_record_list(record_list: Iterable[dict]) -> 
 
 
 class TestUploadLatestTimestampState:
-
     def test_should_write_latest_date_as_string_to_state_file(
         self,
         mock_upload_s3_object
@@ -274,6 +273,28 @@ class TestUploadLatestTimestampState:
             bucket=state_file_bucket,
             object_key=state_file_name_key,
             data_object=latest_timestamp_string,
+        )
+
+    def test_should_replace_placeholders_in_object_name(
+        self,
+        mock_upload_s3_object: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': {
+                'bucketName': 'bucket_1',
+                'objectName': r'prefix-{placeholder1}'
+            }
+        })
+        upload_latest_timestamp_as_pipeline_state(
+            data_config,
+            TIMESTAMP_1,
+            placeholder_values={'placeholder1': 'value1'}
+        )
+        mock_upload_s3_object.assert_called_with(
+            bucket='bucket_1',
+            object_key='prefix-value1',
+            data_object=ANY,
         )
 
 
