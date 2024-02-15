@@ -904,7 +904,8 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
             data_config=data_config,
-            latest_record_timestamp=timestamp
+            latest_record_timestamp=timestamp,
+            placeholder_values=None
         )
 
     def test_should_not_update_state_with_empty_list_in_response(
