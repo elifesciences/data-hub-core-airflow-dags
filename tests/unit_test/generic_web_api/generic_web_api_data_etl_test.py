@@ -59,6 +59,7 @@ TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
 SOURCE_VALUE_1 = {'source': 'value 1'}
 SOURCE_VALUE_2 = {'source': 'value 2'}
 
+PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
 
 @pytest.fixture(name='requests_response_mock')
 def _requests_response_mock() -> MagicMock:
@@ -715,6 +716,20 @@ class TestGetInitialUrlComposeArg:
             all_source_values_iterator=all_source_values_iterator
         )
         assert initial_dynamic_request_parameters is None
+
+    def test_should_set_placeholder_values_to_none_by_default(self):
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
+            data_config=get_data_config(WEB_API_CONFIG),
+            placeholder_values=None
+        )
+        assert initial_dynamic_request_parameters.placeholder_values is None
+
+    def test_should_pass_on_placeholder_values(self):
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
+            data_config=get_data_config(WEB_API_CONFIG),
+            placeholder_values=PLACEHOLDER_VALUES_1
+        )
+        assert initial_dynamic_request_parameters.placeholder_values == PLACEHOLDER_VALUES_1
 
 
 class TestIterProcessedWebApiDataEtlBatchData:

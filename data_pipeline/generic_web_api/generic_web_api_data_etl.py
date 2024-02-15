@@ -267,7 +267,8 @@ def get_initial_dynamic_request_parameters(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
-    all_source_values_iterator: Optional[Iterable[dict]] = None
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    placeholder_values: Optional[dict] = None
 ) -> Optional[WebApiDynamicRequestParameters]:
     initial_source_values = get_next_source_values_or_none(
         data_config=data_config,
@@ -286,7 +287,8 @@ def get_initial_dynamic_request_parameters(
         cursor=None,
         page_number=1 if data_config.dynamic_request_builder.page_number_param else None,
         page_offset=0 if data_config.dynamic_request_builder.offset_param else None,
-        source_values=initial_source_values
+        source_values=initial_source_values,
+        placeholder_values=placeholder_values
     )
 
 
