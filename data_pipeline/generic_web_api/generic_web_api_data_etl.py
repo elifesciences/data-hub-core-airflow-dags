@@ -412,7 +412,8 @@ def process_web_api_data_etl_batch_with_batch_source_value(
         data_config=data_config,
         initial_from_date=initial_from_date,
         until_date=until_date,
-        all_source_values_iterator=all_source_values_iterator
+        all_source_values_iterator=all_source_values_iterator,
+        placeholder_values=batch_source_value
     )
     LOGGER.debug('all_processed_record_list: %r', all_processed_record_iterable)
     for batch_index, batch_processed_record_iterable in enumerate(iter_optional_batch_iterable(
