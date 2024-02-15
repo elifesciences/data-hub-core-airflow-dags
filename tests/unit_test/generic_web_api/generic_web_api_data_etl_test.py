@@ -61,6 +61,7 @@ SOURCE_VALUE_2 = {'source': 'value 2'}
 
 PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
 
+
 @pytest.fixture(name='requests_response_mock')
 def _requests_response_mock() -> MagicMock:
     response_mock = MagicMock(name='response_mock')
@@ -831,6 +832,7 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
                 placeholder_values=SOURCE_VALUE_1
             )
         )
+
 
 class TestProcessWebApiDataEtlBatch:
     def test_should_pass_initial_and_until_date_to_process_with_batch_source_value_function(
