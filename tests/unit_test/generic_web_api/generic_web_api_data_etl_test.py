@@ -740,7 +740,7 @@ class TestIterProcessedWebApiDataEtlBatchData:
 
 
 class TestProcessWebApiDataEtlBatch:
-    def test_should_call_process_with_no_source_source_values_but_dates(
+    def test_should_pass_initial_and_until_date_to_process_with_batch_source_value_function(
         self,
         process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
     ):
