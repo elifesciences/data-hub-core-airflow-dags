@@ -762,7 +762,7 @@ class TestProcessWebApiDataEtlBatch:
             batch_source_value=None
         )
 
-    def test_should_pass_all_source_values_iterator_to_process_with_batch_source_value_function(
+    def test_should_pass_on_all_source_values_iterator_if_should_not_iterate_over_source_values(
         self,
         process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
     ):
