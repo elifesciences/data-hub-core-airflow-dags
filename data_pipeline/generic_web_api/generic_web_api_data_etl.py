@@ -296,7 +296,8 @@ def iter_processed_web_api_data_etl_batch_data(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
-    all_source_values_iterator: Optional[Iterable[dict]] = None
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    placeholder_values: Optional[dict] = None
 ) -> Iterable[dict]:
     assert not isinstance(all_source_values_iterator, list)
 
@@ -321,7 +322,8 @@ def iter_processed_web_api_data_etl_batch_data(
             data_config=data_config,
             initial_from_date=initial_from_date,
             fixed_until_date=until_date,
-            all_source_values_iterator=all_source_values_iterator
+            all_source_values_iterator=all_source_values_iterator,
+            placeholder_values=placeholder_values
         )
     )
     if not current_dynamic_request_parameters:

@@ -779,6 +779,23 @@ class TestIterProcessedWebApiDataEtlBatchData:
         LOGGER.debug('record_list: %r', record_list)
         assert record_list == expected_combined_item_list_with_data
 
+    def test_should_pass_placeholder_values_to_request_parameters(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            placeholder_values=PLACEHOLDER_VALUES_1
+        ))
+        get_data_single_page_response_mock.assert_called_with(
+            data_config=data_config,
+            dynamic_request_parameters=get_initial_dynamic_request_parameters(
+                data_config=data_config,
+                placeholder_values=PLACEHOLDER_VALUES_1
+            )
+        )
+
 
 class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
     def test_should_pass_batch_source_values_as_placeholders_to_update_state(
