@@ -17,6 +17,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
     iter_processed_web_api_data_etl_batch_data,
+    process_web_api_data_etl_batch,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -46,6 +47,12 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 REQUEST_PROVENANCE_1 = {
     'api_url': 'url-1'
 }
+
+TIMESTAMP_STRING_1 = '2020-01-01+00:00'
+TIMESTAMP_STRING_2 = '2020-01-02+00:00'
+
+TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
+TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
 
 
 @pytest.fixture(name='requests_response_mock')
@@ -175,6 +182,14 @@ def _get_items_list_mock():
 def _iter_dict_for_bigquery_include_exclude_source_config_mock():
     with patch.object(
         generic_web_api_data_etl_module, 'iter_dict_for_bigquery_include_exclude_source_config'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='process_web_api_data_etl_batch_with_batch_source_value_mock')
+def _process_web_api_data_etl_batch_with_batch_source_value_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'process_web_api_data_etl_batch_with_batch_source_value'
     ) as mock:
         yield mock
 
@@ -722,6 +737,27 @@ class TestIterProcessedWebApiDataEtlBatchData:
         ))
         LOGGER.debug('record_list: %r', record_list)
         assert record_list == expected_combined_item_list_with_data
+
+
+class TestProcessWebApiDataEtlBatch:
+    def test_should_call_process_with_no_source_source_values_but_dates(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=TIMESTAMP_1,
+            until_date=TIMESTAMP_2,
+            all_source_values_iterator=None
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=TIMESTAMP_1,
+            until_date=TIMESTAMP_2,
+            all_source_values_iterator=None,
+            batch_source_value=None
+        )
 
 
 class TestGenericWebApiDataEtl:

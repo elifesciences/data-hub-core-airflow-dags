@@ -395,12 +395,14 @@ def iter_optional_batch_iterable(
     return iter_batch_iterable(iterable, batch_size)
 
 
-def process_web_api_data_etl_batch(
+def process_web_api_data_etl_batch_with_batch_source_value(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
-    all_source_values_iterator: Optional[Iterable[dict]] = None
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    batch_source_value: Optional[dict] = None
 ):
+    LOGGER.debug('batch_source_value: %r', batch_source_value)
     all_processed_record_iterable = iter_processed_web_api_data_etl_batch_data(
         data_config=data_config,
         initial_from_date=initial_from_date,
@@ -439,6 +441,21 @@ def process_web_api_data_etl_batch(
             else:
                 LOGGER.info('not updating state due to no latest record timestamp')
         LOGGER.info('completed batch: %d', 1 + batch_index)
+
+
+def process_web_api_data_etl_batch(
+    data_config: WebApiConfig,
+    initial_from_date: Optional[datetime] = None,
+    until_date: Optional[datetime] = None,
+    all_source_values_iterator: Optional[Iterable[dict]] = None
+):
+    process_web_api_data_etl_batch_with_batch_source_value(
+        data_config=data_config,
+        initial_from_date=initial_from_date,
+        until_date=until_date,
+        all_source_values_iterator=all_source_values_iterator,
+        batch_source_value=None
+    )
 
 
 def get_next_batch_from_timestamp_for_config(
