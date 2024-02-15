@@ -437,7 +437,8 @@ def process_web_api_data_etl_batch_with_batch_source_value(
                 LOGGER.info('updating state to: %r', latest_record_timestamp)
                 upload_latest_timestamp_as_pipeline_state(
                     data_config=data_config,
-                    latest_record_timestamp=latest_record_timestamp
+                    latest_record_timestamp=latest_record_timestamp,
+                    placeholder_values=batch_source_value
                 )
             else:
                 LOGGER.info('not updating state due to no latest record timestamp')

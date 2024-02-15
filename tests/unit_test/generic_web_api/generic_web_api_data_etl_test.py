@@ -18,6 +18,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_optional_total_count,
     iter_processed_web_api_data_etl_batch_data,
     process_web_api_data_etl_batch,
+    process_web_api_data_etl_batch_with_batch_source_value,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -761,6 +762,25 @@ class TestIterProcessedWebApiDataEtlBatchData:
         ))
         LOGGER.debug('record_list: %r', record_list)
         assert record_list == expected_combined_item_list_with_data
+
+
+class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+    def test_should_pass_batch_source_values_as_placeholders_to_update_state(
+        self,
+        upload_latest_timestamp_as_pipeline_state_mock: MagicMock,
+        get_items_list_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
+        get_items_list_mock.return_value = [{'timestamp': TIMESTAMP_STRING_1}]
+        process_web_api_data_etl_batch_with_batch_source_value(
+            data_config=data_config,
+            batch_source_value=SOURCE_VALUE_1
+        )
+        upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
+            data_config=ANY,
+            latest_record_timestamp=ANY,
+            placeholder_values=SOURCE_VALUE_1
+        )
 
 
 class TestProcessWebApiDataEtlBatch:
