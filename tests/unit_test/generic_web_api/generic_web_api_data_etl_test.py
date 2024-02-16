@@ -631,7 +631,7 @@ class TestGetDataSinglePage:
         )
 
 
-class TestGetNextUrlComposeArgForPageData:
+class TestGetNextDynamicRequestParametersForPageData:
     def test_should_return_next_cursor(self):
         data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
         initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
@@ -686,7 +686,7 @@ class TestGetNextUrlComposeArgForPageData:
         assert next_dynamic_request_parameters is None
 
 
-class TestGetInitialUrlComposeArg:
+class TestGetInitialDynamicRequestParameters:
     def test_should_set_source_values_to_none_if_not_provided(self):
         initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
             data_config=get_data_config(WEB_API_CONFIG),
