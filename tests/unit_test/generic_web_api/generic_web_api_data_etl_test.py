@@ -1,10 +1,11 @@
+# pylint: disable=too-many-lines
 import dataclasses
 from datetime import datetime, timedelta
 import functools
 import itertools
 import logging
 from typing import Iterable, Iterator, List, Sequence, cast
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api import (
@@ -17,6 +18,8 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
     iter_processed_web_api_data_etl_batch_data,
+    process_web_api_data_etl_batch,
+    process_web_api_data_etl_batch_with_batch_source_value,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -46,6 +49,17 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 REQUEST_PROVENANCE_1 = {
     'api_url': 'url-1'
 }
+
+TIMESTAMP_STRING_1 = '2020-01-01+00:00'
+TIMESTAMP_STRING_2 = '2020-01-02+00:00'
+
+TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
+TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
+
+SOURCE_VALUE_1 = {'source': 'value 1'}
+SOURCE_VALUE_2 = {'source': 'value 2'}
+
+PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
 
 
 @pytest.fixture(name='requests_response_mock')
@@ -179,6 +193,14 @@ def _iter_dict_for_bigquery_include_exclude_source_config_mock():
         yield mock
 
 
+@pytest.fixture(name='process_web_api_data_etl_batch_with_batch_source_value_mock')
+def _process_web_api_data_etl_batch_with_batch_source_value_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'process_web_api_data_etl_batch_with_batch_source_value'
+    ) as mock:
+        yield mock
+
+
 TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
 
 WEB_API_CONFIG: WebApiConfigDict = {
@@ -232,7 +254,6 @@ def _remove_imported_timestamp_from_record_list(record_list: Iterable[dict]) -> 
 
 
 class TestUploadLatestTimestampState:
-
     def test_should_write_latest_date_as_string_to_state_file(
         self,
         mock_upload_s3_object
@@ -256,6 +277,28 @@ class TestUploadLatestTimestampState:
             bucket=state_file_bucket,
             object_key=state_file_name_key,
             data_object=latest_timestamp_string,
+        )
+
+    def test_should_replace_placeholders_in_object_name(
+        self,
+        mock_upload_s3_object: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': {
+                'bucketName': 'bucket_1',
+                'objectName': r'prefix-{placeholder1}'
+            }
+        })
+        upload_latest_timestamp_as_pipeline_state(
+            data_config,
+            TIMESTAMP_1,
+            placeholder_values={'placeholder1': 'value1'}
+        )
+        mock_upload_s3_object.assert_called_with(
+            bucket='bucket_1',
+            object_key='prefix-value1',
+            data_object=ANY,
         )
 
 
@@ -588,7 +631,7 @@ class TestGetDataSinglePage:
         )
 
 
-class TestGetNextUrlComposeArgForPageData:
+class TestGetNextDynamicRequestParametersForPageData:
     def test_should_return_next_cursor(self):
         data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
         initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
@@ -602,6 +645,21 @@ class TestGetNextUrlComposeArgForPageData:
         )
         assert next_dynamic_request_parameters
         assert next_dynamic_request_parameters.cursor == 'cursor_2'
+
+    def test_should_keep_placeholder_values_when_using_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
+        initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
+            cursor=None,
+            placeholder_values=PLACEHOLDER_VALUES_1
+        )
+        next_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
+            page_data={'next-cursor': 'cursor_2'},
+            items_count=10,
+            current_dynamic_request_parameters=initial_dynamic_request_parameters,
+            data_config=data_config
+        )
+        assert next_dynamic_request_parameters
+        assert next_dynamic_request_parameters.placeholder_values == PLACEHOLDER_VALUES_1
 
     def test_should_return_next_source_values(self):
         data_config = get_data_config_with_max_source_values_per_request(
@@ -643,7 +701,7 @@ class TestGetNextUrlComposeArgForPageData:
         assert next_dynamic_request_parameters is None
 
 
-class TestGetInitialUrlComposeArg:
+class TestGetInitialDynamicRequestParameters:
     def test_should_set_source_values_to_none_if_not_provided(self):
         initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
             data_config=get_data_config(WEB_API_CONFIG),
@@ -674,6 +732,20 @@ class TestGetInitialUrlComposeArg:
             all_source_values_iterator=all_source_values_iterator
         )
         assert initial_dynamic_request_parameters is None
+
+    def test_should_set_placeholder_values_to_none_by_default(self):
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
+            data_config=get_data_config(WEB_API_CONFIG),
+            placeholder_values=None
+        )
+        assert initial_dynamic_request_parameters.placeholder_values is None
+
+    def test_should_pass_on_placeholder_values(self):
+        initial_dynamic_request_parameters = get_initial_dynamic_request_parameters(
+            data_config=get_data_config(WEB_API_CONFIG),
+            placeholder_values=PLACEHOLDER_VALUES_1
+        )
+        assert initial_dynamic_request_parameters.placeholder_values == PLACEHOLDER_VALUES_1
 
 
 class TestIterProcessedWebApiDataEtlBatchData:
@@ -722,6 +794,127 @@ class TestIterProcessedWebApiDataEtlBatchData:
         ))
         LOGGER.debug('record_list: %r', record_list)
         assert record_list == expected_combined_item_list_with_data
+
+    def test_should_pass_placeholder_values_to_request_parameters(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            placeholder_values=PLACEHOLDER_VALUES_1
+        ))
+        get_data_single_page_response_mock.assert_called_with(
+            data_config=data_config,
+            dynamic_request_parameters=get_initial_dynamic_request_parameters(
+                data_config=data_config,
+                placeholder_values=PLACEHOLDER_VALUES_1
+            )
+        )
+
+
+class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+    def test_should_pass_batch_source_values_as_placeholders_to_update_state(
+        self,
+        upload_latest_timestamp_as_pipeline_state_mock: MagicMock,
+        get_items_list_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
+        get_items_list_mock.return_value = [{'timestamp': TIMESTAMP_STRING_1}]
+        process_web_api_data_etl_batch_with_batch_source_value(
+            data_config=data_config,
+            batch_source_value=SOURCE_VALUE_1
+        )
+        upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
+            data_config=ANY,
+            latest_record_timestamp=ANY,
+            placeholder_values=SOURCE_VALUE_1
+        )
+
+    def test_should_pass_batch_source_values_as_placeholders_in_request_parameters(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        process_web_api_data_etl_batch_with_batch_source_value(
+            data_config=data_config,
+            batch_source_value=SOURCE_VALUE_1
+        )
+        get_data_single_page_response_mock.assert_called_with(
+            data_config=data_config,
+            dynamic_request_parameters=get_initial_dynamic_request_parameters(
+                data_config=data_config,
+                placeholder_values=SOURCE_VALUE_1
+            )
+        )
+
+
+class TestProcessWebApiDataEtlBatch:
+    def test_should_pass_initial_and_until_date_to_process_with_batch_source_value_function(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=TIMESTAMP_1,
+            until_date=TIMESTAMP_2,
+            all_source_values_iterator=None
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=TIMESTAMP_1,
+            until_date=TIMESTAMP_2,
+            all_source_values_iterator=None,
+            batch_source_value=None
+        )
+
+    def test_should_pass_on_all_source_values_iterator_if_should_not_iterate_over_source_values(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        default_data_config = get_data_config(WEB_API_CONFIG)
+        data_config = dataclasses.replace(
+            default_data_config,
+            dynamic_request_builder=dataclasses.replace(
+                default_data_config.dynamic_request_builder,
+                max_source_values_per_request=2
+            )
+        )
+        all_source_values_iterator = iter([SOURCE_VALUE_1])
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator,
+            batch_source_value=None
+        )
+
+    def test_should_iterate_over_source_values_and_pass_on_batch_source_value(
+        self,
+        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+    ):
+        data_config = get_data_config(WEB_API_CONFIG)
+        all_source_values_iterator = iter([SOURCE_VALUE_1])
+        process_web_api_data_etl_batch(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=all_source_values_iterator
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
+            data_config=data_config,
+            initial_from_date=None,
+            until_date=None,
+            all_source_values_iterator=None,
+            batch_source_value=SOURCE_VALUE_1
+        )
 
 
 class TestGenericWebApiDataEtl:
@@ -776,7 +969,8 @@ class TestGenericWebApiDataEtl:
         generic_web_api_data_etl(data_config)
         upload_latest_timestamp_as_pipeline_state_mock.assert_called_with(
             data_config=data_config,
-            latest_record_timestamp=timestamp
+            latest_record_timestamp=timestamp,
+            placeholder_values=None
         )
 
     def test_should_not_update_state_with_empty_list_in_response(

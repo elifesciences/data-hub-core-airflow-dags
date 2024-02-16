@@ -135,6 +135,19 @@ class TestCrossrefMetadataWebApiDynamicRequestBuilder:
         params = parse_qs(url.query)
         assert params.get('filter') == ['from-index-date:2024-01-29,until-index-date:2024-01-30']
 
+    def test_should_replace_placeholders(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1 + '/{placeholder}',
+            static_parameters={}
+        )
+        url = dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                placeholder_values={'placeholder': 'buddy1'}
+            )
+        )
+        LOGGER.debug('url: %r', url)
+        assert url.rstrip('?') == TEST_API_URL_1 + '/buddy1'
+
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):

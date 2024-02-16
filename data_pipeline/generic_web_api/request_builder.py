@@ -7,6 +7,7 @@ from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
+from data_pipeline.utils.pipeline_utils import replace_placeholders
 from data_pipeline.utils.web_api import (
     DEFAULT_WEB_API_RETRY_CONFIG,
     DISABLED_WEB_API_RETRY_CONFIG,
@@ -25,6 +26,7 @@ class WebApiDynamicRequestParameters(NamedTuple):
     page_size: Optional[int] = None
     page_offset: Optional[int] = None
     source_values: Optional[Iterable[dict]] = None
+    placeholder_values: Optional[dict] = None
 
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
@@ -65,7 +67,11 @@ class WebApiDynamicRequestBuilder:
             url_separator = "?"
         return url_separator
 
-    def compose_url(self, parameters_key_value: dict) -> str:
+    def compose_url(
+        self,
+        parameters_key_value: dict,
+        placeholder_values: Optional[dict] = None
+    ) -> str:
         url = self.url_excluding_configurable_parameters
         url_separator = self._get_url_separator()
         params = parse.urlencode(
@@ -74,7 +80,7 @@ class WebApiDynamicRequestBuilder:
                 for key, value in parameters_key_value.items() if key and value
             }
         )
-        return url + url_separator + params
+        return replace_placeholders(url, placeholder_values) + url_separator + params
 
     def get_url(
         self,
@@ -244,7 +250,10 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
             **param_dict,
             **self.static_parameters
         }
-        return self.compose_url(param_dict)
+        return self.compose_url(
+            parameters_key_value=param_dict,
+            placeholder_values=dynamic_request_parameters.placeholder_values
+        )
 
 
 class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
