@@ -259,7 +259,8 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
         cursor=cursor,
         page_number=page_number,
         page_offset=offset,
-        source_values=current_dynamic_request_parameters.source_values
+        source_values=current_dynamic_request_parameters.source_values,
+        placeholder_values=current_dynamic_request_parameters.placeholder_values
     )
 
 

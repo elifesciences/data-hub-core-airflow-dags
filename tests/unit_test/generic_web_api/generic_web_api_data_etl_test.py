@@ -646,6 +646,21 @@ class TestGetNextDynamicRequestParametersForPageData:
         assert next_dynamic_request_parameters
         assert next_dynamic_request_parameters.cursor == 'cursor_2'
 
+    def test_should_keep_placeholder_values_when_using_cursor(self):
+        data_config = _get_web_api_config_with_cursor_path(['next-cursor'])
+        initial_dynamic_request_parameters = WebApiDynamicRequestParameters(
+            cursor=None,
+            placeholder_values=PLACEHOLDER_VALUES_1
+        )
+        next_dynamic_request_parameters = get_next_dynamic_request_parameters_for_page_data(
+            page_data={'next-cursor': 'cursor_2'},
+            items_count=10,
+            current_dynamic_request_parameters=initial_dynamic_request_parameters,
+            data_config=data_config
+        )
+        assert next_dynamic_request_parameters
+        assert next_dynamic_request_parameters.placeholder_values == PLACEHOLDER_VALUES_1
+
     def test_should_return_next_source_values(self):
         data_config = get_data_config_with_max_source_values_per_request(
             get_data_config(WEB_API_CONFIG),
