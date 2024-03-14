@@ -66,6 +66,10 @@ def iter_get_report_pages(
         analytics, metrics: list, dimensions: list,
         ga_config, from_date: str, to_date: Optional[str] = None
 ):
+    LOGGER.info('metrics: %r', metrics)
+    LOGGER.info('dimensions: %r', dimensions)
+    LOGGER.info('from_date: %r', from_date)
+    LOGGER.info('to_date: %r', to_date)
     page_token = None
     while True:
         response = analytics.get_report(
