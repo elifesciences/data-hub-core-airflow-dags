@@ -5,7 +5,8 @@ import logging
 from datetime import timedelta
 from datetime import datetime
 
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
+
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.google_analytics.ga_config import (
     ExternalTriggerConfig,
@@ -108,6 +109,8 @@ def google_analytics_etl(**kwargs):
                 end_date, STORED_STATE_FORMAT
             ) if end_date else None
         )
+        LOGGER.info('start_date: %r', start_date)
+        LOGGER.info('end_date: %r', end_date)
         etl_google_analytics(
             ga_config=ga_conf,
             start_date=start_date,
