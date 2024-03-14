@@ -9,9 +9,21 @@ from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 
 
 GA_CONFIG = {
-    'gcpProjectName': 'elife-data-pipeline',
-    'dataPipelineId': 'ga_pipeline_id',
-    'dataset': 'dataset'
+    'pipelineID': 'pipeline_id',
+    'dataset': 'dataset',
+    'table': 'table',
+    'viewId': 'viewId',
+    'dimensions': ['dimension'],
+    'metrics': ['metrics'],
+    'recordAnnotations': [{
+        'recordAnnotationFieldName': 'recordAnnotationFieldName',
+        'recordAnnotationValue': 'recordAnnotationValue'
+    }],
+    'defaultStartDate': '2001-01-01',
+    'stateFile': {
+        'bucketName': 'bucket_1',
+        'objectName': 'object_1'
+    }
 }
 
 

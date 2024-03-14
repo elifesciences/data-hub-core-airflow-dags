@@ -61,7 +61,12 @@ GA_CONFIG = {
     'recordAnnotations': [{
         'recordAnnotationFieldName': 'recordAnnotationFieldName',
         'recordAnnotationValue': 'recordAnnotationValue'
-    }]
+    }],
+    'defaultStartDate': '2001-01-01',
+    'stateFile': {
+        'bucketName': 'bucket_1',
+        'objectName': 'object_1'
+    }
 }
 
 
