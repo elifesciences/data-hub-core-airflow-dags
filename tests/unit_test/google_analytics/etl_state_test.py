@@ -15,6 +15,9 @@ GA_CONFIG = {
 }
 
 
+IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp'
+
+
 @pytest.fixture(name="mock_download_s3_json_object")
 def _download_s3_json_object():
     with patch.object(
@@ -37,7 +40,7 @@ class TestGetStoredGAProcessingState:
             ClientError(operation_name='GetObject',
                         error_response=s3_client_error_response)
         )
-        ga_config = GoogleAnalyticsConfig(GA_CONFIG, '')
+        ga_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
         default_initial_state_timestamp_as_string = (
             "2020-01-01 00:00:00"
         )
@@ -53,7 +56,7 @@ class TestGetStoredGAProcessingState:
     def test_should_get_state_from_file_in_s3_bucket(
             self, mock_download_s3_json_object
     ):
-        ejp_config = GoogleAnalyticsConfig(GA_CONFIG, '')
+        ejp_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
         default_initial_state_timestamp_as_string = ''
         last_stored_modified_timestamp = "2018-01-01 00:00:00"
         mock_download_s3_json_object.return_value = (
