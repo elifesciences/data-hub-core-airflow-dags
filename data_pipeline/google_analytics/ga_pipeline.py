@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Iterable
+from typing import Iterable, Optional
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from datetime import datetime
@@ -63,7 +63,7 @@ def transform_response_to_bq_compatible_record(
 # pylint: disable=too-many-arguments
 def iter_get_report_pages(
         analytics, metrics: list, dimensions: list,
-        ga_config, from_date: str, to_date: str = None
+        ga_config, from_date: str, to_date: Optional[str] = None
 ):
     page_token = None
     while True:
@@ -91,7 +91,7 @@ def iter_get_report_pages(
 def etl_google_analytics(
         ga_config: GoogleAnalyticsConfig,
         start_date: datetime,
-        end_date: datetime = None,
+        end_date: Optional[datetime] = None,
 ):
     current_timestamp_as_string = get_current_timestamp_as_string()
     analytics = GoogleAnalyticsClient()

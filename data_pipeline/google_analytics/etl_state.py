@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 from botocore.exceptions import ClientError
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -23,7 +24,7 @@ def update_state(
 
 def get_stored_state(
         data_config: GoogleAnalyticsConfig,
-        default_latest_state_date: str = None,
+        default_latest_state_date: Optional[str] = None
 ) -> str:
     try:
         stored_state = download_s3_object_as_string(

@@ -18,14 +18,14 @@ class MultiGoogleAnalyticsConfig:
                 deployment_env_placeholder
             ) if deployment_env else multi_google_analytics_config
         )
-        self.gcp_project = updated_config.get(
+        self.gcp_project = updated_config[
             "gcpProjectName"
-        )
-        self.import_timestamp_field_name = updated_config.get(
+        ]
+        self.import_timestamp_field_name = updated_config[
             "importedTimestampFieldName"
-        )
+        ]
         self.google_analytics_config = (
-            updated_config.get("googleAnalyticsPipelines")
+            updated_config["googleAnalyticsPipelines"]
         )
 
 
@@ -34,8 +34,8 @@ class GoogleAnalyticsConfig:
     def __init__(
             self,
             config: dict,
-            gcp_project: str = None,
-            import_timestamp_field_name: str = None,
+            gcp_project: str,
+            import_timestamp_field_name: str
 
     ):
         self.gcp_project = gcp_project
@@ -43,16 +43,14 @@ class GoogleAnalyticsConfig:
             import_timestamp_field_name
         )
         self.pipeline_id = config.get("pipelineID")
-        self.default_start_date_as_string = config.get("defaultStartDate")
-        self.dataset = config.get("dataset")
-        self.table = config.get("table")
-        self.ga_view_id = config.get("viewId")
-        self.dimensions = config.get("dimensions")
-        self.metrics = config.get("metrics")
-        self.state_s3_bucket_name = config.get(
-            "stateFile", {}).get("bucketName")
-        self.state_s3_object_name = config.get(
-            "stateFile", {}).get("objectName")
+        self.default_start_date_as_string = config["defaultStartDate"]
+        self.dataset = config["dataset"]
+        self.table = config["table"]
+        self.ga_view_id = config["viewId"]
+        self.dimensions = config["dimensions"]
+        self.metrics = config["metrics"]
+        self.state_s3_bucket_name = config["stateFile"]["bucketName"]
+        self.state_s3_object_name = config["stateFile"]["objectName"]
         self.record_annotations = {
             annotation.get("recordAnnotationFieldName"):
                 annotation.get("recordAnnotationFieldName")
