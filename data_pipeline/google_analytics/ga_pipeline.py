@@ -32,6 +32,7 @@ GA_DATE_RANGE_KEY = "date_range"
 def transform_response_to_bq_compatible_record(
         response
 ) -> Iterable[dict]:
+    LOGGER.info('response: %r', response)
     for report in response.get('reports', []):
         column_header = report.get('columnHeader', {})
         dimension_headers = column_header.get('dimensions', [])
