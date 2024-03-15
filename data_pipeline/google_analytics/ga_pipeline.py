@@ -101,7 +101,7 @@ def etl_google_analytics(
     current_timestamp_as_string = get_current_timestamp_as_string()
     analytics = GoogleAnalyticsClient()
     if not end_date:
-        end_date = start_date + timedelta(days=0)
+        end_date = start_date + timedelta(days=20)
     from_date = start_date.strftime("%Y-%m-%d")
     to_date = end_date.strftime("%Y-%m-%d")
     dimensions = [

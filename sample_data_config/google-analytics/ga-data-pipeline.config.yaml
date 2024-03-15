@@ -2,7 +2,7 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 googleAnalyticsPipelines:
   - pipelineID: '{ENV}-some-pipeline-id'
-    defaultStartDate: "2022-01-15"
+    defaultStartDate: "2022-01-01"
     dataset: '{ENV}'
     table: 'google_analytics_truncated'
     # view id of the google analytics view from which data is to be extracted
@@ -14,6 +14,7 @@ googleAnalyticsPipelines:
     # https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/
     dimensions:
       #identifies user
+      - 'ga:date'
       - 'ga:userType'
       #- 'ga:daysSinceLastSession'
       #- 'ga:sessionCount'
