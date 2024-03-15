@@ -3,7 +3,7 @@ import logging
 from typing import Iterable, Optional
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -100,7 +100,8 @@ def etl_google_analytics(
 ):
     current_timestamp_as_string = get_current_timestamp_as_string()
     analytics = GoogleAnalyticsClient()
-    end_date = end_date or datetime.now()
+    if not end_date:
+        end_date = start_date + timedelta(days=0)
     from_date = start_date.strftime("%Y-%m-%d")
     to_date = end_date.strftime("%Y-%m-%d")
     dimensions = [
