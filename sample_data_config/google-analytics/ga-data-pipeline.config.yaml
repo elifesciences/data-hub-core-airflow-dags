@@ -2,11 +2,12 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 googleAnalyticsPipelines:
   - pipelineID: '{ENV}-some-pipeline-id'
-    defaultStartDate: "2020-05-01"
+    defaultStartDate: "2022-01-15"
     dataset: '{ENV}'
     table: 'google_analytics_truncated'
     # view id of the google analytics view from which data is to be extracted
-    viewId: "82618489"
+    viewId: "93573727"  # "Web traffic excluding eLife IP"
+    # viewId: "82618489"  # "All Web Site Data"
     #viewId: "82626137"
     # NOTE THAT there is a limit in the number of dimensions and metrics that can be requested
     # information about metrics/dimensions to be used can be found here
@@ -54,7 +55,7 @@ googleAnalyticsPipelines:
     metrics:
       - 'ga:sessions'
       - 'ga:users'
-      #- 'ga:sessionDuration'
+      - 'ga:sessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-0.json'
