@@ -17,6 +17,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_initial_dynamic_request_parameters,
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
+    get_start_timestamp_from_state_file_or_optional_default_value,
     iter_processed_web_api_data_etl_batch_data,
     process_web_api_data_etl_batch,
     process_web_api_data_etl_batch_with_batch_source_value,
@@ -33,6 +34,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
 from data_pipeline.generic_web_api.request_builder import WebApiDynamicRequestParameters
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from tests.unit_test.generic_web_api.test_data import DEP_ENV, get_data_config
@@ -50,8 +52,8 @@ REQUEST_PROVENANCE_1 = {
     'api_url': 'url-1'
 }
 
-TIMESTAMP_STRING_1 = '2020-01-01+00:00'
-TIMESTAMP_STRING_2 = '2020-01-02+00:00'
+TIMESTAMP_STRING_1 = '2020-01-01T00:00:00+00:00'
+TIMESTAMP_STRING_2 = '2020-01-02T00:00:00+00:00'
 
 TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
@@ -94,6 +96,14 @@ def _get_response_and_provenance_from_api_mock(
         'get_response_and_provenance_from_api'
     ) as mock:
         mock.return_value = (requests_response_mock, MagicMock(name='provenance'))
+        yield mock
+
+
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock')
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
         yield mock
 
 
@@ -203,16 +213,17 @@ def _process_web_api_data_etl_batch_with_batch_source_value_mock():
 
 TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
 
+STATE_FILE_1: StateFileConfigDict = {
+    'bucketName': '{ENV}-bucket',
+    'objectName': '{ENV}/object'
+}
+
 WEB_API_CONFIG: WebApiConfigDict = {
     'dataPipelineId': 'pipeline_1',
     'gcpProjectName': 'project_1',
     'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
     'dataset': 'dataset_1',
     'table': 'table_1',
-    'stateFile': {
-        'bucketName': '{ENV}-bucket',
-        'objectName': '{ENV}/object'
-    },
     'dataUrl': {
         'urlExcludingConfigurableParameters':
             'urlExcludingConfigurableParameters'
@@ -253,6 +264,45 @@ def _remove_imported_timestamp_from_record_list(record_list: Iterable[dict]) -> 
     ]
 
 
+class TestGetStartTimestampFromStateFileOrOptionalDefaultValue:
+    def test_should_return_none_without_state_config(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        assert get_start_timestamp_from_state_file_or_optional_default_value(data_config) is None
+
+    def test_should_return_parsed_timestamp_from_state_file(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STRING_1
+        assert (
+            get_start_timestamp_from_state_file_or_optional_default_value(data_config)
+        ) == TIMESTAMP_1
+
+    def test_should_return_default_value_if_state_file_doesnt_exist(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1,
+            'dataUrl': {
+                **WEB_API_CONFIG['dataUrl'],
+                'configurableParameters': {
+                    'defaultStartDate': TIMESTAMP_STRING_1,
+                    'dateFormat': r'%Y-%m-%d'
+                }
+            }
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError
+        assert (
+            get_start_timestamp_from_state_file_or_optional_default_value(data_config)
+        ) == TIMESTAMP_1
+
+
 class TestUploadLatestTimestampState:
     def test_should_write_latest_date_as_string_to_state_file(
         self,
@@ -263,16 +313,15 @@ class TestUploadLatestTimestampState:
             latest_timestamp_string,
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
-        data_config = get_data_config(WEB_API_CONFIG)
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1
+        })
         upload_latest_timestamp_as_pipeline_state(
             data_config, latest_timestamp
         )
-        state_file_bucket = WEB_API_CONFIG.get(
-            'stateFile'
-        ).get('bucketName').replace('{ENV}', DEP_ENV)
-        state_file_name_key = WEB_API_CONFIG.get(
-            'stateFile'
-        ).get('objectName').replace('{ENV}', DEP_ENV)
+        state_file_bucket = STATE_FILE_1['bucketName'].replace('{ENV}', DEP_ENV)
+        state_file_name_key = STATE_FILE_1['objectName'].replace('{ENV}', DEP_ENV)
         mock_upload_s3_object.assert_called_with(
             bucket=state_file_bucket,
             object_key=state_file_name_key,
