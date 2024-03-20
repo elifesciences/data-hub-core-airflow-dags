@@ -77,12 +77,12 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
                 )
             )
     except FileNotFoundError:
-        return parse_timestamp_from_str(
-            data_config.default_start_date
-        ) if (
+        if (
             data_config.default_start_date and
             data_config.dynamic_request_builder.date_format
-        ) else None
+        ):
+            LOGGER.info('state file not found, returning default start date')
+            return parse_timestamp_from_str(data_config.default_start_date)
     return None
 
 
