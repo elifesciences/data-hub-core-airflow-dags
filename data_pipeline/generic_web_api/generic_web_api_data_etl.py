@@ -59,7 +59,7 @@ T = TypeVar('T')
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
     data_config: WebApiConfig
-):
+) -> Optional[datetime]:
     try:
         if (
             data_config.state_file_bucket_name and
