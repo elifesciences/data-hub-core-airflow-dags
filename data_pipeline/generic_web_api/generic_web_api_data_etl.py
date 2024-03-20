@@ -63,28 +63,31 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
     data_config: WebApiConfig
 ):
     try:
-        stored_state = (
-            parse_timestamp_from_str(
+        if (
+            data_config.state_file_bucket_name and
+            data_config.state_file_object_name
+        ):
+            LOGGER.info(
+                'Loading state from: s3://%s/%s',
+                data_config.state_file_bucket_name,
+                data_config.state_file_object_name
+            )
+            return parse_timestamp_from_str(
                 download_s3_object_as_string(
                     data_config.state_file_bucket_name,
                     data_config.state_file_object_name
                 )
             )
-            if data_config.state_file_bucket_name and
-            data_config.state_file_object_name else None
-        )
     except ClientError as ex:
         if ex.response['Error']['Code'] == 'NoSuchKey':
-            stored_state = parse_timestamp_from_str(
+            return parse_timestamp_from_str(
                 data_config.default_start_date
             ) if (
                 data_config.default_start_date and
                 data_config.dynamic_request_builder.date_format
             ) else None
-
-        else:
-            raise ex
-    return stored_state
+        raise ex
+    return None
 
 
 def get_newline_delimited_json_string_as_json_list(json_string):
