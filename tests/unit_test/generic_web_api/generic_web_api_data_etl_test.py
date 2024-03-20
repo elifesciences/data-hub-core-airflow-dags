@@ -302,6 +302,27 @@ class TestGetStartTimestampFromStateFileOrOptionalDefaultValue:
             get_start_timestamp_from_state_file_or_optional_default_value(data_config)
         ) == TIMESTAMP_1
 
+    def test_should_replace_placeholders(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': {
+                'bucketName': 'bucket_1',
+                'objectName': r'prefix-{placeholder1}'
+            }
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STRING_1
+        get_start_timestamp_from_state_file_or_optional_default_value(
+            data_config,
+            placeholder_values={'placeholder1': 'value1'}
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket='bucket_1',
+            object_key='prefix-value1'
+        )
+
 
 class TestUploadLatestTimestampState:
     def test_should_write_latest_date_as_string_to_state_file(

@@ -58,22 +58,27 @@ T = TypeVar('T')
 
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
-    data_config: WebApiConfig
+    data_config: WebApiConfig,
+    placeholder_values: Optional[dict] = None
 ) -> Optional[datetime]:
     try:
         if (
             data_config.state_file_bucket_name and
             data_config.state_file_object_name
         ):
+            state_file_object_name = replace_placeholders(
+                data_config.state_file_object_name,
+                placeholder_values
+            )
             LOGGER.info(
                 'Loading state from: s3://%s/%s',
                 data_config.state_file_bucket_name,
-                data_config.state_file_object_name
+                state_file_object_name
             )
             return parse_timestamp_from_str(
                 download_s3_object_as_string_or_file_not_found_error(
-                    data_config.state_file_bucket_name,
-                    data_config.state_file_object_name
+                    bucket=data_config.state_file_bucket_name,
+                    object_key=state_file_object_name
                 )
             )
     except FileNotFoundError:
