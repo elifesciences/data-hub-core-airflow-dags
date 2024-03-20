@@ -10,8 +10,6 @@ from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
 
 import objsize
 
-from botocore.exceptions import ClientError
-
 from data_pipeline.generic_web_api.transform_data import (
     get_latest_record_list_timestamp,
     get_web_api_provenance,
@@ -21,7 +19,7 @@ from data_pipeline.generic_web_api.transform_data import (
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_object_as_string,
+    download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -73,20 +71,18 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
                 data_config.state_file_object_name
             )
             return parse_timestamp_from_str(
-                download_s3_object_as_string(
+                download_s3_object_as_string_or_file_not_found_error(
                     data_config.state_file_bucket_name,
                     data_config.state_file_object_name
                 )
             )
-    except ClientError as ex:
-        if ex.response['Error']['Code'] == 'NoSuchKey':
-            return parse_timestamp_from_str(
-                data_config.default_start_date
-            ) if (
-                data_config.default_start_date and
-                data_config.dynamic_request_builder.date_format
-            ) else None
-        raise ex
+    except FileNotFoundError:
+        return parse_timestamp_from_str(
+            data_config.default_start_date
+        ) if (
+            data_config.default_start_date and
+            data_config.dynamic_request_builder.date_format
+        ) else None
     return None
 
 
