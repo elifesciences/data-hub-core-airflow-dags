@@ -91,6 +91,31 @@ def get_start_timestamp_from_state_file_or_optional_default_value(
     return None
 
 
+def upload_latest_timestamp_as_pipeline_state(
+    data_config: WebApiConfig,
+    latest_record_timestamp: datetime,
+    placeholder_values: Optional[dict] = None
+):
+    if (
+        data_config.state_file_object_name and
+        data_config.state_file_bucket_name
+    ):
+        latest_record_date = datetime_to_string(
+            get_tz_aware_datetime(latest_record_timestamp),
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        )
+        state_file_name_key = replace_placeholders(
+            data_config.state_file_object_name,
+            placeholder_values
+        )
+        state_file_bucket = data_config.state_file_bucket_name
+        upload_s3_object(
+            bucket=state_file_bucket,
+            object_key=state_file_name_key,
+            data_object=latest_record_date,
+        )
+
+
 def get_newline_delimited_json_string_as_json_list(json_string):
     return [
         json.loads(line) for line in json_string.splitlines()
@@ -720,28 +745,3 @@ def get_items_list(page_data, web_config: WebApiConfig):
     if isinstance(item_list, dict):
         return [item_list]
     return item_list
-
-
-def upload_latest_timestamp_as_pipeline_state(
-    data_config: WebApiConfig,
-    latest_record_timestamp: datetime,
-    placeholder_values: Optional[dict] = None
-):
-    if (
-        data_config.state_file_object_name and
-        data_config.state_file_bucket_name
-    ):
-        latest_record_date = datetime_to_string(
-            get_tz_aware_datetime(latest_record_timestamp),
-            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
-        )
-        state_file_name_key = replace_placeholders(
-            data_config.state_file_object_name,
-            placeholder_values
-        )
-        state_file_bucket = data_config.state_file_bucket_name
-        upload_s3_object(
-            bucket=state_file_bucket,
-            object_key=state_file_name_key,
-            data_object=latest_record_date,
-        )
