@@ -17,9 +17,11 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     get_initial_dynamic_request_parameters,
     get_next_dynamic_request_parameters_for_page_data,
     get_optional_total_count,
+    get_start_timestamp_from_state_file_or_optional_default_value,
     iter_processed_web_api_data_etl_batch_data,
     process_web_api_data_etl_batch,
     process_web_api_data_etl_batch_with_batch_source_value,
+    process_web_api_data_etl_batch_with_batch_source_value_and_date_range,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -33,6 +35,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict
 )
 from data_pipeline.generic_web_api.request_builder import WebApiDynamicRequestParameters
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 
 from tests.unit_test.generic_web_api.test_data import DEP_ENV, get_data_config
@@ -50,8 +53,8 @@ REQUEST_PROVENANCE_1 = {
     'api_url': 'url-1'
 }
 
-TIMESTAMP_STRING_1 = '2020-01-01+00:00'
-TIMESTAMP_STRING_2 = '2020-01-02+00:00'
+TIMESTAMP_STRING_1 = '2020-01-01T00:00:00+00:00'
+TIMESTAMP_STRING_2 = '2020-01-02T00:00:00+00:00'
 
 TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
@@ -60,6 +63,41 @@ SOURCE_VALUE_1 = {'source': 'value 1'}
 SOURCE_VALUE_2 = {'source': 'value 2'}
 
 PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
+
+
+TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
+
+STATE_FILE_1: StateFileConfigDict = {
+    'bucketName': '{ENV}-bucket',
+    'objectName': '{ENV}/object'
+}
+
+WEB_API_CONFIG: WebApiConfigDict = {
+    'dataPipelineId': 'pipeline_1',
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
+    'dataset': 'dataset_1',
+    'table': 'table_1',
+    'dataUrl': {
+        'urlExcludingConfigurableParameters':
+            'urlExcludingConfigurableParameters'
+    }
+}
+
+WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
+    **WEB_API_CONFIG,
+    'response': {
+        'recordTimestamp': {
+            'itemTimestampKeyFromItemRoot': ['timestamp']
+        }
+    }
+})
+
+
+@pytest.fixture(name='get_current_timestamp_mock')
+def _get_current_timestamp_mock() -> Iterator[MagicMock]:
+    with patch.object(generic_web_api_data_etl_module, 'get_current_timestamp') as mock:
+        yield mock
 
 
 @pytest.fixture(name='requests_response_mock')
@@ -94,6 +132,14 @@ def _get_response_and_provenance_from_api_mock(
         'get_response_and_provenance_from_api'
     ) as mock:
         mock.return_value = (requests_response_mock, MagicMock(name='provenance'))
+        yield mock
+
+
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock')
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        generic_web_api_data_etl_module, 'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
         yield mock
 
 
@@ -201,34 +247,6 @@ def _process_web_api_data_etl_batch_with_batch_source_value_mock():
         yield mock
 
 
-TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
-
-WEB_API_CONFIG: WebApiConfigDict = {
-    'dataPipelineId': 'pipeline_1',
-    'gcpProjectName': 'project_1',
-    'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
-    'dataset': 'dataset_1',
-    'table': 'table_1',
-    'stateFile': {
-        'bucketName': '{ENV}-bucket',
-        'objectName': '{ENV}/object'
-    },
-    'dataUrl': {
-        'urlExcludingConfigurableParameters':
-            'urlExcludingConfigurableParameters'
-    }
-}
-
-WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
-    **WEB_API_CONFIG,
-    'response': {
-        'recordTimestamp': {
-            'itemTimestampKeyFromItemRoot': ['timestamp']
-        }
-    }
-})
-
-
 def get_data_config_with_max_source_values_per_request(
     data_config: WebApiConfig,
     max_source_values_per_request: int
@@ -253,6 +271,66 @@ def _remove_imported_timestamp_from_record_list(record_list: Iterable[dict]) -> 
     ]
 
 
+class TestGetStartTimestampFromStateFileOrOptionalDefaultValue:
+    def test_should_return_none_without_state_config(self):
+        data_config = get_data_config(WEB_API_CONFIG)
+        assert get_start_timestamp_from_state_file_or_optional_default_value(data_config) is None
+
+    def test_should_return_parsed_timestamp_from_state_file(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STRING_1
+        assert (
+            get_start_timestamp_from_state_file_or_optional_default_value(data_config)
+        ) == TIMESTAMP_1
+
+    def test_should_return_default_value_if_state_file_doesnt_exist(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1,
+            'dataUrl': {
+                **WEB_API_CONFIG['dataUrl'],
+                'configurableParameters': {
+                    'defaultStartDate': TIMESTAMP_STRING_1,
+                    'dateFormat': r'%Y-%m-%d'
+                }
+            }
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError
+        assert (
+            get_start_timestamp_from_state_file_or_optional_default_value(data_config)
+        ) == TIMESTAMP_1
+
+    def test_should_replace_placeholders(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': {
+                'bucketName': 'bucket_1',
+                'objectName': r'prefix-{placeholder1}'
+            }
+        })
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STRING_1
+        get_start_timestamp_from_state_file_or_optional_default_value(
+            data_config,
+            placeholder_values={'placeholder1': 'value1'}
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket='bucket_1',
+            object_key='prefix-value1'
+        )
+
+
 class TestUploadLatestTimestampState:
     def test_should_write_latest_date_as_string_to_state_file(
         self,
@@ -263,16 +341,15 @@ class TestUploadLatestTimestampState:
             latest_timestamp_string,
             ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
         )
-        data_config = get_data_config(WEB_API_CONFIG)
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'stateFile': STATE_FILE_1
+        })
         upload_latest_timestamp_as_pipeline_state(
             data_config, latest_timestamp
         )
-        state_file_bucket = WEB_API_CONFIG.get(
-            'stateFile'
-        ).get('bucketName').replace('{ENV}', DEP_ENV)
-        state_file_name_key = WEB_API_CONFIG.get(
-            'stateFile'
-        ).get('objectName').replace('{ENV}', DEP_ENV)
+        state_file_bucket = STATE_FILE_1['bucketName'].replace('{ENV}', DEP_ENV)
+        state_file_name_key = STATE_FILE_1['objectName'].replace('{ENV}', DEP_ENV)
         mock_upload_s3_object.assert_called_with(
             bucket=state_file_bucket,
             object_key=state_file_name_key,
@@ -813,7 +890,7 @@ class TestIterProcessedWebApiDataEtlBatchData:
         )
 
 
-class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+class TestProcessWebApiDataEtlBatchWithBatchSourceValueAndDateRange:
     def test_should_pass_batch_source_values_as_placeholders_to_update_state(
         self,
         upload_latest_timestamp_as_pipeline_state_mock: MagicMock,
@@ -821,7 +898,7 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
     ):
         data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
         get_items_list_mock.return_value = [{'timestamp': TIMESTAMP_STRING_1}]
-        process_web_api_data_etl_batch_with_batch_source_value(
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
             data_config=data_config,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -836,7 +913,7 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
         get_data_single_page_response_mock: MagicMock
     ):
         data_config = get_data_config(WEB_API_CONFIG)
-        process_web_api_data_etl_batch_with_batch_source_value(
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
             data_config=data_config,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -849,26 +926,23 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
         )
 
 
-class TestProcessWebApiDataEtlBatch:
-    def test_should_pass_initial_and_until_date_to_process_with_batch_source_value_function(
+class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+    def test_should_pass_batch_source_values_as_placeholders_to_load_state(
         self,
-        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock
     ):
-        data_config = get_data_config(WEB_API_CONFIG)
-        process_web_api_data_etl_batch(
+        data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
+        process_web_api_data_etl_batch_with_batch_source_value(
             data_config=data_config,
-            initial_from_date=TIMESTAMP_1,
-            until_date=TIMESTAMP_2,
-            all_source_values_iterator=None
+            batch_source_value=SOURCE_VALUE_1
         )
-        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
-            data_config=data_config,
-            initial_from_date=TIMESTAMP_1,
-            until_date=TIMESTAMP_2,
-            all_source_values_iterator=None,
-            batch_source_value=None
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.assert_called_with(
+            data_config=ANY,
+            placeholder_values=SOURCE_VALUE_1
         )
 
+
+class TestProcessWebApiDataEtlBatch:
     def test_should_pass_on_all_source_values_iterator_if_should_not_iterate_over_source_values(
         self,
         process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
@@ -884,14 +958,10 @@ class TestProcessWebApiDataEtlBatch:
         all_source_values_iterator = iter([SOURCE_VALUE_1])
         process_web_api_data_etl_batch(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator
         )
         process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
         )
@@ -904,14 +974,10 @@ class TestProcessWebApiDataEtlBatch:
         all_source_values_iterator = iter([SOURCE_VALUE_1])
         process_web_api_data_etl_batch(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator
         )
         process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=None,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -994,7 +1060,8 @@ class TestGenericWebApiDataEtl:
     def test_should_retrieve_data_in_date_range_batches(
         self,
         get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
-        get_data_single_page_response_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock,
+        get_current_timestamp_mock: MagicMock
     ):
         timestamp_string_1 = '2020-01-01+00:00'
         timestamp_string_2 = '2020-01-02+00:00'
@@ -1026,7 +1093,8 @@ class TestGenericWebApiDataEtl:
         )
         item_list = [{'timestamp': timestamp_string_2}]
         get_data_single_page_response_mock.return_value = WebApiPageResponse(item_list)
-        generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
+        get_current_timestamp_mock.return_value = end_timestamp
+        generic_web_api_data_etl(data_config)
         actual_from_and_until_date_list = [
             (
                 call_args.kwargs['dynamic_request_parameters'].from_date,

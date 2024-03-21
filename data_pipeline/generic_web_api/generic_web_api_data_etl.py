@@ -10,8 +10,6 @@ from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
 
 import objsize
 
-from botocore.exceptions import ClientError
-
 from data_pipeline.generic_web_api.transform_data import (
     get_latest_record_list_timestamp,
     get_web_api_provenance,
@@ -21,7 +19,7 @@ from data_pipeline.generic_web_api.transform_data import (
 from data_pipeline.generic_web_api.module_constants import ModuleConstant
 from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_object_as_string,
+    download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -60,31 +58,62 @@ T = TypeVar('T')
 
 
 def get_start_timestamp_from_state_file_or_optional_default_value(
-    data_config: WebApiConfig
-):
+    data_config: WebApiConfig,
+    placeholder_values: Optional[dict] = None
+) -> Optional[datetime]:
     try:
-        stored_state = (
-            parse_timestamp_from_str(
-                download_s3_object_as_string(
-                    data_config.state_file_bucket_name,
-                    data_config.state_file_object_name
+        if (
+            data_config.state_file_bucket_name and
+            data_config.state_file_object_name
+        ):
+            state_file_object_name = replace_placeholders(
+                data_config.state_file_object_name,
+                placeholder_values
+            )
+            LOGGER.info(
+                'Loading state from: s3://%s/%s',
+                data_config.state_file_bucket_name,
+                state_file_object_name
+            )
+            return parse_timestamp_from_str(
+                download_s3_object_as_string_or_file_not_found_error(
+                    bucket=data_config.state_file_bucket_name,
+                    object_key=state_file_object_name
                 )
             )
-            if data_config.state_file_bucket_name and
-            data_config.state_file_object_name else None
-        )
-    except ClientError as ex:
-        if ex.response['Error']['Code'] == 'NoSuchKey':
-            stored_state = parse_timestamp_from_str(
-                data_config.default_start_date
-            ) if (
-                data_config.default_start_date and
-                data_config.dynamic_request_builder.date_format
-            ) else None
+    except FileNotFoundError:
+        if (
+            data_config.default_start_date and
+            data_config.dynamic_request_builder.date_format
+        ):
+            LOGGER.info('state file not found, returning default start date')
+            return parse_timestamp_from_str(data_config.default_start_date)
+    return None
 
-        else:
-            raise ex
-    return stored_state
+
+def upload_latest_timestamp_as_pipeline_state(
+    data_config: WebApiConfig,
+    latest_record_timestamp: datetime,
+    placeholder_values: Optional[dict] = None
+):
+    if (
+        data_config.state_file_object_name and
+        data_config.state_file_bucket_name
+    ):
+        latest_record_date = datetime_to_string(
+            get_tz_aware_datetime(latest_record_timestamp),
+            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
+        )
+        state_file_name_key = replace_placeholders(
+            data_config.state_file_object_name,
+            placeholder_values
+        )
+        state_file_bucket = data_config.state_file_bucket_name
+        upload_s3_object(
+            bucket=state_file_bucket,
+            object_key=state_file_name_key,
+            data_object=latest_record_date,
+        )
 
 
 def get_newline_delimited_json_string_as_json_list(json_string):
@@ -399,7 +428,7 @@ def iter_optional_batch_iterable(
     return iter_batch_iterable(iterable, batch_size)
 
 
-def process_web_api_data_etl_batch_with_batch_source_value(
+def process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
@@ -449,6 +478,43 @@ def process_web_api_data_etl_batch_with_batch_source_value(
         LOGGER.info('completed batch: %d', 1 + batch_index)
 
 
+def process_web_api_data_etl_batch_with_batch_source_value(
+    data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    batch_source_value: Optional[dict] = None
+):
+    stored_state = get_start_timestamp_from_state_file_or_optional_default_value(
+        data_config=data_config,
+        placeholder_values=batch_source_value
+    )
+    current_from_timestamp = stored_state
+    end_timestamp = get_current_timestamp() if current_from_timestamp else None
+    LOGGER.info('end_timestamp: %r', end_timestamp)
+    while True:
+        next_from_timestamp = get_next_batch_from_timestamp_for_config(
+            data_config=data_config,
+            current_from_timestamp=current_from_timestamp
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
+            data_config=data_config,
+            initial_from_date=current_from_timestamp,
+            until_date=next_from_timestamp,
+            all_source_values_iterator=all_source_values_iterator,
+            batch_source_value=batch_source_value
+        )
+        if (
+            not next_from_timestamp
+            or not end_timestamp
+            or next_from_timestamp >= end_timestamp
+        ):
+            LOGGER.debug(
+                'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
+                current_from_timestamp, next_from_timestamp
+            )
+            break
+        current_from_timestamp = next_from_timestamp
+
+
 def should_iterate_over_source_values(
     data_config: WebApiConfig,
     all_source_values_iterator: Optional[Iterable[dict]]
@@ -461,8 +527,6 @@ def should_iterate_over_source_values(
 
 def process_web_api_data_etl_batch(
     data_config: WebApiConfig,
-    initial_from_date: Optional[datetime] = None,
-    until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
     if should_iterate_over_source_values(data_config, all_source_values_iterator):
@@ -470,16 +534,12 @@ def process_web_api_data_etl_batch(
         for batch_source_value in all_source_values_iterator:
             process_web_api_data_etl_batch_with_batch_source_value(
                 data_config=data_config,
-                initial_from_date=initial_from_date,
-                until_date=until_date,
                 all_source_values_iterator=None,
                 batch_source_value=batch_source_value
             )
     else:
         process_web_api_data_etl_batch_with_batch_source_value(
             data_config=data_config,
-            initial_from_date=initial_from_date,
-            until_date=until_date,
             all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
         )
@@ -495,38 +555,14 @@ def get_next_batch_from_timestamp_for_config(
 
 
 def generic_web_api_data_etl(
-    data_config: WebApiConfig,
-    end_timestamp: Optional[datetime] = None
+    data_config: WebApiConfig
 ):
     LOGGER.info('data_config: %r', data_config)
-    stored_state = get_start_timestamp_from_state_file_or_optional_default_value(data_config)
-    current_from_timestamp = stored_state
-    if not end_timestamp and current_from_timestamp:
-        end_timestamp = get_current_timestamp()
-    LOGGER.info('end_timestamp: %r', end_timestamp)
     all_source_values_iterator = iter_optional_source_values_from_bigquery(data_config)
-    while True:
-        next_from_timestamp = get_next_batch_from_timestamp_for_config(
-            data_config=data_config,
-            current_from_timestamp=current_from_timestamp
-        )
-        process_web_api_data_etl_batch(
-            data_config=data_config,
-            initial_from_date=current_from_timestamp,
-            until_date=next_from_timestamp,
-            all_source_values_iterator=all_source_values_iterator
-        )
-        if (
-            not next_from_timestamp
-            or not end_timestamp
-            or next_from_timestamp >= end_timestamp
-        ):
-            LOGGER.debug(
-                'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
-                current_from_timestamp, next_from_timestamp
-            )
-            break
-        current_from_timestamp = next_from_timestamp
+    process_web_api_data_etl_batch(
+        data_config=data_config,
+        all_source_values_iterator=all_source_values_iterator
+    )
 
 
 def load_written_data_to_bq(
@@ -709,28 +745,3 @@ def get_items_list(page_data, web_config: WebApiConfig):
     if isinstance(item_list, dict):
         return [item_list]
     return item_list
-
-
-def upload_latest_timestamp_as_pipeline_state(
-    data_config: WebApiConfig,
-    latest_record_timestamp: datetime,
-    placeholder_values: Optional[dict] = None
-):
-    if (
-        data_config.state_file_object_name and
-        data_config.state_file_bucket_name
-    ):
-        latest_record_date = datetime_to_string(
-            get_tz_aware_datetime(latest_record_timestamp),
-            ModuleConstant.DEFAULT_TIMESTAMP_FORMAT
-        )
-        state_file_name_key = replace_placeholders(
-            data_config.state_file_object_name,
-            placeholder_values
-        )
-        state_file_bucket = data_config.state_file_bucket_name
-        upload_s3_object(
-            bucket=state_file_bucket,
-            object_key=state_file_name_key,
-            data_object=latest_record_date,
-        )
