@@ -65,6 +65,35 @@ SOURCE_VALUE_2 = {'source': 'value 2'}
 PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
 
 
+TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
+
+STATE_FILE_1: StateFileConfigDict = {
+    'bucketName': '{ENV}-bucket',
+    'objectName': '{ENV}/object'
+}
+
+WEB_API_CONFIG: WebApiConfigDict = {
+    'dataPipelineId': 'pipeline_1',
+    'gcpProjectName': 'project_1',
+    'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
+    'dataset': 'dataset_1',
+    'table': 'table_1',
+    'dataUrl': {
+        'urlExcludingConfigurableParameters':
+            'urlExcludingConfigurableParameters'
+    }
+}
+
+WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
+    **WEB_API_CONFIG,
+    'response': {
+        'recordTimestamp': {
+            'itemTimestampKeyFromItemRoot': ['timestamp']
+        }
+    }
+})
+
+
 @pytest.fixture(name='get_current_timestamp_mock')
 def _get_current_timestamp_mock() -> Iterator[MagicMock]:
     with patch.object(generic_web_api_data_etl_module, 'get_current_timestamp') as mock:
@@ -216,35 +245,6 @@ def _process_web_api_data_etl_batch_with_batch_source_value_mock():
         generic_web_api_data_etl_module, 'process_web_api_data_etl_batch_with_batch_source_value'
     ) as mock:
         yield mock
-
-
-TEST_IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp_1'
-
-STATE_FILE_1: StateFileConfigDict = {
-    'bucketName': '{ENV}-bucket',
-    'objectName': '{ENV}/object'
-}
-
-WEB_API_CONFIG: WebApiConfigDict = {
-    'dataPipelineId': 'pipeline_1',
-    'gcpProjectName': 'project_1',
-    'importedTimestampFieldName': TEST_IMPORTED_TIMESTAMP_FIELD_NAME,
-    'dataset': 'dataset_1',
-    'table': 'table_1',
-    'dataUrl': {
-        'urlExcludingConfigurableParameters':
-            'urlExcludingConfigurableParameters'
-    }
-}
-
-WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT = cast(WebApiConfigDict, {
-    **WEB_API_CONFIG,
-    'response': {
-        'recordTimestamp': {
-            'itemTimestampKeyFromItemRoot': ['timestamp']
-        }
-    }
-})
 
 
 def get_data_config_with_max_source_values_per_request(
