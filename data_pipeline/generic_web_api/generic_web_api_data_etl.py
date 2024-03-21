@@ -403,7 +403,7 @@ def iter_optional_batch_iterable(
     return iter_batch_iterable(iterable, batch_size)
 
 
-def process_web_api_data_etl_batch_with_batch_source_value(
+def process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
     until_date: Optional[datetime] = None,
@@ -453,6 +453,43 @@ def process_web_api_data_etl_batch_with_batch_source_value(
         LOGGER.info('completed batch: %d', 1 + batch_index)
 
 
+def process_web_api_data_etl_batch_with_batch_source_value(
+    data_config: WebApiConfig,
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    batch_source_value: Optional[dict] = None
+):
+    stored_state = get_start_timestamp_from_state_file_or_optional_default_value(
+        data_config=data_config,
+        placeholder_values=batch_source_value
+    )
+    current_from_timestamp = stored_state
+    end_timestamp = get_current_timestamp() if current_from_timestamp else None
+    LOGGER.info('end_timestamp: %r', end_timestamp)
+    while True:
+        next_from_timestamp = get_next_batch_from_timestamp_for_config(
+            data_config=data_config,
+            current_from_timestamp=current_from_timestamp
+        )
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
+            data_config=data_config,
+            initial_from_date=current_from_timestamp,
+            until_date=next_from_timestamp,
+            all_source_values_iterator=all_source_values_iterator,
+            batch_source_value=batch_source_value
+        )
+        if (
+            not next_from_timestamp
+            or not end_timestamp
+            or next_from_timestamp >= end_timestamp
+        ):
+            LOGGER.debug(
+                'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
+                current_from_timestamp, next_from_timestamp
+            )
+            break
+        current_from_timestamp = next_from_timestamp
+
+
 def should_iterate_over_source_values(
     data_config: WebApiConfig,
     all_source_values_iterator: Optional[Iterable[dict]]
@@ -465,8 +502,6 @@ def should_iterate_over_source_values(
 
 def process_web_api_data_etl_batch(
     data_config: WebApiConfig,
-    initial_from_date: Optional[datetime] = None,
-    until_date: Optional[datetime] = None,
     all_source_values_iterator: Optional[Iterable[dict]] = None
 ):
     if should_iterate_over_source_values(data_config, all_source_values_iterator):
@@ -474,16 +509,12 @@ def process_web_api_data_etl_batch(
         for batch_source_value in all_source_values_iterator:
             process_web_api_data_etl_batch_with_batch_source_value(
                 data_config=data_config,
-                initial_from_date=initial_from_date,
-                until_date=until_date,
                 all_source_values_iterator=None,
                 batch_source_value=batch_source_value
             )
     else:
         process_web_api_data_etl_batch_with_batch_source_value(
             data_config=data_config,
-            initial_from_date=initial_from_date,
-            until_date=until_date,
             all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
         )
@@ -499,38 +530,14 @@ def get_next_batch_from_timestamp_for_config(
 
 
 def generic_web_api_data_etl(
-    data_config: WebApiConfig,
-    end_timestamp: Optional[datetime] = None
+    data_config: WebApiConfig
 ):
     LOGGER.info('data_config: %r', data_config)
-    stored_state = get_start_timestamp_from_state_file_or_optional_default_value(data_config)
-    current_from_timestamp = stored_state
-    if not end_timestamp and current_from_timestamp:
-        end_timestamp = get_current_timestamp()
-    LOGGER.info('end_timestamp: %r', end_timestamp)
     all_source_values_iterator = iter_optional_source_values_from_bigquery(data_config)
-    while True:
-        next_from_timestamp = get_next_batch_from_timestamp_for_config(
-            data_config=data_config,
-            current_from_timestamp=current_from_timestamp
-        )
-        process_web_api_data_etl_batch(
-            data_config=data_config,
-            initial_from_date=current_from_timestamp,
-            until_date=next_from_timestamp,
-            all_source_values_iterator=all_source_values_iterator
-        )
-        if (
-            not next_from_timestamp
-            or not end_timestamp
-            or next_from_timestamp >= end_timestamp
-        ):
-            LOGGER.debug(
-                'end reached, current_from_timestamp=%r, next_from_timestamp=%r',
-                current_from_timestamp, next_from_timestamp
-            )
-            break
-        current_from_timestamp = next_from_timestamp
+    process_web_api_data_etl_batch(
+        data_config=data_config,
+        all_source_values_iterator=all_source_values_iterator
+    )
 
 
 def load_written_data_to_bq(

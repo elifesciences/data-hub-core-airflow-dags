@@ -21,6 +21,7 @@ from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     iter_processed_web_api_data_etl_batch_data,
     process_web_api_data_etl_batch,
     process_web_api_data_etl_batch_with_batch_source_value,
+    process_web_api_data_etl_batch_with_batch_source_value_and_date_range,
     upload_latest_timestamp_as_pipeline_state,
     get_items_list,
     get_next_cursor_from_data,
@@ -62,6 +63,12 @@ SOURCE_VALUE_1 = {'source': 'value 1'}
 SOURCE_VALUE_2 = {'source': 'value 2'}
 
 PLACEHOLDER_VALUES_1 = {'placeholder': 'buddy1'}
+
+
+@pytest.fixture(name='get_current_timestamp_mock')
+def _get_current_timestamp_mock() -> Iterator[MagicMock]:
+    with patch.object(generic_web_api_data_etl_module, 'get_current_timestamp') as mock:
+        yield mock
 
 
 @pytest.fixture(name='requests_response_mock')
@@ -883,7 +890,7 @@ class TestIterProcessedWebApiDataEtlBatchData:
         )
 
 
-class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+class TestProcessWebApiDataEtlBatchWithBatchSourceValueAndDateRange:
     def test_should_pass_batch_source_values_as_placeholders_to_update_state(
         self,
         upload_latest_timestamp_as_pipeline_state_mock: MagicMock,
@@ -891,7 +898,7 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
     ):
         data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
         get_items_list_mock.return_value = [{'timestamp': TIMESTAMP_STRING_1}]
-        process_web_api_data_etl_batch_with_batch_source_value(
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
             data_config=data_config,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -906,7 +913,7 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
         get_data_single_page_response_mock: MagicMock
     ):
         data_config = get_data_config(WEB_API_CONFIG)
-        process_web_api_data_etl_batch_with_batch_source_value(
+        process_web_api_data_etl_batch_with_batch_source_value_and_date_range(
             data_config=data_config,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -919,26 +926,23 @@ class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
         )
 
 
-class TestProcessWebApiDataEtlBatch:
-    def test_should_pass_initial_and_until_date_to_process_with_batch_source_value_function(
+class TestProcessWebApiDataEtlBatchWithBatchSourceValue:
+    def test_should_pass_batch_source_values_as_placeholders_to_load_state(
         self,
-        process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
+        get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock
     ):
-        data_config = get_data_config(WEB_API_CONFIG)
-        process_web_api_data_etl_batch(
+        data_config = get_data_config(WEB_API_WITH_TIMESTAMP_FIELD_CONFIG_DICT)
+        process_web_api_data_etl_batch_with_batch_source_value(
             data_config=data_config,
-            initial_from_date=TIMESTAMP_1,
-            until_date=TIMESTAMP_2,
-            all_source_values_iterator=None
+            batch_source_value=SOURCE_VALUE_1
         )
-        process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
-            data_config=data_config,
-            initial_from_date=TIMESTAMP_1,
-            until_date=TIMESTAMP_2,
-            all_source_values_iterator=None,
-            batch_source_value=None
+        get_start_timestamp_from_state_file_or_optional_default_value_mock.assert_called_with(
+            data_config=ANY,
+            placeholder_values=SOURCE_VALUE_1
         )
 
+
+class TestProcessWebApiDataEtlBatch:
     def test_should_pass_on_all_source_values_iterator_if_should_not_iterate_over_source_values(
         self,
         process_web_api_data_etl_batch_with_batch_source_value_mock: MagicMock
@@ -954,14 +958,10 @@ class TestProcessWebApiDataEtlBatch:
         all_source_values_iterator = iter([SOURCE_VALUE_1])
         process_web_api_data_etl_batch(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator
         )
         process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator,
             batch_source_value=None
         )
@@ -974,14 +974,10 @@ class TestProcessWebApiDataEtlBatch:
         all_source_values_iterator = iter([SOURCE_VALUE_1])
         process_web_api_data_etl_batch(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=all_source_values_iterator
         )
         process_web_api_data_etl_batch_with_batch_source_value_mock.assert_called_with(
             data_config=data_config,
-            initial_from_date=None,
-            until_date=None,
             all_source_values_iterator=None,
             batch_source_value=SOURCE_VALUE_1
         )
@@ -1064,7 +1060,8 @@ class TestGenericWebApiDataEtl:
     def test_should_retrieve_data_in_date_range_batches(
         self,
         get_start_timestamp_from_state_file_or_optional_default_value_mock: MagicMock,
-        get_data_single_page_response_mock: MagicMock
+        get_data_single_page_response_mock: MagicMock,
+        get_current_timestamp_mock: MagicMock
     ):
         timestamp_string_1 = '2020-01-01+00:00'
         timestamp_string_2 = '2020-01-02+00:00'
@@ -1096,7 +1093,8 @@ class TestGenericWebApiDataEtl:
         )
         item_list = [{'timestamp': timestamp_string_2}]
         get_data_single_page_response_mock.return_value = WebApiPageResponse(item_list)
-        generic_web_api_data_etl(data_config, end_timestamp=end_timestamp)
+        get_current_timestamp_mock.return_value = end_timestamp
+        generic_web_api_data_etl(data_config)
         actual_from_and_until_date_list = [
             (
                 call_args.kwargs['dynamic_request_parameters'].from_date,
