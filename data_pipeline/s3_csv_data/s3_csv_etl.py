@@ -236,13 +236,13 @@ def iter_transformed_json_from_csv(
         default_value_processing_function_steps.extend(
             csv_config.record_processing_function_steps
         )
-    processed_record = process_record_list(
+    processed_record_iterable = process_record_list(
         csv_dict_reader,
         record_metadata,
         default_value_processing_function_steps
     )
 
-    return processed_record
+    return processed_record_iterable
 
 
 def transform_load_data(
@@ -250,7 +250,7 @@ def transform_load_data(
     csv_config: S3BaseCsvConfig,
     record_import_timestamp_as_string: str,
 ):
-    processed_record = iter_transformed_json_from_csv(
+    processed_record_iterable = iter_transformed_json_from_csv(
         s3_object_name,
         csv_config,
         record_import_timestamp_as_string
@@ -261,7 +261,7 @@ def transform_load_data(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         write_jsonl_to_file(
-            processed_record,
+            processed_record_iterable,
             full_temp_file_location
         )
 

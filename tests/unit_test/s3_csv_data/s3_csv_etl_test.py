@@ -107,10 +107,12 @@ def _write_to_file():
         yield mock
 
 
-def get_minimal_s3_csv_config(update_dict: Optional[dict] = None):
-    csv_config_dict = {
-        'dataValuesStartLineIndex':1
-    }
+MINIMAL_CSV_CONFIG_DICT = {
+    'dataValuesStartLineIndex':1
+}
+
+
+def get_minimal_s3_csv_config(csv_config_dict: Optional[dict] = None):
     gcp_project = ""
     deployment_env = ""
     return S3BaseCsvConfig(
@@ -327,7 +329,7 @@ class TestIterTransformedJsonFromCsv:
         mock_get_csv_data_from_s3: MagicMock
     ):
         mock_get_csv_data_from_s3.return_value = '\n'.join(['name,age', 'hazal,6'])
-        minimal_csv_config = get_minimal_s3_csv_config()
+        minimal_csv_config = get_minimal_s3_csv_config(MINIMAL_CSV_CONFIG_DICT)
         record_import_timestamp_as_string = ""
         s3_object_name = "s3_object"
         actual_result = list(iter_transformed_json_from_csv(
@@ -339,6 +341,35 @@ class TestIterTransformedJsonFromCsv:
             'name': 'hazal',
             'age': '6',
             'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}
+        }]
+        assert actual_result == expected_result
+
+    def test_should_transform_a_csv_file_with_metadata(
+        self,
+        mock_get_csv_data_from_s3: MagicMock
+    ):
+        mock_get_csv_data_from_s3.return_value = '\n'.join(['metadata','name,age', 'hazal,6'])
+        minimal_csv_config = get_minimal_s3_csv_config({
+            **MINIMAL_CSV_CONFIG_DICT,
+            'dataValuesStartLineIndex':2,
+            'headerLineIndex':1,
+            'inSheetRecordMetadata':[{
+                'metadataSchemaFieldName': 'metadata_field',
+                'metadataLineIndex': 0
+            }]
+        })
+        record_import_timestamp_as_string = ""
+        s3_object_name = "s3_object"
+        actual_result = list(iter_transformed_json_from_csv(
+            s3_object_name,
+            minimal_csv_config,
+            record_import_timestamp_as_string
+        ))
+        expected_result = [{
+            'name': 'hazal',
+            'age': '6',
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'},
+            'metadata_field': 'metadata'
         }]
         assert actual_result == expected_result
 
