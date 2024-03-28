@@ -225,6 +225,7 @@ def iter_transformed_json_from_csv(
         record_list,
         csv_config
     )
+    LOGGER.debug('standardized_csv_header: %s', standardized_csv_header)
 
     csv_dict_reader = get_csv_dict_reader(
         csv_string,
