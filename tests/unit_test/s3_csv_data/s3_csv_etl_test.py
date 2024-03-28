@@ -1,3 +1,4 @@
+import io
 import os
 from collections import OrderedDict
 from typing import Optional
@@ -41,11 +42,13 @@ def _os_stat():
         yield mock
 
 
-@pytest.fixture(name="mock_get_csv_data_from_s3", autouse=True)
-def _get_csv_data_from_s3():
+@pytest.fixture(name="mock_s3_open_binary_read", autouse=True)
+def _s3_open_binary_read():
     with patch.object(s3_csv_etl,
-                      "get_csv_data_from_s3") as mock:
-        mock.return_value = TEST_DOWNLOADED_SHEET
+                      "s3_open_binary_read") as mock:
+        mock.return_value.__enter__.return_value = io.BytesIO(
+            TEST_DOWNLOADED_SHEET.encode('utf-8')
+        )
 
         yield mock
 
@@ -108,11 +111,11 @@ def _write_to_file():
 
 
 MINIMAL_CSV_CONFIG_DICT = {
-    'dataValuesStartLineIndex':1
+    'dataValuesStartLineIndex': 1
 }
 
 
-def get_minimal_s3_csv_config(csv_config_dict: Optional[dict] = None):
+def get_s3_csv_config(csv_config_dict: dict):
     gcp_project = ""
     deployment_env = ""
     return S3BaseCsvConfig(
@@ -326,10 +329,12 @@ class TestCsvHeader:
 class TestIterTransformedJsonFromCsv:
     def test_should_transform_a_simple_csv_file(
         self,
-        mock_get_csv_data_from_s3: MagicMock
+        mock_s3_open_binary_read: MagicMock
     ):
-        mock_get_csv_data_from_s3.return_value = '\n'.join(['name,age', 'hazal,6'])
-        minimal_csv_config = get_minimal_s3_csv_config(MINIMAL_CSV_CONFIG_DICT)
+        mock_s3_open_binary_read.return_value.__enter__.return_value = io.BytesIO(
+            '\n'.join(['name,age', 'hazal,6']).encode('utf-8')
+        )
+        minimal_csv_config = get_s3_csv_config(MINIMAL_CSV_CONFIG_DICT)
         record_import_timestamp_as_string = ""
         s3_object_name = "s3_object"
         actual_result = list(iter_transformed_json_from_csv(
@@ -346,14 +351,16 @@ class TestIterTransformedJsonFromCsv:
 
     def test_should_transform_a_csv_file_with_metadata(
         self,
-        mock_get_csv_data_from_s3: MagicMock
+        mock_s3_open_binary_read: MagicMock
     ):
-        mock_get_csv_data_from_s3.return_value = '\n'.join(['metadata','name,age', 'hazal,6'])
-        minimal_csv_config = get_minimal_s3_csv_config({
+        mock_s3_open_binary_read.return_value.__enter__.return_value = io.BytesIO(
+            '\n'.join(['metadata', 'name,age', 'hazal,6']).encode('utf-8')
+        )
+        minimal_csv_config = get_s3_csv_config({
             **MINIMAL_CSV_CONFIG_DICT,
-            'dataValuesStartLineIndex':2,
-            'headerLineIndex':1,
-            'inSheetRecordMetadata':[{
+            'dataValuesStartLineIndex': 2,
+            'headerLineIndex': 1,
+            'inSheetRecordMetadata': [{
                 'metadataSchemaFieldName': 'metadata_field',
                 'metadataLineIndex': 0
             }]

@@ -23,10 +23,8 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
+    s3_open_binary_read,
     upload_s3_object
-)
-from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_object_as_string
 )
 from data_pipeline.utils.record_processing import (
     process_record_values, DEFAULT_PROCESSING_STEPS
@@ -113,13 +111,6 @@ def get_stored_state(
         k: convert_datetime_string_to_datetime(v)
         for k, v in stored_state.items()
     }
-
-
-def get_csv_data_from_s3(s3_bucket_name: str, s3_object_name: str):
-
-    return download_s3_object_as_string(
-        s3_bucket_name, s3_object_name
-    )
 
 
 def get_sorted_in_sheet_metadata_index(csv_config: S3BaseCsvConfig):
@@ -211,9 +202,14 @@ def iter_transformed_json_from_csv(
         [*DEFAULT_PROCESSING_STEPS]
     )
     LOGGER.info('processing object: "%s"', s3_object_name)
-    csv_string = get_csv_data_from_s3(
-        csv_config.s3_bucket_name, s3_object_name
-    )
+
+    with s3_open_binary_read(
+        csv_config.s3_bucket_name,
+        s3_object_name
+    ) as streaming_body:
+        LOGGER.debug('streaming_body: %s', streaming_body)
+        csv_string = streaming_body.read().decode("utf-8")
+    LOGGER.debug('csv_string: %s', csv_string)
     record_list = csv_string.split("\n")
     record_metadata = get_record_metadata(
         record_list,
@@ -221,6 +217,7 @@ def iter_transformed_json_from_csv(
         s3_object_name,
         record_import_timestamp_as_string
     )
+
     standardized_csv_header = get_standardized_csv_header(
         record_list,
         csv_config
