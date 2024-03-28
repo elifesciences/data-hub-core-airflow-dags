@@ -208,38 +208,39 @@ def iter_transformed_json_from_csv(
         s3_object_name
     ) as streaming_body:
         LOGGER.debug('streaming_body: %s', streaming_body)
-        csv_string = streaming_body.read().decode("utf-8")
-    LOGGER.debug('csv_string: %s', csv_string)
-    record_list = csv_string.split("\n")
-    record_metadata = get_record_metadata(
-        record_list,
-        csv_config,
-        s3_object_name,
-        record_import_timestamp_as_string
-    )
-
-    standardized_csv_header = get_standardized_csv_header(
-        record_list,
-        csv_config
-    )
-    LOGGER.debug('standardized_csv_header: %s', standardized_csv_header)
-
-    csv_dict_reader = get_csv_dict_reader(
-        csv_string,
-        standardized_csv_header,
-        csv_config
-    )
-    if csv_config.record_processing_function_steps:
-        default_value_processing_function_steps.extend(
-            csv_config.record_processing_function_steps
+        text_stream = io.TextIOWrapper(streaming_body, 'utf-8')
+        header_lines = [
+            text_stream.readline() for _ in range(csv_config.data_values_start_line_index or 1)
+        ]
+        LOGGER.debug('header_lines: %s', header_lines)
+        record_metadata = get_record_metadata(
+            header_lines,
+            csv_config,
+            s3_object_name,
+            record_import_timestamp_as_string
         )
-    processed_record_iterable = process_record_list(
-        csv_dict_reader,
-        record_metadata,
-        default_value_processing_function_steps
-    )
 
-    return processed_record_iterable
+        standardized_csv_header = get_standardized_csv_header(
+            header_lines,
+            csv_config
+        )
+        LOGGER.debug('standardized_csv_header: %s', standardized_csv_header)
+
+        csv_dict_reader = csv.DictReader(
+            text_stream,
+            fieldnames=standardized_csv_header
+        )
+        if csv_config.record_processing_function_steps:
+            default_value_processing_function_steps.extend(
+                csv_config.record_processing_function_steps
+            )
+        processed_record_iterable = process_record_list(
+            csv_dict_reader,
+            record_metadata,
+            default_value_processing_function_steps
+        )
+
+        return processed_record_iterable
 
 
 def transform_load_data(

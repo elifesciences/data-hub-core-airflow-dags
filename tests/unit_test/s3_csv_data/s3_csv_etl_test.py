@@ -416,7 +416,6 @@ class TestTransformAndLoadData:
 
     def test_should_transform_write_and_load_to_bq(
             self,
-            mock_get_csv_dict_reader,
             mock_process_record_list,
             mock_load_file_into_bq
     ):
@@ -427,7 +426,6 @@ class TestTransformAndLoadData:
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
         )
-        mock_get_csv_dict_reader.assert_called()
         mock_process_record_list.assert_called()
         mock_load_file_into_bq.assert_called()
 
