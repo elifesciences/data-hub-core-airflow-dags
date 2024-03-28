@@ -7,7 +7,7 @@ import csv
 from csv import DictReader
 import json
 from datetime import datetime
-from typing import Optional, Sequence
+from typing import Iterable, Optional
 
 from botocore.exceptions import ClientError
 from dateutil import tz
@@ -202,11 +202,11 @@ def update_metadata_with_provenance(
     }
 
 
-def read_csv_and_transform(
+def iter_transformed_json_from_csv(
     s3_object_name: str,
     csv_config: S3BaseCsvConfig,
     record_import_timestamp_as_string: str,
-) -> Sequence[dict]:
+) -> Iterable[dict]:
     default_value_processing_function_steps = (
         [*DEFAULT_PROCESSING_STEPS]
     )
@@ -249,7 +249,11 @@ def transform_load_data(
     csv_config: S3BaseCsvConfig,
     record_import_timestamp_as_string: str,
 ):
-    processed_record = read_csv_and_transform(s3_object_name, csv_config, record_import_timestamp_as_string)
+    processed_record = iter_transformed_json_from_csv(
+        s3_object_name,
+        csv_config,
+        record_import_timestamp_as_string
+    )
 
     with TemporaryDirectory() as tmp_dir:
         full_temp_file_location = str(
