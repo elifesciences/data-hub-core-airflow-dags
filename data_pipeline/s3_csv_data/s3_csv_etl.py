@@ -216,11 +216,14 @@ def transform_load_data(
     )
     record_list = csv_string.split("\n")
     record_metadata = get_record_metadata(
-        record_list, csv_config, s3_object_name,
+        record_list,
+        csv_config,
+        s3_object_name,
         record_import_timestamp_as_string
     )
     standardized_csv_header = get_standardized_csv_header(
-        record_list, csv_config
+        record_list,
+        csv_config
     )
 
     csv_dict_reader = get_csv_dict_reader(
@@ -233,7 +236,8 @@ def transform_load_data(
             csv_config.record_processing_function_steps
         )
     processed_record = process_record_list(
-        csv_dict_reader, record_metadata,
+        csv_dict_reader,
+        record_metadata,
         default_value_processing_function_steps
     )
 
@@ -242,7 +246,8 @@ def transform_load_data(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         write_jsonl_to_file(
-            processed_record, full_temp_file_location
+            processed_record,
+            full_temp_file_location
         )
 
         if os.path.getsize(full_temp_file_location) > 0:
