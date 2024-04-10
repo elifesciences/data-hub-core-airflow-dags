@@ -7,7 +7,7 @@ import csv
 from csv import DictReader
 import json
 from datetime import datetime
-from typing import Iterable, Optional
+from typing import Optional
 
 from botocore.exceptions import ClientError
 from dateutil import tz
@@ -23,8 +23,10 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
-    s3_open_binary_read,
     upload_s3_object
+)
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string
 )
 from data_pipeline.utils.record_processing import (
     process_record_values, DEFAULT_PROCESSING_STEPS
@@ -113,6 +115,13 @@ def get_stored_state(
     }
 
 
+def get_csv_data_from_s3(s3_bucket_name: str, s3_object_name: str):
+
+    return download_s3_object_as_string(
+        s3_bucket_name, s3_object_name
+    )
+
+
 def get_sorted_in_sheet_metadata_index(csv_config: S3BaseCsvConfig):
     record_metadata = [
         {line_index_in_data: metadata_col_name}
@@ -193,65 +202,39 @@ def update_metadata_with_provenance(
     }
 
 
-def iter_transformed_json_from_csv(
-    s3_object_name: str,
-    csv_config: S3BaseCsvConfig,
-    record_import_timestamp_as_string: str,
-) -> Iterable[dict]:
+def transform_load_data(
+        s3_object_name: str,
+        csv_config: S3BaseCsvConfig,
+        record_import_timestamp_as_string: str,
+):
     default_value_processing_function_steps = (
         [*DEFAULT_PROCESSING_STEPS]
     )
     LOGGER.info('processing object: "%s"', s3_object_name)
-
-    with s3_open_binary_read(
-        csv_config.s3_bucket_name,
-        s3_object_name
-    ) as streaming_body:
-        LOGGER.debug('streaming_body: %s', streaming_body)
-        text_stream = io.TextIOWrapper(streaming_body, 'utf-8')
-        header_lines = [
-            text_stream.readline() for _ in range(csv_config.data_values_start_line_index or 1)
-        ]
-        LOGGER.debug('header_lines: %s', header_lines)
-        record_metadata = get_record_metadata(
-            header_lines,
-            csv_config,
-            s3_object_name,
-            record_import_timestamp_as_string
-        )
-
-        standardized_csv_header = get_standardized_csv_header(
-            header_lines,
-            csv_config
-        )
-        LOGGER.debug('standardized_csv_header: %s', standardized_csv_header)
-
-        csv_dict_reader = csv.DictReader(
-            text_stream,
-            fieldnames=standardized_csv_header
-        )
-        if csv_config.record_processing_function_steps:
-            default_value_processing_function_steps.extend(
-                csv_config.record_processing_function_steps
-            )
-        processed_record_iterable = process_record_list(
-            csv_dict_reader,
-            record_metadata,
-            default_value_processing_function_steps
-        )
-
-        return processed_record_iterable
-
-
-def transform_load_data(
-    s3_object_name: str,
-    csv_config: S3BaseCsvConfig,
-    record_import_timestamp_as_string: str,
-):
-    processed_record_iterable = iter_transformed_json_from_csv(
-        s3_object_name,
-        csv_config,
+    csv_string = get_csv_data_from_s3(
+        csv_config.s3_bucket_name, s3_object_name
+    )
+    record_list = csv_string.split("\n")
+    record_metadata = get_record_metadata(
+        record_list, csv_config, s3_object_name,
         record_import_timestamp_as_string
+    )
+    standardized_csv_header = get_standardized_csv_header(
+        record_list, csv_config
+    )
+
+    csv_dict_reader = get_csv_dict_reader(
+        csv_string,
+        standardized_csv_header,
+        csv_config
+    )
+    if csv_config.record_processing_function_steps:
+        default_value_processing_function_steps.extend(
+            csv_config.record_processing_function_steps
+        )
+    processed_record = process_record_list(
+        csv_dict_reader, record_metadata,
+        default_value_processing_function_steps
     )
 
     with TemporaryDirectory() as tmp_dir:
@@ -259,8 +242,7 @@ def transform_load_data(
             Path(tmp_dir, "downloaded_jsonl_data")
         )
         write_jsonl_to_file(
-            processed_record_iterable,
-            full_temp_file_location
+            processed_record, full_temp_file_location
         )
 
         if os.path.getsize(full_temp_file_location) > 0:
