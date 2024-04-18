@@ -29,19 +29,6 @@ def _mock_s3_client(mock_s3_client_function: MagicMock) -> MagicMock:
     return mock_s3_client_function.return_value
 
 
-@pytest.fixture(name="mock_download_string")
-def _download_string(mock_s3_client: MagicMock):
-    test_data = UnitTestData()
-    data = test_data.source_sample_string
-    body = six.BytesIO(data.encode())
-    streaming_body = StreamingBody(body, len(data.encode()))
-    resp = {"Body": streaming_body}
-    mock_s3_client.get_object.return_value = (
-        resp
-    )
-    yield mock_s3_client
-
-
 def _mock_download_fileobj(Bucket: str, Key: str, Fileobj: IO):  # pylint: disable=invalid-name
     LOGGER.debug('Bucket=%r, Key=%r', Bucket, Key)
     Fileobj.write(BINARY_DATA_1)
@@ -84,18 +71,25 @@ def test_should_download_yaml_as_json_file(
 
 
 def test_should_download_string_file(
-    mock_download_string: MagicMock,
+    mock_s3_client: MagicMock,
     mock_s3_client_function: MagicMock
 ):
     test_data = UnitTestData()
-    resp = download_s3_yaml_object_as_json(
+
+    data = test_data.source_sample_string
+    body = six.BytesIO(data.encode())
+    streaming_body = StreamingBody(body, len(data.encode()))
+    get_object_response = {"Body": streaming_body}
+    mock_s3_client.get_object.return_value = get_object_response
+
+    get_object_response = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
     )
     mock_s3_client_function.assert_called_with("s3")
-    mock_download_string.get_object.assert_called_with(
+    mock_s3_client.get_object.assert_called_with(
         Bucket=test_data.source_bucket, Key=test_data.source_object
     )
-    assert resp == test_data.source_sample_string
+    assert get_object_response == test_data.source_sample_string
 
 
 class UnitTestData:
