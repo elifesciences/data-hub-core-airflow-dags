@@ -29,19 +29,6 @@ def _mock_s3_client(mock_s3_client_function: MagicMock) -> MagicMock:
     return mock_s3_client_function.return_value
 
 
-@pytest.fixture(name="mock_download_yaml")
-def _download_yaml(mock_s3_client: MagicMock):
-    test_data = UnitTestData()
-    data = test_data.source_yaml
-    body = six.BytesIO(data.encode())
-    streaming_body = StreamingBody(body, len(data.encode()))
-    resp = {"Body": streaming_body}
-    mock_s3_client.get_object.return_value = (
-        resp
-    )
-    yield mock_s3_client
-
-
 @pytest.fixture(name="mock_download_string")
 def _download_string(mock_s3_client: MagicMock):
     test_data = UnitTestData()
@@ -75,15 +62,22 @@ class TestS3OpenBinaryReadWithTempFile:
 
 
 def test_should_download_yaml_as_json_file(
-    mock_download_yaml: MagicMock,
+    mock_s3_client: MagicMock,
     mock_s3_client_function: MagicMock
 ):
     test_data = UnitTestData()
+
+    data = test_data.source_yaml
+    body = six.BytesIO(data.encode())
+    streaming_body = StreamingBody(body, len(data.encode()))
+    get_object_response = {"Body": streaming_body}
+    mock_s3_client.get_object.return_value = get_object_response
+
     json_resp = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
     )
     mock_s3_client_function.assert_called_with("s3")
-    mock_download_yaml.get_object.assert_called_with(
+    mock_s3_client.get_object.assert_called_with(
         Bucket=test_data.source_bucket, Key=test_data.source_object
     )
     assert json_resp == test_data.expected_yaml_to_json_value
