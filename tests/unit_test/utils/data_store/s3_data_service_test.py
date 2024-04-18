@@ -55,7 +55,7 @@ def _download_string(mock_s3_client: MagicMock):
     yield mock_s3_client
 
 
-def _mock_download_fileobj(Bucket: str, Key: str, Fileobj: IO):
+def _mock_download_fileobj(Bucket: str, Key: str, Fileobj: IO):  # pylint: disable=invalid-name
     LOGGER.debug('Bucket=%r, Key=%r', Bucket, Key)
     Fileobj.write(BINARY_DATA_1)
 
