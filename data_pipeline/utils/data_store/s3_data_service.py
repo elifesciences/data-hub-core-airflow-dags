@@ -1,5 +1,6 @@
 import json
 from contextlib import contextmanager
+from tempfile import NamedTemporaryFile
 
 import yaml
 import boto3
@@ -15,6 +16,15 @@ def s3_open_binary_read(bucket: str, object_key: str):
         yield streaming_body
     finally:
         streaming_body.close()
+
+
+@contextmanager
+def s3_open_binary_read_with_temp_file(bucket: str, object_key: str):
+    s3_client = boto3.client("s3")
+    with NamedTemporaryFile() as temp_fp:
+        s3_client.download_fileobj(Bucket=bucket, Key=object_key, Fileobj=temp_fp)
+        temp_fp.seek(0)
+        yield temp_fp
 
 
 def download_s3_yaml_object_as_json(bucket: str, object_key: str) -> dict:

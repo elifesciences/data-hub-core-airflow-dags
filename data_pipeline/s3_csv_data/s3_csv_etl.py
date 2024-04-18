@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import os
 import io
 import logging
@@ -7,7 +8,7 @@ import csv
 from csv import DictReader
 import json
 from datetime import datetime
-from typing import Iterable, Optional
+from typing import Iterable, Iterator, Optional
 
 from botocore.exceptions import ClientError
 from dateutil import tz
@@ -23,7 +24,7 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
-    s3_open_binary_read,
+    s3_open_binary_read_with_temp_file,
     upload_s3_object
 )
 from data_pipeline.utils.record_processing import (
@@ -193,17 +194,18 @@ def update_metadata_with_provenance(
     }
 
 
+@contextmanager
 def iter_transformed_json_from_csv(
     s3_object_name: str,
     csv_config: S3BaseCsvConfig,
     record_import_timestamp_as_string: str,
-) -> Iterable[dict]:
+) -> Iterator[Iterable[dict]]:
     default_value_processing_function_steps = (
         [*DEFAULT_PROCESSING_STEPS]
     )
     LOGGER.info('processing object: "%s"', s3_object_name)
 
-    with s3_open_binary_read(
+    with s3_open_binary_read_with_temp_file(
         csv_config.s3_bucket_name,
         s3_object_name
     ) as streaming_body:
@@ -240,7 +242,7 @@ def iter_transformed_json_from_csv(
             default_value_processing_function_steps
         )
 
-        return processed_record_iterable
+        yield processed_record_iterable
 
 
 def transform_load_data(
@@ -248,39 +250,38 @@ def transform_load_data(
     csv_config: S3BaseCsvConfig,
     record_import_timestamp_as_string: str,
 ):
-    processed_record_iterable = iter_transformed_json_from_csv(
+    with iter_transformed_json_from_csv(
         s3_object_name,
         csv_config,
         record_import_timestamp_as_string
-    )
-
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        write_jsonl_to_file(
-            processed_record_iterable,
-            full_temp_file_location
-        )
-
-        if os.path.getsize(full_temp_file_location) > 0:
-            create_or_extend_table_schema(
-                csv_config.gcp_project,
-                csv_config.dataset_name,
-                csv_config.table_name,
-                full_temp_file_location,
-                quoted_values_are_strings=False
+    ) as processed_record_iterable:
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
             )
-            write_disposition = get_write_disposition(csv_config)
-
-            load_file_into_bq(
-                filename=full_temp_file_location,
-                table_name=csv_config.table_name,
-                auto_detect_schema=False,
-                dataset_name=csv_config.dataset_name,
-                write_mode=write_disposition,
-                project_name=csv_config.gcp_project,
+            write_jsonl_to_file(
+                processed_record_iterable,
+                full_temp_file_location
             )
+
+            if os.path.getsize(full_temp_file_location) > 0:
+                create_or_extend_table_schema(
+                    csv_config.gcp_project,
+                    csv_config.dataset_name,
+                    csv_config.table_name,
+                    full_temp_file_location,
+                    quoted_values_are_strings=False
+                )
+                write_disposition = get_write_disposition(csv_config)
+
+                load_file_into_bq(
+                    filename=full_temp_file_location,
+                    table_name=csv_config.table_name,
+                    auto_detect_schema=False,
+                    dataset_name=csv_config.dataset_name,
+                    write_mode=write_disposition,
+                    project_name=csv_config.gcp_project,
+                )
 
 
 def skip_stream_till_line(text_stream, till_line_index):
