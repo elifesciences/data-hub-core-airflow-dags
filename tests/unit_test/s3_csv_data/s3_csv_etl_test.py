@@ -42,10 +42,12 @@ def _os_stat():
         yield mock
 
 
-@pytest.fixture(name="mock_s3_open_binary_read", autouse=True)
-def _s3_open_binary_read():
-    with patch.object(s3_csv_etl,
-                      "s3_open_binary_read") as mock:
+@pytest.fixture(name="mock_s3_open_binary_read_with_temp_file", autouse=True)
+def _mock_s3_open_binary_read_with_temp_file():
+    with patch.object(
+        s3_csv_etl,
+        "s3_open_binary_read_with_temp_file"
+    ) as mock:
         mock.return_value.__enter__.return_value = io.BytesIO(
             TEST_DOWNLOADED_SHEET.encode('utf-8')
         )
@@ -329,19 +331,20 @@ class TestCsvHeader:
 class TestIterTransformedJsonFromCsv:
     def test_should_transform_a_simple_csv_file(
         self,
-        mock_s3_open_binary_read: MagicMock
+        mock_s3_open_binary_read_with_temp_file: MagicMock
     ):
-        mock_s3_open_binary_read.return_value.__enter__.return_value = io.BytesIO(
+        mock_s3_open_binary_read_with_temp_file.return_value.__enter__.return_value = io.BytesIO(
             '\n'.join(['name,age', 'hazal,6']).encode('utf-8')
         )
         minimal_csv_config = get_s3_csv_config(MINIMAL_CSV_CONFIG_DICT)
         record_import_timestamp_as_string = ""
         s3_object_name = "s3_object"
-        actual_result = list(iter_transformed_json_from_csv(
+        with iter_transformed_json_from_csv(
             s3_object_name,
             minimal_csv_config,
             record_import_timestamp_as_string
-        ))
+        ) as transformed_json_iterable:
+            actual_result = list(transformed_json_iterable)
         expected_result = [{
             'name': 'hazal',
             'age': '6',
@@ -351,9 +354,9 @@ class TestIterTransformedJsonFromCsv:
 
     def test_should_transform_a_csv_file_with_metadata(
         self,
-        mock_s3_open_binary_read: MagicMock
+        mock_s3_open_binary_read_with_temp_file: MagicMock
     ):
-        mock_s3_open_binary_read.return_value.__enter__.return_value = io.BytesIO(
+        mock_s3_open_binary_read_with_temp_file.return_value.__enter__.return_value = io.BytesIO(
             '\n'.join(['metadata', 'name,age', 'hazal,6']).encode('utf-8')
         )
         minimal_csv_config = get_s3_csv_config({
@@ -367,11 +370,12 @@ class TestIterTransformedJsonFromCsv:
         })
         record_import_timestamp_as_string = ""
         s3_object_name = "s3_object"
-        actual_result = list(iter_transformed_json_from_csv(
+        with iter_transformed_json_from_csv(
             s3_object_name,
             minimal_csv_config,
             record_import_timestamp_as_string
-        ))
+        ) as transformed_json_iterable:
+            actual_result = list(transformed_json_iterable)
         expected_result = [{
             'name': 'hazal',
             'age': '6',
