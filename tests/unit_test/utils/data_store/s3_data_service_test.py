@@ -48,17 +48,22 @@ class TestS3OpenBinaryReadWithTempFile:
             assert data_fp.read() == BINARY_DATA_1
 
 
+def _get_streaming_body_for_data(data: str) -> StreamingBody:
+    body = six.BytesIO(data.encode())
+    streaming_body = StreamingBody(body, len(data.encode()))
+    get_object_response = {"Body": streaming_body}
+    return get_object_response
+
+
 def test_should_download_yaml_as_json_file(
     mock_s3_client: MagicMock,
     mock_s3_client_function: MagicMock
 ):
     test_data = UnitTestData()
 
-    data = test_data.source_yaml
-    body = six.BytesIO(data.encode())
-    streaming_body = StreamingBody(body, len(data.encode()))
-    get_object_response = {"Body": streaming_body}
-    mock_s3_client.get_object.return_value = get_object_response
+    mock_s3_client.get_object.return_value = _get_streaming_body_for_data(
+        test_data.source_yaml
+    )
 
     json_resp = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
@@ -76,11 +81,9 @@ def test_should_download_string_file(
 ):
     test_data = UnitTestData()
 
-    data = test_data.source_sample_string
-    body = six.BytesIO(data.encode())
-    streaming_body = StreamingBody(body, len(data.encode()))
-    get_object_response = {"Body": streaming_body}
-    mock_s3_client.get_object.return_value = get_object_response
+    mock_s3_client.get_object.return_value = _get_streaming_body_for_data(
+        test_data.source_sample_string
+    )
 
     get_object_response = download_s3_yaml_object_as_json(
         test_data.source_bucket, test_data.source_object
