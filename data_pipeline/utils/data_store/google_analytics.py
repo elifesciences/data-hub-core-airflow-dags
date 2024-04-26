@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Sequence
 from apiclient import discovery
 from data_pipeline.utils.data_store.google_service_client import (
     MemoryCache, get_credentials
@@ -23,9 +23,9 @@ class GoogleAnalyticsClient:
     def get_report(
             self,
             view_id: str,
-            date_ranges: list,
-            metrics: list,
-            dimensions: list,
+            date_ranges: Sequence[dict],
+            metrics: Sequence[dict],
+            dimensions: Sequence[dict],
             page_token: Optional[str] = None,
             page_size: int = 5000
     ):

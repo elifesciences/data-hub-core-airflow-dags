@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Sequence
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -63,8 +63,12 @@ def transform_response_to_bq_compatible_record(
 
 # pylint: disable=too-many-arguments
 def iter_get_report_pages(
-        analytics, metrics: list, dimensions: list,
-        ga_config, from_date: str, to_date: Optional[str] = None
+        analytics: GoogleAnalyticsClient,
+        metrics: Sequence[dict],
+        dimensions: Sequence[dict],
+        ga_config: GoogleAnalyticsConfig,
+        from_date: str,
+        to_date: Optional[str] = None
 ):
     LOGGER.info('metrics: %r', metrics)
     LOGGER.info('dimensions: %r', dimensions)
