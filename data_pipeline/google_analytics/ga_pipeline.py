@@ -20,6 +20,7 @@ from data_pipeline.google_analytics.etl_state import (
     update_state
 )
 from data_pipeline.utils.data_store.google_analytics import (
+    DEFAULT_PAGE_SIZE,
     GoogleAnalyticsClient
 )
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
@@ -68,7 +69,8 @@ def iter_get_report_pages(
         dimensions: Sequence[dict],
         ga_config: GoogleAnalyticsConfig,
         from_date: str,
-        to_date: Optional[str] = None
+        to_date: Optional[str] = None,
+        page_size: int = DEFAULT_PAGE_SIZE
 ):
     LOGGER.info('metrics: %r', metrics)
     LOGGER.info('dimensions: %r', dimensions)
@@ -81,7 +83,8 @@ def iter_get_report_pages(
             view_id=ga_config.ga_view_id,
             metrics=metrics,
             dimensions=dimensions,
-            page_token=page_token
+            page_token=page_token,
+            page_size=page_size
         )
 
         reports = response.get('reports', [])
