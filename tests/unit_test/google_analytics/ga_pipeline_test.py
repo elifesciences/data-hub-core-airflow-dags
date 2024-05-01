@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 from data_pipeline.google_analytics import ga_pipeline as ga_pipeline_module
 from data_pipeline.google_analytics.ga_pipeline import (
-    transform_response_to_bq_compatible_record,
-    etl_google_analytics
+    etl_google_analytics_for_date_range,
+    transform_response_to_bq_compatible_record
 )
 from data_pipeline.google_analytics.ga_config import (
     GoogleAnalyticsConfig
@@ -159,7 +159,7 @@ class TestETLGA:
             'project_name',
             'timestamp_field_name'
         )
-        etl_google_analytics(
+        etl_google_analytics_for_date_range(
             ga_config,
             start_date=start_date,
             end_date=end_date

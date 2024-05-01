@@ -17,6 +17,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
 from data_pipeline.google_analytics.etl_state import (
+    get_stored_state_date_or_default_start_date,
     update_state
 )
 from data_pipeline.utils.data_store.google_analytics import (
@@ -100,7 +101,7 @@ def iter_get_report_pages(
             break
 
 
-def etl_google_analytics(
+def etl_google_analytics_for_date_range(
         ga_config: GoogleAnalyticsConfig,
         start_date: datetime,
         end_date: Optional[datetime] = None,
@@ -133,6 +134,24 @@ def etl_google_analytics(
         start_date,
         ga_config.state_s3_bucket_name,
         ga_config.state_s3_object_name
+    )
+
+
+def etl_google_analytics(
+        ga_config: GoogleAnalyticsConfig,
+        externally_selected_start_date: Optional[datetime] = None,
+        externally_selected_end_date: Optional[datetime] = None
+):
+    start_date = (
+        externally_selected_start_date
+        or get_stored_state_date_or_default_start_date(ga_config)
+    )
+    LOGGER.info('start_date: %r', start_date)
+    LOGGER.info('end_date: %r', externally_selected_end_date)
+    etl_google_analytics_for_date_range(
+        ga_config=ga_config,
+        start_date=start_date,
+        end_date=externally_selected_end_date
     )
 
 

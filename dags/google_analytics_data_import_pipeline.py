@@ -14,7 +14,6 @@ from data_pipeline.google_analytics.ga_config import (
 )
 from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
 from data_pipeline.google_analytics.etl_state import (
-    get_stored_state_date_or_default_start_date,
     parse_date_or_none
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
@@ -97,17 +96,10 @@ def google_analytics_etl(**kwargs):
                 multi_ga_config.import_timestamp_field_name
             )
         )
-
-        start_date = (
-            externally_selected_start_date
-            or get_stored_state_date_or_default_start_date(ga_config)
-        )
-        LOGGER.info('start_date: %r', start_date)
-        LOGGER.info('end_date: %r', externally_selected_end_date)
         etl_google_analytics(
             ga_config=ga_config,
-            start_date=start_date,
-            end_date=externally_selected_end_date
+            externally_selected_start_date=externally_selected_start_date,
+            externally_selected_end_date=externally_selected_end_date
         )
 
 
