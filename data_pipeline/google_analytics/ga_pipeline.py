@@ -104,12 +104,10 @@ def iter_get_report_pages(
 def etl_google_analytics_for_date_range(
         ga_config: GoogleAnalyticsConfig,
         start_date: datetime,
-        end_date: Optional[datetime] = None,
+        end_date: datetime
 ):
     current_timestamp_as_string = get_current_timestamp_as_string()
     analytics = GoogleAnalyticsClient()
-    if not end_date:
-        end_date = start_date + timedelta(days=0)
     from_date = start_date.strftime("%Y-%m-%d")
     to_date = end_date.strftime("%Y-%m-%d")
     dimensions = [
@@ -146,12 +144,16 @@ def etl_google_analytics(
         externally_selected_start_date
         or get_stored_state_date_or_default_start_date(ga_config)
     )
+    end_date = (
+        externally_selected_end_date
+        or (start_date + timedelta(days=0))
+    )
     LOGGER.info('start_date: %r', start_date)
-    LOGGER.info('end_date: %r', externally_selected_end_date)
+    LOGGER.info('end_date: %r', end_date)
     etl_google_analytics_for_date_range(
         ga_config=ga_config,
         start_date=start_date,
-        end_date=externally_selected_end_date
+        end_date=end_date
     )
 
 
