@@ -3,7 +3,6 @@
 import os
 import logging
 from datetime import timedelta
-from datetime import datetime
 
 from airflow.operators.python import PythonOperator
 
@@ -15,7 +14,7 @@ from data_pipeline.google_analytics.ga_config import (
 )
 from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
 from data_pipeline.google_analytics.etl_state import (
-    get_stored_state, STORED_STATE_FORMAT
+    get_stored_state, parse_date_or_none
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
 
@@ -99,16 +98,8 @@ def google_analytics_etl(**kwargs):
         )
 
         start_date = start_date or get_stored_state(ga_config)
-        start_date = (
-            datetime.strptime(
-                start_date, STORED_STATE_FORMAT
-            ) if start_date else None
-        )
-        end_date = (
-            datetime.strptime(
-                end_date, STORED_STATE_FORMAT
-            ) if end_date else None
-        )
+        start_date = parse_date_or_none(start_date)
+        end_date = parse_date_or_none(end_date)
         LOGGER.info('start_date: %r', start_date)
         LOGGER.info('end_date: %r', end_date)
         etl_google_analytics(

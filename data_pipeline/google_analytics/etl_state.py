@@ -10,6 +10,12 @@ from data_pipeline.utils.data_store.s3_data_service import (
 STORED_STATE_FORMAT = '%Y-%m-%d'
 
 
+def parse_date_or_none(date_str: Optional[str]) -> Optional[datetime]:
+    if not date_str:
+        return None
+    return datetime.strptime(date_str, STORED_STATE_FORMAT)
+
+
 def update_state(
         latest_state_date: datetime,
         statefile_s3_bucket: str,
