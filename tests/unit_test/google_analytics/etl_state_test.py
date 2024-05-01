@@ -1,6 +1,8 @@
-from unittest.mock import patch
+from typing import Iterator
+from unittest.mock import MagicMock, patch
+
 import pytest
-from botocore.exceptions import ClientError
+
 from data_pipeline.google_analytics import etl_state as etl_state_module
 from data_pipeline.google_analytics.etl_state import (
     get_stored_state,
@@ -30,10 +32,11 @@ GA_CONFIG = {
 IMPORTED_TIMESTAMP_FIELD_NAME = 'imported_timestamp'
 
 
-@pytest.fixture(name="mock_download_s3_json_object")
-def _download_s3_json_object():
+@pytest.fixture(name="download_s3_object_as_string_or_file_not_found_error_mock")
+def _download_s3_object_as_string_or_file_not_found_error_mock() -> Iterator[MagicMock]:
     with patch.object(
-            etl_state_module, 'download_s3_object_as_string'
+        etl_state_module,
+        'download_s3_object_as_string_or_file_not_found_error'
     ) as mock:
         yield mock
 
@@ -41,16 +44,11 @@ def _download_s3_json_object():
 class TestGetStoredGAProcessingState:
     # pylint: disable=unused-argument
     def test_get_state_no_state_file_in_bucket(
-            self, mock_download_s3_json_object
+            self,
+            download_s3_object_as_string_or_file_not_found_error_mock
     ):
-        s3_client_error_response = {
-            'Error': {
-                'Code': 'NoSuchKey'
-            }
-        }
-        mock_download_s3_json_object.side_effect = (
-            ClientError(operation_name='GetObject',
-                        error_response=s3_client_error_response)
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
+            FileNotFoundError()
         )
         ga_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
         default_initial_state_timestamp_as_string = (
@@ -66,12 +64,13 @@ class TestGetStoredGAProcessingState:
         )
 
     def test_should_get_state_from_file_in_s3_bucket(
-            self, mock_download_s3_json_object
+            self,
+            download_s3_object_as_string_or_file_not_found_error_mock
     ):
         ejp_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
         default_initial_state_timestamp_as_string = ''
         last_stored_modified_timestamp = "2018-01-01 00:00:00"
-        mock_download_s3_json_object.return_value = (
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
             last_stored_modified_timestamp
         )
         stored_state = get_stored_state(
