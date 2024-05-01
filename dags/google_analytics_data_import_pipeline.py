@@ -77,10 +77,10 @@ def google_analytics_etl(**kwargs):
         )
     )
 
-    start_date = parse_date_or_none(externally_triggered_parameters.get(
+    externally_selected_start_date = parse_date_or_none(externally_triggered_parameters.get(
         ExternalTriggerConfig.START_DATE
     ))
-    end_date = parse_date_or_none(externally_triggered_parameters.get(
+    externally_selected_end_date = parse_date_or_none(externally_triggered_parameters.get(
         ExternalTriggerConfig.END_DATE
     ))
 
@@ -98,13 +98,16 @@ def google_analytics_etl(**kwargs):
             )
         )
 
-        start_date = start_date or get_stored_state_date_or_default_start_date(ga_config)
+        start_date = (
+            externally_selected_start_date
+            or get_stored_state_date_or_default_start_date(ga_config)
+        )
         LOGGER.info('start_date: %r', start_date)
-        LOGGER.info('end_date: %r', end_date)
+        LOGGER.info('end_date: %r', externally_selected_end_date)
         etl_google_analytics(
             ga_config=ga_config,
             start_date=start_date,
-            end_date=end_date
+            end_date=externally_selected_end_date
         )
 
 
