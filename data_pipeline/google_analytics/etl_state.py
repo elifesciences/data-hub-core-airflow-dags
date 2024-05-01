@@ -1,19 +1,15 @@
 from datetime import datetime
 from typing import Optional
 from botocore.exceptions import ClientError
-from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
+
+from data_pipeline.google_analytics.ga_config import (
+    STORED_STATE_FORMAT,
+    GoogleAnalyticsConfig,
+    parse_date_or_none
+)
 from data_pipeline.utils.data_store.s3_data_service import (
     upload_s3_object, download_s3_object_as_string
 )
-
-
-STORED_STATE_FORMAT = '%Y-%m-%d'
-
-
-def parse_date_or_none(date_str: Optional[str]) -> Optional[datetime]:
-    if not date_str:
-        return None
-    return datetime.strptime(date_str, STORED_STATE_FORMAT)
 
 
 def update_state(

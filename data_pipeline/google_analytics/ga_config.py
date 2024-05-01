@@ -1,7 +1,18 @@
+from datetime import datetime
+from typing import Optional
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 # pylint: disable=too-few-public-methods,simplifiable-if-expression,
+
+
+STORED_STATE_FORMAT = '%Y-%m-%d'
+
+
+def parse_date_or_none(date_str: Optional[str]) -> Optional[datetime]:
+    if not date_str:
+        return None
+    return datetime.strptime(date_str, STORED_STATE_FORMAT)
 
 
 class MultiGoogleAnalyticsConfig:
