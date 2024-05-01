@@ -84,21 +84,21 @@ def google_analytics_etl(**kwargs):
         ExternalTriggerConfig.END_DATE
     )
 
-    multi_ga_conf = MultiGoogleAnalyticsConfig(
+    multi_ga_config = MultiGoogleAnalyticsConfig(
         multi_google_analytics_config_dict,
         dep_env
     )
 
-    for ga_conf_dict in multi_ga_conf.google_analytics_config:
-        ga_conf = GoogleAnalyticsConfig(
-            config=ga_conf_dict,
-            gcp_project=multi_ga_conf.gcp_project,
+    for ga_config_dict in multi_ga_config.google_analytics_config:
+        ga_config = GoogleAnalyticsConfig(
+            config=ga_config_dict,
+            gcp_project=multi_ga_config.gcp_project,
             import_timestamp_field_name=(
-                multi_ga_conf.import_timestamp_field_name
+                multi_ga_config.import_timestamp_field_name
             )
         )
 
-        start_date = start_date or get_stored_state(ga_conf)
+        start_date = start_date or get_stored_state(ga_config)
         start_date = (
             datetime.strptime(
                 start_date, STORED_STATE_FORMAT
@@ -112,7 +112,7 @@ def google_analytics_etl(**kwargs):
         LOGGER.info('start_date: %r', start_date)
         LOGGER.info('end_date: %r', end_date)
         etl_google_analytics(
-            ga_config=ga_conf,
+            ga_config=ga_config,
             start_date=start_date,
             end_date=end_date
         )
