@@ -46,3 +46,12 @@ def get_stored_state(
         else:
             raise ex
     return stored_state
+
+
+def get_stored_state_date_or_default_start_date(
+        data_config: GoogleAnalyticsConfig
+) -> datetime:
+    date_str = get_stored_state(data_config)
+    stored_date = parse_date_or_none(date_str)
+    assert stored_date
+    return stored_date
