@@ -128,6 +128,7 @@ def get_provenance_containing_dict(
     return {
         'provenance': {
             timestamp_field_name: current_etl_time,
+            'view_id': ga_config.ga_view_id,
             'annotation': ga_config.record_annotations,
             'dimension_names': ga_config.dimensions,
             'metrics_names': ga_config.metrics,
