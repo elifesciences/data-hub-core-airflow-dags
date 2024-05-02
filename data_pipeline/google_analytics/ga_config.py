@@ -60,6 +60,7 @@ class GoogleAnalyticsConfig:
     state_s3_bucket_name: str
     state_s3_object_name: str
     record_annotations: Mapping[str, str]
+    log_response: bool = False
     pipeline_id: Optional[str] = None
 
     @staticmethod
@@ -85,7 +86,8 @@ class GoogleAnalyticsConfig:
                 annotation['recordAnnotationFieldName']: annotation['recordAnnotationValue']
                 for annotation in config.get("recordAnnotations", [])
                 if annotation.get("recordAnnotationFieldName")
-            }
+            },
+            log_response=config.get('logResponse', False)
         )
 
 

@@ -34,7 +34,6 @@ GA_DATE_RANGE_KEY = "date_range"
 def iter_bq_compatible_record_for_response(
     response: dict
 ) -> Iterable[dict]:
-    LOGGER.info('response: %r', response)
     for report in response.get('reports', []):
         column_header = report.get('columnHeader', {})
         dimension_headers = column_header.get('dimensions', [])
@@ -178,6 +177,8 @@ def process_paged_report_response(
     ga_config: GoogleAnalyticsConfig,
     current_timestamp_as_string: str
 ):
+    if ga_config.log_response:
+        LOGGER.info('paged_report_response: %r', paged_report_response)
     transformed_response_with_provenance = (
         add_provenance(
             transform_response_to_bq_compatible_record(
