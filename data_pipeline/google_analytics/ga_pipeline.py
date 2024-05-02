@@ -128,8 +128,10 @@ def etl_google_analytics_for_date_range(
             paged_report_response, ga_config,
             current_timestamp_as_string
         )
+    new_state_date = end_date + timedelta(days=1)
+    LOGGER.info('Updating state to: %r', new_state_date)
     update_state(
-        start_date,
+        new_state_date,
         ga_config.state_s3_bucket_name,
         ga_config.state_s3_object_name
     )
@@ -151,6 +153,9 @@ def etl_google_analytics(
     )
     LOGGER.info('start_date: %r', start_date)
     LOGGER.info('end_date: %r', end_date)
+    if start_date > end_date:
+        LOGGER.info('Start date after end date. Nothing to process.')
+        return
     etl_google_analytics_for_date_range(
         ga_config=ga_config,
         start_date=start_date,
