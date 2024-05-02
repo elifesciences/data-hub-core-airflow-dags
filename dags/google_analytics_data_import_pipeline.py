@@ -39,7 +39,7 @@ GOOGLE_ANALYTICS_DAG = create_dag(
     schedule_interval=os.getenv(
         GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
     ),
-    dagrun_timeout=timedelta(minutes=60)
+    dagrun_timeout=timedelta(days=1)
 )
 
 
