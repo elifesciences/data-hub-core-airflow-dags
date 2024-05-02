@@ -59,6 +59,7 @@ class GoogleAnalyticsConfig:
         )
         self.pipeline_id = config.get("pipelineID")
         self.default_start_date = parse_date(config["defaultStartDate"])
+        self.end_date = parse_date_or_none(config.get("endDate"))
         self.dataset = config["dataset"]
         self.table = config["table"]
         self.ga_view_id = config["viewId"]

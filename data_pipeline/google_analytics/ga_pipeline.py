@@ -146,6 +146,7 @@ def etl_google_analytics(
     )
     end_date = (
         externally_selected_end_date
+        or ga_config.end_date
         or (start_date + timedelta(days=0))
     )
     LOGGER.info('start_date: %r', start_date)
