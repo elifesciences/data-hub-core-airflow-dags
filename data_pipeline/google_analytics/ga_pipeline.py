@@ -75,7 +75,8 @@ def transform_response_to_bq_compatible_record(
     if not response:
         raise AssertionError('Response is empty')
     yield {
-        'records': list(iter_bq_compatible_record_for_response(response))
+        'records': list(iter_bq_compatible_record_for_response(response)),
+        'raw_response': response
     }
 
 
