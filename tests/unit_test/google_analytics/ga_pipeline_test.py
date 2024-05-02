@@ -23,7 +23,7 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
 @pytest.fixture(name='mock_update_state')
 def _update_state():
     with patch.object(
-            ga_pipeline_module, 'update_state'
+        ga_pipeline_module, 'update_state'
     ) as mock:
         yield mock
 
@@ -31,7 +31,7 @@ def _update_state():
 @pytest.fixture(name='mock_google_analytics_client')
 def _ga_client():
     with patch.object(
-            ga_pipeline_module, 'GoogleAnalyticsClient'
+        ga_pipeline_module, 'GoogleAnalyticsClient'
     ) as mock:
         yield mock
 
@@ -39,7 +39,7 @@ def _ga_client():
 @pytest.fixture(name='mock_get_current_timestamp_as_string')
 def _get_current_timestamp_as_string():
     with patch.object(
-            ga_pipeline_module, 'get_current_timestamp_as_string'
+        ga_pipeline_module, 'get_current_timestamp_as_string'
     ) as mock:
         yield mock
 
