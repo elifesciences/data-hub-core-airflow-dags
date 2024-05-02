@@ -20,6 +20,7 @@ from data_pipeline.utils.data_store.google_analytics import (
     DEFAULT_PAGE_SIZE,
     GoogleAnalyticsClient
 )
+from data_pipeline.utils.progress import ProgressMonitor
 
 LOGGER = logging.getLogger(__name__)
 
@@ -186,6 +187,7 @@ def iter_bq_records_for_paged_report_response_iterable(
     start_date_str: str,
     end_date_str: str
 ) -> Iterable[dict]:
+    progress_monitor = ProgressMonitor(message_prefix='Processed response page:')
     for paged_report_response in paged_report_response_iterable:
         response_timestamp_as_string = get_current_timestamp_as_string()
         yield from iter_bq_records_for_paged_report_response(
@@ -196,6 +198,8 @@ def iter_bq_records_for_paged_report_response_iterable(
             start_date_str=start_date_str,
             end_date_str=end_date_str
         )
+        progress_monitor.increment()
+        LOGGER.info('%s', progress_monitor)
 
 
 def etl_google_analytics_for_date_range(
