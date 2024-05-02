@@ -31,8 +31,8 @@ LOGGER = logging.getLogger(__name__)
 GA_DATE_RANGE_KEY = "date_range"
 
 
-def transform_response_to_bq_compatible_record(
-    response
+def iter_bq_compatible_record_for_response(
+    response: dict
 ) -> Iterable[dict]:
     LOGGER.info('response: %r', response)
     for report in response.get('reports', []):
@@ -61,6 +61,17 @@ def transform_response_to_bq_compatible_record(
                     ] = value
 
             yield bq_json_formatted_record
+
+
+def transform_response_to_bq_compatible_record(
+    response: dict
+) -> Iterable[dict]:
+    if not response:
+        LOGGER.warning('Response is empty')
+        return
+    yield {
+        'records': list(iter_bq_compatible_record_for_response(response))
+    }
 
 
 # pylint: disable=too-many-arguments

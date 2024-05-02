@@ -125,7 +125,8 @@ class TestTransformResponseToBQCompatibleRecords:
              'ga_sessions': '12798', 'ga_sessionDuration': '2215033.0'}
         ]
 
-        assert response == expected_data
+        assert len(response) == 1
+        assert response[0]['records'] == expected_data
 
 
 class TestETLGA:
