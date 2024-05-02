@@ -82,8 +82,7 @@ class GoogleAnalyticsConfig:
             state_s3_bucket_name=config["stateFile"]["bucketName"],
             state_s3_object_name=config["stateFile"]["objectName"],
             record_annotations={
-                annotation.get("recordAnnotationFieldName"):
-                    annotation.get("recordAnnotationFieldName")
+                annotation['recordAnnotationFieldName']: annotation['recordAnnotationValue']
                 for annotation in config.get("recordAnnotations", [])
                 if annotation.get("recordAnnotationFieldName")
             }
