@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, Mapping, Optional, Sequence
+from typing import Iterable, Optional, Sequence
 from datetime import datetime, timedelta
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
@@ -121,16 +121,14 @@ def iter_get_report_pages(
 def get_provenance_containing_dict(
     timestamp_field_name: str,
     current_etl_time: str,
-    record_annotation: Mapping[str, str],
-    dimension_names: Sequence[str],
-    metrics_names: Sequence[str]
+    ga_config: GoogleAnalyticsConfig
 ) -> dict:
     return {
         'provenance': {
             timestamp_field_name: current_etl_time,
-            'annotation': record_annotation,
-            'dimension_names': dimension_names,
-            'metrics_names': metrics_names
+            'annotation': ga_config.record_annotations,
+            'dimension_names': ga_config.dimensions,
+            'metrics_names': ga_config.metrics
         }
     }
 
@@ -156,9 +154,7 @@ def iter_bq_records_for_paged_report_response(
     provenance_containing_dict = get_provenance_containing_dict(
         timestamp_field_name=ga_config.import_timestamp_field_name,
         current_etl_time=current_timestamp_as_string,
-        record_annotation=ga_config.record_annotations,
-        dimension_names=ga_config.dimensions,
-        metrics_names=ga_config.metrics
+        ga_config=ga_config
     )
     yield from (
         add_provenance(
