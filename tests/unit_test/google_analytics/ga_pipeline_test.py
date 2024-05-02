@@ -71,49 +71,42 @@ GA_CONFIG = {
 
 
 TEST_DATA = {
-        'reports':
-        [
-            {
-                'data':
-                    {
-                        'rows': [
-                            {
-                                'metrics': [
-                                    {'values': ['12566', '1172250.0']}
-                                ],
-                                'dimensions': ['New Visitor']
-                            },
-                            {
-                                'metrics': [
-                                    {'values': ['12798', '2215033.0']}
-                                ],
-                                'dimensions': ['Returning Visitor']
-                            }
-                        ],
-                        'maximums': [
-                            {'values': ['12798', '2215033.0']}
-                        ],
-                        'minimums': [
-                            {'values': ['12566', '1172250.0']}
-                        ],
-                        'isDataGolden': True,
-                        'totals': [{'values': ['25364', '3387283.0']}],
-                        'rowCount': 2
-                    },
-                'columnHeader': {
-                    'dimensions': ['ga:userType'],
-                    'metricHeader': {
-                        'metricHeaderEntries': [
-                            {'type': 'INTEGER', 'name': 'ga:sessions'},
-                            {'type': 'TIME',
-                             'name': 'ga:sessionDuration'}
-                        ]
-                    }
-                    }
-
+    'reports': [{
+        'data': {
+            'rows': [
+                {
+                    'metrics': [
+                        {'values': ['12566', '1172250.0']}
+                    ],
+                    'dimensions': ['New Visitor']
+                }, {
+                    'metrics': [
+                        {'values': ['12798', '2215033.0']}
+                    ],
+                    'dimensions': ['Returning Visitor']
+                }
+            ],
+            'maximums': [
+                {'values': ['12798', '2215033.0']}
+            ],
+            'minimums': [
+                {'values': ['12566', '1172250.0']}
+            ],
+            'isDataGolden': True,
+            'totals': [{'values': ['25364', '3387283.0']}],
+            'rowCount': 2
+        },
+        'columnHeader': {
+            'dimensions': ['ga:userType'],
+            'metricHeader': {
+                'metricHeaderEntries': [
+                    {'type': 'INTEGER', 'name': 'ga:sessions'},
+                    {'type': 'TIME', 'name': 'ga:sessionDuration'}
+                ]
             }
-        ]
-    }
+        }
+    }]
+}
 
 
 class TestTransformResponseToBQCompatibleRecords:
