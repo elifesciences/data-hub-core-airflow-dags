@@ -179,6 +179,21 @@ def iter_bq_records_for_paged_report_response(
     )
 
 
+def get_total_count_for_response(response: dict) -> Optional[int]:
+    reports = response.get('reports', [])
+    if len(reports) == 1:
+        report = reports[0]
+        return report.get('data', {}).get('rowCount')
+    return None
+
+
+def get_page_count_for_record_count(
+    total_count: int,
+    page_size: int
+) -> int:
+    return (total_count + page_size - 1) // page_size
+
+
 def iter_bq_records_for_paged_report_response_iterable(
     paged_report_response_iterable: Iterable[dict],
     ga_config: GoogleAnalyticsConfig,
@@ -189,6 +204,12 @@ def iter_bq_records_for_paged_report_response_iterable(
     progress_monitor = ProgressMonitor(message_prefix='Processed response page:')
     for paged_report_response in paged_report_response_iterable:
         response_timestamp_as_string = get_current_timestamp_as_string()
+        total_count = get_total_count_for_response(paged_report_response)
+        if total_count:
+            progress_monitor.set_total(get_page_count_for_record_count(
+                total_count=total_count,
+                page_size=ga_config.page_size
+            ))
         yield from iter_bq_records_for_paged_report_response(
             paged_report_response,
             ga_config=ga_config,
