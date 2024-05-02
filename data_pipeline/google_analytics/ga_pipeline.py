@@ -122,13 +122,17 @@ def add_provenance(
     ga_records: Iterable[dict],
     timestamp_field_name: str,
     current_etl_time: str,
-    record_annotation: Mapping[str, str]
-):
+    record_annotation: Mapping[str, str],
+    dimension_names: Sequence[str],
+    metrics_names: Sequence[str]
+) -> Iterable[dict]:
     for record in ga_records:
         provenance = {
             'provenance': {
                 timestamp_field_name: current_etl_time,
-                'annotation': record_annotation
+                'annotation': record_annotation,
+                'dimension_names': dimension_names,
+                'metrics_names': metrics_names
             }
         }
 
@@ -150,9 +154,11 @@ def iter_bq_records_for_paged_report_response(
             transform_response_to_bq_compatible_record(
                 paged_report_response
             ),
-            ga_config.import_timestamp_field_name,
-            current_timestamp_as_string,
-            ga_config.record_annotations
+            timestamp_field_name=ga_config.import_timestamp_field_name,
+            current_etl_time=current_timestamp_as_string,
+            record_annotation=ga_config.record_annotations,
+            dimension_names=ga_config.dimensions,
+            metrics_names=ga_config.metrics
         )
     )
 
