@@ -151,14 +151,14 @@ def add_provenance(
         }
 
 
-def process_paged_report_response(
+def iter_bq_records_for_paged_report_response(
     paged_report_response: dict,
     ga_config: GoogleAnalyticsConfig,
     current_timestamp_as_string: str
-):
+) -> Iterable[dict]:
     if ga_config.log_response:
         LOGGER.info('paged_report_response: %r', paged_report_response)
-    transformed_response_with_provenance = (
+    yield from (
         add_provenance(
             transform_response_to_bq_compatible_record(
                 paged_report_response
@@ -168,17 +168,18 @@ def process_paged_report_response(
             ga_config.record_annotations
         )
     )
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        write_jsonl_to_file(
-            json_list=transformed_response_with_provenance,
-            full_temp_file_location=full_temp_file_location,
-        )
-        load_written_data_to_bq(
+
+
+def iter_bq_records_for_paged_report_response_iterable(
+    paged_report_response_iterable: Iterable[dict],
+    ga_config: GoogleAnalyticsConfig,
+    current_timestamp_as_string: str
+) -> Iterable[dict]:
+    for paged_report_response in paged_report_response_iterable:
+        yield from iter_bq_records_for_paged_report_response(
+            paged_report_response,
             ga_config=ga_config,
-            file_location=full_temp_file_location
+            current_timestamp_as_string=current_timestamp_as_string
         )
 
 
@@ -202,13 +203,29 @@ def etl_google_analytics_for_date_range(
         } for metric_name in ga_config.metrics
     ]
 
-    for paged_report_response in iter_get_report_pages(
-            analytics, metrics, dimensions, ga_config, from_date, to_date
-    ):
-        process_paged_report_response(
-            paged_report_response, ga_config,
-            current_timestamp_as_string
+    paged_report_response_iterable = iter_get_report_pages(
+        analytics, metrics, dimensions, ga_config, from_date, to_date
+    )
+    transformed_response_with_provenance_iterable = (
+        iter_bq_records_for_paged_report_response_iterable(
+            paged_report_response_iterable,
+            ga_config=ga_config,
+            current_timestamp_as_string=current_timestamp_as_string
         )
+    )
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
+        write_jsonl_to_file(
+            json_list=transformed_response_with_provenance_iterable,
+            full_temp_file_location=full_temp_file_location,
+        )
+        load_written_data_to_bq(
+            ga_config=ga_config,
+            file_location=full_temp_file_location
+        )
+
     new_state_date = end_date + timedelta(days=1)
     LOGGER.info('Updating state to: %r', new_state_date)
     update_state(
