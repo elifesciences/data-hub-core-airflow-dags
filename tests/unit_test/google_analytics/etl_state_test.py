@@ -5,9 +5,12 @@ import pytest
 
 from data_pipeline.google_analytics import etl_state as etl_state_module
 from data_pipeline.google_analytics.etl_state import (
-    get_stored_state,
+    get_stored_state_date_or_default_start_date
 )
-from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
+from data_pipeline.google_analytics.ga_config import (
+    GoogleAnalyticsConfig,
+    parse_date
+)
 
 
 GA_CONFIG = {
@@ -50,31 +53,34 @@ class TestGetStoredGAProcessingState:
         download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
             FileNotFoundError()
         )
-        ga_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
-        default_initial_state_timestamp_as_string = (
-            "2020-01-01 00:00:00"
+        ga_config = GoogleAnalyticsConfig(
+            {
+                **GA_CONFIG,
+                'defaultStartDate': '2018-01-01'
+            },
+            '',
+            IMPORTED_TIMESTAMP_FIELD_NAME
         )
-        stored_state = get_stored_state(
-            ga_config,
-            default_initial_state_timestamp_as_string
-        )
-
-        assert stored_state == (
-            default_initial_state_timestamp_as_string
-        )
+        stored_state = get_stored_state_date_or_default_start_date(ga_config)
+        assert stored_state == parse_date('2018-01-01')
 
     def test_should_get_state_from_file_in_s3_bucket(
             self,
             download_s3_object_as_string_or_file_not_found_error_mock
     ):
-        ejp_config = GoogleAnalyticsConfig(GA_CONFIG, '', IMPORTED_TIMESTAMP_FIELD_NAME)
-        default_initial_state_timestamp_as_string = ''
-        last_stored_modified_timestamp = "2018-01-01 00:00:00"
+        ga_config = GoogleAnalyticsConfig(
+            {
+                **GA_CONFIG,
+                'defaultStartDate': '2018-01-01'
+            },
+            '',
+            IMPORTED_TIMESTAMP_FIELD_NAME
+        )
+        last_stored_modified_timestamp = '2020-01-01'
         download_s3_object_as_string_or_file_not_found_error_mock.return_value = (
             last_stored_modified_timestamp
         )
-        stored_state = get_stored_state(
-            ejp_config,
-            default_initial_state_timestamp_as_string
+        stored_state = get_stored_state_date_or_default_start_date(
+            ga_config
         )
-        assert stored_state == last_stored_modified_timestamp
+        assert stored_state == parse_date(last_stored_modified_timestamp)

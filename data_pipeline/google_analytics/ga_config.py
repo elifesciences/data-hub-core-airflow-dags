@@ -9,10 +9,14 @@ from data_pipeline.utils.pipeline_config import (
 STORED_STATE_FORMAT = '%Y-%m-%d'
 
 
+def parse_date(date_str: str) -> datetime:
+    return datetime.strptime(date_str, STORED_STATE_FORMAT)
+
+
 def parse_date_or_none(date_str: Optional[str]) -> Optional[datetime]:
     if not date_str:
         return None
-    return datetime.strptime(date_str, STORED_STATE_FORMAT)
+    return parse_date(date_str)
 
 
 class MultiGoogleAnalyticsConfig:
@@ -54,7 +58,7 @@ class GoogleAnalyticsConfig:
             import_timestamp_field_name
         )
         self.pipeline_id = config.get("pipelineID")
-        self.default_start_date_as_string = config["defaultStartDate"]
+        self.default_start_date = parse_date(config["defaultStartDate"])
         self.dataset = config["dataset"]
         self.table = config["table"]
         self.ga_view_id = config["viewId"]

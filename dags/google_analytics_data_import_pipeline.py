@@ -13,7 +13,7 @@ from data_pipeline.google_analytics.ga_config import (
     GoogleAnalyticsConfig
 )
 from data_pipeline.google_analytics.ga_pipeline import etl_google_analytics
-from data_pipeline.google_analytics.etl_state import (
+from data_pipeline.google_analytics.ga_config import (
     parse_date_or_none
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
