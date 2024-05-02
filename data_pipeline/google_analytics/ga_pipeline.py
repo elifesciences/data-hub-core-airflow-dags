@@ -137,19 +137,8 @@ def get_provenance_containing_dict(
 
 def add_provenance(
     ga_records: Iterable[dict],
-    timestamp_field_name: str,
-    current_etl_time: str,
-    record_annotation: Mapping[str, str],
-    dimension_names: Sequence[str],
-    metrics_names: Sequence[str]
+    provenance_containing_dict: dict
 ) -> Iterable[dict]:
-    provenance_containing_dict = get_provenance_containing_dict(
-        timestamp_field_name=timestamp_field_name,
-        current_etl_time=current_etl_time,
-        record_annotation=record_annotation,
-        dimension_names=dimension_names,
-        metrics_names=metrics_names
-    )
     for record in ga_records:
         yield {
             **record,
@@ -164,16 +153,19 @@ def iter_bq_records_for_paged_report_response(
 ) -> Iterable[dict]:
     if ga_config.log_response:
         LOGGER.info('paged_report_response: %r', paged_report_response)
+    provenance_containing_dict = get_provenance_containing_dict(
+        timestamp_field_name=ga_config.import_timestamp_field_name,
+        current_etl_time=current_timestamp_as_string,
+        record_annotation=ga_config.record_annotations,
+        dimension_names=ga_config.dimensions,
+        metrics_names=ga_config.metrics
+    )
     yield from (
         add_provenance(
             transform_response_to_bq_compatible_record(
                 paged_report_response
             ),
-            timestamp_field_name=ga_config.import_timestamp_field_name,
-            current_etl_time=current_timestamp_as_string,
-            record_annotation=ga_config.record_annotations,
-            dimension_names=ga_config.dimensions,
-            metrics_names=ga_config.metrics
+            provenance_containing_dict=provenance_containing_dict
         )
     )
 
