@@ -111,8 +111,8 @@ TEST_DATA = {
 
 class TestTransformResponseToBQCompatibleRecords:
     def test_should_return_empty_list_when_input_is_empty(self):
-        resp = list(transform_response_to_bq_compatible_record({}))
-        assert len(resp) == 0
+        with pytest.raises(AssertionError):
+            list(transform_response_to_bq_compatible_record({}))
 
     def test_should_transform_response_to_bq_compatible_record(self):
 

@@ -67,8 +67,7 @@ def transform_response_to_bq_compatible_record(
     response: dict
 ) -> Iterable[dict]:
     if not response:
-        LOGGER.warning('Response is empty')
-        return
+        raise AssertionError('Response is empty')
     yield {
         'records': list(iter_bq_compatible_record_for_response(response))
     }
