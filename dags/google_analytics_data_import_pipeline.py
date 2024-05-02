@@ -89,13 +89,14 @@ def google_analytics_etl(**kwargs):
     )
 
     for ga_config_dict in multi_ga_config.google_analytics_config:
-        ga_config = GoogleAnalyticsConfig(
+        ga_config = GoogleAnalyticsConfig.from_dict(
             config=ga_config_dict,
             gcp_project=multi_ga_config.gcp_project,
             import_timestamp_field_name=(
                 multi_ga_config.import_timestamp_field_name
             )
         )
+        LOGGER.info('processing config: %r', ga_config)
         etl_google_analytics(
             ga_config=ga_config,
             externally_selected_start_date=externally_selected_start_date,

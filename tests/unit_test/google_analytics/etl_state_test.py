@@ -53,7 +53,7 @@ class TestGetStoredGAProcessingState:
         download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
             FileNotFoundError()
         )
-        ga_config = GoogleAnalyticsConfig(
+        ga_config = GoogleAnalyticsConfig.from_dict(
             {
                 **GA_CONFIG,
                 'defaultStartDate': '2018-01-01'
@@ -68,7 +68,7 @@ class TestGetStoredGAProcessingState:
             self,
             download_s3_object_as_string_or_file_not_found_error_mock
     ):
-        ga_config = GoogleAnalyticsConfig(
+        ga_config = GoogleAnalyticsConfig.from_dict(
             {
                 **GA_CONFIG,
                 'defaultStartDate': '2018-01-01'

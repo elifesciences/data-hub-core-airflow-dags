@@ -74,6 +74,14 @@ class GoogleAnalyticsConfig:
             if annotation.get("recordAnnotationFieldName")
         }
 
+    @staticmethod
+    def from_dict(
+        config: dict,
+        gcp_project: str,
+        import_timestamp_field_name: str
+    ) -> 'GoogleAnalyticsConfig':
+        return GoogleAnalyticsConfig(config, gcp_project, import_timestamp_field_name)
+
 
 class ExternalTriggerConfig:
     GA_CONFIG = 'ga_config'

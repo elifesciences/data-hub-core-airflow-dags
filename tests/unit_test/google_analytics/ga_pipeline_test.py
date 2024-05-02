@@ -154,7 +154,7 @@ class TestETLGA:
         start_date = datetime.strptime('2020-01-01', '%Y-%m-%d')
 
         end_date = datetime.strptime('2020-02-01', '%Y-%m-%d')
-        ga_config = GoogleAnalyticsConfig(
+        ga_config = GoogleAnalyticsConfig.from_dict(
             GA_CONFIG,
             'project_name',
             'timestamp_field_name'
