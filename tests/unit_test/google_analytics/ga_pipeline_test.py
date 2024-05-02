@@ -11,18 +11,11 @@ from data_pipeline.google_analytics.ga_config import (
 )
 
 
-@pytest.fixture(name='mock_write_result_to_file')
-def _write_result_to_file():
+@pytest.fixture(name='load_given_json_list_data_from_tempdir_to_bq_mock', autouse=True)
+def _load_given_json_list_data_from_tempdir_to_bq_mock():
     with patch.object(
-            ga_pipeline_module, 'write_jsonl_to_file'
-    ) as mock:
-        yield mock
-
-
-@pytest.fixture(name='mock_load_written_data_to_bq')
-def _load_written_data_to_bq():
-    with patch.object(
-            ga_pipeline_module, 'load_written_data_to_bq'
+        ga_pipeline_module,
+        'load_given_json_list_data_from_tempdir_to_bq'
     ) as mock:
         yield mock
 
@@ -134,8 +127,7 @@ class TestETLGA:
     def test_should_etl_ga(
         self,
         mock_update_state,
-        mock_write_result_to_file,
-        mock_load_written_data_to_bq,
+        load_given_json_list_data_from_tempdir_to_bq_mock,
         mock_google_analytics_client,
         mock_get_current_timestamp_as_string
     ):
@@ -159,6 +151,5 @@ class TestETLGA:
             end_date=end_date
         )
 
-        mock_write_result_to_file.assert_called()
-        mock_load_written_data_to_bq.assert_called()
+        load_given_json_list_data_from_tempdir_to_bq_mock.assert_called()
         mock_update_state.assert_called()

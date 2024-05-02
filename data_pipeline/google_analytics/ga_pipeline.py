@@ -1,14 +1,10 @@
-import os
 import logging
 from typing import Iterable, Mapping, Optional, Sequence
-from tempfile import TemporaryDirectory
-from pathlib import Path
 from datetime import datetime, timedelta
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 from data_pipeline.utils.data_store.bq_data_service import (
-    create_or_extend_table_schema,
-    load_file_into_bq
+    load_given_json_list_data_from_tempdir_to_bq
 )
 from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
     standardize_field_name
@@ -24,50 +20,22 @@ from data_pipeline.utils.data_store.google_analytics import (
     DEFAULT_PAGE_SIZE,
     GoogleAnalyticsClient
 )
-from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 LOGGER = logging.getLogger(__name__)
 
 GA_DATE_RANGE_KEY = "date_range"
 
 
-def load_written_data_to_bq(
-    ga_config: GoogleAnalyticsConfig,
-    file_location: str
-):
-    if os.path.getsize(file_location) > 0:
-        create_or_extend_table_schema(
-            ga_config.gcp_project,
-            ga_config.dataset,
-            ga_config.table,
-            file_location,
-            quoted_values_are_strings=False
-        )
-
-        load_file_into_bq(
-            filename=file_location,
-            table_name=ga_config.table,
-            dataset_name=ga_config.dataset,
-            project_name=ga_config.gcp_project
-        )
-
-
 def load_ga_bq_record_iterable_to_bq(
     json_iterable: Iterable[dict],
     ga_config: GoogleAnalyticsConfig
 ):
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        write_jsonl_to_file(
-            json_list=json_iterable,
-            full_temp_file_location=full_temp_file_location,
-        )
-        load_written_data_to_bq(
-            ga_config=ga_config,
-            file_location=full_temp_file_location
-        )
+    load_given_json_list_data_from_tempdir_to_bq(
+        project_name=ga_config.gcp_project,
+        dataset_name=ga_config.dataset,
+        table_name=ga_config.table,
+        json_list=json_iterable
+    )
 
 
 def iter_bq_compatible_record_for_response(
