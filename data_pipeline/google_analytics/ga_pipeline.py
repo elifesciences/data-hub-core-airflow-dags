@@ -143,7 +143,7 @@ def add_provenance(
     dimension_names: Sequence[str],
     metrics_names: Sequence[str]
 ) -> Iterable[dict]:
-    provenance = get_provenance_containing_dict(
+    provenance_containing_dict = get_provenance_containing_dict(
         timestamp_field_name=timestamp_field_name,
         current_etl_time=current_etl_time,
         record_annotation=record_annotation,
@@ -153,7 +153,7 @@ def add_provenance(
     for record in ga_records:
         yield {
             **record,
-            **provenance
+            **provenance_containing_dict
         }
 
 
