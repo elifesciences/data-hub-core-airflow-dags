@@ -118,6 +118,23 @@ def iter_get_report_pages(
             break
 
 
+def get_provenance_containing_dict(
+    timestamp_field_name: str,
+    current_etl_time: str,
+    record_annotation: Mapping[str, str],
+    dimension_names: Sequence[str],
+    metrics_names: Sequence[str]
+) -> dict:
+    return {
+        'provenance': {
+            timestamp_field_name: current_etl_time,
+            'annotation': record_annotation,
+            'dimension_names': dimension_names,
+            'metrics_names': metrics_names
+        }
+    }
+
+
 def add_provenance(
     ga_records: Iterable[dict],
     timestamp_field_name: str,
@@ -126,16 +143,14 @@ def add_provenance(
     dimension_names: Sequence[str],
     metrics_names: Sequence[str]
 ) -> Iterable[dict]:
+    provenance = get_provenance_containing_dict(
+        timestamp_field_name=timestamp_field_name,
+        current_etl_time=current_etl_time,
+        record_annotation=record_annotation,
+        dimension_names=dimension_names,
+        metrics_names=metrics_names
+    )
     for record in ga_records:
-        provenance = {
-            'provenance': {
-                timestamp_field_name: current_etl_time,
-                'annotation': record_annotation,
-                'dimension_names': dimension_names,
-                'metrics_names': metrics_names
-            }
-        }
-
         yield {
             **record,
             **provenance
