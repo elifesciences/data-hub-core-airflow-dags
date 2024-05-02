@@ -12,9 +12,9 @@ from data_pipeline.utils.data_store.s3_data_service import (
 
 
 def update_state(
-        latest_state_date: datetime,
-        statefile_s3_bucket: str,
-        statefile_s3_object: str
+    latest_state_date: datetime,
+    statefile_s3_bucket: str,
+    statefile_s3_object: str
 ):
     upload_s3_object(
         data_object=latest_state_date.strftime(STORED_STATE_FORMAT),
@@ -24,7 +24,7 @@ def update_state(
 
 
 def get_stored_state_date_or_default_start_date(
-        data_config: GoogleAnalyticsConfig
+    data_config: GoogleAnalyticsConfig
 ) -> datetime:
     try:
         return parse_date(download_s3_object_as_string_or_file_not_found_error(

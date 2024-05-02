@@ -138,12 +138,12 @@ class TestTransformResponseToBQCompatibleRecords:
 class TestETLGA:
     # pylint: disable=too-many-arguments
     def test_should_etl_ga(
-            self,
-            mock_update_state,
-            mock_write_result_to_file,
-            mock_load_written_data_to_bq,
-            mock_google_analytics_client,
-            mock_get_current_timestamp_as_string
+        self,
+        mock_update_state,
+        mock_write_result_to_file,
+        mock_load_written_data_to_bq,
+        mock_google_analytics_client,
+        mock_get_current_timestamp_as_string
     ):
         mock_get_current_timestamp_as_string.return_value = (
             "2020-02-01"

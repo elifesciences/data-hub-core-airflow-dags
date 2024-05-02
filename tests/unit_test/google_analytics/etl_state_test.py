@@ -47,8 +47,8 @@ def _download_s3_object_as_string_or_file_not_found_error_mock() -> Iterator[Mag
 class TestGetStoredGAProcessingState:
     # pylint: disable=unused-argument
     def test_get_state_no_state_file_in_bucket(
-            self,
-            download_s3_object_as_string_or_file_not_found_error_mock
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock
     ):
         download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
             FileNotFoundError()
@@ -65,8 +65,8 @@ class TestGetStoredGAProcessingState:
         assert stored_state == parse_date('2018-01-01')
 
     def test_should_get_state_from_file_in_s3_bucket(
-            self,
-            download_s3_object_as_string_or_file_not_found_error_mock
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock
     ):
         ga_config = GoogleAnalyticsConfig.from_dict(
             {

@@ -23,13 +23,13 @@ class GoogleAnalyticsClient:
 
     # pylint: disable=too-many-arguments
     def get_report(
-            self,
-            view_id: str,
-            date_ranges: Sequence[dict],
-            metrics: Sequence[dict],
-            dimensions: Sequence[dict],
-            page_token: Optional[str] = None,
-            page_size: int = DEFAULT_PAGE_SIZE
+        self,
+        view_id: str,
+        date_ranges: Sequence[dict],
+        metrics: Sequence[dict],
+        dimensions: Sequence[dict],
+        page_token: Optional[str] = None,
+        page_size: int = DEFAULT_PAGE_SIZE
     ):
         # pylint: disable=no-member
         return self.analytics_reporting.reports().batchGet(

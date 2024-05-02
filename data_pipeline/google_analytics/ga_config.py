@@ -22,10 +22,10 @@ def parse_date_or_none(date_str: Optional[str]) -> Optional[datetime]:
 
 class MultiGoogleAnalyticsConfig:
     def __init__(
-            self,
-            multi_google_analytics_config: dict,
-            deployment_env: Optional[str] = None,
-            deployment_env_placeholder: str = '{ENV}'
+        self,
+        multi_google_analytics_config: dict,
+        deployment_env: Optional[str] = None,
+        deployment_env_placeholder: str = '{ENV}'
     ):
         updated_config = (
             update_deployment_env_placeholder(
@@ -48,7 +48,6 @@ class MultiGoogleAnalyticsConfig:
 # pylint: disable=too-many-instance-attributes
 @dataclasses.dataclass(frozen=True)
 class GoogleAnalyticsConfig:
-
     gcp_project: str
     import_timestamp_field_name: str
     default_start_date: datetime

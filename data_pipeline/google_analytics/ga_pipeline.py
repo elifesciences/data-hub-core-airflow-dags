@@ -32,7 +32,7 @@ GA_DATE_RANGE_KEY = "date_range"
 
 
 def transform_response_to_bq_compatible_record(
-        response
+    response
 ) -> Iterable[dict]:
     LOGGER.info('response: %r', response)
     for report in response.get('reports', []):
@@ -65,13 +65,13 @@ def transform_response_to_bq_compatible_record(
 
 # pylint: disable=too-many-arguments
 def iter_get_report_pages(
-        analytics: GoogleAnalyticsClient,
-        metrics: Sequence[dict],
-        dimensions: Sequence[dict],
-        ga_config: GoogleAnalyticsConfig,
-        from_date: str,
-        to_date: Optional[str] = None,
-        page_size: int = DEFAULT_PAGE_SIZE
+    analytics: GoogleAnalyticsClient,
+    metrics: Sequence[dict],
+    dimensions: Sequence[dict],
+    ga_config: GoogleAnalyticsConfig,
+    from_date: str,
+    to_date: Optional[str] = None,
+    page_size: int = DEFAULT_PAGE_SIZE
 ):
     LOGGER.info('metrics: %r', metrics)
     LOGGER.info('dimensions: %r', dimensions)
@@ -102,9 +102,9 @@ def iter_get_report_pages(
 
 
 def etl_google_analytics_for_date_range(
-        ga_config: GoogleAnalyticsConfig,
-        start_date: datetime,
-        end_date: datetime
+    ga_config: GoogleAnalyticsConfig,
+    start_date: datetime,
+    end_date: datetime
 ):
     current_timestamp_as_string = get_current_timestamp_as_string()
     analytics = GoogleAnalyticsClient()
@@ -138,9 +138,9 @@ def etl_google_analytics_for_date_range(
 
 
 def etl_google_analytics(
-        ga_config: GoogleAnalyticsConfig,
-        externally_selected_start_date: Optional[datetime] = None,
-        externally_selected_end_date: Optional[datetime] = None
+    ga_config: GoogleAnalyticsConfig,
+    externally_selected_start_date: Optional[datetime] = None,
+    externally_selected_end_date: Optional[datetime] = None
 ):
     start_date = (
         externally_selected_start_date
@@ -164,9 +164,9 @@ def etl_google_analytics(
 
 
 def process_paged_report_response(
-        paged_report_response: dict,
-        ga_config: GoogleAnalyticsConfig,
-        current_timestamp_as_string: str
+    paged_report_response: dict,
+    ga_config: GoogleAnalyticsConfig,
+    current_timestamp_as_string: str
 ):
     transformed_response_with_provenance = (
         add_provenance(
@@ -193,10 +193,10 @@ def process_paged_report_response(
 
 
 def add_provenance(
-        ga_records: Iterable[dict],
-        timestamp_field_name: str,
-        current_etl_time: str,
-        record_annotation: Mapping[str, str]
+    ga_records: Iterable[dict],
+    timestamp_field_name: str,
+    current_etl_time: str,
+    record_annotation: Mapping[str, str]
 ):
     for record in ga_records:
         provenance = {
@@ -213,8 +213,8 @@ def add_provenance(
 
 
 def load_written_data_to_bq(
-        ga_config: GoogleAnalyticsConfig,
-        file_location: str
+    ga_config: GoogleAnalyticsConfig,
+    file_location: str
 ):
     if os.path.getsize(file_location) > 0:
         create_or_extend_table_schema(
