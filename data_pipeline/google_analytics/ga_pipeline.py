@@ -31,6 +31,27 @@ LOGGER = logging.getLogger(__name__)
 GA_DATE_RANGE_KEY = "date_range"
 
 
+def load_written_data_to_bq(
+    ga_config: GoogleAnalyticsConfig,
+    file_location: str
+):
+    if os.path.getsize(file_location) > 0:
+        create_or_extend_table_schema(
+            ga_config.gcp_project,
+            ga_config.dataset,
+            ga_config.table,
+            file_location,
+            quoted_values_are_strings=False
+        )
+
+        load_file_into_bq(
+            filename=file_location,
+            table_name=ga_config.table,
+            dataset_name=ga_config.dataset,
+            project_name=ga_config.gcp_project
+        )
+
+
 def iter_bq_compatible_record_for_response(
     response: dict
 ) -> Iterable[dict]:
@@ -221,24 +242,3 @@ def add_provenance(
             **record,
             **provenance
         }
-
-
-def load_written_data_to_bq(
-    ga_config: GoogleAnalyticsConfig,
-    file_location: str
-):
-    if os.path.getsize(file_location) > 0:
-        create_or_extend_table_schema(
-            ga_config.gcp_project,
-            ga_config.dataset,
-            ga_config.table,
-            file_location,
-            quoted_values_are_strings=False
-        )
-
-        load_file_into_bq(
-            filename=file_location,
-            table_name=ga_config.table,
-            dataset_name=ga_config.dataset,
-            project_name=ga_config.gcp_project
-        )
