@@ -17,7 +17,6 @@ from data_pipeline.google_analytics.etl_state import (
     update_state
 )
 from data_pipeline.utils.data_store.google_analytics import (
-    DEFAULT_PAGE_SIZE,
     GoogleAnalyticsClient
 )
 from data_pipeline.utils.progress import ProgressMonitor
@@ -88,8 +87,7 @@ def iter_get_report_pages(
     dimensions: Sequence[dict],
     ga_config: GoogleAnalyticsConfig,
     from_date: str,
-    to_date: Optional[str] = None,
-    page_size: int = DEFAULT_PAGE_SIZE
+    to_date: Optional[str] = None
 ):
     LOGGER.info('metrics: %r', metrics)
     LOGGER.info('dimensions: %r', dimensions)
@@ -103,7 +101,7 @@ def iter_get_report_pages(
             metrics=metrics,
             dimensions=dimensions,
             page_token=page_token,
-            page_size=page_size
+            page_size=ga_config.page_size
         )
 
         reports = response.get('reports', [])
@@ -136,7 +134,8 @@ def get_provenance_containing_dict(
             'dimension_names': ga_config.dimensions,
             'metrics_names': ga_config.metrics,
             'start_date': start_date_str,
-            'end_date': end_date_str
+            'end_date': end_date_str,
+            'page_size': ga_config.page_size
         }
     }
 

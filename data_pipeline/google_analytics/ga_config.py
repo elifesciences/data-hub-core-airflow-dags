@@ -1,6 +1,7 @@
 import dataclasses
 from datetime import datetime
 from typing import Mapping, Optional, Sequence
+from data_pipeline.utils.data_store.google_analytics import DEFAULT_PAGE_SIZE
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
@@ -62,6 +63,7 @@ class GoogleAnalyticsConfig:
     record_annotations: Mapping[str, str]
     log_response: bool = False
     pipeline_id: Optional[str] = None
+    page_size: int = DEFAULT_PAGE_SIZE
 
     @staticmethod
     def from_dict(
@@ -87,7 +89,8 @@ class GoogleAnalyticsConfig:
                 for annotation in config.get("recordAnnotations", [])
                 if annotation.get("recordAnnotationFieldName")
             },
-            log_response=config.get('logResponse', False)
+            log_response=config.get('logResponse', False),
+            page_size=config.get('pageSize', DEFAULT_PAGE_SIZE)
         )
 
 
