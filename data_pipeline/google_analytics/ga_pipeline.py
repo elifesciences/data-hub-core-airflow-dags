@@ -151,6 +151,37 @@ def add_provenance(
         }
 
 
+def process_paged_report_response(
+    paged_report_response: dict,
+    ga_config: GoogleAnalyticsConfig,
+    current_timestamp_as_string: str
+):
+    if ga_config.log_response:
+        LOGGER.info('paged_report_response: %r', paged_report_response)
+    transformed_response_with_provenance = (
+        add_provenance(
+            transform_response_to_bq_compatible_record(
+                paged_report_response
+            ),
+            ga_config.import_timestamp_field_name,
+            current_timestamp_as_string,
+            ga_config.record_annotations
+        )
+    )
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
+        write_jsonl_to_file(
+            json_list=transformed_response_with_provenance,
+            full_temp_file_location=full_temp_file_location,
+        )
+        load_written_data_to_bq(
+            ga_config=ga_config,
+            file_location=full_temp_file_location
+        )
+
+
 def etl_google_analytics_for_date_range(
     ga_config: GoogleAnalyticsConfig,
     start_date: datetime,
@@ -211,34 +242,3 @@ def etl_google_analytics(
         start_date=start_date,
         end_date=end_date
     )
-
-
-def process_paged_report_response(
-    paged_report_response: dict,
-    ga_config: GoogleAnalyticsConfig,
-    current_timestamp_as_string: str
-):
-    if ga_config.log_response:
-        LOGGER.info('paged_report_response: %r', paged_report_response)
-    transformed_response_with_provenance = (
-        add_provenance(
-            transform_response_to_bq_compatible_record(
-                paged_report_response
-            ),
-            ga_config.import_timestamp_field_name,
-            current_timestamp_as_string,
-            ga_config.record_annotations
-        )
-    )
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        write_jsonl_to_file(
-            json_list=transformed_response_with_provenance,
-            full_temp_file_location=full_temp_file_location,
-        )
-        load_written_data_to_bq(
-            ga_config=ga_config,
-            file_location=full_temp_file_location
-        )
