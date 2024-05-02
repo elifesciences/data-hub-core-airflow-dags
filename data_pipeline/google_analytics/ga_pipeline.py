@@ -52,6 +52,24 @@ def load_written_data_to_bq(
         )
 
 
+def load_ga_bq_record_iterable_to_bq(
+    json_iterable: Iterable[dict],
+    ga_config: GoogleAnalyticsConfig
+):
+    with TemporaryDirectory() as tmp_dir:
+        full_temp_file_location = str(
+            Path(tmp_dir, "downloaded_jsonl_data")
+        )
+        write_jsonl_to_file(
+            json_list=json_iterable,
+            full_temp_file_location=full_temp_file_location,
+        )
+        load_written_data_to_bq(
+            ga_config=ga_config,
+            file_location=full_temp_file_location
+        )
+
+
 def iter_bq_compatible_record_for_response(
     response: dict
 ) -> Iterable[dict]:
@@ -213,18 +231,10 @@ def etl_google_analytics_for_date_range(
             current_timestamp_as_string=current_timestamp_as_string
         )
     )
-    with TemporaryDirectory() as tmp_dir:
-        full_temp_file_location = str(
-            Path(tmp_dir, "downloaded_jsonl_data")
-        )
-        write_jsonl_to_file(
-            json_list=transformed_response_with_provenance_iterable,
-            full_temp_file_location=full_temp_file_location,
-        )
-        load_written_data_to_bq(
-            ga_config=ga_config,
-            file_location=full_temp_file_location
-        )
+    load_ga_bq_record_iterable_to_bq(
+        transformed_response_with_provenance_iterable,
+        ga_config=ga_config
+    )
 
     new_state_date = end_date + timedelta(days=1)
     LOGGER.info('Updating state to: %r', new_state_date)
