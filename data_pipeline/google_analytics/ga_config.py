@@ -24,7 +24,7 @@ class MultiGoogleAnalyticsConfig:
     def __init__(
             self,
             multi_google_analytics_config: dict,
-            deployment_env,
+            deployment_env: Optional[str] = None,
             deployment_env_placeholder: str = '{ENV}'
     ):
         updated_config = (
