@@ -131,6 +131,26 @@ def iter_get_report_pages(
             break
 
 
+def add_provenance(
+    ga_records: Iterable[dict],
+    timestamp_field_name: str,
+    current_etl_time: str,
+    record_annotation: Mapping[str, str]
+):
+    for record in ga_records:
+        provenance = {
+            'provenance': {
+                timestamp_field_name: current_etl_time,
+                'annotation': record_annotation
+            }
+        }
+
+        yield {
+            **record,
+            **provenance
+        }
+
+
 def etl_google_analytics_for_date_range(
     ga_config: GoogleAnalyticsConfig,
     start_date: datetime,
@@ -222,23 +242,3 @@ def process_paged_report_response(
             ga_config=ga_config,
             file_location=full_temp_file_location
         )
-
-
-def add_provenance(
-    ga_records: Iterable[dict],
-    timestamp_field_name: str,
-    current_etl_time: str,
-    record_annotation: Mapping[str, str]
-):
-    for record in ga_records:
-        provenance = {
-            'provenance': {
-                timestamp_field_name: current_etl_time,
-                'annotation': record_annotation
-            }
-        }
-
-        yield {
-            **record,
-            **provenance
-        }
