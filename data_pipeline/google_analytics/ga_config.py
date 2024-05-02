@@ -1,5 +1,6 @@
+import dataclasses
 from datetime import datetime
-from typing import Optional
+from typing import Mapping, Optional, Sequence
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
@@ -45,34 +46,22 @@ class MultiGoogleAnalyticsConfig:
 
 
 # pylint: disable=too-many-instance-attributes
+@dataclasses.dataclass(frozen=True)
 class GoogleAnalyticsConfig:
-    def __init__(
-            self,
-            config: dict,
-            gcp_project: str,
-            import_timestamp_field_name: str
 
-    ):
-        self.gcp_project = gcp_project
-        self.import_timestamp_field_name = (
-            import_timestamp_field_name
-        )
-        self.pipeline_id = config.get("pipelineID")
-        self.default_start_date = parse_date(config["defaultStartDate"])
-        self.end_date = parse_date_or_none(config.get("endDate"))
-        self.dataset = config["dataset"]
-        self.table = config["table"]
-        self.ga_view_id = config["viewId"]
-        self.dimensions = config["dimensions"]
-        self.metrics = config["metrics"]
-        self.state_s3_bucket_name = config["stateFile"]["bucketName"]
-        self.state_s3_object_name = config["stateFile"]["objectName"]
-        self.record_annotations = {
-            annotation.get("recordAnnotationFieldName"):
-                annotation.get("recordAnnotationFieldName")
-            for annotation in config.get("recordAnnotations", [])
-            if annotation.get("recordAnnotationFieldName")
-        }
+    gcp_project: str
+    import_timestamp_field_name: str
+    default_start_date: datetime
+    end_date: Optional[datetime]
+    dataset: str
+    table: str
+    ga_view_id: str
+    dimensions: Sequence[str]
+    metrics: Sequence[str]
+    state_s3_bucket_name: str
+    state_s3_object_name: str
+    record_annotations: Mapping[str, str]
+    pipeline_id: Optional[str] = None
 
     @staticmethod
     def from_dict(
@@ -80,7 +69,26 @@ class GoogleAnalyticsConfig:
         gcp_project: str,
         import_timestamp_field_name: str
     ) -> 'GoogleAnalyticsConfig':
-        return GoogleAnalyticsConfig(config, gcp_project, import_timestamp_field_name)
+        return GoogleAnalyticsConfig(
+            gcp_project=gcp_project,
+            import_timestamp_field_name=import_timestamp_field_name,
+            pipeline_id=config.get("pipelineID"),
+            default_start_date=parse_date(config["defaultStartDate"]),
+            end_date=parse_date_or_none(config.get("endDate")),
+            dataset=config["dataset"],
+            table=config["table"],
+            ga_view_id=config["viewId"],
+            dimensions=config["dimensions"],
+            metrics=config["metrics"],
+            state_s3_bucket_name=config["stateFile"]["bucketName"],
+            state_s3_object_name=config["stateFile"]["objectName"],
+            record_annotations={
+                annotation.get("recordAnnotationFieldName"):
+                    annotation.get("recordAnnotationFieldName")
+                for annotation in config.get("recordAnnotations", [])
+                if annotation.get("recordAnnotationFieldName")
+            }
+        )
 
 
 class ExternalTriggerConfig:

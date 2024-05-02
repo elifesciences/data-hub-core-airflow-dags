@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import Iterable, Optional, Sequence
+from typing import Iterable, Mapping, Optional, Sequence
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -191,7 +191,7 @@ def add_provenance(
         ga_records: Iterable[dict],
         timestamp_field_name: str,
         current_etl_time: str,
-        record_annotation: dict
+        record_annotation: Mapping[str, str]
 ):
     for record in ga_records:
         provenance = {
