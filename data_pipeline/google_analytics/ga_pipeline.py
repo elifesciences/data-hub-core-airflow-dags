@@ -121,6 +121,7 @@ def iter_get_report_pages(
 def get_provenance_containing_dict(
     timestamp_field_name: str,
     current_etl_time: str,
+    response_timestamp_as_string: str,
     ga_config: GoogleAnalyticsConfig,
     start_date_str: str,
     end_date_str: str
@@ -128,6 +129,7 @@ def get_provenance_containing_dict(
     return {
         'provenance': {
             timestamp_field_name: current_etl_time,
+            'response_timestamp': response_timestamp_as_string,
             'view_id': ga_config.ga_view_id,
             'annotation': ga_config.record_annotations,
             'dimension_names': ga_config.dimensions,
@@ -153,6 +155,7 @@ def iter_bq_records_for_paged_report_response(
     paged_report_response: dict,
     ga_config: GoogleAnalyticsConfig,
     current_timestamp_as_string: str,
+    response_timestamp_as_string: str,
     start_date_str: str,
     end_date_str: str
 ) -> Iterable[dict]:
@@ -161,6 +164,7 @@ def iter_bq_records_for_paged_report_response(
     provenance_containing_dict = get_provenance_containing_dict(
         timestamp_field_name=ga_config.import_timestamp_field_name,
         current_etl_time=current_timestamp_as_string,
+        response_timestamp_as_string=response_timestamp_as_string,
         ga_config=ga_config,
         start_date_str=start_date_str,
         end_date_str=end_date_str
@@ -183,10 +187,12 @@ def iter_bq_records_for_paged_report_response_iterable(
     end_date_str: str
 ) -> Iterable[dict]:
     for paged_report_response in paged_report_response_iterable:
+        response_timestamp_as_string = get_current_timestamp_as_string()
         yield from iter_bq_records_for_paged_report_response(
             paged_report_response,
             ga_config=ga_config,
             current_timestamp_as_string=current_timestamp_as_string,
+            response_timestamp_as_string=response_timestamp_as_string,
             start_date_str=start_date_str,
             end_date_str=end_date_str
         )
