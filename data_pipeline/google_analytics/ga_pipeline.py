@@ -292,14 +292,15 @@ def etl_google_analytics_for_date_range_in_batches(
     start_date: datetime,
     end_date: datetime
 ):
-    total_days = (end_date - start_date).days
+    # Note: end date is inclusive (therefore add one)
+    total_days = (end_date - start_date).days + 1
     progress_monitor = ProgressMonitor(message_prefix='Processed batch days: ', total=total_days)
     for batch_start_date, batch_end_date in iter_start_end_date_for_batch(
         ga_config=ga_config,
         start_date=start_date,
         end_date=end_date
     ):
-        batch_days = (batch_end_date - batch_start_date).days
+        batch_days = (batch_end_date - batch_start_date).days + 1
         LOGGER.info(
             'Processing batch: %r to %r (%d days)',
             batch_start_date, batch_end_date, batch_days
