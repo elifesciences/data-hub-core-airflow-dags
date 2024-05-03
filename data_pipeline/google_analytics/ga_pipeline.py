@@ -299,7 +299,10 @@ def etl_google_analytics_for_date_range_in_batches(
         end_date=end_date
     ):
         batch_days = (batch_end_date - batch_start_date).days
-        LOGGER.info('Batch: %r to %r (%d days)', batch_start_date, batch_end_date, batch_days)
+        LOGGER.info(
+            'Processing batch: %r to %r (%d days)',
+            batch_start_date, batch_end_date, batch_days
+        )
         etl_google_analytics_for_date_range(
             ga_config=ga_config,
             start_date=batch_start_date,
