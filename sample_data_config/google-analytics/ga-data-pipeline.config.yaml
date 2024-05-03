@@ -2,8 +2,12 @@ gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
 googleAnalyticsPipelines:
   - pipelineID: '{ENV}-some-pipeline-id'
-    defaultStartDate: "2014-11-07"
-    endDate: "2014-11-10"
+    # defaultStartDate: "2014-11-07"
+    defaultStartDate: "2014-11-01"
+    # endDate: "2014-11-10"
+    endDate: "2023-06-30"
+    batchDateInterval:
+      months: 1
     dataset: '{ENV}'
     table: 'temp_ua_data_v1'
     # view id of the google analytics view from which data is to be extracted
