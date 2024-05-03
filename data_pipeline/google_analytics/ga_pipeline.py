@@ -23,7 +23,8 @@ from data_pipeline.utils.progress import ProgressMonitor
 
 LOGGER = logging.getLogger(__name__)
 
-GA_DATE_RANGE_KEY = "date_range"
+
+GA_DATE_RANGE_INDEX_KEY = "date_range_index"
 
 
 def load_ga_bq_record_iterable_to_bq(
@@ -57,8 +58,8 @@ def iter_bq_compatible_record_for_response(
                 bq_json_formatted_record[
                     standardize_field_name(header)
                 ] = dimension
-            for i, values in enumerate(date_range_values):
-                bq_json_formatted_record[GA_DATE_RANGE_KEY] = str(i)
+            for date_range_index, values in enumerate(date_range_values):
+                bq_json_formatted_record[GA_DATE_RANGE_INDEX_KEY] = date_range_index
                 for metric_header, value in zip(
                         metric_headers, values.get('values')
                 ):
