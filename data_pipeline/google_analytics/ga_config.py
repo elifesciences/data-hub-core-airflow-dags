@@ -1,6 +1,9 @@
 import dataclasses
 from datetime import datetime
 from typing import Mapping, Optional, Sequence
+
+from dateutil.relativedelta import relativedelta
+
 from data_pipeline.utils.data_store.google_analytics import DEFAULT_PAGE_SIZE
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
@@ -46,6 +49,14 @@ class MultiGoogleAnalyticsConfig:
         )
 
 
+def parse_date_delta_dict(date_interval_dict: dict) -> relativedelta:
+    return relativedelta(
+        days=date_interval_dict.get('days', 0),
+        months=date_interval_dict.get('months', 0),
+        years=date_interval_dict.get('years', 0)
+    )
+
+
 # pylint: disable=too-many-instance-attributes
 @dataclasses.dataclass(frozen=True)
 class GoogleAnalyticsConfig:
@@ -64,6 +75,7 @@ class GoogleAnalyticsConfig:
     log_response: bool = False
     pipeline_id: Optional[str] = None
     page_size: int = DEFAULT_PAGE_SIZE
+    batch_date_interval: relativedelta = relativedelta()
 
     @staticmethod
     def from_dict(
@@ -77,6 +89,7 @@ class GoogleAnalyticsConfig:
             pipeline_id=config.get("pipelineID"),
             default_start_date=parse_date(config["defaultStartDate"]),
             end_date=parse_date_or_none(config.get("endDate")),
+            batch_date_interval=parse_date_delta_dict(config.get('batchDateInterval', {})),
             dataset=config["dataset"],
             table=config["table"],
             ga_view_id=config["viewId"],

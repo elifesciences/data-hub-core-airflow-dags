@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, Optional, Sequence
+from typing import Iterable, Optional, Sequence, Tuple
 from datetime import datetime, timedelta
 
 from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
@@ -201,7 +201,7 @@ def iter_bq_records_for_paged_report_response_iterable(
     start_date_str: str,
     end_date_str: str
 ) -> Iterable[dict]:
-    progress_monitor = ProgressMonitor(message_prefix='Processed response page:')
+    progress_monitor = ProgressMonitor(message_prefix='Processed response page: ')
     for paged_report_response in paged_report_response_iterable:
         response_timestamp_as_string = get_current_timestamp_as_string()
         total_count = get_total_count_for_response(paged_report_response)
@@ -268,6 +268,47 @@ def etl_google_analytics_for_date_range(
     )
 
 
+def iter_start_end_date_for_batch(
+    ga_config: GoogleAnalyticsConfig,
+    start_date: datetime,
+    end_date: datetime
+) -> Iterable[Tuple[datetime, datetime]]:
+    if not ga_config.batch_date_interval:
+        yield start_date, end_date
+        return
+    batch_start_date = start_date
+    while batch_start_date <= end_date:
+        batch_end_date = min(
+            end_date,
+            batch_start_date + ga_config.batch_date_interval - timedelta(days=1)
+        )
+        yield batch_start_date, batch_end_date
+        batch_start_date = batch_end_date + timedelta(days=1)
+
+
+def etl_google_analytics_for_date_range_in_batches(
+    ga_config: GoogleAnalyticsConfig,
+    start_date: datetime,
+    end_date: datetime
+):
+    total_days = (end_date - start_date).days
+    progress_monitor = ProgressMonitor(message_prefix='Processed batch: ', total=total_days)
+    for batch_start_date, batch_end_date in iter_start_end_date_for_batch(
+        ga_config=ga_config,
+        start_date=start_date,
+        end_date=end_date
+    ):
+        batch_days = (batch_end_date - batch_start_date).days
+        LOGGER.info('Batch: %r to %r (%d days)', batch_start_date, batch_end_date, batch_days)
+        etl_google_analytics_for_date_range(
+            ga_config=ga_config,
+            start_date=batch_start_date,
+            end_date=batch_end_date
+        )
+        progress_monitor.increment(batch_days)
+        LOGGER.info('%s', progress_monitor)
+
+
 def etl_google_analytics(
     ga_config: GoogleAnalyticsConfig,
     externally_selected_start_date: Optional[datetime] = None,
@@ -287,7 +328,7 @@ def etl_google_analytics(
     if start_date > end_date:
         LOGGER.info('Start date after end date. Nothing to process.')
         return
-    etl_google_analytics_for_date_range(
+    etl_google_analytics_for_date_range_in_batches(
         ga_config=ga_config,
         start_date=start_date,
         end_date=end_date
