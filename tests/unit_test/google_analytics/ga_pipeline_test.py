@@ -112,9 +112,9 @@ class TestTransformResponseToBQCompatibleRecords:
         response = list(transform_response_to_bq_compatible_record(TEST_DATA))
 
         expected_data = [
-            {'ga_userType': 'New Visitor', 'date_range': '0',
+            {'ga_userType': 'New Visitor', 'date_range_index': 0,
              'ga_sessions': '12566', 'ga_sessionDuration': '1172250.0'},
-            {'ga_userType': 'Returning Visitor', 'date_range': '0',
+            {'ga_userType': 'Returning Visitor', 'date_range_index': 0,
              'ga_sessions': '12798', 'ga_sessionDuration': '2215033.0'}
         ]
 
