@@ -19,6 +19,7 @@ from data_pipeline.google_analytics.etl_state import (
 from data_pipeline.utils.data_store.google_analytics import (
     GoogleAnalyticsClient
 )
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.progress import ProgressMonitor
 
 LOGGER = logging.getLogger(__name__)
@@ -146,10 +147,10 @@ def add_provenance(
     provenance_containing_dict: dict
 ) -> Iterable[dict]:
     for record in ga_records:
-        yield {
+        yield remove_key_with_null_value({
             **record,
             **provenance_containing_dict
-        }
+        })
 
 
 def iter_bq_records_for_paged_report_response(
