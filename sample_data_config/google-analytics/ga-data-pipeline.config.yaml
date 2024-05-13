@@ -90,6 +90,7 @@ googleAnalyticsPipelines:
       - 'ga:entrances'
       - 'ga:entranceRate'
       - 'ga:pageviews'
+      - 'ga:pageviewsPerSession'
       - 'ga:uniquePageviews'
       - 'ga:timeOnPage'
       - 'ga:avgTimeOnPage'
@@ -97,4 +98,4 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_3.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_3-v2.json'
