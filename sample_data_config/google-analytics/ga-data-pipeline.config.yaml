@@ -48,7 +48,7 @@ googleAnalyticsPipelines:
   #     - 'ga:uniquePageviews'
   #   stateFile:
   #     bucketName: '{ENV}-elife-data-pipeline'
-  #     objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_1.json'
+  #     objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/{ENV}-ga_universal_analytics_data_1.json'
 
   # Dimensions: yearMonth
 
@@ -75,7 +75,7 @@ googleAnalyticsPipelines:
       - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1.json'
 
   - pipelineID: 'ga_universal_analytics_data_by_year_month_for_page_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -100,7 +100,7 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_year_month_for_page_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_year_month_for_page_metrics_1.json'
 
   # Dimensions: yearMonth + pagePath
 
@@ -123,7 +123,7 @@ googleAnalyticsPipelines:
       - 'ga:sessionsPerUser'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_yearmonth_and_path_for_user_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_yearmonth_and_path_for_user_metrics_1.json'
 
   - pipelineID: 'ga_universal_analytics_data_by_yearmonth_and_path_for_session_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -145,7 +145,7 @@ googleAnalyticsPipelines:
       - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_yearmonth_and_path_for_session_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_yearmonth_and_path_for_session_metrics_1.json'
 
   - pipelineID: 'ga_universal_analytics_data_by_yearmonth_and_path_for_page_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -171,7 +171,7 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_yearmonth_and_path_for_page_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_yearmonth_and_path_for_page_metrics_1.json'
 
   # Dimensions: date + pagePath
 
@@ -194,7 +194,7 @@ googleAnalyticsPipelines:
       - 'ga:sessionsPerUser'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_date_and_path_for_user_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_date_and_path_for_user_metrics_1.json'
 
   - pipelineID: 'ga_universal_analytics_data_by_date_and_path_for_session_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -216,7 +216,7 @@ googleAnalyticsPipelines:
       - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_date_and_path_for_session_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_date_and_path_for_session_metrics_1.json'
 
   - pipelineID: 'ga_universal_analytics_data_by_date_and_path_for_page_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -242,4 +242,4 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_date_and_path_for_page_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/ga_universal_analytics_data_by_date_and_path_for_page_metrics_1.json'
