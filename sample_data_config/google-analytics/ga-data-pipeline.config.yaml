@@ -1,90 +1,101 @@
 gcpProjectName: 'elife-data-pipeline'
-importedTimestampFieldName: 'data_hub_imported_timestamp'
+importedTimestampFieldName: 'imported_timestamp'
+
+# NOTE THAT there is a limit in the number of dimensions and metrics that can be requested
+# information about metrics/dimensions to be used can be found here
+# https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/
+
 googleAnalyticsPipelines:
-  - pipelineID: '{ENV}-some-pipeline-id'
-    # defaultStartDate: "2014-11-07"
+  # Schema
+  # - pipelineID: <Pipeline ID>
+  #   defaultStartDate: <Date using Format YYYY-MM-DD>
+  #   endDate: <Date using Format YYYY-MM-DD>
+  #   batchDateInterval:
+  #     years: <Number of years to process in one batch>
+  #     months: <Number of months to process in one batch>
+  #     days: <Number of days to process in one batch>
+  #   dataset: <dataset name>
+  #   table: <table name>
+  #   viewId: <view id of the google analytics view from which data is to be extracted>
+  #   dimensions: <list of dimensions>
+  #   metrics: <list of metrics>
+  #   stateFile:
+  #     bucketName: <bucket name>
+  #     objectName: <object name>
+  # Annotations appended to every record created by data pipeline using the config
+  # One can use this to differentiate the source data pipeline of a record when several data pipelines
+  # write to the same table
+  # recordAnnotations:
+  #   - recordAnnotationFieldName: <BigQuery compatible field name>
+  #     recordAnnotationValue: <value>
+  # logResponse: <whether to log the API response for debugging purpose)
+
+  # - pipelineID: 'ga_universal_analytics_data_1'
+  #   defaultStartDate: "2014-11-01"
+  #   endDate: "2023-06-30"
+  #   batchDateInterval:
+  #     months: 1
+  #   dataset: '{ENV}'
+  #   table: 'temp_ga_universal_analytics_data'
+  #   viewId: "93573727"  # "Web traffic excluding eLife IP"
+
+  #   dimensions:
+  #     - 'ga:date'
+  #     - 'ga:pagePath'
+  #   metrics:
+  #     - 'ga:sessions'
+  #     - 'ga:pageviews'
+  #     - 'ga:uniquePageviews'
+  #   stateFile:
+  #     bucketName: '{ENV}-elife-data-pipeline'
+  #     objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_1.json'
+
+  - pipelineID: 'ga_universal_analytics_data_2'
     defaultStartDate: "2014-11-01"
-    # endDate: "2014-11-10"
     endDate: "2023-06-30"
     batchDateInterval:
       months: 1
     dataset: '{ENV}'
-    table: 'temp_ua_data_v1'
-    # view id of the google analytics view from which data is to be extracted
+    table: 'temp_ga_universal_analytics_data'
     viewId: "93573727"  # "Web traffic excluding eLife IP"
-    # viewId: "82618489"  # "All Web Site Data"
-    #viewId: "82626137"
-    # NOTE THAT there is a limit in the number of dimensions and metrics that can be requested
-    # information about metrics/dimensions to be used can be found here
-    # https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/
-    dimensions:
-      #identifies user
-      - 'ga:date'
-      # - 'ga:userType'
-      #- 'ga:daysSinceLastSession'
-      #- 'ga:sessionCount'
-      #- 'ga:country'
-      #- 'ga:city'
-      # identifies session
-      #- 'ga:browserVersion'
-      #- 'ga:dateHourMinute'
-      #- 'ga:sessionDurationBucket'
-      #- 'ga:sourceMedium'
-      - 'ga:pagePath'
-      #- 'ga:previousPagePath'
 
-      #- 'ga:landingPagePath'
-      #- 'ga:exitPagePath'
-      #- 'ga:referralPath'
-      #- 'ga:city'
-      #- 'ga:pagePathLevel1'
-      #- 'ga:secondPagePath'
-      #- 'ga:sessionDurationBucket'
-      #- 'ga:keyword'
-      #- 'ga:campaign'
-      #- 'ga:fullReferrer'
-      #- 'ga:browser'
-      #- 'ga:operatingSystem'
-      #- 'ga:operatingSystemVersion'
-      #- 'ga:mobileDeviceInfo'
-      #- 'ga:region'
-      #- 'ga:socialNetwork'
-      #- 'ga:userBucket'
-      #- 'ga:pagePathLevel2'
-      #- 'ga:pagePathLevel3'
-      #- 'ga:pagePathLevel4'
-      #- 'ga:searchKeyword'
-      #- 'ga:socialInteractionNetwork'
-      #- 'ga:userAgeBracket'
-      #- 'ga:interestInMarketCategory'
-      #- 'ga:acquisitionCampaign'
+    dimensions:
+      - 'ga:yearMonth'
     metrics:
+      - 'ga:users'
+      - 'ga:newUsers'
+      - 'ga:percentNewSessions'
+      - 'ga:sessionsPerUser'
       - 'ga:sessions'
-      - 'ga:pageviews'
-      - 'ga:uniquePageviews'
-      # - 'ga:users'
-      # - 'ga:sessionDuration'
+      - 'ga:bounces'
+      - 'ga:bounceRate'
+      - 'ga:sessionDuration'
+      - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-0.json'
-    # Annotations appended to every record created by data pipeline using the config
-    # One can use this to differentiate the source data pipeline of a record when several data pipelines
-    # write to the same table
-    recordAnnotations :
-      - recordAnnotationFieldName : 'description'
-        recordAnnotationValue: "Does ABC"
-    # logResponse: true
-  #- pipelineID: '{ENV}'
-  #  dataset: '{ENV}'
-  #  table: atest_profile_api
-  #  viewId: "82618489" # "82626137"
-  #  dimensions:
-  #    - 'ga:sessions'
-  #  metrics:
-  #    - 'ga:exitPagePath'
-  #  stateFile:
-  #    bucketName: '{ENV}-elife-data-pipeline'
-  #    objectName: 'airflow-config/google-analytics/state/{ENV}-processing-state-1.json'
-  #  recordAnnotations :
-   #   - recordAnnotationFieldName : 'name'
-   #     recordAnnotationValue: "Senior Editor"
+      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_2.json'
+
+  - pipelineID: 'ga_universal_analytics_data_3'
+    defaultStartDate: "2014-11-01"
+    endDate: "2023-06-30"
+    batchDateInterval:
+      months: 1
+    dataset: '{ENV}'
+    table: 'temp_ga_universal_analytics_data'
+    viewId: "93573727"  # "Web traffic excluding eLife IP"
+
+    dimensions:
+      - 'ga:yearMonth'
+    metrics:
+      - 'ga:entrances'
+      - 'ga:entranceRate'
+      - 'ga:pageviews'
+      - 'ga:pageviewsPerSession'
+      - 'ga:uniquePageviews'
+      - 'ga:timeOnPage'
+      - 'ga:avgTimeOnPage'
+      - 'ga:exits'
+      - 'ga:exitRate'
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_3-v2.json'
