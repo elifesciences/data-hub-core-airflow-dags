@@ -50,7 +50,7 @@ googleAnalyticsPipelines:
   #     bucketName: '{ENV}-elife-data-pipeline'
   #     objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_1.json'
 
-  - pipelineID: 'ga_universal_analytics_data_2'
+  - pipelineID: 'ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1'
     defaultStartDate: "2014-11-01"
     endDate: "2023-06-30"
     batchDateInterval:
@@ -73,9 +73,9 @@ googleAnalyticsPipelines:
       - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_2.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1.json'
 
-  - pipelineID: 'ga_universal_analytics_data_3'
+  - pipelineID: 'ga_universal_analytics_data_by_year_month_for_page_metrics_1'
     defaultStartDate: "2014-11-01"
     endDate: "2023-06-30"
     batchDateInterval:
@@ -98,4 +98,4 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/{ENV}-ga_universal_analytics_data_3-v2.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/ga_universal_analytics_data_by_year_month_for_page_metrics_1.json'
