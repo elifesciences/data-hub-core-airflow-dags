@@ -3,16 +3,7 @@ importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   # Note: the first configuration is used by the end2end test
 
-  # Observer API (used by end2end test)
-  - dataPipelineId: observer_published_research_article
-    description:
-      Retrieve legacy POA and VOR publication dates from Observer.
-    dataset: '{ENV}'
-    table: test_published_research_article
-    dataUrl:
-      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
-
-  # elifescience people API
+  # elifescience people API (used by end2end test)
   - dataPipelineId: people_api
     dataset: '{ENV}'
     table: test_people_api
@@ -25,6 +16,15 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - items
+
+  # Observer API
+  - dataPipelineId: observer_published_research_article
+    description:
+      Retrieve legacy POA and VOR publication dates from Observer.
+    dataset: '{ENV}'
+    table: test_published_research_article
+    dataUrl:
+      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
 
   - dataPipelineId: web_s2_embeddings
     description:
