@@ -125,17 +125,23 @@ def create_csv_pipeline_dags(
 ) -> Sequence[airflow.DAG]:
     dags = []
     multi_csv_pipeline_config = get_multi_csv_pipeline_config()
+    default_airflow_config = AirflowConfig(
+        dag_parameters={
+            'schedule': default_schedule,
+            'dagrun_timeout': timedelta(days=1),
+        }
+    )
     for data_pipeline_id, s3_csv_config_dict in (
         multi_csv_pipeline_config.s3_csv_config_dict_by_pipeline_id.items()
     ):
         airflow_config = AirflowConfig.from_optional_dict(
-            s3_csv_config_dict.get('airflow')
+            s3_csv_config_dict.get('airflow'),
+            default_airflow_config=default_airflow_config
         )
         with create_dag(
             dag_id=get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict),
             description=s3_csv_config_dict.get('description'),
-            schedule=default_schedule,
-            dagrun_timeout=timedelta(days=1)
+            **airflow_config.dag_parameters
         ) as dag:
             create_python_task(
                 dag=dag,

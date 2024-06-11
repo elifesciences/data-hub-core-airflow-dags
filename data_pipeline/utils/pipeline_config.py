@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import logging
 from dataclasses import dataclass, field
@@ -152,17 +153,34 @@ class StateFileConfig:
 
 @dataclass(frozen=True)
 class AirflowConfig:
-    task_parameters: dict
+    dag_parameters: dict = dataclasses.field(default_factory=dict)
+    task_parameters: dict = dataclasses.field(default_factory=dict)
 
     @staticmethod
-    def from_dict(airflow_config_dict: AirflowConfigDict) -> 'AirflowConfig':
+    def from_dict(
+        airflow_config_dict: AirflowConfigDict,
+        default_airflow_config: Optional['AirflowConfig'] = None
+    ) -> 'AirflowConfig':
         return AirflowConfig(
-            task_parameters=airflow_config_dict.get('taskParameters') or {}
+            dag_parameters={
+                **(default_airflow_config.dag_parameters if default_airflow_config else {}),
+                **(airflow_config_dict.get('dagParameters') or {})
+            },
+            task_parameters={
+                **(default_airflow_config.task_parameters if default_airflow_config else {}),
+                **(airflow_config_dict.get('taskParameters') or {})
+            }
         )
 
     @staticmethod
-    def from_optional_dict(airflow_config_dict: Optional[AirflowConfigDict]) -> 'AirflowConfig':
-        return AirflowConfig.from_dict(airflow_config_dict or {})
+    def from_optional_dict(
+        airflow_config_dict: Optional[AirflowConfigDict],
+        default_airflow_config: Optional['AirflowConfig'] = None
+    ) -> 'AirflowConfig':
+        return AirflowConfig.from_dict(
+            airflow_config_dict or {},
+            default_airflow_config=default_airflow_config
+        )
 
 
 def update_deployment_env_placeholder(

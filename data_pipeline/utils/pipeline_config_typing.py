@@ -38,6 +38,7 @@ class ParameterFromFileConfigDict(TypedDict):
 
 
 class AirflowConfigDict(TypedDict):
+    dagParameters: NotRequired[Optional[dict]]
     taskParameters: NotRequired[Optional[dict]]
 
 

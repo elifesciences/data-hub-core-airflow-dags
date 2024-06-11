@@ -79,6 +79,8 @@ s3Csv:
     recordProcessingSteps:
       - parse_json_value
     # airflow:
+    #   dagParameters:
+    #     schedule: '@daily'
     #   taskParameters:
     #     queue: 'kubernetes'
     #     executor_config:
