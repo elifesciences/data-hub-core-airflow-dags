@@ -129,8 +129,7 @@ def create_csv_pipeline_dags(
         dag_parameters={
             'schedule': default_schedule,
             'dagrun_timeout': timedelta(days=1),
-        },
-        task_parameters={}
+        }
     )
     for data_pipeline_id, s3_csv_config_dict in (
         multi_csv_pipeline_config.s3_csv_config_dict_by_pipeline_id.items()

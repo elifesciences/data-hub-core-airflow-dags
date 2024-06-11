@@ -1,3 +1,4 @@
+import dataclasses
 import os
 import logging
 from dataclasses import dataclass, field
@@ -152,8 +153,8 @@ class StateFileConfig:
 
 @dataclass(frozen=True)
 class AirflowConfig:
-    dag_parameters: dict
-    task_parameters: dict
+    dag_parameters: dict = dataclasses.field(default_factory=dict)
+    task_parameters: dict = dataclasses.field(default_factory=dict)
 
     @staticmethod
     def from_dict(

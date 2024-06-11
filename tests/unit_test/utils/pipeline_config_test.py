@@ -139,6 +139,11 @@ class TestStateFileConfig:
 
 
 class TestAirflowConfig:
+    def test_should_use_defaults_when_constructing_from_class_without_parameters(self):
+        config = AirflowConfig()
+        assert config.dag_parameters is not None
+        assert config.task_parameters is not None
+
     def test_should_default_to_empty_dag_parameters(self):
         config = AirflowConfig.from_dict({})
         assert config.dag_parameters is not None
