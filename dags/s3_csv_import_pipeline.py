@@ -34,6 +34,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     get_environment_variable_value,
     get_pipeline_config_for_env_name_and_config_parser
 )
@@ -139,6 +140,9 @@ def create_csv_pipeline_dags(
     for data_pipeline_id, s3_csv_config_dict in (
         multi_csv_pipeline_config.s3_csv_config_dict_by_pipeline_id.items()
     ):
+        airflow_config = AirflowConfig.from_optional_dict(
+            s3_csv_config_dict.get('airflow')
+        )
         with create_dag(
             dag_id=get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict),
             description=s3_csv_config_dict.get('description'),
@@ -152,7 +156,8 @@ def create_csv_pipeline_dags(
                     csv_etl,
                     data_pipeline_id=data_pipeline_id
                 ),
-                queue=get_queue()
+                queue=get_queue(),
+                **airflow_config.task_parameters
             )
             dags.append(dag)
     return dags
