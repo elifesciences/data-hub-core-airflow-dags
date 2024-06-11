@@ -5,6 +5,7 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Type, TypeVar, Un
 
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 from data_pipeline.utils.pipeline_config_typing import (
+    AirflowConfigDict,
     BigQueryIncludeExcludeSourceConfigDict,
     BigQuerySourceConfigDict,
     BigQueryTargetConfigDict,
@@ -147,6 +148,21 @@ class StateFileConfig:
             bucket_name=state_file_config_dict['bucketName'],
             object_name=state_file_config_dict['objectName']
         )
+
+
+@dataclass(frozen=True)
+class AirflowConfig:
+    task_parameters: dict
+
+    @staticmethod
+    def from_dict(airflow_config_dict: AirflowConfigDict) -> 'AirflowConfig':
+        return AirflowConfig(
+            task_parameters=airflow_config_dict.get('taskParameters') or {}
+        )
+
+    @staticmethod
+    def from_optional_dict(airflow_config_dict: Optional[AirflowConfigDict]) -> 'AirflowConfig':
+        return AirflowConfig.from_dict(airflow_config_dict or {})
 
 
 def update_deployment_env_placeholder(

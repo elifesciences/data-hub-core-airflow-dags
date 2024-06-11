@@ -38,8 +38,13 @@ def create_dag(
 
 # pylint: disable=too-many-arguments
 def create_python_task(
-        dag, task_id, python_callable,
-        trigger_rule="all_success", retries=0, email_on_failure=False
+        dag,
+        task_id,
+        python_callable,
+        trigger_rule="all_success",
+        retries=0,
+        email_on_failure=False,
+        **kwargs
 ):
     return PythonOperator(
         task_id=task_id,
@@ -47,7 +52,8 @@ def create_python_task(
         python_callable=python_callable,
         trigger_rule=trigger_rule,
         retries=retries,
-        email_on_failure=email_on_failure
+        email_on_failure=email_on_failure,
+        **kwargs
     )
 
 

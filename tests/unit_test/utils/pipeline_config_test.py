@@ -5,6 +5,7 @@ import pytest
 
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
+    AirflowConfig,
     BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
@@ -135,6 +136,24 @@ class TestStateFileConfig:
         })
         assert config.bucket_name == 'bucket1'
         assert config.object_name == 'object1'
+
+
+class TestAirflowConfig:
+    def test_should_default_to_empty_task_parameters(self):
+        config = AirflowConfig.from_dict({})
+        assert config.task_parameters is not None
+        assert not config.task_parameters
+
+    def test_should_read_task_parameters(self):
+        task_parameters = {'queue': 'dummy'}
+        config = AirflowConfig.from_dict({
+            'taskParameters': task_parameters
+        })
+        assert config.task_parameters == task_parameters
+
+    def test_should_provide_defaults_for_none_config_dict(self):
+        config = AirflowConfig.from_optional_dict(None)
+        assert config.task_parameters is not None
 
 
 class TestStrToBool:
