@@ -167,6 +167,41 @@ class TestAirflowConfig:
         config = AirflowConfig.from_optional_dict(None)
         assert config.task_parameters is not None
 
+    def test_should_use_provided_default_parameters(self):
+        default_airflow_config = AirflowConfig(
+            dag_parameters={'schedule': 'dummy'},
+            task_parameters={'queue': 'dummy'}
+        )
+        config = AirflowConfig.from_dict(
+            {},
+            default_airflow_config=default_airflow_config
+        )
+        assert config.dag_parameters == default_airflow_config.dag_parameters
+        assert config.task_parameters == default_airflow_config.task_parameters
+
+    def test_should_override_default_parameters(self):
+        default_airflow_config = AirflowConfig(
+            dag_parameters={'schedule': 'original-schedule', 'unchanged-default': 'default'},
+            task_parameters={'queue': 'original-queue', 'unchanged-default': 'default'}
+        )
+        config = AirflowConfig.from_dict(
+            {
+                'dagParameters': {'schedule': 'updated-schedule', 'new-key': 'value'},
+                'taskParameters': {'queue': 'updated-queue', 'new-key': 'value'}
+            },
+            default_airflow_config=default_airflow_config
+        )
+        assert config.dag_parameters == {
+            'unchanged-default': 'default',
+            'schedule': 'updated-schedule',
+            'new-key': 'value'
+        }
+        assert config.task_parameters == {
+            'unchanged-default': 'default',
+            'queue': 'updated-queue',
+            'new-key': 'value'
+        }
+
 
 class TestStrToBool:
     def test_should_return_true_for_lower_case_true(self):
