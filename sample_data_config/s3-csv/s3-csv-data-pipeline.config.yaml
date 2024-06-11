@@ -80,6 +80,7 @@ s3Csv:
       - parse_json_value
     airflow:
       taskParameters:
+        queue: 'kubernetes'
         executor_config:
           pod_override:
             spec:
