@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Optional, Sequence
 from apiclient import discovery
 from data_pipeline.utils.data_store.google_service_client import (
     MemoryCache, get_credentials
@@ -7,6 +7,8 @@ from data_pipeline.utils.data_store.google_service_client import (
 
 LOGGER = logging.getLogger(__name__)
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
+
+DEFAULT_PAGE_SIZE: int = 5000
 
 
 class GoogleAnalyticsClient:
@@ -21,13 +23,13 @@ class GoogleAnalyticsClient:
 
     # pylint: disable=too-many-arguments
     def get_report(
-            self,
-            view_id: str,
-            date_ranges: list,
-            metrics: list,
-            dimensions: list,
-            page_token: Optional[str] = None,
-            page_size: int = 5000
+        self,
+        view_id: str,
+        date_ranges: Sequence[dict],
+        metrics: Sequence[dict],
+        dimensions: Sequence[dict],
+        page_token: Optional[str] = None,
+        page_size: int = DEFAULT_PAGE_SIZE
     ):
         # pylint: disable=no-member
         return self.analytics_reporting.reports().batchGet(

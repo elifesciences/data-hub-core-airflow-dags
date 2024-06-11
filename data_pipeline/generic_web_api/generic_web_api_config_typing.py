@@ -5,6 +5,7 @@ from data_pipeline.utils.pipeline_config_typing import (
     BigQueryIncludeExcludeSourceConfigDict,
     MappingConfigDict,
     ParameterFromFileConfigDict,
+    RecordProcessingStepConfigList,
     StateFileConfigDict
 )
 
@@ -67,6 +68,9 @@ class WebApiResponseConfigDict(TypedDict):
     totalItemsCountKeyFromResponseRoot: NotRequired[Sequence[str]]
     nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
+    fieldsToReturn: NotRequired[Sequence[str]]
+    recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
+    provenanceEnabled: NotRequired[bool]
 
 
 class WebApiBaseConfigDict(TypedDict):

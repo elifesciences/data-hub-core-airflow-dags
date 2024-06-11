@@ -20,9 +20,14 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     parse_timestamp_from_str
 )
+from data_pipeline.utils.json import get_recursively_transformed_object_values_at_any_level
+from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+PROVENANCE_FIELD_NAME = 'provenance'
 
 
 def get_dict_values_from_path_as_list(
@@ -49,13 +54,34 @@ def extract_content_from_response(
     return extracted_data
 
 
+def get_record_with_fields_to_return(
+    record: dict,
+    fields_to_return: Optional[Sequence[str]]
+) -> dict:
+    if not fields_to_return or not record:
+        return record
+    return {
+        key: value
+        for key, value in record.items()
+        if key in fields_to_return
+    }
+
+
 def process_record_in_list(
         record_list: Iterable[dict],
+        record_processing_step_function: Optional[RecordProcessingStepFunction] = None,
         provenance: Optional[dict] = None,
-        bq_schema=None
-) -> Iterable:
+        bq_schema=None,
+        fields_to_return: Optional[Sequence[str]] = None,
+) -> Iterable[dict]:
     for record in record_list:
-        n_record = standardize_record_keys(record)
+        n_record = get_record_with_fields_to_return(record, fields_to_return=fields_to_return)
+        if record_processing_step_function:
+            n_record = get_recursively_transformed_object_values_at_any_level(
+                n_record,
+                value_transform_fn=record_processing_step_function
+            )
+        n_record = standardize_record_keys(n_record)
         if bq_schema:
             n_record = filter_record_by_schema(n_record, bq_schema)
         if provenance:
@@ -204,7 +230,9 @@ def get_latest_record_list_timestamp(
     return get_latest_record_list_timestamp_for_item_timestamp_key_path_from_item_root(
         record_list,
         previous_latest_timestamp=previous_latest_timestamp,
-        item_timestamp_key_path_from_item_root=data_config.item_timestamp_key_path_from_item_root
+        item_timestamp_key_path_from_item_root=(
+            data_config.response.item_timestamp_key_path_from_item_root
+        )
     )
 
 
@@ -216,6 +244,8 @@ def iter_processed_record_for_api_item_list_response(
     bq_schema = get_bq_schema(data_config)
     return process_record_in_list(
         record_list=record_list,
+        fields_to_return=data_config.response.fields_to_return,
+        record_processing_step_function=data_config.response.record_processing_step_function,
         bq_schema=bq_schema,
         provenance=provenance
     )
@@ -223,11 +253,15 @@ def iter_processed_record_for_api_item_list_response(
 
 def get_web_api_provenance(
     data_config: WebApiConfig,
-    data_etl_timestamp: datetime
+    data_etl_timestamp: str,
+    request_provenance: Optional[dict] = None
 ) -> dict:
-    return {
+    result: dict = {
         data_config.import_timestamp_field_name: data_etl_timestamp
     }
+    if data_config.response.provenance_enabled and request_provenance:
+        result[PROVENANCE_FIELD_NAME] = request_provenance
+    return result
 
 
 def get_bq_schema(data_config: WebApiConfig,):

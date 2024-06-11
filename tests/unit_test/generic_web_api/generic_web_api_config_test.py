@@ -1,17 +1,27 @@
+from typing import Iterator
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
 from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
+
+from data_pipeline.generic_web_api import generic_web_api_config as generic_web_api_config_module
 from data_pipeline.generic_web_api.generic_web_api_config import (
+    WebApiResponseConfig,
     get_web_api_config_id,
     MultiWebApiConfig,
     WebApiConfig
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
-    WebApiConfigDict
+    WebApiResponseConfigDict
+)
+from tests.unit_test.generic_web_api.test_data import (
+    DATASET_1,
+    MINIMAL_WEB_API_CONFIG_DICT,
+    TABLE_1
 )
 
-
-DATASET_1 = 'dataset_1'
-TABLE_1 = 'table_1'
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
     'projectName': 'project1',
@@ -22,16 +32,23 @@ BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
     'include': {'bigQuery': BIGQUERY_SOURCE_CONFIG_DICT_1}
 }
 
-MINIMAL_WEB_API_CONFIG_DICT: WebApiConfigDict = {
-    'dataPipelineId': 'pipeline_1',
-    'gcpProjectName': 'project_1',
-    'importedTimestampFieldName': 'imported_timestamp_1',
-    'dataset': DATASET_1,
-    'table': TABLE_1,
-    'dataUrl': {
-        'urlExcludingConfigurableParameters': 'url_1'
-    }
+RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {
+    'itemsKeyFromResponseRoot': ['items']
 }
+
+
+@pytest.fixture(name='get_single_record_processing_step_function_for_function_names_or_none_mock')
+def _get_single_record_processing_step_function_for_function_names_or_none_mock(
+) -> Iterator[MagicMock]:
+    with patch.object(
+        generic_web_api_config_module,
+        'get_single_record_processing_step_function_for_function_names_or_none'
+    ) as mock:
+        yield mock
+
+
+def dummy_record_processing_function(record: dict) -> dict:
+    return record
 
 
 class TestGetWebApiConfigId:
@@ -65,6 +82,61 @@ class TestMultiWebApiConfig:
         assert multi_web_api_config.web_api_config[0][
             ConfigKeys.DATA_PIPELINE_CONFIG_ID
         ] == 'table1_0'
+
+
+class TestWebApiResponseConfig:
+    def test_should_return_object_for_none(self):
+        response_config = WebApiResponseConfig.from_dict(None)
+        assert response_config is not None
+
+    def test_should_read_from_root_paths(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'itemsKeyFromResponseRoot': ['item-1'],
+            'nextPageCursorKeyFromResponseRoot': ['next-cursor-1'],
+            'totalItemsCountKeyFromResponseRoot': ['total-1']
+        })
+        assert response_config.items_key_path_from_response_root == ['item-1']
+        assert response_config.next_page_cursor_key_path_from_response_root == ['next-cursor-1']
+        assert response_config.total_item_count_key_path_from_response_root == ['total-1']
+
+    def test_should_read_record_timestamp_path(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'recordTimestamp': {
+                'itemTimestampKeyFromItemRoot': ['timestamp-1']
+            }
+        })
+        assert response_config.item_timestamp_key_path_from_item_root == ['timestamp-1']
+
+    def test_should_read_fields_to_return(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'fieldsToReturn': ['field-1', 'field-2']
+        })
+        assert response_config.fields_to_return == ['field-1', 'field-2']
+
+    def test_should_read_record_processing_steps(
+        self,
+        get_single_record_processing_step_function_for_function_names_or_none_mock: MagicMock
+    ):
+        get_single_record_processing_step_function_for_function_names_or_none_mock.return_value = (
+            dummy_record_processing_function
+        )
+        response_config = WebApiResponseConfig.from_dict({
+            'recordProcessingSteps': ['function-1']
+        })
+        assert response_config.record_processing_step_function == (
+            get_single_record_processing_step_function_for_function_names_or_none_mock.return_value
+        )
+
+    def test_should_not_enable_provenance_by_default(self):
+        response_config = WebApiResponseConfig.from_dict({
+        })
+        assert not response_config.provenance_enabled
+
+    def test_should_read_provenance_enabled_config(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'provenanceEnabled': True
+        })
+        assert response_config.provenance_enabled
 
 
 class TestWebApiConfig:
@@ -101,6 +173,13 @@ class TestWebApiConfig:
                 BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1
             )
         )
+
+    def test_should_read_response_config(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'response': RESPONSE_CONFIG_DICT_1
+        })
+        assert web_api_config.response == WebApiResponseConfig.from_dict(RESPONSE_CONFIG_DICT_1)
 
     def test_should_set_batch_size_to_none_by_default(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)

@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from json.decoder import JSONDecodeError
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Any, Iterable, Mapping, Optional, Sequence, Tuple
 
 import requests
 
@@ -138,7 +138,7 @@ def get_default_printable_mapping_with_secrets(
     return None
 
 
-def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
+def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Optional[Mapping[str, str]] = None,
     headers: Optional[Mapping[str, str]] = None,
@@ -149,7 +149,7 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
     session: Optional[requests.Session] = None,
     raise_on_status: bool = True,
     progress_message: Optional[str] = None
-) -> dict:
+) -> Tuple[requests.Response, dict]:
     progress_message_str = (
         f'({progress_message})'
         if progress_message
@@ -201,6 +201,11 @@ def get_response_json_with_provenance_from_api(  # noqa pylint: disable=too-many
         ]
     if json_data:
         request_provenance['json_data'] = json_data
+    return response, request_provenance
+
+
+def get_response_json_with_provenance_from_api(*args, **kwargs) -> dict:
+    response, request_provenance = get_response_and_provenance_from_api(*args, **kwargs)
     return {
         **get_valid_json_from_response(response),
         'provenance': request_provenance

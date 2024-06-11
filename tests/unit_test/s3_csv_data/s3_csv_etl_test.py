@@ -1,13 +1,15 @@
+import io
 import os
 from collections import OrderedDict
 from typing import Optional
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 import pytest
 import botocore
 
 from data_pipeline.s3_csv_data import s3_csv_etl
 from data_pipeline.s3_csv_data.s3_csv_etl import (
     get_record_metadata,
+    iter_transformed_json_from_csv,
     transform_load_data,
     get_standardized_csv_header,
     process_record_list,
@@ -40,11 +42,15 @@ def _os_stat():
         yield mock
 
 
-@pytest.fixture(name="mock_get_csv_data_from_s3", autouse=True)
-def _get_csv_data_from_s3():
-    with patch.object(s3_csv_etl,
-                      "get_csv_data_from_s3") as mock:
-        mock.return_value = TEST_DOWNLOADED_SHEET
+@pytest.fixture(name="mock_s3_open_binary_read_with_temp_file", autouse=True)
+def _mock_s3_open_binary_read_with_temp_file():
+    with patch.object(
+        s3_csv_etl,
+        "s3_open_binary_read_with_temp_file"
+    ) as mock:
+        mock.return_value.__enter__.return_value = io.BytesIO(
+            TEST_DOWNLOADED_SHEET.encode('utf-8')
+        )
 
         yield mock
 
@@ -56,14 +62,14 @@ def _create_or_extend_table_schema():
         yield mock
 
 
-@pytest.fixture(name="mock_get_csv_dict_reader", autouse=True)
+@pytest.fixture(name="mock_get_csv_dict_reader")
 def _get_csv_dict_reader():
     with patch.object(s3_csv_etl,
                       "get_csv_dict_reader") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_process_record_list", autouse=True)
+@pytest.fixture(name="mock_process_record_list")
 def _process_record_list():
     with patch.object(s3_csv_etl,
                       "process_record_list") as mock:
@@ -104,6 +110,21 @@ def _write_to_file():
     with patch.object(s3_csv_etl,
                       "write_jsonl_to_file") as mock:
         yield mock
+
+
+MINIMAL_CSV_CONFIG_DICT = {
+    'dataValuesStartLineIndex': 1
+}
+
+
+def get_s3_csv_config(csv_config_dict: dict):
+    gcp_project = ""
+    deployment_env = ""
+    return S3BaseCsvConfig(
+        csv_config_dict,
+        gcp_project,
+        deployment_env
+    )
 
 
 class TestSheetRecordMetadata:
@@ -307,6 +328,63 @@ class TestCsvHeader:
         assert standardized_header_result == expected_result
 
 
+class TestIterTransformedJsonFromCsv:
+    def test_should_transform_a_simple_csv_file(
+        self,
+        mock_s3_open_binary_read_with_temp_file: MagicMock
+    ):
+        mock_s3_open_binary_read_with_temp_file.return_value.__enter__.return_value = io.BytesIO(
+            '\n'.join(['name,age', 'hazal,6']).encode('utf-8')
+        )
+        minimal_csv_config = get_s3_csv_config(MINIMAL_CSV_CONFIG_DICT)
+        record_import_timestamp_as_string = ""
+        s3_object_name = "s3_object"
+        with iter_transformed_json_from_csv(
+            s3_object_name,
+            minimal_csv_config,
+            record_import_timestamp_as_string
+        ) as transformed_json_iterable:
+            actual_result = list(transformed_json_iterable)
+        expected_result = [{
+            'name': 'hazal',
+            'age': '6',
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'}
+        }]
+        assert actual_result == expected_result
+
+    def test_should_transform_a_csv_file_with_metadata(
+        self,
+        mock_s3_open_binary_read_with_temp_file: MagicMock
+    ):
+        mock_s3_open_binary_read_with_temp_file.return_value.__enter__.return_value = io.BytesIO(
+            '\n'.join(['metadata', 'name,age', 'hazal,6']).encode('utf-8')
+        )
+        minimal_csv_config = get_s3_csv_config({
+            **MINIMAL_CSV_CONFIG_DICT,
+            'dataValuesStartLineIndex': 2,
+            'headerLineIndex': 1,
+            'inSheetRecordMetadata': [{
+                'metadataSchemaFieldName': 'metadata_field',
+                'metadataLineIndex': 0
+            }]
+        })
+        record_import_timestamp_as_string = ""
+        s3_object_name = "s3_object"
+        with iter_transformed_json_from_csv(
+            s3_object_name,
+            minimal_csv_config,
+            record_import_timestamp_as_string
+        ) as transformed_json_iterable:
+            actual_result = list(transformed_json_iterable)
+        expected_result = [{
+            'name': 'hazal',
+            'age': '6',
+            'provenance': {'s3_bucket': '', 'source_filename': 's3_object'},
+            'metadata_field': 'metadata'
+        }]
+        assert actual_result == expected_result
+
+
 class TestTransformAndLoadData:
     @staticmethod
     def get_csv_config(update_dict: Optional[dict] = None):
@@ -342,7 +420,6 @@ class TestTransformAndLoadData:
 
     def test_should_transform_write_and_load_to_bq(
             self,
-            mock_get_csv_dict_reader,
             mock_process_record_list,
             mock_load_file_into_bq
     ):
@@ -353,7 +430,6 @@ class TestTransformAndLoadData:
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
         )
-        mock_get_csv_dict_reader.assert_called()
         mock_process_record_list.assert_called()
         mock_load_file_into_bq.assert_called()
 

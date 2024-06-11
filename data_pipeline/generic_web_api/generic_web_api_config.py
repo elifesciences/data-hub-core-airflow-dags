@@ -22,7 +22,12 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiBaseConfigDict,
     WebApiConfigDict,
     WebApiConfigurableParametersConfigDict,
-    WebApiRequestBuilderConfigDict
+    WebApiRequestBuilderConfigDict,
+    WebApiResponseConfigDict
+)
+from data_pipeline.utils.record_processing import RecordProcessingStepFunction
+from data_pipeline.utils.record_processing_functions import (
+    get_single_record_processing_step_function_for_function_names_or_none
 )
 
 
@@ -84,6 +89,48 @@ class MultiWebApiConfig:
 
 
 @dataclass(frozen=True)
+class WebApiResponseConfig:
+    items_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    total_item_count_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
+    item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
+    fields_to_return: Optional[Sequence[str]] = None
+    record_processing_step_function: Optional[RecordProcessingStepFunction] = None
+    provenance_enabled: bool = False
+
+    @staticmethod
+    def from_dict(
+        web_api_response_config: Optional[WebApiResponseConfigDict]
+    ) -> 'WebApiResponseConfig':
+        if not web_api_response_config:
+            return WebApiResponseConfig()
+        return WebApiResponseConfig(
+            items_key_path_from_response_root=(
+                web_api_response_config.get("itemsKeyFromResponseRoot", [])
+            ),
+            total_item_count_key_path_from_response_root=(
+                web_api_response_config.get("totalItemsCountKeyFromResponseRoot", [])
+            ),
+            next_page_cursor_key_path_from_response_root=(
+                web_api_response_config.get("nextPageCursorKeyFromResponseRoot", [])
+            ),
+            item_timestamp_key_path_from_item_root=(
+                web_api_response_config.get("recordTimestamp", {})
+                .get("itemTimestampKeyFromItemRoot", [])
+            ),
+            fields_to_return=web_api_response_config.get('fieldsToReturn'),
+            record_processing_step_function=(
+                get_single_record_processing_step_function_for_function_names_or_none(
+                    web_api_response_config.get('recordProcessingSteps')
+                )
+            ),
+            provenance_enabled=web_api_response_config.get(
+                'provenanceEnabled', False
+            )
+        )
+
+
+@dataclass(frozen=True)
 class WebApiConfig:
     config_as_dict: WebApiConfigDict
     import_timestamp_field_name: str
@@ -93,6 +140,7 @@ class WebApiConfig:
     headers: MappingConfig
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
+    response: WebApiResponseConfig
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
     state_file_bucket_name: Optional[str] = None
@@ -100,10 +148,6 @@ class WebApiConfig:
     default_start_date: Optional[str] = None
     start_to_end_date_diff_in_days: Optional[int] = None
     page_size: Optional[int] = None
-    items_key_path_from_response_root: Sequence[str] = field(default_factory=list)
-    total_item_count_key_path_from_response_root: Sequence[str] = field(default_factory=list)
-    next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
-    item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     authentication: Optional[WebApiAuthentication] = None
     source: Optional[BigQueryIncludeExcludeSourceConfig] = None
     batch_size: Optional[int] = None
@@ -244,19 +288,7 @@ class WebApiConfig:
             start_to_end_date_diff_in_days=(
                 configurable_parameters.get("daysDiffFromStartTillEnd", None)
             ),
-            items_key_path_from_response_root=(
-                api_config.get("response", {}).get("itemsKeyFromResponseRoot", [])
-            ),
-            total_item_count_key_path_from_response_root=(
-                api_config.get("response", {}).get("totalItemsCountKeyFromResponseRoot", [])
-            ),
-            next_page_cursor_key_path_from_response_root=(
-                api_config.get("response", {}).get("nextPageCursorKeyFromResponseRoot", [])
-            ),
-            item_timestamp_key_path_from_item_root=(
-                api_config.get("response", {}).get("recordTimestamp", {})
-                .get("itemTimestampKeyFromItemRoot", [])
-            ),
+            response=WebApiResponseConfig.from_dict(api_config.get('response')),
             authentication=authentication,
             source=BigQueryIncludeExcludeSourceConfig.from_optional_dict(api_config.get('source')),
             batch_size=api_config.get('batchSize')

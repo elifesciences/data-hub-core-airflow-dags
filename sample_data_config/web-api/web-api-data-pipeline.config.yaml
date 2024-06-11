@@ -3,16 +3,7 @@ importedTimestampFieldName: 'data_hub_imported_timestamp'
 webApi:
   # Note: the first configuration is used by the end2end test
 
-  # Observer API (used by end2end test)
-  - dataPipelineId: observer_published_research_article
-    description:
-      Retrieve legacy POA and VOR publication dates from Observer.
-    dataset: '{ENV}'
-    table: test_published_research_article
-    dataUrl:
-      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
-
-  # elifescience people API
+  # elifescience people API (used by end2end test)
   - dataPipelineId: people_api
     dataset: '{ENV}'
     table: test_people_api
@@ -25,6 +16,15 @@ webApi:
     response:
       itemsKeyFromResponseRoot:
         - items
+
+  # Observer API
+  - dataPipelineId: observer_published_research_article
+    description:
+      Retrieve legacy POA and VOR publication dates from Observer.
+    dataset: '{ENV}'
+    table: test_published_research_article
+    dataUrl:
+      urlExcludingConfigurableParameters: https://observer.elifesciences.org/report/published-research-article-index?format=json
 
   - dataPipelineId: web_s2_embeddings
     description:
@@ -63,3 +63,61 @@ webApi:
       itemsKeyFromResponseRoot:
         - preds
     batchSize: 32
+
+  # OSF API
+  - dataPipelineId: osf_io_api
+    dataset: '{ENV}'
+    table: test_osf_io_api_response
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.osf.io/v2/preprints/?page=2&filter[date_modified]=2024-01-29&page[size]=1
+    response:
+      itemsKeyFromResponseRoot:
+        - data
+
+  # Crossref API
+  - dataPipelineId: crossref_metadata_api
+    dataset: '{ENV}'
+    table: test_crossref_metadata_api_response
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery:
+            SELECT doi_prefix
+            FROM UNNEST(['10.31219', '10.31235']) AS doi_prefix
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state/{doi_prefix}.json'
+    urlSourceType:
+      name: 'crossref_metadata_api'
+    dataUrl:
+      urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/{doi_prefix}/works?sort=indexed&order=asc
+      configurableParameters:
+        nextPageCursorParameterName: 'cursor'
+        fromDateParameterName: 'from-index-date'
+        defaultStartDate: '2022-01-01+00:00'
+        dateFormat: '%Y-%m-%d'
+        pageSizeParameterName: rows
+        defaultPageSize: 1000
+    response:
+      nextPageCursorKeyFromResponseRoot:
+        - message
+        - next-cursor
+      itemsKeyFromResponseRoot:
+        - message
+        - items
+      totalItemsCountKeyFromResponseRoot:
+        - message
+        - total-results
+      recordTimestamp:
+        itemTimestampKeyFromItemRoot:
+          - 'indexed'
+          - 'date_time'  # this is after the record was processed
+      # fieldsToReturn:
+      #   - 'DOI'
+      #   - 'group-title'
+      #   - 'abstract'
+      #   - 'indexed'
+      recordProcessingSteps:
+        - transform_crossref_api_date_parts
+      provenanceEnabled: True
