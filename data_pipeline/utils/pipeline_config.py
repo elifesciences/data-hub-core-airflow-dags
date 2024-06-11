@@ -152,11 +152,13 @@ class StateFileConfig:
 
 @dataclass(frozen=True)
 class AirflowConfig:
+    dag_parameters: dict
     task_parameters: dict
 
     @staticmethod
     def from_dict(airflow_config_dict: AirflowConfigDict) -> 'AirflowConfig':
         return AirflowConfig(
+            dag_parameters=airflow_config_dict.get('dagParameters') or {},
             task_parameters=airflow_config_dict.get('taskParameters') or {}
         )
 

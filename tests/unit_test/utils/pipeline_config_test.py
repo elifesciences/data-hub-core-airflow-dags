@@ -139,10 +139,22 @@ class TestStateFileConfig:
 
 
 class TestAirflowConfig:
+    def test_should_default_to_empty_dag_parameters(self):
+        config = AirflowConfig.from_dict({})
+        assert config.dag_parameters is not None
+        assert not config.dag_parameters
+
     def test_should_default_to_empty_task_parameters(self):
         config = AirflowConfig.from_dict({})
         assert config.task_parameters is not None
         assert not config.task_parameters
+
+    def test_should_read_dag_parameters(self):
+        dag_parameters = {'schedule': 'dummy'}
+        config = AirflowConfig.from_dict({
+            'dagParameters': dag_parameters
+        })
+        assert config.dag_parameters == dag_parameters
 
     def test_should_read_task_parameters(self):
         task_parameters = {'queue': 'dummy'}
