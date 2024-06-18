@@ -3,7 +3,7 @@
 import functools
 import logging
 from datetime import timedelta
-from typing import Optional, Sequence
+from typing import Sequence
 
 import airflow
 
@@ -21,17 +21,12 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
 )
 from data_pipeline.utils.pipeline_config import (
     AirflowConfig,
-    get_environment_variable_value,
     get_pipeline_config_for_env_name_and_config_parser
 )
 
 
 LOGGER = logging.getLogger(__name__)
 
-
-WEB_API_SCHEDULE_INTERVAL_ENV_NAME = (
-    "WEB_API_SCHEDULE_INTERVAL"
-)
 
 WEB_API_CONFIG_FILE_PATH_ENV_NAME = (
     "WEB_API_CONFIG_FILE_PATH"
@@ -42,13 +37,6 @@ def get_multi_web_api_config() -> MultiWebApiConfig:
     return get_pipeline_config_for_env_name_and_config_parser(
         WEB_API_CONFIG_FILE_PATH_ENV_NAME,
         MultiWebApiConfig
-    )
-
-
-def get_default_schedule() -> Optional[str]:
-    return get_environment_variable_value(
-        WEB_API_SCHEDULE_INTERVAL_ENV_NAME,
-        default_value=None
     )
 
 
@@ -63,17 +51,10 @@ def get_dag_id_for_web_api_config_dict(web_api_config_dict: WebApiConfigDict) ->
     return f'Web_API.{web_api_config_dict["dataPipelineId"]}'
 
 
-def create_web_api_dags(
-    default_schedule: Optional[str] = None
-) -> Sequence[airflow.DAG]:
+def create_web_api_dags() -> Sequence[airflow.DAG]:
     dags = []
     multi_web_api_config = get_multi_web_api_config()
-    default_airflow_config = AirflowConfig(
-        dag_parameters={
-            'schedule': default_schedule,
-            'dagrun_timeout': timedelta(days=1),
-        }
-    )
+    default_airflow_config = multi_web_api_config.default_airflow_config
     for data_pipeline_id, web_api_config_dict in (
         multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
     ):
@@ -84,6 +65,7 @@ def create_web_api_dags(
         with create_dag(
             dag_id=get_dag_id_for_web_api_config_dict(web_api_config_dict),
             description=web_api_config_dict.get('description'),
+            dagrun_timeout=timedelta(days=1),
             **airflow_config.dag_parameters
         ) as dag:
             create_python_task(
@@ -99,6 +81,6 @@ def create_web_api_dags(
     return dags
 
 
-DAGS = create_web_api_dags(default_schedule=get_default_schedule())
+DAGS = create_web_api_dags()
 
 FIRST_DAG = DAGS[0]
