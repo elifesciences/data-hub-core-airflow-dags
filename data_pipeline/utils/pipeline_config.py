@@ -4,6 +4,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable, Mapping, Optional, Sequence, Type, TypeVar, Union
 
+from airflow.providers.cncf.kubernetes.pod_generator import PodGenerator
+
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict, read_file_content
 from data_pipeline.utils.pipeline_config_typing import (
     AirflowConfigDict,
@@ -161,16 +163,35 @@ class AirflowConfig:
         airflow_config_dict: AirflowConfigDict,
         default_airflow_config: Optional['AirflowConfig'] = None
     ) -> 'AirflowConfig':
+        task_parameters_dict = {
+            **(default_airflow_config.task_parameters if default_airflow_config else {}),
+            **(airflow_config_dict.get('taskParameters') or {})
+        }
+        task_parameters_dict = AirflowConfig.get_task_parameters_dict_with_parsed_pod_override(
+            task_parameters_dict
+        )
         return AirflowConfig(
             dag_parameters={
                 **(default_airflow_config.dag_parameters if default_airflow_config else {}),
                 **(airflow_config_dict.get('dagParameters') or {})
             },
-            task_parameters={
-                **(default_airflow_config.task_parameters if default_airflow_config else {}),
-                **(airflow_config_dict.get('taskParameters') or {})
-            }
+            task_parameters=task_parameters_dict
         )
+
+    @staticmethod
+    def get_task_parameters_dict_with_parsed_pod_override(task_parameters_dict: dict):
+        pod_override = task_parameters_dict.get('executor_config', {}).get('pod_override')
+        if not pod_override:
+            return task_parameters_dict
+        LOGGER.debug('Found pod_override config: %r', pod_override)
+        task_parameters_dict = {
+            **task_parameters_dict,
+            'executor_config': {
+                **task_parameters_dict['executor_config'],
+                'pod_override': PodGenerator.deserialize_model_dict(pod_override)
+            }
+        }
+        return task_parameters_dict
 
     @staticmethod
     def from_optional_dict(
