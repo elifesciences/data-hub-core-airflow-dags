@@ -1,4 +1,4 @@
-apache-airflow[crypto,celery,postgres,jdbc,ssh]==2.7.1
+apache-airflow[crypto,celery,cncf,postgres,jdbc,ssh]==2.7.1
 apache-airflow-providers-amazon==7.3.0
 backoff==2.2.1
 bigquery-schema-generator==1.6.1
@@ -9,6 +9,7 @@ botocore==1.27.59
 cattrs==23.2.3
 cloudpickle==3.0.0
 dateparser==1.2.0
+kubernetes==23.6.0
 objsize==0.7.0
 regex==2023.12.25
 fsspec==2022.8.2
