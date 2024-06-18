@@ -3,6 +3,7 @@ from typing import Optional
 
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     update_deployment_env_placeholder
 )
 
@@ -16,6 +17,10 @@ class MultiS3CsvConfig:
                  ):
         self.gcp_project = multi_s3_csv_config["gcpProjectName"]
         self.import_timestamp_field_name = multi_s3_csv_config["importedTimestampFieldName"]
+        default_config_dict = multi_s3_csv_config.get('defaultConfig', {})
+        self.default_airflow_config = AirflowConfig.from_optional_dict(
+            default_config_dict.get('airflow')
+        )
         self.s3_csv_config = [
             extend_s3_csv_config_with_state_file_info(
                 extend_s3_csv_config_dict(

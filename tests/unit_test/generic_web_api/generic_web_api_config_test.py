@@ -4,7 +4,11 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
-from data_pipeline.utils.pipeline_config import BigQueryIncludeExcludeSourceConfig, ConfigKeys
+from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
+    BigQueryIncludeExcludeSourceConfig,
+    ConfigKeys
+)
 
 from data_pipeline.generic_web_api import generic_web_api_config as generic_web_api_config_module
 from data_pipeline.generic_web_api.generic_web_api_config import (
@@ -16,11 +20,18 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiResponseConfigDict
 )
+from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
 from tests.unit_test.generic_web_api.test_data import (
     DATASET_1,
     MINIMAL_WEB_API_CONFIG_DICT,
     TABLE_1
 )
+
+
+AIRFLOW_CONFIG_DICT_1: AirflowConfigDict = {
+    'dagParameters': {'schedule': 'some-schedule'},
+    'taskParameters': {'queue': 'some-queue'}
+}
 
 
 BIGQUERY_SOURCE_CONFIG_DICT_1 = {
@@ -82,6 +93,17 @@ class TestMultiWebApiConfig:
         assert multi_web_api_config.web_api_config[0][
             ConfigKeys.DATA_PIPELINE_CONFIG_ID
         ] == 'table1_0'
+
+    def test_should_read_default_airflow_config(self):
+        multi_config = MultiWebApiConfig({
+            'defaultConfig': {
+                'airflow': AIRFLOW_CONFIG_DICT_1
+            },
+            'webApi': []
+        })
+        assert multi_config.default_airflow_config == AirflowConfig.from_dict(
+            AIRFLOW_CONFIG_DICT_1
+        )
 
 
 class TestWebApiResponseConfig:

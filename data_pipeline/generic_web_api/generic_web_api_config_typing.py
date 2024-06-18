@@ -101,5 +101,10 @@ class WebApiConfigDict(WebApiBaseConfigDict, WebApiGlobalConfigDict):
     pass
 
 
+class MultiWebApiDefaultConfigDict(TypedDict):
+    airflow: NotRequired[AirflowConfigDict]
+
+
 class MultiWebApiConfigDict(WebApiGlobalConfigDict):
+    defaultConfig: NotRequired[MultiWebApiDefaultConfigDict]
     webApi: Sequence[WebApiBaseConfigDict]

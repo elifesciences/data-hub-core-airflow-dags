@@ -10,6 +10,7 @@ from data_pipeline.generic_web_api.request_builder import (
 )
 from data_pipeline.generic_web_api.web_api_auth import WebApiAuthentication
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
@@ -70,6 +71,10 @@ class MultiWebApiConfig:
         self.gcp_project = multi_web_api_etl_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_web_api_etl_config.get(
             "importedTimestampFieldName"
+        )
+        default_config_dict = multi_web_api_etl_config.get('defaultConfig', {})
+        self.default_airflow_config = AirflowConfig.from_optional_dict(
+            default_config_dict.get('airflow')
         )
         self.web_api_config: Mapping[int, WebApiConfigDict] = {
             ind: cast(WebApiConfigDict, {
