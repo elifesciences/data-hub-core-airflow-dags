@@ -20,6 +20,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task,
 )
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     get_environment_variable_value,
     get_pipeline_config_for_env_name_and_config_parser
 )
@@ -67,14 +68,23 @@ def create_web_api_dags(
 ) -> Sequence[airflow.DAG]:
     dags = []
     multi_web_api_config = get_multi_web_api_config()
+    default_airflow_config = AirflowConfig(
+        dag_parameters={
+            'schedule': default_schedule,
+            'dagrun_timeout': timedelta(days=1),
+        }
+    )
     for data_pipeline_id, web_api_config_dict in (
         multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
     ):
+        airflow_config = AirflowConfig.from_optional_dict(
+            web_api_config_dict.get('airflow'),
+            default_airflow_config=default_airflow_config
+        )
         with create_dag(
             dag_id=get_dag_id_for_web_api_config_dict(web_api_config_dict),
             description=web_api_config_dict.get('description'),
-            schedule=default_schedule,
-            dagrun_timeout=timedelta(days=1)
+            **airflow_config.dag_parameters
         ) as dag:
             create_python_task(
                 dag=dag,
@@ -82,7 +92,8 @@ def create_web_api_dags(
                 python_callable=functools.partial(
                     web_api_data_etl,
                     data_pipeline_id=data_pipeline_id
-                )
+                ),
+                **airflow_config.task_parameters
             )
             dags.append(dag)
     return dags
