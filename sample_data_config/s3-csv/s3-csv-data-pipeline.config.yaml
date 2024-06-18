@@ -19,10 +19,10 @@ defaultConfig:
     #           - name: 'base'
     #             resources:
     #               limits:
-    #                 memory: 1gb
+    #                 memory: 1Gi
     #                 cpu: 1000m
     #               requests:
-    #                 memory: 1gb
+    #                 memory: 1Gi
     #                 cpu: 100m
 
 s3Csv:
@@ -112,8 +112,8 @@ s3Csv:
     #             - name: 'base'
     #               resources:
     #                 limits:
-    #                   memory: 1gb
+    #                   memory: 1Gi
     #                   cpu: 1000m
     #                 requests:
-    #                   memory: 1gb
+    #                   memory: 1Gi
     #                   cpu: 100m
