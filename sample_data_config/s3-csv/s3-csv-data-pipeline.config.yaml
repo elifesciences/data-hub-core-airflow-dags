@@ -3,6 +3,28 @@ importedTimestampFieldName: "imported_timestamp"
 stateFile:
   defaultBucketName: ci-elife-data-pipeline
   defaultSystemGeneratedObjectPrefix: "airflow-config/{ENV}-s3-csv/state/s3-csv"
+
+defaultConfig:
+  airflow:
+    dagParameters:
+      # schedule: '@daily'
+      tags:
+        - 'CSV'
+    # taskParameters:
+    #   queue: 'kubernetes'
+    #   executor_config:
+    #     pod_override:
+    #       spec:
+    #         containers:
+    #           - name: 'base'
+    #             resources:
+    #               limits:
+    #                 memory: 1gb
+    #                 cpu: 1000m
+    #               requests:
+    #                 memory: 1gb
+    #                 cpu: 100m
+
 s3Csv:
   # Note: the first configuration is used by the end2end test
 
