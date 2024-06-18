@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from kubernetes.client.models.v1_pod import V1Pod
+
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
     AirflowConfig,
@@ -206,6 +208,23 @@ class TestAirflowConfig:
             'queue': 'updated-queue',
             'new-key': 'value'
         }
+
+    def test_should_parse_pod_override_into_kubernetes_v1_pod(self):
+        config = AirflowConfig.from_dict({
+            'taskParameters': {
+                'executor_config': {
+                    'pod_override': {
+                        'spec': {
+                            'containers': [{
+                                'name': 'base'
+                            }]
+                        }
+                    }
+                }
+            }
+        })
+        pod_override = config.task_parameters['executor_config']['pod_override']
+        assert isinstance(pod_override, V1Pod)
 
 
 class TestStrToBool:
