@@ -100,9 +100,12 @@ s3Csv:
       objectName: "airflow_test/state/s3-csv/state-sciety-events.json"
     recordProcessingSteps:
       - parse_json_value
-    # airflow:
-    #   dagParameters:
-    #     schedule: '@daily'
+    airflow:
+      dagParameters:
+        # schedule: '@daily'
+        tags:
+          - 'CSV'
+          - 'Sciety'
     #   taskParameters:
     #     queue: 'kubernetes'
     #     executor_config:
