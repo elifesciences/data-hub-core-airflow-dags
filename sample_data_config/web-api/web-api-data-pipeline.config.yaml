@@ -1,5 +1,13 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
+
+defaultConfig:
+  airflow:
+    dagParameters:
+      # schedule: '@daily'
+      tags:
+        - 'Web API'
+
 webApi:
   # Note: the first configuration is used by the end2end test
 

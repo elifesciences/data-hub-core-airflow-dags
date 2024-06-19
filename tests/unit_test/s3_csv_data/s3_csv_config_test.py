@@ -11,9 +11,24 @@ from data_pipeline.utils.csv.metadata_schema import (
 )
 
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     update_deployment_env_placeholder
 )
-from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
+from data_pipeline.s3_csv_data.s3_csv_config import MultiS3CsvConfig, S3BaseCsvConfig
+from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+
+
+AIRFLOW_CONFIG_DICT_1: AirflowConfigDict = {
+    'dagParameters': {'schedule': 'some-schedule'},
+    'taskParameters': {'queue': 'some-queue'}
+}
+
+
+MINIMAL_MULTI_S3_CSV_CONFIG_DICT = {
+    'gcpProjectName': 'gcpProjectName_1',
+    'importedTimestampFieldName': 'importedTimestampFieldName_1',
+    's3Csv': []
+}
 
 
 @pytest.fixture(name="mock_extend_table_schema_with_nested_schema")
@@ -57,6 +72,22 @@ class TestData:
             "deployment_env"
         )
         return config
+
+
+class TestMultiS3CsvConfig:
+    def test_should_should_not_fail_with_minimal_config(self):
+        MultiS3CsvConfig(MINIMAL_MULTI_S3_CSV_CONFIG_DICT)
+
+    def test_should_read_default_airflow_config(self):
+        multi_config = MultiS3CsvConfig({
+            **MINIMAL_MULTI_S3_CSV_CONFIG_DICT,
+            'defaultConfig': {
+                'airflow': AIRFLOW_CONFIG_DICT_1
+            }
+        })
+        assert multi_config.default_airflow_config == AirflowConfig.from_dict(
+            AIRFLOW_CONFIG_DICT_1
+        )
 
 
 class TestMetadataSchema:

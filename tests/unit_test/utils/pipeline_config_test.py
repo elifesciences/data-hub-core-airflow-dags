@@ -3,8 +3,11 @@ from pathlib import Path
 
 import pytest
 
+from kubernetes.client.models.v1_pod import V1Pod
+
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
+    AirflowConfig,
     BigQueryIncludeExcludeSourceConfig,
     BigQuerySourceConfig,
     BigQueryTargetConfig,
@@ -135,6 +138,93 @@ class TestStateFileConfig:
         })
         assert config.bucket_name == 'bucket1'
         assert config.object_name == 'object1'
+
+
+class TestAirflowConfig:
+    def test_should_use_defaults_when_constructing_from_class_without_parameters(self):
+        config = AirflowConfig()
+        assert config.dag_parameters is not None
+        assert config.task_parameters is not None
+
+    def test_should_default_to_empty_dag_parameters(self):
+        config = AirflowConfig.from_dict({})
+        assert config.dag_parameters is not None
+        assert not config.dag_parameters
+
+    def test_should_default_to_empty_task_parameters(self):
+        config = AirflowConfig.from_dict({})
+        assert config.task_parameters is not None
+        assert not config.task_parameters
+
+    def test_should_read_dag_parameters(self):
+        dag_parameters = {'schedule': 'dummy'}
+        config = AirflowConfig.from_dict({
+            'dagParameters': dag_parameters
+        })
+        assert config.dag_parameters == dag_parameters
+
+    def test_should_read_task_parameters(self):
+        task_parameters = {'queue': 'dummy'}
+        config = AirflowConfig.from_dict({
+            'taskParameters': task_parameters
+        })
+        assert config.task_parameters == task_parameters
+
+    def test_should_provide_defaults_for_none_config_dict(self):
+        config = AirflowConfig.from_optional_dict(None)
+        assert config.task_parameters is not None
+
+    def test_should_use_provided_default_parameters(self):
+        default_airflow_config = AirflowConfig(
+            dag_parameters={'schedule': 'dummy'},
+            task_parameters={'queue': 'dummy'}
+        )
+        config = AirflowConfig.from_dict(
+            {},
+            default_airflow_config=default_airflow_config
+        )
+        assert config.dag_parameters == default_airflow_config.dag_parameters
+        assert config.task_parameters == default_airflow_config.task_parameters
+
+    def test_should_override_default_parameters(self):
+        default_airflow_config = AirflowConfig(
+            dag_parameters={'schedule': 'original-schedule', 'unchanged-default': 'default'},
+            task_parameters={'queue': 'original-queue', 'unchanged-default': 'default'}
+        )
+        config = AirflowConfig.from_dict(
+            {
+                'dagParameters': {'schedule': 'updated-schedule', 'new-key': 'value'},
+                'taskParameters': {'queue': 'updated-queue', 'new-key': 'value'}
+            },
+            default_airflow_config=default_airflow_config
+        )
+        assert config.dag_parameters == {
+            'unchanged-default': 'default',
+            'schedule': 'updated-schedule',
+            'new-key': 'value'
+        }
+        assert config.task_parameters == {
+            'unchanged-default': 'default',
+            'queue': 'updated-queue',
+            'new-key': 'value'
+        }
+
+    def test_should_parse_pod_override_into_kubernetes_v1_pod(self):
+        config = AirflowConfig.from_dict({
+            'taskParameters': {
+                'executor_config': {
+                    'pod_override': {
+                        'spec': {
+                            'containers': [{
+                                'name': 'base'
+                            }]
+                        }
+                    }
+                }
+            }
+        })
+        pod_override = config.task_parameters['executor_config']['pod_override']
+        assert isinstance(pod_override, V1Pod)
 
 
 class TestStrToBool:

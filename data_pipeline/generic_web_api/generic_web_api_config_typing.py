@@ -2,6 +2,7 @@ from typing import Sequence
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import (
+    AirflowConfigDict,
     BigQueryIncludeExcludeSourceConfigDict,
     MappingConfigDict,
     ParameterFromFileConfigDict,
@@ -75,6 +76,7 @@ class WebApiResponseConfigDict(TypedDict):
 
 class WebApiBaseConfigDict(TypedDict):
     dataPipelineId: str
+    airflow: NotRequired[AirflowConfigDict]
     description: NotRequired[str]
     dataset: str
     table: str
@@ -99,5 +101,10 @@ class WebApiConfigDict(WebApiBaseConfigDict, WebApiGlobalConfigDict):
     pass
 
 
+class MultiWebApiDefaultConfigDict(TypedDict):
+    airflow: NotRequired[AirflowConfigDict]
+
+
 class MultiWebApiConfigDict(WebApiGlobalConfigDict):
+    defaultConfig: NotRequired[MultiWebApiDefaultConfigDict]
     webApi: Sequence[WebApiBaseConfigDict]

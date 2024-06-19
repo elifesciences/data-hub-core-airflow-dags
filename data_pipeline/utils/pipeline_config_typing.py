@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
 from typing_extensions import NotRequired, TypedDict
 
 
@@ -35,6 +35,11 @@ class StateFileConfigDict(TypedDict):
 class ParameterFromFileConfigDict(TypedDict):
     parameterName: str
     filePathEnvName: str
+
+
+class AirflowConfigDict(TypedDict):
+    dagParameters: NotRequired[Optional[dict]]
+    taskParameters: NotRequired[Optional[dict]]
 
 
 RecordProcessingStepConfigList = Sequence[str]

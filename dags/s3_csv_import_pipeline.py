@@ -1,10 +1,10 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
+from datetime import timedelta
 import functools
 import os
 import logging
-from datetime import timedelta
-from typing import Optional, Sequence
+from typing import Sequence
 
 import airflow
 from airflow.exceptions import AirflowSkipException
@@ -33,7 +33,7 @@ from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
 from data_pipeline.utils.pipeline_config import (
-    get_environment_variable_value,
+    AirflowConfig,
     get_pipeline_config_for_env_name_and_config_parser
 )
 
@@ -43,9 +43,6 @@ INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME = (
     "INITIAL_S3_FILE_LAST_MODIFIED_DATE"
 )
 
-S3_CSV_SCHEDULE_INTERVAL_ENV_NAME = (
-    "S3_CSV_SCHEDULE_INTERVAL"
-)
 S3_CSV_CONFIG_FILE_PATH_ENV_NAME = (
     "S3_CSV_CONFIG_FILE_PATH"
 )
@@ -119,19 +116,22 @@ def get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict: S3CsvConfigDict) -> st
     return f'CSV.{s3_csv_config_dict["dataPipelineId"]}'
 
 
-def create_csv_pipeline_dags(
-    default_schedule: Optional[str] = None
-) -> Sequence[airflow.DAG]:
+def create_csv_pipeline_dags() -> Sequence[airflow.DAG]:
     dags = []
     multi_csv_pipeline_config = get_multi_csv_pipeline_config()
+    default_airflow_config = multi_csv_pipeline_config.default_airflow_config
     for data_pipeline_id, s3_csv_config_dict in (
         multi_csv_pipeline_config.s3_csv_config_dict_by_pipeline_id.items()
     ):
+        airflow_config = AirflowConfig.from_optional_dict(
+            s3_csv_config_dict.get('airflow'),
+            default_airflow_config=default_airflow_config
+        )
         with create_dag(
             dag_id=get_dag_id_for_s3_csv_config_dict(s3_csv_config_dict),
             description=s3_csv_config_dict.get('description'),
-            schedule=default_schedule,
-            dagrun_timeout=timedelta(days=1)
+            dagrun_timeout=timedelta(days=1),
+            **airflow_config.dag_parameters
         ) as dag:
             create_python_task(
                 dag=dag,
@@ -139,7 +139,8 @@ def create_csv_pipeline_dags(
                 python_callable=functools.partial(
                     csv_etl,
                     data_pipeline_id=data_pipeline_id
-                )
+                ),
+                **airflow_config.task_parameters
             )
             dags.append(dag)
     return dags
@@ -152,13 +153,6 @@ def get_default_initial_s3_last_modified_date():
     )
 
 
-def get_default_schedule() -> Optional[str]:
-    return get_environment_variable_value(
-        S3_CSV_SCHEDULE_INTERVAL_ENV_NAME,
-        default_value=None
-    )
-
-
-DAGS = create_csv_pipeline_dags(default_schedule=get_default_schedule())
+DAGS = create_csv_pipeline_dags()
 
 FIRST_DAG = DAGS[0]
