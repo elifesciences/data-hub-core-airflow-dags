@@ -1,6 +1,30 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'imported_timestamp'
 
+defaultConfig:
+  airflow:
+    dagParameters:
+      # schedule: '@daily'
+      schedule: null
+      tags:
+        - 'GA'
+        - 'UA'
+    taskParameters:
+      retries: 1
+    #   queue: 'kubernetes'
+    #   executor_config:
+    #     pod_override:
+    #       spec:
+    #         containers:
+    #           - name: 'base'
+    #             resources:
+    #               limits:
+    #                 memory: 1Gi
+    #                 cpu: 1000m
+    #               requests:
+    #                 memory: 1Gi
+    #                 cpu: 100m
+
 # NOTE THAT there is a limit in the number of dimensions and metrics that can be requested
 # information about metrics/dimensions to be used can be found here
 # https://ga-dev-tools.appspot.com/dimensions-metrics-explorer/
