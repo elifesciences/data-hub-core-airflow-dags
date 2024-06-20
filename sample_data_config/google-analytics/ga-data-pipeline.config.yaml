@@ -5,6 +5,7 @@ defaultConfig:
   airflow:
     dagParameters:
       # schedule: '@daily'
+      schedule: null
       tags:
         - 'GA'
         - 'UA'
