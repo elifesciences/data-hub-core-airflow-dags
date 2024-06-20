@@ -563,7 +563,7 @@ googleAnalyticsPipelines:
       - 'ga:avgSessionDuration'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/sciety_ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/243656664/sciety_ga_universal_analytics_data_by_year_month_for_user_and_session_metrics_1.json'
 
   - pipelineID: 'sciety_ga_universal_analytics_data_by_year_month_for_page_metrics_1'
     defaultStartDate: "2014-11-01"
@@ -588,4 +588,4 @@ googleAnalyticsPipelines:
       - 'ga:exitRate'
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
-      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/93573727/sciety_ga_universal_analytics_data_by_year_month_for_page_metrics_1.json'
+      objectName: 'airflow-config/ga-universal-analytics/state/by-view-id/243656664/sciety_ga_universal_analytics_data_by_year_month_for_page_metrics_1.json'
