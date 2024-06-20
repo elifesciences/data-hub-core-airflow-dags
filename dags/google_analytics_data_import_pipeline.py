@@ -3,7 +3,9 @@
 import os
 import logging
 from datetime import timedelta
+from typing import Sequence
 
+import airflow
 from airflow.operators.python import PythonOperator
 
 from data_pipeline.utils.pipeline_config import (
@@ -28,18 +30,6 @@ DAG_ID = "Google_Analytics_Data_Transfer"
 
 GOOGLE_ANALYTICS_CONFIG_FILE_PATH_ENV_NAME = (
     "GOOGLE_ANALYTICS_CONFIG_FILE_PATH"
-)
-GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = (
-    "GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL"
-)
-
-
-GOOGLE_ANALYTICS_DAG = create_dag(
-    dag_id=DAG_ID,
-    schedule_interval=os.getenv(
-        GOOGLE_ANALYTICS_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME
-    ),
-    dagrun_timeout=timedelta(days=1)
 )
 
 
@@ -77,9 +67,26 @@ def google_analytics_etl(**kwargs):
         )
 
 
-ETL_GA_TASK = PythonOperator(
-    task_id='etl_google_analytics',
-    dag=GOOGLE_ANALYTICS_DAG,
-    python_callable=google_analytics_etl,
-    retries=1
-)
+def create_ga_pipeline_dags() -> Sequence[airflow.DAG]:
+    multi_ga_config = get_data_multi_config()
+    airflow_config = multi_ga_config.default_airflow_config
+
+    # run sequentially as one DAG for now
+    with create_dag(
+        dag_id=DAG_ID,
+        dagrun_timeout=timedelta(days=1),
+        **airflow_config.dag_parameters
+    ) as dag:
+        PythonOperator(
+            task_id='etl_google_analytics',
+            dag=dag,
+            python_callable=google_analytics_etl,
+            **airflow_config.task_parameters
+        )
+
+        return [dag]
+
+
+DAGS = create_ga_pipeline_dags()
+
+FIRST_DAG = DAGS[0]

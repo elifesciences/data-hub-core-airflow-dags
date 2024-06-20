@@ -1,5 +1,29 @@
 gcpProjectName: 'elife-data-pipeline'
 importedTimestampFieldName: 'data_hub_imported_timestamp'
+
+defaultConfig:
+  airflow:
+    dagParameters:
+      # schedule: '@daily'
+      tags:
+        - 'GA'
+        - 'UA'
+    taskParameters:
+      retries: 1
+    #   queue: 'kubernetes'
+    #   executor_config:
+    #     pod_override:
+    #       spec:
+    #         containers:
+    #           - name: 'base'
+    #             resources:
+    #               limits:
+    #                 memory: 1Gi
+    #                 cpu: 1000m
+    #               requests:
+    #                 memory: 1Gi
+    #                 cpu: 100m
+
 googleAnalyticsPipelines:
   - pipelineID: '{ENV}-some-pipeline-id'
     # defaultStartDate: "2014-11-07"
