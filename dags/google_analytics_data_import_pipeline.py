@@ -1,6 +1,5 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
-import os
 import logging
 from datetime import timedelta
 from typing import Sequence
