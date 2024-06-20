@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from data_pipeline.utils.data_store.google_analytics import DEFAULT_PAGE_SIZE
 from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
     update_deployment_env_placeholder
 )
 # pylint: disable=too-few-public-methods,simplifiable-if-expression,
@@ -37,6 +38,10 @@ class MultiGoogleAnalyticsConfig:
                 deployment_env,
                 deployment_env_placeholder
             ) if deployment_env else multi_google_analytics_config
+        )
+        default_config_dict = updated_config.get('defaultConfig', {})
+        self.default_airflow_config = AirflowConfig.from_optional_dict(
+            default_config_dict.get('airflow')
         )
         self.gcp_project = updated_config[
             "gcpProjectName"
