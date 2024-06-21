@@ -21,6 +21,7 @@ from data_pipeline.utils.data_store.google_analytics import (
 )
 from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.progress import ProgressMonitor
+from data_pipeline.utils.web_api import requests_retry_session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -229,45 +230,48 @@ def etl_google_analytics_for_date_range(
     start_date: datetime,
     end_date: datetime
 ):
-    current_timestamp_as_string = get_current_timestamp_as_string()
-    analytics = GoogleAnalyticsClient()
-    from_date = start_date.strftime("%Y-%m-%d")
-    to_date = end_date.strftime("%Y-%m-%d")
-    dimensions = [
-        {
-            'name': dim_name
-        } for dim_name in ga_config.dimensions
-    ]
-    metrics = [
-        {
-            'expression': metric_name
-        } for metric_name in ga_config.metrics
-    ]
-
-    paged_report_response_iterable = iter_get_report_pages(
-        analytics, metrics, dimensions, ga_config, from_date, to_date
-    )
-    transformed_response_with_provenance_iterable = (
-        iter_bq_records_for_paged_report_response_iterable(
-            paged_report_response_iterable,
-            ga_config=ga_config,
-            current_timestamp_as_string=current_timestamp_as_string,
-            start_date_str=from_date,
-            end_date_str=to_date
+    with requests_retry_session() as session:
+        current_timestamp_as_string = get_current_timestamp_as_string()
+        analytics = GoogleAnalyticsClient(
+            session=session
         )
-    )
-    load_ga_bq_record_iterable_to_bq(
-        transformed_response_with_provenance_iterable,
-        ga_config=ga_config
-    )
+        from_date = start_date.strftime("%Y-%m-%d")
+        to_date = end_date.strftime("%Y-%m-%d")
+        dimensions = [
+            {
+                'name': dim_name
+            } for dim_name in ga_config.dimensions
+        ]
+        metrics = [
+            {
+                'expression': metric_name
+            } for metric_name in ga_config.metrics
+        ]
 
-    new_state_date = end_date + timedelta(days=1)
-    LOGGER.info('Updating state to: %r', new_state_date)
-    update_state(
-        new_state_date,
-        ga_config.state_s3_bucket_name,
-        ga_config.state_s3_object_name
-    )
+        paged_report_response_iterable = iter_get_report_pages(
+            analytics, metrics, dimensions, ga_config, from_date, to_date
+        )
+        transformed_response_with_provenance_iterable = (
+            iter_bq_records_for_paged_report_response_iterable(
+                paged_report_response_iterable,
+                ga_config=ga_config,
+                current_timestamp_as_string=current_timestamp_as_string,
+                start_date_str=from_date,
+                end_date_str=to_date
+            )
+        )
+        load_ga_bq_record_iterable_to_bq(
+            transformed_response_with_provenance_iterable,
+            ga_config=ga_config
+        )
+
+        new_state_date = end_date + timedelta(days=1)
+        LOGGER.info('Updating state to: %r', new_state_date)
+        update_state(
+            new_state_date,
+            ga_config.state_s3_bucket_name,
+            ga_config.state_s3_object_name
+        )
 
 
 def iter_start_end_date_for_batch(

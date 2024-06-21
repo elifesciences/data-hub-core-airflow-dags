@@ -1,25 +1,35 @@
 import logging
 from typing import Optional, Sequence
-from apiclient import discovery
+
+import google.auth.transport.requests
+import requests
+
 from data_pipeline.utils.data_store.google_service_client import (
-    MemoryCache, get_credentials
+    get_credentials
 )
 
+
 LOGGER = logging.getLogger(__name__)
+
+
 SCOPES = ['https://www.googleapis.com/auth/analytics.readonly']
 
 DEFAULT_PAGE_SIZE: int = 5000
 
+DEFAULT_TIMEOUT: int = 10 * 60
+
 
 class GoogleAnalyticsClient:
-    def __init__(self):
-        credentials = get_credentials(
+    def __init__(
+        self,
+        session: requests.Session,
+        timeout: int = DEFAULT_TIMEOUT
+    ):
+        self.credentials = get_credentials(
             SCOPES
         )
-        self.analytics_reporting = discovery.build(
-            "analyticsreporting", "v4",
-            credentials=credentials, cache=MemoryCache()
-        )
+        self.session = session
+        self.timeout = timeout
 
     # pylint: disable=too-many-arguments
     def get_report(
@@ -32,17 +42,29 @@ class GoogleAnalyticsClient:
         page_size: int = DEFAULT_PAGE_SIZE
     ):
         # pylint: disable=no-member
-        return self.analytics_reporting.reports().batchGet(
-            body={
-                'reportRequests': [
-                    {
-                        'viewId': view_id,
-                        'pageToken': page_token,
-                        'dateRanges': date_ranges,
-                        'metrics': metrics,
-                        'dimensions': dimensions,
-                        'pageSize': page_size
-                    }
-                ]
-            }
-        ).execute()
+        json_request = {
+            'reportRequests': [
+                {
+                    'viewId': view_id,
+                    'pageToken': page_token,
+                    'dateRanges': date_ranges,
+                    'metrics': metrics,
+                    'dimensions': dimensions,
+                    'pageSize': page_size
+                }
+            ]
+        }
+        self.credentials.refresh(
+            google.auth.transport.requests.Request(
+                session=self.session
+            )
+        )
+        response = requests.post(
+            'https://analyticsreporting.googleapis.com/v4/reports:batchGet',
+            json=json_request,
+            headers={
+                'Authorization': 'Bearer ' + self.credentials.token
+            },
+            timeout=self.timeout
+        )
+        return response.json()
