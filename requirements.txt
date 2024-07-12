@@ -10,7 +10,7 @@ cattrs==23.2.3
 cloudpickle==3.0.0
 dateparser==1.2.0
 kubernetes==23.6.0
-apache-airflow-providers-cncf-kubernetes==7.5.0
+apache-airflow-providers-cncf-kubernetes==8.3.3
 objsize==0.7.0
 regex==2023.12.25
 fsspec==2022.8.2
