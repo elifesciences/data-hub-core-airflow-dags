@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from kubernetes.client.models.v1_pod import V1Pod
+from airflow.providers.cncf.kubernetes.pod_generator import PodGenerator
 
 from data_pipeline.utils.pipeline_config import (
     SECRET_VALUE_PLACEHOLDER,
@@ -225,6 +226,30 @@ class TestAirflowConfig:
         })
         pod_override = config.task_parameters['executor_config']['pod_override']
         assert isinstance(pod_override, V1Pod)
+
+    def test_should_keep_parsed_pod_override_from_default_config(self):
+        pod_override_dict = {
+            'spec': {
+                'containers': [{
+                    'name': 'base'
+                }]
+            }
+        }
+        default_airflow_config = AirflowConfig.from_dict({
+            'taskParameters': {
+                'executor_config': {
+                    'pod_override': pod_override_dict
+                }
+            }
+        })
+        config = AirflowConfig.from_dict(
+            {},
+            default_airflow_config=default_airflow_config
+        )
+
+        pod_override = config.task_parameters['executor_config']['pod_override']
+        assert isinstance(pod_override, V1Pod)
+        assert pod_override == PodGenerator.deserialize_model_dict(pod_override_dict)
 
 
 class TestStrToBool:
