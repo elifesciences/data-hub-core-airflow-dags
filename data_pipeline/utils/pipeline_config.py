@@ -181,7 +181,7 @@ class AirflowConfig:
     @staticmethod
     def get_task_parameters_dict_with_parsed_pod_override(task_parameters_dict: dict):
         pod_override = task_parameters_dict.get('executor_config', {}).get('pod_override')
-        if not pod_override:
+        if not pod_override or not isinstance(pod_override, dict):
             return task_parameters_dict
         LOGGER.debug('Found pod_override config: %r', pod_override)
         task_parameters_dict = {
