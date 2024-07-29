@@ -5,6 +5,7 @@ venv*
 .secrets
 main.py
 *.local
+k3s-config
 
 *.pyc
 
