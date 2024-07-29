@@ -62,6 +62,7 @@ x-airflow-env:
     - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
+    - KUBECONFIG=/home/airflow/k3s-config/kubeconfig.yaml
 
 x-airflow-volumes:
   &airflow-volumes
@@ -69,6 +70,7 @@ x-airflow-volumes:
     - ./credentials.json:/tmp/credentials.json
     - ~/.aws/credentials:/tmp/.aws-credentials
     - ./.secrets:/home/airflow/secrets
+    - ./k3s-config:/home/airflow/k3s-config
     # only needed for webserver:
     - ./config/webserver_config.py:/opt/airflow/webserver_config.py
 
@@ -216,6 +218,49 @@ services:
     #     ports:
     #         - "5555:5555"
     #     command: celery flower
+
+    k3s-server:
+        image: "rancher/k3s:${K3S_VERSION:-latest}"
+        command: server
+        tmpfs:
+          - /run
+          - /var/run
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 65535
+                hard: 65535
+        privileged: true
+        environment:
+            - K3S_TOKEN=${K3S_TOKEN:?err}
+            - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+            - K3S_KUBECONFIG_MODE=666
+            - K3S_URL=https://k3s-server:6443
+        volumes:
+          # - k3s-server:/var/lib/rancher/k3s
+          # This is just so that we get the kubeconfig file out
+          - ./k3s-config:/output
+        ports:
+          - 6443:6443  # Kubernetes API Server
+          # - 80:80      # Ingress controller port 80
+          # - 443:443    # Ingress controller port 443
+
+    k3s-agent:
+        image: "rancher/k3s:${K3S_VERSION:-latest}"
+        tmpfs:
+            - /run
+            - /var/run
+        ulimits:
+            nproc: 65535
+            nofile:
+                soft: 65535
+                hard: 65535
+        privileged: true
+        environment:
+            - K3S_URL=https://k3s-server:6443
+            - K3S_TOKEN=${K3S_TOKEN:?err}
+        # volumes:
+        #   - k3s-agent:/var/lib/rancher/k3s
 
 volumes:
   opensearch-data-airflow-dev:

@@ -128,11 +128,11 @@ test-ftpserver-start:
 
 
 airflow-start:
-	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
+	$(DOCKER_COMPOSE) up worker webserver test-ftpserver k3s-server k3s-agent
 
 
 airflow-start-detach:
-	$(DOCKER_COMPOSE) up --detach worker webserver test-ftpserver
+	$(DOCKER_COMPOSE) up --detach worker webserver test-ftpserver k3s-server k3s-agent
 
 
 airflow-stop:
