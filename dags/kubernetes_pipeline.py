@@ -23,7 +23,7 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
     ) as dag:
         image = 'elifesciences/data-hub-core-dags-dev'
         LOGGER.info('image: %r', image)
-        k = KubernetesPodOperator(
+        KubernetesPodOperator(
             name="hello-dry-run",
             image=image,
             cmds=["bash", "-cx"],
