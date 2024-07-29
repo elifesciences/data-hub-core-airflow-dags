@@ -21,9 +21,11 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
         dagrun_timeout=timedelta(days=1),
         tags=['Kubernetes']
     ) as dag:
+        image = 'elifesciences/data-hub-core-dags-dev'
+        LOGGER.info('image: %r', image)
         k = KubernetesPodOperator(
             name="hello-dry-run",
-            image="debian",
+            image=image,
             cmds=["bash", "-cx"],
             arguments=["sleep 60"],
             labels={"foo": "bar"},
