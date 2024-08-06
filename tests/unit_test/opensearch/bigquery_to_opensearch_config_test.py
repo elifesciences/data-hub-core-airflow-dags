@@ -7,8 +7,12 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
+    OpenSearchIngestionPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
+)
+from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
+    OpenSearchIngestionPipelineConfigDict
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 
@@ -49,6 +53,12 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 
 OPENSEARCH_INDEX_SETTNGS_1 = {
     'settings': {'index': {'some_setting': 'value'}}
+}
+
+
+OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1: OpenSearchIngestionPipelineConfigDict = {
+    'name': 'ingestion_pipeline_1',
+    'definition': 'ingestion_pipeline_definition_1'
 }
 
 
@@ -94,6 +104,19 @@ def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
     file_path.write_text(PASSWORD_1)
     mock_env[OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR] = str(file_path)
     return str(file_path)
+
+
+class TestOpenSearchIngestionPipelineConfig:
+    def test_should_read_name_and_definition(self):
+        ingestion_pipeline_config = OpenSearchIngestionPipelineConfig.from_dict(
+            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
+        )
+        assert ingestion_pipeline_config.name == (
+            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1['name']
+        )
+        assert ingestion_pipeline_config.definition == (
+            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1['definition']
+        )
 
 
 class TestOpenSearchTargetConfig:

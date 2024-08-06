@@ -3,6 +3,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
+from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
+    OpenSearchIngestionPipelineConfigDict
+)
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     StateFileConfig,
@@ -46,6 +49,21 @@ class BigQueryToOpenSearchSourceConfig:
             bigquery=BigQuerySourceConfig.from_dict(
                 source_config_dict['bigQuery']
             )
+        )
+
+
+@dataclass(frozen=True)
+class OpenSearchIngestionPipelineConfig:
+    name: str
+    definition:  str
+
+    @staticmethod
+    def from_dict(
+        ingestion_pipeline_config_dict: OpenSearchIngestionPipelineConfigDict
+    ) -> 'OpenSearchIngestionPipelineConfig':
+        return OpenSearchIngestionPipelineConfig(
+            name=ingestion_pipeline_config_dict['name'],
+            definition=ingestion_pipeline_config_dict['definition']
         )
 
 
