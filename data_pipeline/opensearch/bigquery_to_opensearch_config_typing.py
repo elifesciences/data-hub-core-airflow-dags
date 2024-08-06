@@ -6,13 +6,13 @@ from data_pipeline.utils.pipeline_config_typing import (
 )
 
 
+class OpenSearchSecretsConfigDict(TypedDict):
+    parametersFromFile: Sequence[ParameterFromFileConfigDict]
+
+
 class OpenSearchIngestionPipelineConfigDict(TypedDict):
     name: str
     definition: str
-
-
-class OpenSearchSecretsConfigDict(TypedDict):
-    parametersFromFile: Sequence[ParameterFromFileConfigDict]
 
 
 class OpenSearchTargetConfigDict(TypedDict):
