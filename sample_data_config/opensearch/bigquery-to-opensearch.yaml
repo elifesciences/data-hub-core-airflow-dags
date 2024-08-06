@@ -63,42 +63,44 @@ bigQueryToOpenSearch:
         operationMode: 'update'
         upsert: True
         ingestionPipelines:
-          dev_preprints_v2_publication_date_pipeline: |-
-            {
-              "description": "Sets calculated.publication_date from crossref or europepmc",
-              "processors": [
-                {
-                  "remove": {
-                    "field": "calculated.publication_date",
-                    "if": "ctx.calculated?.publication_date != null"
+          - name: dev_preprints_v2_publication_date_pipeline
+            definition: |-
+              {
+                "description": "Sets calculated.publication_date from crossref or europepmc",
+                "processors": [
+                  {
+                    "remove": {
+                      "field": "calculated.publication_date",
+                      "if": "ctx.calculated?.publication_date != null"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.publication_date == null && ctx.crossref?.publication_date != null",
+                      "field": "calculated.publication_date",
+                      "value": "{{crossref.publication_date}}"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.publication_date == null && ctx.europepmc?.first_publication_date != null",
+                      "field": "calculated.publication_date",
+                      "value": "{{europepmc.first_publication_date}}"
+                    }
                   }
-                },
-                {
-                  "set": {
-                    "if": "ctx.calculated?.publication_date == null && ctx.crossref?.publication_date != null",
-                    "field": "calculated.publication_date",
-                    "value": "{{crossref.publication_date}}"
+                ]
+              }
+          - name: dev_preprints_v2_default_pipeline
+            definition: |-
+              {
+                "processors": [
+                  {
+                    "pipeline": {
+                      "name": "dev_preprints_v2_publication_date_pipeline"
+                    }
                   }
-                },
-                {
-                  "set": {
-                    "if": "ctx.calculated?.publication_date == null && ctx.europepmc?.first_publication_date != null",
-                    "field": "calculated.publication_date",
-                    "value": "{{europepmc.first_publication_date}}"
-                  }
-                }
-              ]
-            }
-          dev_preprints_v2_default_pipeline: |-
-            {
-              "processors": [
-                {
-                  "pipeline": {
-                    "name": "dev_preprints_v2_publication_date_pipeline"
-                  }
-                }
-              ]
-            }
+                ]
+              }
         indexSettings:
           # Note: These settings can usually only be applied to a new index.
           #   It is important to set for example the "knn_vector" fields ahead of time.
