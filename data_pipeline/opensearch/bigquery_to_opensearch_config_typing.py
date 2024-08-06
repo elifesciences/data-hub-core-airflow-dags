@@ -23,6 +23,7 @@ class OpenSearchTargetConfigDict(TypedDict):
     timeout: NotRequired[float]
     updateIndexSettings: NotRequired[bool]
     updateMappings: NotRequired[bool]
+    ingestionPipelines: NotRequired[Sequence[OpenSearchIngestionPipelineConfigDict]]
     indexSettings: NotRequired[dict]
     verifyCertificates: NotRequired[bool]
     operationMode: NotRequired[str]

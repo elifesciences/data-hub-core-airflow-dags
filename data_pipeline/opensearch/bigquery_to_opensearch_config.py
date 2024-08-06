@@ -67,6 +67,15 @@ class OpenSearchIngestionPipelineConfig:
             definition=ingestion_pipeline_config_dict['definition']
         )
 
+    @staticmethod
+    def from_dict_list(
+        ingestion_pipeline_config_dict_list: Sequence[OpenSearchIngestionPipelineConfigDict]
+    ) -> Sequence['OpenSearchIngestionPipelineConfig']:
+        return list(map(
+            OpenSearchIngestionPipelineConfig.from_dict,
+            ingestion_pipeline_config_dict_list
+        ))
+
 
 @dataclass(frozen=True)
 class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
@@ -79,6 +88,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     update_index_settings: bool = False
     update_mappings: bool = False
     index_settings: Optional[dict] = None
+    ingestion_pipelines: Sequence[OpenSearchIngestionPipelineConfig] = field(default_factory=list)
     verify_certificates: bool = True
     operation_mode: str = DEFAULT_OPENSEARCH_OPERATION_MODE
     upsert: bool = False
@@ -107,6 +117,9 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             timeout=opensearch_target_config_dict.get('timeout', DEFAULT_OPENSEARCH_TIMEOUT),
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
+            ingestion_pipelines=OpenSearchIngestionPipelineConfig.from_dict_list(
+                opensearch_target_config_dict.get('ingestionPipelines', [])
+            ),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True),
             operation_mode=operation_mode,

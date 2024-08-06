@@ -225,6 +225,17 @@ class TestOpenSearchTargetConfig:
         })
         assert opensearch_target_config.upsert == value
 
+    def test_should_read_ingestion_pipelines(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'ingestionPipelines': [OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1]
+        })
+        assert opensearch_target_config.ingestion_pipelines == [
+            OpenSearchIngestionPipelineConfig.from_dict(
+                OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
+            )
+        ]
+
 
 class TestBigQueryToOpenSearchConfig:
     def test_should_load_empty_list_with_empty_config(self):
