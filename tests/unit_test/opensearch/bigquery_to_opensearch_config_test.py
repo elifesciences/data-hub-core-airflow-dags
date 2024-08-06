@@ -12,7 +12,8 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     OpenSearchTargetConfig
 )
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
-    OpenSearchIngestionPipelineConfigDict
+    OpenSearchIngestionPipelineConfigDict,
+    OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 
@@ -62,7 +63,7 @@ OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1: OpenSearchIngestionPipelineConfigDi
 }
 
 
-OPENSEARCH_TARGET_CONFIG_DICT_1 = {
+OPENSEARCH_TARGET_CONFIG_DICT_1: OpenSearchTargetConfigDict = {
     'hostname': 'hostname1',
     'port': 9200,
     'secrets': {
@@ -202,7 +203,7 @@ class TestOpenSearchTargetConfig:
     @pytest.mark.parametrize('value', [
         OpenSearchOperationModes.INDEX, OpenSearchOperationModes.UPDATE
     ])
-    def test_should_read_operation_mode(self, value: bool):
+    def test_should_read_operation_mode(self, value: str):
         opensearch_target_config = OpenSearchTargetConfig.from_dict({
             **OPENSEARCH_TARGET_CONFIG_DICT_1,
             'operationMode': value

@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
-    OpenSearchIngestionPipelineConfigDict
+    OpenSearchIngestionPipelineConfigDict,
+    OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
@@ -83,7 +84,9 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     upsert: bool = False
 
     @staticmethod
-    def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
+    def from_dict(
+        opensearch_target_config_dict: OpenSearchTargetConfigDict
+    ) -> 'OpenSearchTargetConfig':
         secrets = get_resolved_parameter_values_from_file_path_env_name(
             opensearch_target_config_dict['secrets']['parametersFromFile']
         )
