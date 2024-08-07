@@ -82,7 +82,7 @@ def create_or_update_opensearch_ingest_pipeline(
     client: OpenSearch,
     ingest_pipeline_config: OpenSearchIngestPipelineConfig
 ):
-    LOGGER.info('Creating or updating ingesting pipeline: %r', ingest_pipeline_config.name)
+    LOGGER.info('Creating or updating ingest pipeline: %r', ingest_pipeline_config.name)
     client.ingest.put_pipeline(
         id=ingest_pipeline_config.name,
         body=ingest_pipeline_config.definition
