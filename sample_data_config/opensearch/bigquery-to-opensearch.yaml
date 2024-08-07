@@ -90,6 +90,33 @@ bigQueryToOpenSearch:
                   }
                 ]
               }
+            tests:
+              - description: "Remove existing calculated field"
+                inputDocument: |-
+                  {
+                    "calculated": {
+                      "publication_date": "2001-02-03"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                  }
+              - description: "Use Crossref if available"
+                inputDocument: |-
+                  {
+                    "crossref": {
+                      "publication_date": "2001-02-03"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "crossref": {
+                      "publication_date": "2001-02-03"
+                    },
+                    "calculated": {
+                      "publication_date": "2001-02-03"
+                    }
+                  }
           - name: dev_preprints_v2_default_pipeline
             definition: |-
               {
