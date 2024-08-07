@@ -1,5 +1,6 @@
 import dataclasses
 from datetime import datetime
+import json
 import logging
 from typing import Any, Iterable, Sequence
 
@@ -78,10 +79,72 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
     )
 
 
+def get_opensearch_ingest_pipeline_tests_body(
+    ingest_pipeline_config: OpenSearchIngestPipelineConfig
+) -> dict:
+    return {
+        'pipeline': json.loads(ingest_pipeline_config.definition),
+        'docs': [
+            {
+                '_source': ingest_pipeline_test_config.input_document
+            }
+            for ingest_pipeline_test_config in ingest_pipeline_config.tests
+        ]
+    }
+
+
+def get_opensearch_ingest_pipeline_test_actual_documents_from_simulate_response(
+    simulate_response: dict
+) -> Sequence[dict]:
+    LOGGER.info('simulate_response: %r', simulate_response)
+    return [
+        doc['doc']['_source']
+        for doc in simulate_response['docs']
+    ]
+
+
+def assert_opensearch_ingest_pipeline_test_actual_documents_match_expected(
+    actual_documents: Sequence[dict],
+    ingest_pipeline_config: OpenSearchIngestPipelineConfig
+):
+    assert len(actual_documents) == len(ingest_pipeline_config.tests)
+    LOGGER.info('actual_documents: %r', actual_documents)
+    expected_documents = [
+        ingest_pipeline_test_config.expected_document
+        for ingest_pipeline_test_config in ingest_pipeline_config.tests
+    ]
+    if actual_documents != expected_documents:
+        raise AssertionError('Actual documents do not match expected documents')
+
+
+def run_opensearch_ingest_pipeline_tests(
+    client: OpenSearch,
+    ingest_pipeline_config: OpenSearchIngestPipelineConfig
+):
+    LOGGER.info('Testing ingest pipeline: %r', ingest_pipeline_config.name)
+    simulate_response = client.ingest.simulate(
+        body=get_opensearch_ingest_pipeline_tests_body(
+            ingest_pipeline_config
+        )
+    )
+    actual_documents = get_opensearch_ingest_pipeline_test_actual_documents_from_simulate_response(
+        simulate_response
+    )
+    assert_opensearch_ingest_pipeline_test_actual_documents_match_expected(
+        actual_documents=actual_documents,
+        ingest_pipeline_config=ingest_pipeline_config
+    )
+
+
 def create_or_update_opensearch_ingest_pipeline(
     client: OpenSearch,
     ingest_pipeline_config: OpenSearchIngestPipelineConfig
 ):
+    if ingest_pipeline_config.tests:
+        run_opensearch_ingest_pipeline_tests(
+            client=client,
+            ingest_pipeline_config=ingest_pipeline_config
+        )
     LOGGER.info('Creating or updating ingest pipeline: %r', ingest_pipeline_config.name)
     client.ingest.put_pipeline(
         id=ingest_pipeline_config.name,
