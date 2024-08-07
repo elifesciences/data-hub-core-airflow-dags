@@ -7,8 +7,13 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
+    OpenSearchIngestPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
+)
+from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
+    OpenSearchIngestPipelineConfigDict,
+    OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
 
@@ -52,7 +57,13 @@ OPENSEARCH_INDEX_SETTNGS_1 = {
 }
 
 
-OPENSEARCH_TARGET_CONFIG_DICT_1 = {
+OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1: OpenSearchIngestPipelineConfigDict = {
+    'name': 'ingest_pipeline_1',
+    'definition': 'ingest_pipeline_definition_1'
+}
+
+
+OPENSEARCH_TARGET_CONFIG_DICT_1: OpenSearchTargetConfigDict = {
     'hostname': 'hostname1',
     'port': 9200,
     'secrets': {
@@ -94,6 +105,19 @@ def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
     file_path.write_text(PASSWORD_1)
     mock_env[OPENSEARCH_PASSWORD_FILE_PATH_ENV_VAR] = str(file_path)
     return str(file_path)
+
+
+class TestOpenSearchIngestionPipelineConfig:
+    def test_should_read_name_and_definition(self):
+        ingestion_pipeline_config = OpenSearchIngestPipelineConfig.from_dict(
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1
+        )
+        assert ingestion_pipeline_config.name == (
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1['name']
+        )
+        assert ingestion_pipeline_config.definition == (
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1['definition']
+        )
 
 
 class TestOpenSearchTargetConfig:
@@ -179,7 +203,7 @@ class TestOpenSearchTargetConfig:
     @pytest.mark.parametrize('value', [
         OpenSearchOperationModes.INDEX, OpenSearchOperationModes.UPDATE
     ])
-    def test_should_read_operation_mode(self, value: bool):
+    def test_should_read_operation_mode(self, value: str):
         opensearch_target_config = OpenSearchTargetConfig.from_dict({
             **OPENSEARCH_TARGET_CONFIG_DICT_1,
             'operationMode': value
@@ -200,6 +224,17 @@ class TestOpenSearchTargetConfig:
             'upsert': value
         })
         assert opensearch_target_config.upsert == value
+
+    def test_should_read_ingest_pipelines(self):
+        opensearch_target_config = OpenSearchTargetConfig.from_dict({
+            **OPENSEARCH_TARGET_CONFIG_DICT_1,
+            'ingestPipelines': [OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1]
+        })
+        assert opensearch_target_config.ingest_pipelines == [
+            OpenSearchIngestPipelineConfig.from_dict(
+                OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1
+            )
+        ]
 
 
 class TestBigQueryToOpenSearchConfig:

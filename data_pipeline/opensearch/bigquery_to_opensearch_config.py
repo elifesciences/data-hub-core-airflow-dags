@@ -3,6 +3,10 @@ import logging
 from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
+from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
+    OpenSearchIngestPipelineConfigDict,
+    OpenSearchTargetConfigDict
+)
 from data_pipeline.utils.pipeline_config import (
     BigQuerySourceConfig,
     StateFileConfig,
@@ -50,6 +54,30 @@ class BigQueryToOpenSearchSourceConfig:
 
 
 @dataclass(frozen=True)
+class OpenSearchIngestPipelineConfig:
+    name: str
+    definition:  str
+
+    @staticmethod
+    def from_dict(
+        ingest_pipeline_config_dict: OpenSearchIngestPipelineConfigDict
+    ) -> 'OpenSearchIngestPipelineConfig':
+        return OpenSearchIngestPipelineConfig(
+            name=ingest_pipeline_config_dict['name'],
+            definition=ingest_pipeline_config_dict['definition']
+        )
+
+    @staticmethod
+    def from_dict_list(
+        ingest_pipeline_config_dict_list: Sequence[OpenSearchIngestPipelineConfigDict]
+    ) -> Sequence['OpenSearchIngestPipelineConfig']:
+        return list(map(
+            OpenSearchIngestPipelineConfig.from_dict,
+            ingest_pipeline_config_dict_list
+        ))
+
+
+@dataclass(frozen=True)
 class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     hostname: str
     port: int
@@ -60,12 +88,15 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
     update_index_settings: bool = False
     update_mappings: bool = False
     index_settings: Optional[dict] = None
+    ingest_pipelines: Sequence[OpenSearchIngestPipelineConfig] = field(default_factory=list)
     verify_certificates: bool = True
     operation_mode: str = DEFAULT_OPENSEARCH_OPERATION_MODE
     upsert: bool = False
 
     @staticmethod
-    def from_dict(opensearch_target_config_dict: dict) -> 'OpenSearchTargetConfig':
+    def from_dict(
+        opensearch_target_config_dict: OpenSearchTargetConfigDict
+    ) -> 'OpenSearchTargetConfig':
         secrets = get_resolved_parameter_values_from_file_path_env_name(
             opensearch_target_config_dict['secrets']['parametersFromFile']
         )
@@ -86,6 +117,9 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             timeout=opensearch_target_config_dict.get('timeout', DEFAULT_OPENSEARCH_TIMEOUT),
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
+            ingest_pipelines=OpenSearchIngestPipelineConfig.from_dict_list(
+                opensearch_target_config_dict.get('ingestPipelines', [])
+            ),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True),
             operation_mode=operation_mode,
