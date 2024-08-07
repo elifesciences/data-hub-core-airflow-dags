@@ -31,7 +31,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     iter_documents_from_bigquery,
     iter_opensearch_bulk_action_for_documents,
     load_documents_into_opensearch,
-    prepare_opensearch
+    setup_opensearch
 )
 
 
@@ -180,9 +180,9 @@ def _create_or_update_opensearch_index_mock() -> Iterator[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='prepare_opensearch_mock')
-def _prepare_opensearch_mock() -> Iterator[MagicMock]:
-    with patch.object(test_module, 'prepare_opensearch') as mock:
+@pytest.fixture(name='setup_opensearch_mock')
+def _setup_opensearch_mock() -> Iterator[MagicMock]:
+    with patch.object(test_module, 'setup_opensearch') as mock:
         yield mock
 
 
@@ -504,13 +504,13 @@ class TestCreateOrUpdateOpenSearchIndex:
         )
 
 
-class TestPrepareOpenSearch:
+class TestSetupOpenSearch:
     def test_should_pass_config_to_create_or_update_opensearch_ingestion_pipeline_method(
         self,
         opensearch_client_mock: MagicMock,
         create_or_update_opensearch_ingest_pipeline_mock: MagicMock
     ):
-        prepare_opensearch(
+        setup_opensearch(
             client=opensearch_client_mock,
             opensearch_target_config=dataclasses.replace(
                 OPENSEARCH_TARGET_CONFIG_1,
@@ -527,7 +527,7 @@ class TestPrepareOpenSearch:
         opensearch_client_mock: MagicMock,
         create_or_update_opensearch_index_mock: MagicMock
     ):
-        prepare_opensearch(
+        setup_opensearch(
             client=opensearch_client_mock,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
         )
@@ -679,16 +679,16 @@ class TestLoadDocumentsIntoOpenSearch:
 
 
 class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
-    def test_should_pass_config_to_prepare_opensearch_method(
+    def test_should_pass_config_to_setup_opensearch_method(
         self,
         get_opensearch_client_mock: MagicMock,
-        prepare_opensearch_mock: MagicMock
+        setup_opensearch_mock: MagicMock
     ):
         create_or_update_index_and_load_documents_into_opensearch(
             [DOCUMENT_1],
             config=BIGQUERY_TO_OPENSEARCH_CONFIG_1
         )
-        prepare_opensearch_mock.assert_called_with(
+        setup_opensearch_mock.assert_called_with(
             client=get_opensearch_client_mock.return_value,
             opensearch_target_config=OPENSEARCH_TARGET_CONFIG_1
         )

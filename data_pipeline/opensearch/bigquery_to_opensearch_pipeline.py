@@ -124,7 +124,7 @@ def create_or_update_opensearch_index(
         client.indices.create(index=index_name, body=index_settings)
 
 
-def prepare_opensearch(
+def setup_opensearch(
     client: OpenSearch,
     opensearch_target_config: OpenSearchTargetConfig
 ):
@@ -257,7 +257,7 @@ def create_or_update_index_and_load_documents_into_opensearch(
 ):
     client = get_opensearch_client(config.target.opensearch)
     LOGGER.info('client: %r', client)
-    prepare_opensearch(
+    setup_opensearch(
         client=client,
         opensearch_target_config=config.target.opensearch
     )
