@@ -7,7 +7,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
-    OpenSearchIngestionPipelineConfig,
+    OpenSearchIngestPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -109,7 +109,7 @@ def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
 
 class TestOpenSearchIngestionPipelineConfig:
     def test_should_read_name_and_definition(self):
-        ingestion_pipeline_config = OpenSearchIngestionPipelineConfig.from_dict(
+        ingestion_pipeline_config = OpenSearchIngestPipelineConfig.from_dict(
             OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
         )
         assert ingestion_pipeline_config.name == (
@@ -230,8 +230,8 @@ class TestOpenSearchTargetConfig:
             **OPENSEARCH_TARGET_CONFIG_DICT_1,
             'ingestionPipelines': [OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1]
         })
-        assert opensearch_target_config.ingestion_pipelines == [
-            OpenSearchIngestionPipelineConfig.from_dict(
+        assert opensearch_target_config.ingest_pipelines == [
+            OpenSearchIngestPipelineConfig.from_dict(
                 OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
             )
         ]

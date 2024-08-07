@@ -10,7 +10,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchStateConfig,
-    OpenSearchIngestionPipelineConfig,
+    OpenSearchIngestPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -80,7 +80,7 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
 
 def create_or_update_opensearch_ingest_pipeline(
     client: OpenSearch,
-    ingest_pipeline_config: OpenSearchIngestionPipelineConfig
+    ingest_pipeline_config: OpenSearchIngestPipelineConfig
 ):
     LOGGER.info('Creating or updating ingesting pipeline: %r', ingest_pipeline_config.name)
     client.ingest.put_pipeline(
@@ -91,7 +91,7 @@ def create_or_update_opensearch_ingest_pipeline(
 
 def create_or_update_opensearch_ingest_pipelines(
     client: OpenSearch,
-    ingest_pipeline_config_list: Sequence[OpenSearchIngestionPipelineConfig]
+    ingest_pipeline_config_list: Sequence[OpenSearchIngestPipelineConfig]
 ):
     LOGGER.debug('ingest_pipeline_config_list: %r', ingest_pipeline_config_list)
     for ingest_pipeline_config in ingest_pipeline_config_list:
@@ -130,7 +130,7 @@ def prepare_opensearch(
 ):
     create_or_update_opensearch_ingest_pipelines(
         client=client,
-        ingest_pipeline_config_list=opensearch_target_config.ingestion_pipelines
+        ingest_pipeline_config_list=opensearch_target_config.ingest_pipelines
     )
     create_or_update_opensearch_index(
         client=client,

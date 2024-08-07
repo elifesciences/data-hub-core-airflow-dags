@@ -15,7 +15,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchSourceConfig,
     BigQueryToOpenSearchStateConfig,
     BigQueryToOpenSearchTargetConfig,
-    OpenSearchIngestionPipelineConfig,
+    OpenSearchIngestPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -47,9 +47,9 @@ OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1 = {
 OPENSEARCH_INDEX_SETTNGS_1 = OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
 
 
-OPENSEARCH_INGEST_PIPELINE_CONFIG_1 = OpenSearchIngestionPipelineConfig(
-    name='ingestion_pipeline_1',
-    definition='ingestion_pipeline_definition_1'
+OPENSEARCH_INGEST_PIPELINE_CONFIG_1 = OpenSearchIngestPipelineConfig(
+    name='ingest_pipeline_1',
+    definition='ingest_pipeline_definition_1'
 )
 
 
@@ -514,7 +514,7 @@ class TestPrepareOpenSearch:
             client=opensearch_client_mock,
             opensearch_target_config=dataclasses.replace(
                 OPENSEARCH_TARGET_CONFIG_1,
-                ingestion_pipelines=[OPENSEARCH_INGEST_PIPELINE_CONFIG_1]
+                ingest_pipelines=[OPENSEARCH_INGEST_PIPELINE_CONFIG_1]
             )
         )
         create_or_update_opensearch_ingest_pipeline_mock.assert_called_with(
