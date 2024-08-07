@@ -12,7 +12,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     OpenSearchTargetConfig
 )
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
-    OpenSearchIngestionPipelineConfigDict,
+    OpenSearchIngestPipelineConfigDict,
     OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
@@ -57,9 +57,9 @@ OPENSEARCH_INDEX_SETTNGS_1 = {
 }
 
 
-OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1: OpenSearchIngestionPipelineConfigDict = {
-    'name': 'ingestion_pipeline_1',
-    'definition': 'ingestion_pipeline_definition_1'
+OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1: OpenSearchIngestPipelineConfigDict = {
+    'name': 'ingest_pipeline_1',
+    'definition': 'ingest_pipeline_definition_1'
 }
 
 
@@ -110,13 +110,13 @@ def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
 class TestOpenSearchIngestionPipelineConfig:
     def test_should_read_name_and_definition(self):
         ingestion_pipeline_config = OpenSearchIngestPipelineConfig.from_dict(
-            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1
         )
         assert ingestion_pipeline_config.name == (
-            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1['name']
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1['name']
         )
         assert ingestion_pipeline_config.definition == (
-            OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1['definition']
+            OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1['definition']
         )
 
 
@@ -225,14 +225,14 @@ class TestOpenSearchTargetConfig:
         })
         assert opensearch_target_config.upsert == value
 
-    def test_should_read_ingestion_pipelines(self):
+    def test_should_read_ingest_pipelines(self):
         opensearch_target_config = OpenSearchTargetConfig.from_dict({
             **OPENSEARCH_TARGET_CONFIG_DICT_1,
-            'ingestionPipelines': [OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1]
+            'ingestPipelines': [OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1]
         })
         assert opensearch_target_config.ingest_pipelines == [
             OpenSearchIngestPipelineConfig.from_dict(
-                OPENSEARCH_INGESTION_PIPELINE_CONFIG_DICT_1
+                OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1
             )
         ]
 

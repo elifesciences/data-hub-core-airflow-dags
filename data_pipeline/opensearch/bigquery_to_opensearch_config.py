@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
-    OpenSearchIngestionPipelineConfigDict,
+    OpenSearchIngestPipelineConfigDict,
     OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import (
@@ -60,20 +60,20 @@ class OpenSearchIngestPipelineConfig:
 
     @staticmethod
     def from_dict(
-        ingestion_pipeline_config_dict: OpenSearchIngestionPipelineConfigDict
+        ingest_pipeline_config_dict: OpenSearchIngestPipelineConfigDict
     ) -> 'OpenSearchIngestPipelineConfig':
         return OpenSearchIngestPipelineConfig(
-            name=ingestion_pipeline_config_dict['name'],
-            definition=ingestion_pipeline_config_dict['definition']
+            name=ingest_pipeline_config_dict['name'],
+            definition=ingest_pipeline_config_dict['definition']
         )
 
     @staticmethod
     def from_dict_list(
-        ingestion_pipeline_config_dict_list: Sequence[OpenSearchIngestionPipelineConfigDict]
+        ingest_pipeline_config_dict_list: Sequence[OpenSearchIngestPipelineConfigDict]
     ) -> Sequence['OpenSearchIngestPipelineConfig']:
         return list(map(
             OpenSearchIngestPipelineConfig.from_dict,
-            ingestion_pipeline_config_dict_list
+            ingest_pipeline_config_dict_list
         ))
 
 
@@ -118,7 +118,7 @@ class OpenSearchTargetConfig:  # pylint: disable=too-many-instance-attributes
             update_index_settings=opensearch_target_config_dict.get('updateIndexSettings', False),
             update_mappings=opensearch_target_config_dict.get('updateMappings', False),
             ingest_pipelines=OpenSearchIngestPipelineConfig.from_dict_list(
-                opensearch_target_config_dict.get('ingestionPipelines', [])
+                opensearch_target_config_dict.get('ingestPipelines', [])
             ),
             index_settings=opensearch_target_config_dict.get('indexSettings'),
             verify_certificates=opensearch_target_config_dict.get('verifyCertificates', True),

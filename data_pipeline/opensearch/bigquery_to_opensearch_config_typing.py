@@ -10,7 +10,7 @@ class OpenSearchSecretsConfigDict(TypedDict):
     parametersFromFile: Sequence[ParameterFromFileConfigDict]
 
 
-class OpenSearchIngestionPipelineConfigDict(TypedDict):
+class OpenSearchIngestPipelineConfigDict(TypedDict):
     name: str
     definition: str
 
@@ -23,7 +23,7 @@ class OpenSearchTargetConfigDict(TypedDict):
     timeout: NotRequired[float]
     updateIndexSettings: NotRequired[bool]
     updateMappings: NotRequired[bool]
-    ingestionPipelines: NotRequired[Sequence[OpenSearchIngestionPipelineConfigDict]]
+    ingestPipelines: NotRequired[Sequence[OpenSearchIngestPipelineConfigDict]]
     indexSettings: NotRequired[dict]
     verifyCertificates: NotRequired[bool]
     operationMode: NotRequired[str]

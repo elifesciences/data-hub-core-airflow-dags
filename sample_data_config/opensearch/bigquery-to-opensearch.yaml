@@ -62,7 +62,7 @@ bigQueryToOpenSearch:
         updateMappings: True
         operationMode: 'update'
         upsert: True
-        ingestionPipelines:
+        ingestPipelines:
           - name: dev_preprints_v2_publication_date_pipeline
             definition: |-
               {
