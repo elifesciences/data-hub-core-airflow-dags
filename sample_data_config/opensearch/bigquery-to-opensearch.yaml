@@ -100,6 +100,8 @@ bigQueryToOpenSearch:
                   }
                 expectedDocument: |-
                   {
+                    "calculated": {
+                    }
                   }
               - description: "Use Crossref if available"
                 inputDocument: |-
