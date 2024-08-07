@@ -10,6 +10,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchStateConfig,
+    OpenSearchIngestionPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -77,6 +78,29 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
     )
 
 
+def create_or_update_opensearch_ingest_pipeline(
+    client: OpenSearch,
+    ingest_pipeline_config: OpenSearchIngestionPipelineConfig
+):
+    LOGGER.info('Creating or updating ingesting pipeline: %r', ingest_pipeline_config.name)
+    client.ingest.put_pipeline(
+        id=ingest_pipeline_config.name,
+        body=ingest_pipeline_config.definition
+    )
+
+
+def create_or_update_opensearch_ingest_pipelines(
+    client: OpenSearch,
+    ingest_pipeline_config_list: Sequence[OpenSearchIngestionPipelineConfig]
+):
+    LOGGER.debug('ingest_pipeline_config_list: %r', ingest_pipeline_config_list)
+    for ingest_pipeline_config in ingest_pipeline_config_list:
+        create_or_update_opensearch_ingest_pipeline(
+            client=client,
+            ingest_pipeline_config=ingest_pipeline_config
+        )
+
+
 def create_or_update_opensearch_index(
     client: OpenSearch,
     opensearch_target_config: OpenSearchTargetConfig
@@ -98,6 +122,20 @@ def create_or_update_opensearch_index(
                 client.indices.put_mapping(index=index_name, body=mappings)
     else:
         client.indices.create(index=index_name, body=index_settings)
+
+
+def prepare_opensearch(
+    client: OpenSearch,
+    opensearch_target_config: OpenSearchTargetConfig
+):
+    create_or_update_opensearch_ingest_pipelines(
+        client=client,
+        ingest_pipeline_config_list=opensearch_target_config.ingestion_pipelines
+    )
+    create_or_update_opensearch_index(
+        client=client,
+        opensearch_target_config=opensearch_target_config
+    )
 
 
 OPENSEARCH_BULK_DOCUMENT_FIELD_BY_OPERATION_MODE = {
@@ -219,7 +257,7 @@ def create_or_update_index_and_load_documents_into_opensearch(
 ):
     client = get_opensearch_client(config.target.opensearch)
     LOGGER.info('client: %r', client)
-    create_or_update_opensearch_index(
+    prepare_opensearch(
         client=client,
         opensearch_target_config=config.target.opensearch
     )
