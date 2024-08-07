@@ -2,7 +2,7 @@ import dataclasses
 from datetime import datetime
 import json
 import logging
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, Tuple
 
 from opensearchpy import OpenSearch
 import opensearchpy
@@ -12,6 +12,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchStateConfig,
     OpenSearchIngestPipelineConfig,
+    OpenSearchIngestPipelineTestConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -96,25 +97,51 @@ def get_opensearch_ingest_pipeline_tests_body(
 def get_opensearch_ingest_pipeline_test_actual_documents_from_simulate_response(
     simulate_response: dict
 ) -> Sequence[dict]:
-    LOGGER.info('simulate_response: %r', simulate_response)
+    LOGGER.debug('simulate_response: %r', simulate_response)
     return [
         doc['doc']['_source']
         for doc in simulate_response['docs']
     ]
 
 
+def iter_failed_opensearch_ingest_pipeline_test_and_actual_document(
+    actual_documents: Sequence[dict],
+    ingest_pipeline_config: OpenSearchIngestPipelineConfig
+) -> Iterable[Tuple[OpenSearchIngestPipelineTestConfig, dict]]:
+    assert len(actual_documents) == len(ingest_pipeline_config.tests)
+    for ingest_pipeline_test_config, actual_document in zip(
+        ingest_pipeline_config.tests,
+        actual_documents
+    ):
+        if actual_document != ingest_pipeline_test_config.expected_document:
+            yield ingest_pipeline_test_config, actual_document
+
+
 def assert_opensearch_ingest_pipeline_test_actual_documents_match_expected(
     actual_documents: Sequence[dict],
     ingest_pipeline_config: OpenSearchIngestPipelineConfig
 ):
-    assert len(actual_documents) == len(ingest_pipeline_config.tests)
-    LOGGER.info('actual_documents: %r', actual_documents)
-    expected_documents = [
-        ingest_pipeline_test_config.expected_document
-        for ingest_pipeline_test_config in ingest_pipeline_config.tests
-    ]
-    if actual_documents != expected_documents:
-        raise AssertionError('Actual documents do not match expected documents')
+    failed_opensearch_ingest_pipeline_test_and_actual_document = list(
+        iter_failed_opensearch_ingest_pipeline_test_and_actual_document(
+            actual_documents=actual_documents,
+            ingest_pipeline_config=ingest_pipeline_config
+        )
+    )
+    if not failed_opensearch_ingest_pipeline_test_and_actual_document:
+        LOGGER.info('Ingest pipeline tests passed: %r', ingest_pipeline_config.name)
+        return
+    failed_descriptions = []
+    for opensearch_ingest_pipeline_test_config, actual_document in (
+        failed_opensearch_ingest_pipeline_test_and_actual_document
+    ):
+        LOGGER.warning(
+            'Ingest pipeline test failed: description=%r, actual=%r, expected=%r',
+            opensearch_ingest_pipeline_test_config.description,
+            actual_document,
+            opensearch_ingest_pipeline_test_config.expected_document
+        )
+        failed_descriptions.append(opensearch_ingest_pipeline_test_config.description)
+    raise AssertionError(f'Ingest pipeline test failures: {failed_descriptions}')
 
 
 def run_opensearch_ingest_pipeline_tests(
