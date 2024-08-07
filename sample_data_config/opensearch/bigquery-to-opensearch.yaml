@@ -91,7 +91,7 @@ bigQueryToOpenSearch:
                 ]
               }
             tests:
-              - description: "Remove existing calculated field"
+              - description: "Should remove existing calculated field"
                 inputDocument: |-
                   {
                     "calculated": {
@@ -103,7 +103,7 @@ bigQueryToOpenSearch:
                     "calculated": {
                     }
                   }
-              - description: "Use Crossref if available"
+              - description: "Should use Crossref if available"
                 inputDocument: |-
                   {
                     "crossref": {
