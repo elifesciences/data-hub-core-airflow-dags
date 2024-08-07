@@ -678,7 +678,7 @@ class TestLoadDocumentsIntoOpenSearch:
         assert not list(streaming_bulk_result_iterable)
 
 
-class TestCreateOrUpdateIndexAndLoadDocumentsIntoOpenSearch:
+class TestSetupOpenSearchAndLoadDocumentsIntoOpenSearch:
     def test_should_pass_config_to_setup_opensearch_method(
         self,
         get_opensearch_client_mock: MagicMock,
