@@ -251,7 +251,7 @@ def get_max_timestamp_from_documents(
     )
 
 
-def create_or_update_index_and_load_documents_into_opensearch(
+def setup_opensearch_and_load_documents_into_opensearch(
     document_iterable: Iterable[dict],
     config: BigQueryToOpenSearchConfig
 ):
@@ -296,7 +296,7 @@ def fetch_documents_from_bigquery_and_load_into_opensearch(
     start_timestamp = load_state_or_default_from_s3_for_config(config.state)
     LOGGER.info('start_timestamp: %r', start_timestamp)
     document_iterable = iter_documents_from_bigquery(config, start_timestamp=start_timestamp)
-    create_or_update_index_and_load_documents_into_opensearch(
+    setup_opensearch_and_load_documents_into_opensearch(
         document_iterable,
         config=config
     )
