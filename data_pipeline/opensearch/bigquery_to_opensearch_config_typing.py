@@ -10,9 +10,16 @@ class OpenSearchSecretsConfigDict(TypedDict):
     parametersFromFile: Sequence[ParameterFromFileConfigDict]
 
 
+class OpenSearchIngestPipelineTestConfigDict(TypedDict):
+    description: str
+    inputDocument: str
+    expectedDocument: str
+
+
 class OpenSearchIngestPipelineConfigDict(TypedDict):
     name: str
     definition: str
+    tests: NotRequired[Sequence[OpenSearchIngestPipelineTestConfigDict]]
 
 
 class OpenSearchTargetConfigDict(TypedDict):

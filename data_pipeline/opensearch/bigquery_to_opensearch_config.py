@@ -1,10 +1,12 @@
 from datetime import datetime
+import json
 import logging
 from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
     OpenSearchIngestPipelineConfigDict,
+    OpenSearchIngestPipelineTestConfigDict,
     OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import (
@@ -54,9 +56,36 @@ class BigQueryToOpenSearchSourceConfig:
 
 
 @dataclass(frozen=True)
+class OpenSearchIngestPipelineTestConfig:
+    description: str
+    input_document:  dict
+    expected_document: dict
+
+    @staticmethod
+    def from_dict(
+        ingest_pipeline_test_config_dict: OpenSearchIngestPipelineTestConfigDict
+    ) -> 'OpenSearchIngestPipelineTestConfig':
+        return OpenSearchIngestPipelineTestConfig(
+            description=ingest_pipeline_test_config_dict['description'],
+            input_document=json.loads(ingest_pipeline_test_config_dict['inputDocument']),
+            expected_document=json.loads(ingest_pipeline_test_config_dict['expectedDocument']),
+        )
+
+    @staticmethod
+    def from_dict_list(
+        ingest_pipeline_config_dict_list: Sequence[OpenSearchIngestPipelineTestConfigDict]
+    ) -> Sequence['OpenSearchIngestPipelineTestConfig']:
+        return list(map(
+            OpenSearchIngestPipelineTestConfig.from_dict,
+            ingest_pipeline_config_dict_list
+        ))
+
+
+@dataclass(frozen=True)
 class OpenSearchIngestPipelineConfig:
     name: str
     definition:  str
+    tests: Sequence[OpenSearchIngestPipelineTestConfig] = field(default_factory=list)
 
     @staticmethod
     def from_dict(
@@ -64,7 +93,10 @@ class OpenSearchIngestPipelineConfig:
     ) -> 'OpenSearchIngestPipelineConfig':
         return OpenSearchIngestPipelineConfig(
             name=ingest_pipeline_config_dict['name'],
-            definition=ingest_pipeline_config_dict['definition']
+            definition=ingest_pipeline_config_dict['definition'],
+            tests=OpenSearchIngestPipelineTestConfig.from_dict_list(
+                ingest_pipeline_config_dict.get('tests', [])
+            )
         )
 
     @staticmethod

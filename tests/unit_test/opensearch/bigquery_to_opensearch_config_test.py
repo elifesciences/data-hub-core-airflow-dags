@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from pathlib import Path
 
 import pytest
@@ -8,11 +9,13 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     DEFAULT_OPENSEARCH_TIMEOUT,
     BigQueryToOpenSearchConfig,
     OpenSearchIngestPipelineConfig,
+    OpenSearchIngestPipelineTestConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
 from data_pipeline.opensearch.bigquery_to_opensearch_config_typing import (
     OpenSearchIngestPipelineConfigDict,
+    OpenSearchIngestPipelineTestConfigDict,
     OpenSearchTargetConfigDict
 )
 from data_pipeline.utils.pipeline_config import BigQuerySourceConfig
@@ -54,6 +57,13 @@ BIGQUERY_SOURCE_CONFIG_DICT_1 = {
 
 OPENSEARCH_INDEX_SETTNGS_1 = {
     'settings': {'index': {'some_setting': 'value'}}
+}
+
+
+OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1: OpenSearchIngestPipelineTestConfigDict = {
+    'description': 'Test description 1',
+    'inputDocument': json.dumps({'name': 'input document 1'}),
+    'expectedDocument': json.dumps({'name': 'expected document 1'})
 }
 
 
@@ -107,6 +117,27 @@ def _password_file_path(mock_env: dict, tmp_path: Path) -> str:
     return str(file_path)
 
 
+class TestOpenSearchIngestionPipelineTestConfig:
+    def test_should_read_description(self):
+        ingestion_pipeline_test_config = OpenSearchIngestPipelineTestConfig.from_dict(
+            OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1
+        )
+        assert ingestion_pipeline_test_config.description == (
+            OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1['description']
+        )
+
+    def test_should_parse_input_and_expected_document_as_json(self):
+        ingestion_pipeline_test_config = OpenSearchIngestPipelineTestConfig.from_dict(
+            OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1
+        )
+        assert ingestion_pipeline_test_config.input_document == json.loads(
+            OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1['inputDocument']
+        )
+        assert ingestion_pipeline_test_config.expected_document == json.loads(
+            OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1['expectedDocument']
+        )
+
+
 class TestOpenSearchIngestionPipelineConfig:
     def test_should_read_name_and_definition(self):
         ingestion_pipeline_config = OpenSearchIngestPipelineConfig.from_dict(
@@ -118,6 +149,17 @@ class TestOpenSearchIngestionPipelineConfig:
         assert ingestion_pipeline_config.definition == (
             OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1['definition']
         )
+
+    def test_should_read_tests(self):
+        ingestion_pipeline_config = OpenSearchIngestPipelineConfig.from_dict({
+            **OPENSEARCH_INGEST_PIPELINE_CONFIG_DICT_1,
+            'tests': [OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1]
+        })
+        assert ingestion_pipeline_config.tests == [
+            OpenSearchIngestPipelineTestConfig.from_dict(
+                OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_DICT_1
+            )
+        ]
 
 
 class TestOpenSearchTargetConfig:
