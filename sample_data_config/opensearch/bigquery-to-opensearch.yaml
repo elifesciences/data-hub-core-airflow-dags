@@ -103,7 +103,7 @@ bigQueryToOpenSearch:
                     "calculated": {
                     }
                   }
-              - description: "Should use Crossref if available"
+              - description: "Should use crossref.publication_date if available"
                 inputDocument: |-
                   {
                     "crossref": {
@@ -117,6 +117,44 @@ bigQueryToOpenSearch:
                     },
                     "calculated": {
                       "publication_date": "2001-02-03"
+                    }
+                  }
+              - description: "Should use europepmc.first_publication_date if available"
+                inputDocument: |-
+                  {
+                    "europepmc": {
+                      "first_publication_date": "2001-02-03"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "europepmc": {
+                      "first_publication_date": "2001-02-03"
+                    },
+                    "calculated": {
+                      "publication_date": "2001-02-03"
+                    }
+                  }
+              - description: "Should prefer crossref publication date over europepmc"
+                inputDocument: |-
+                  {
+                    "crossref": {
+                      "publication_date": "2001-01-01"
+                    },
+                    "europepmc": {
+                      "first_publication_date": "2001-01-02"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "crossref": {
+                      "publication_date": "2001-01-01"
+                    },
+                    "europepmc": {
+                      "first_publication_date": "2001-01-02"
+                    },
+                    "calculated": {
+                      "publication_date": "2001-01-01"
                     }
                   }
           - name: dev_preprints_v2_default_pipeline
