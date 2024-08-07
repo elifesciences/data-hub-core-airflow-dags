@@ -128,7 +128,11 @@ def assert_opensearch_ingest_pipeline_test_actual_documents_match_expected(
         )
     )
     if not failed_opensearch_ingest_pipeline_test_and_actual_document:
-        LOGGER.info('Ingest pipeline tests passed: %r', ingest_pipeline_config.name)
+        passed_descriptions = [
+            ingest_pipeline_test_config.description
+            for ingest_pipeline_test_config in ingest_pipeline_config.tests
+        ]
+        LOGGER.info('Ingest pipeline tests passed: %r', passed_descriptions)
         return
     failed_descriptions = []
     for opensearch_ingest_pipeline_test_config, actual_document in (
