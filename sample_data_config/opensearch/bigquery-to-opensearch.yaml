@@ -63,6 +63,32 @@ bigQueryToOpenSearch:
         operationMode: 'update'
         upsert: True
         ingestPipelines:
+          - name: dev_preprints_v2_doi_prefix_pipeline
+            definition: |-
+              {
+                "description": "Extracts doi_prefix from doi",
+                "processors": [
+                  {
+                    "grok": {
+                      "field": "doi",
+                      "patterns": ["^(?<calculated.doi_prefix>[^/]+)/.*$"]
+                    }
+                  }
+                ]
+              }
+            tests:
+              - description: "Should extract doi_prefix from doi"
+                inputDocument: |-
+                  {
+                    "doi": "10.1234/doi_1"
+                  }
+                expectedDocument: |-
+                  {
+                    "doi": "10.1234/doi_1",
+                    "calculated": {
+                      "doi_prefix": "10.1234"
+                    }
+                  }
           - name: dev_preprints_v2_publication_date_pipeline
             definition: |-
               {
@@ -373,6 +399,11 @@ bigQueryToOpenSearch:
                 "processors": [
                   {
                     "pipeline": {
+                      "name": "dev_preprints_v2_doi_prefix_pipeline"
+                    }
+                  },
+                  {
+                    "pipeline": {
                       "name": "dev_preprints_v2_publication_date_pipeline"
                     }
                   },
@@ -402,6 +433,10 @@ bigQueryToOpenSearch:
             properties:
                 doi:
                   type: "text"
+                calculated:
+                  properties:
+                    doi_prefix:
+                      type: "keyword"
                 s2:
                   properties:
                     author_list:
