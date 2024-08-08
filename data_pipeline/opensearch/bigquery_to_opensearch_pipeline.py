@@ -10,10 +10,10 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchConfig,
     BigQueryToOpenSearchFieldNamesForConfig,
     BigQueryToOpenSearchStateConfig,
-    OpenSearchIngestPipelineConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
+from data_pipeline.opensearch.ingest_pipeline import create_or_update_opensearch_ingest_pipelines
 from data_pipeline.utils.collections import iter_batch_iterable
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
@@ -76,29 +76,6 @@ def get_opensearch_client(opensearch_target_config: OpenSearchTargetConfig) -> O
         verify_certs=opensearch_target_config.verify_certificates,
         ssl_show_warn=opensearch_target_config.verify_certificates
     )
-
-
-def create_or_update_opensearch_ingest_pipeline(
-    client: OpenSearch,
-    ingest_pipeline_config: OpenSearchIngestPipelineConfig
-):
-    LOGGER.info('Creating or updating ingest pipeline: %r', ingest_pipeline_config.name)
-    client.ingest.put_pipeline(
-        id=ingest_pipeline_config.name,
-        body=ingest_pipeline_config.definition
-    )
-
-
-def create_or_update_opensearch_ingest_pipelines(
-    client: OpenSearch,
-    ingest_pipeline_config_list: Sequence[OpenSearchIngestPipelineConfig]
-):
-    LOGGER.debug('ingest_pipeline_config_list: %r', ingest_pipeline_config_list)
-    for ingest_pipeline_config in ingest_pipeline_config_list:
-        create_or_update_opensearch_ingest_pipeline(
-            client=client,
-            ingest_pipeline_config=ingest_pipeline_config
-        )
 
 
 def create_or_update_opensearch_index(

@@ -1,5 +1,6 @@
 import dataclasses
 from datetime import datetime
+import json
 from typing import Iterator
 from unittest.mock import ANY, MagicMock, call, patch
 
@@ -16,6 +17,7 @@ from data_pipeline.opensearch.bigquery_to_opensearch_config import (
     BigQueryToOpenSearchStateConfig,
     BigQueryToOpenSearchTargetConfig,
     OpenSearchIngestPipelineConfig,
+    OpenSearchIngestPipelineTestConfig,
     OpenSearchOperationModes,
     OpenSearchTargetConfig
 )
@@ -23,7 +25,6 @@ import data_pipeline.opensearch.bigquery_to_opensearch_pipeline as test_module
 from data_pipeline.opensearch.bigquery_to_opensearch_pipeline import (
     setup_opensearch_and_load_documents_into_opensearch,
     create_or_update_opensearch_index,
-    create_or_update_opensearch_ingest_pipeline,
     fetch_documents_from_bigquery_and_load_into_opensearch,
     fetch_documents_from_bigquery_and_load_into_opensearch_from_config_list,
     get_opensearch_client,
@@ -47,9 +48,16 @@ OPENSEARCH_INDEX_SETTNGS_WITH_MAPPINGS_1 = {
 OPENSEARCH_INDEX_SETTNGS_1 = OPENSEARCH_INDEX_SETTNGS_WITHOUT_MAPPINGS_1
 
 
+OPENSEARCH_INGEST_PIPELINE_TEST_CONFIG_1 = OpenSearchIngestPipelineTestConfig(
+    description='Ingest pipeline test 1',
+    input_document={'name': 'input document 1'},
+    expected_document={'name': 'expected document 1'}
+)
+
+
 OPENSEARCH_INGEST_PIPELINE_CONFIG_1 = OpenSearchIngestPipelineConfig(
     name='ingest_pipeline_1',
-    definition='ingest_pipeline_definition_1'
+    definition=json.dumps({'description': 'ingest_pipeline_definition_1'})
 )
 
 
@@ -168,9 +176,9 @@ def _get_opensearch_client_mock(opensearch_client_mock: MagicMock) -> Iterator[M
         yield mock
 
 
-@pytest.fixture(name='create_or_update_opensearch_ingest_pipeline_mock')
+@pytest.fixture(name='create_or_update_opensearch_ingest_pipelines_mock')
 def _create_or_update_opensearch_ingest_pipeline_mock() -> Iterator[MagicMock]:
-    with patch.object(test_module, 'create_or_update_opensearch_ingest_pipeline') as mock:
+    with patch.object(test_module, 'create_or_update_opensearch_ingest_pipelines') as mock:
         yield mock
 
 
@@ -378,21 +386,6 @@ class TestGetOpenSearchClient:
         assert client == opensearch_class_mock.return_value
 
 
-class TestCreateOrUpdateOpenSearchIngestPipeline:
-    def test_should_put_ingest_pipeline(
-        self,
-        opensearch_client_mock: MagicMock
-    ):
-        create_or_update_opensearch_ingest_pipeline(
-            client=opensearch_client_mock,
-            ingest_pipeline_config=OPENSEARCH_INGEST_PIPELINE_CONFIG_1
-        )
-        opensearch_client_mock.ingest.put_pipeline.assert_called_with(
-            id=OPENSEARCH_INGEST_PIPELINE_CONFIG_1.name,
-            body=OPENSEARCH_INGEST_PIPELINE_CONFIG_1.definition
-        )
-
-
 class TestCreateOrUpdateOpenSearchIndex:
     def test_should_create_index_without_settings_if_it_does_not_exist(
         self,
@@ -508,7 +501,7 @@ class TestSetupOpenSearch:
     def test_should_pass_config_to_create_or_update_opensearch_ingestion_pipeline_method(
         self,
         opensearch_client_mock: MagicMock,
-        create_or_update_opensearch_ingest_pipeline_mock: MagicMock
+        create_or_update_opensearch_ingest_pipelines_mock: MagicMock
     ):
         setup_opensearch(
             client=opensearch_client_mock,
@@ -517,9 +510,9 @@ class TestSetupOpenSearch:
                 ingest_pipelines=[OPENSEARCH_INGEST_PIPELINE_CONFIG_1]
             )
         )
-        create_or_update_opensearch_ingest_pipeline_mock.assert_called_with(
+        create_or_update_opensearch_ingest_pipelines_mock.assert_called_with(
             client=opensearch_client_mock,
-            ingest_pipeline_config=OPENSEARCH_INGEST_PIPELINE_CONFIG_1
+            ingest_pipeline_config_list=[OPENSEARCH_INGEST_PIPELINE_CONFIG_1]
         )
 
     def test_should_pass_config_to_create_or_update_opensearch_index_method(
