@@ -103,39 +103,7 @@ bigQueryToOpenSearch:
                     "calculated": {
                     }
                   }
-              - description: "Should use crossref.publication_date if available"
-                inputDocument: |-
-                  {
-                    "crossref": {
-                      "publication_date": "2001-02-03"
-                    }
-                  }
-                expectedDocument: |-
-                  {
-                    "crossref": {
-                      "publication_date": "2001-02-03"
-                    },
-                    "calculated": {
-                      "publication_date": "2001-02-03"
-                    }
-                  }
-              - description: "Should use europepmc.first_publication_date if available"
-                inputDocument: |-
-                  {
-                    "europepmc": {
-                      "first_publication_date": "2001-02-03"
-                    }
-                  }
-                expectedDocument: |-
-                  {
-                    "europepmc": {
-                      "first_publication_date": "2001-02-03"
-                    },
-                    "calculated": {
-                      "publication_date": "2001-02-03"
-                    }
-                  }
-              - description: "Should prefer crossref publication date over europepmc"
+              - description: "Should prefer publication date from Crossref over EuropePMC"
                 inputDocument: |-
                   {
                     "crossref": {
@@ -155,6 +123,22 @@ bigQueryToOpenSearch:
                     },
                     "calculated": {
                       "publication_date": "2001-01-01"
+                    }
+                  }
+              - description: "Should fallback to publication date from EuropePMC"
+                inputDocument: |-
+                  {
+                    "europepmc": {
+                      "first_publication_date": "2001-02-03"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "europepmc": {
+                      "first_publication_date": "2001-02-03"
+                    },
+                    "calculated": {
+                      "publication_date": "2001-02-03"
                     }
                   }
           - name: dev_preprints_v2_title_with_markup_pipeline
