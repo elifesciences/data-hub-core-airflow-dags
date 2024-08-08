@@ -157,6 +157,119 @@ bigQueryToOpenSearch:
                       "publication_date": "2001-01-01"
                     }
                   }
+          - name: dev_preprints_v2_title_with_markup_pipeline
+            definition: |-
+              {
+                "description": "Sets calculated.title_with_markup from crossref or europepmc or s2",
+                "processors": [
+                  {
+                    "remove": {
+                      "field": "calculated.title_with_markup",
+                      "if": "ctx.calculated?.title_with_markup != null"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.title_with_markup == null && ctx.crossref?.title_with_markup != null",
+                      "field": "calculated.title_with_markup",
+                      "value": "{{crossref.title_with_markup}}"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.title_with_markup == null && ctx.europepmc?.title_with_markup != null",
+                      "field": "calculated.title_with_markup",
+                      "value": "{{europepmc.title_with_markup}}"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.title_with_markup == null && ctx.s2?.title != null",
+                      "field": "calculated.title_with_markup",
+                      "value": "{{s2.title}}"
+                    }
+                  }
+                ]
+              }
+            tests:
+              - description: "Should remove existing calculated field"
+                inputDocument: |-
+                  {
+                    "calculated": {
+                      "title_with_markup": "Title 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "calculated": {
+                    }
+                  }
+              - description: "Should prefer title from Crossref over EuropePM and S2"
+                inputDocument: |-
+                  {
+                    "crossref": {
+                      "title_with_markup": "Crossref Title 1"
+                    },
+                    "europepmc": {
+                      "title_with_markup": "EuropePMC Title 1"
+                    },
+                    "s2": {
+                      "title": "S2 Title 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "crossref": {
+                      "title_with_markup": "Crossref Title 1"
+                    },
+                    "europepmc": {
+                      "title_with_markup": "EuropePMC Title 1"
+                    },
+                    "s2": {
+                      "title": "S2 Title 1"
+                    },
+                    "calculated": {
+                      "title_with_markup": "Crossref Title 1"
+                    }
+                  }
+              - description: "Should prefer title from EuropePMC over S2"
+                inputDocument: |-
+                  {
+                    "europepmc": {
+                      "title_with_markup": "EuropePMC Title 1"
+                    },
+                    "s2": {
+                      "title": "S2 Title 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "europepmc": {
+                      "title_with_markup": "EuropePMC Title 1"
+                    },
+                    "s2": {
+                      "title": "S2 Title 1"
+                    },
+                    "calculated": {
+                      "title_with_markup": "EuropePMC Title 1"
+                    }
+                  }
+              - description: "Should fallback to title from s2"
+                inputDocument: |-
+                  {
+                    "s2": {
+                      "title": "S2 Title 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "s2": {
+                      "title": "S2 Title 1"
+                    },
+                    "calculated": {
+                      "title_with_markup": "S2 Title 1"
+                    }
+                  }
           - name: dev_preprints_v2_default_pipeline
             definition: |-
               {
@@ -164,6 +277,11 @@ bigQueryToOpenSearch:
                   {
                     "pipeline": {
                       "name": "dev_preprints_v2_publication_date_pipeline"
+                    }
+                  },
+                  {
+                    "pipeline": {
+                      "name": "dev_preprints_v2_title_with_markup_pipeline"
                     }
                   }
                 ]
