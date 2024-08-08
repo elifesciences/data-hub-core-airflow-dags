@@ -270,6 +270,119 @@ bigQueryToOpenSearch:
                       "title_with_markup": "S2 Title 1"
                     }
                   }
+          - name: dev_preprints_v2_abstract_with_markup_pipeline
+            definition: |-
+              {
+                "description": "Sets calculated.abstract_with_markup from crossref or europepmc or s2",
+                "processors": [
+                  {
+                    "remove": {
+                      "field": "calculated.abstract_with_markup",
+                      "if": "ctx.calculated?.abstract_with_markup != null"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.abstract_with_markup == null && ctx.crossref?.abstract_with_markup != null",
+                      "field": "calculated.abstract_with_markup",
+                      "value": "{{crossref.abstract_with_markup}}"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.abstract_with_markup == null && ctx.europepmc?.abstract_with_markup != null",
+                      "field": "calculated.abstract_with_markup",
+                      "value": "{{europepmc.abstract_with_markup}}"
+                    }
+                  },
+                  {
+                    "set": {
+                      "if": "ctx.calculated?.abstract_with_markup == null && ctx.s2?.abstract != null",
+                      "field": "calculated.abstract_with_markup",
+                      "value": "{{s2.abstract}}"
+                    }
+                  }
+                ]
+              }
+            tests:
+              - description: "Should remove existing calculated field"
+                inputDocument: |-
+                  {
+                    "calculated": {
+                      "abstract_with_markup": "Abstract 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "calculated": {
+                    }
+                  }
+              - description: "Should prefer abstract from Crossref over EuropePMC and S2"
+                inputDocument: |-
+                  {
+                    "crossref": {
+                      "abstract_with_markup": "Crossref Abstract 1"
+                    },
+                    "europepmc": {
+                      "abstract_with_markup": "EuropePMC Abstract 1"
+                    },
+                    "s2": {
+                      "title": "S2 Abstract 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "crossref": {
+                      "abstract_with_markup": "Crossref Abstract 1"
+                    },
+                    "europepmc": {
+                      "abstract_with_markup": "EuropePMC Abstract 1"
+                    },
+                    "s2": {
+                      "title": "S2 Abstract 1"
+                    },
+                    "calculated": {
+                      "abstract_with_markup": "Crossref Abstract 1"
+                    }
+                  }
+              - description: "Should prefer abstract from EuropePMC over S2"
+                inputDocument: |-
+                  {
+                    "europepmc": {
+                      "abstract_with_markup": "EuropePMC Abstract 1"
+                    },
+                    "s2": {
+                      "title": "S2 Abstract 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "europepmc": {
+                      "abstract_with_markup": "EuropePMC Abstract 1"
+                    },
+                    "s2": {
+                      "title": "S2 Abstract 1"
+                    },
+                    "calculated": {
+                      "abstract_with_markup": "EuropePMC Abstract 1"
+                    }
+                  }
+              - description: "Should fallback to abstract from S2"
+                inputDocument: |-
+                  {
+                    "s2": {
+                      "abstract": "S2 Abstract 1"
+                    }
+                  }
+                expectedDocument: |-
+                  {
+                    "s2": {
+                      "abstract": "S2 Abstract 1"
+                    },
+                    "calculated": {
+                      "abstract_with_markup": "S2 Abstract 1"
+                    }
+                  }
           - name: dev_preprints_v2_default_pipeline
             definition: |-
               {
@@ -282,6 +395,11 @@ bigQueryToOpenSearch:
                   {
                     "pipeline": {
                       "name": "dev_preprints_v2_title_with_markup_pipeline"
+                    }
+                  },
+                  {
+                    "pipeline": {
+                      "name": "dev_preprints_v2_abstract_with_markup_pipeline"
                     }
                   }
                 ]
