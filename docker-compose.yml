@@ -235,7 +235,6 @@ services:
             - K3S_TOKEN=${K3S_TOKEN:?err}
             - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
             - K3S_KUBECONFIG_MODE=666
-            - K3S_URL=https://k3s-server:6443
         volumes:
           # - k3s-server:/var/lib/rancher/k3s
           # This is just so that we get the kubeconfig file out
@@ -244,6 +243,8 @@ services:
           - 6443:6443  # Kubernetes API Server
           # - 80:80      # Ingress controller port 80
           # - 443:443    # Ingress controller port 443
+        networks:
+          - k3s-network
 
     k3s-agent:
         image: "rancher/k3s:${K3S_VERSION:-latest}"
@@ -261,6 +262,12 @@ services:
             - K3S_TOKEN=${K3S_TOKEN:?err}
         # volumes:
         #   - k3s-agent:/var/lib/rancher/k3s
+        networks:
+          - k3s-network
+
+networks:
+  k3s-network:
+    driver: bridge
 
 volumes:
   opensearch-data-airflow-dev:
