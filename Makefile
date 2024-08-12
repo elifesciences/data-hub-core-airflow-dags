@@ -130,7 +130,6 @@ test-ftpserver-start:
 airflow-start:
 	$(DOCKER_COMPOSE) up worker webserver test-ftpserver
 
-
 airflow-start-detach:
 	$(DOCKER_COMPOSE) up --detach worker webserver test-ftpserver
 
@@ -138,6 +137,11 @@ airflow-start-detach:
 airflow-stop:
 	$(DOCKER_COMPOSE) down
 
+k3s-start:
+	$(DOCKER_COMPOSE) up k3s-server k3s-agent
+
+k3s-start-detach :
+	$(DOCKER_COMPOSE) up --detach k3s-server k3s-agent
 
 opensearch-start:
 	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
