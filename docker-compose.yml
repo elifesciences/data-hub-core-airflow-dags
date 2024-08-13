@@ -63,6 +63,7 @@ x-airflow-env:
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
     - KUBECONFIG=/home/airflow/k3s-config/kubeconfig.yaml
+    - DOCKER_HOST=tcp://docker-socket-proxy:2375
 
 x-airflow-volumes:
   &airflow-volumes
@@ -261,6 +262,40 @@ services:
             - K3S_TOKEN=${K3S_TOKEN:?err}
         # volumes:
         #   - k3s-agent:/var/lib/rancher/k3s
+
+    docker-socket-proxy:
+        image: tecnativa/docker-socket-proxy
+        privileged: true
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            - ALLOW_START=1
+            - ALLOW_STOP=1
+            - ALLOW_RESTARTS=1
+            - AUTH=1
+            - BUILD=1
+            - COMMIT=1
+            - CONFIGS=1
+            - CONTAINERS=1
+            - DISABLE_IPV6=0
+            - DISTRIBUTION=0
+            - EVENTS=1
+            - EXEC=1
+            - IMAGES=1
+            - INFO=1
+            - NETWORKS=1
+            - NODES=1
+            - PING=1
+            - POST=1
+            - PLUGINS=1
+            - SECRETS=1
+            - SERVICES=1
+            - SESSION=1
+            - SWARM=1
+            - SYSTEM=1
+            - TASKS=1
+            - VERSION=1
+            - VOLUMES=1
 
 volumes:
   opensearch-data-airflow-dev:

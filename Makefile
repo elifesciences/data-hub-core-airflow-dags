@@ -143,6 +143,19 @@ k3s-start:
 k3s-start-detach :
 	$(DOCKER_COMPOSE) up --detach k3s-server k3s-agent
 
+
+docker-proxy-start:
+	$(DOCKER_COMPOSE) up --detach docker-socket-proxy
+
+
+docker-proxy-stop:
+	$(DOCKER_COMPOSE) stop docker-socket-proxy
+
+
+docker-proxy-logs:
+	$(DOCKER_COMPOSE) logs -f docker-socket-proxy
+
+
 opensearch-start:
 	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
 
