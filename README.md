@@ -46,6 +46,43 @@ To set up the development environment (virtual environment):
     # update dependencies
     make dev-install
 
+### Run k3s locally
+  The `kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
+
+    make k3s-start
+
+  We need to update the server IP in the `kubeconfig.yaml` file to connect with Airflow. To obtain the relevant IP address, use the commands provided below. Once you have the IP, replace the `server` entry in the file with `server: https://<YOUR_IP>:6443`.
+
+  To do this:
+  ```console
+  # get network ids
+  $ docker network ls
+  NETWORK ID     NAME                                 DRIVER    SCOPE
+  6840f3bbe3f1   data-hub-core-airflow-dags_default   bridge    local
+  ...
+
+  $ docker network inspect 6840f3bbe3f1
+  ...
+  # search for `data-hub-core-airflow-dags-k3s-server-1`
+  {
+    "Name": "data-hub-core-airflow-dags-k3s-server-1",
+    "EndpointID": "",
+    "MacAddress": "",
+    "IPv4Address": "<YOUR_IP>",
+    "IPv6Address": ""
+  }
+  ```
+
+  We can also use kubectl locally by specifying the configuration file. To do this, we need to use `kubeconfig.yaml` with the localhost settings. Simply obtain a copy of the configuration with the localhost IP (`server: https://127.0.0.1:6443`) and save it as `kubeconfig_localhost.yaml`.
+
+  ```console
+  $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get nodes
+  ...
+
+  $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get pods -A
+  ...
+  ```
+
 ## Project Folder/Package Organisation
 
 * `dags` package consists of the airflow dags running the different data pipeline. Whenever the dag files ends with `controller.py`, the data pipeline in the file will typically trigger another data pipeline with some configuration values.
