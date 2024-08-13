@@ -261,6 +261,5 @@ services:
         # volumes:
         #   - k3s-agent:/var/lib/rancher/k3s
 
-
 volumes:
   opensearch-data-airflow-dev:
