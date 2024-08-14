@@ -10,12 +10,18 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 @dataclass(frozen=True)
 class KubernetesPipelineConfig:
     data_pipeline_id: str
+    image: str
+    arguments: list
 
     @staticmethod
     def from_dict(
         pipeline_config_dict: KubernetesPipelineConfigDict
     ) -> 'KubernetesPipelineConfig':
-        return KubernetesPipelineConfig(data_pipeline_id=pipeline_config_dict['dataPipelineId'])
+        return KubernetesPipelineConfig(
+            data_pipeline_id=pipeline_config_dict['dataPipelineId'],
+            image=pipeline_config_dict['image'],
+            arguments=' '.join(pipeline_config_dict['arguments'])
+        )
 
 
 @dataclass(frozen=True)
