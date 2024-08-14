@@ -64,6 +64,7 @@ x-airflow-env:
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
     - KUBECONFIG=/home/airflow/k3s-config/kubeconfig.yaml
     - DOCKER_HOST=tcp://docker-socket-proxy:2375
+    - CONTAINER_HOST_PROJECT_PATH=${PWD}
 
 x-airflow-volumes:
   &airflow-volumes
