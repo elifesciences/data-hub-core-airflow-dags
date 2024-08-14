@@ -1,0 +1,73 @@
+defaultConfig:
+  airflow:
+    dagParameters:
+      schedule: null
+      tags:
+        - 'Kubernetes'
+    taskParameters:
+      do_xcom_push: False
+  env:
+    - name: DEPLOYMENT_ENV
+      value: ci
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /dag_secret_files/gcloud/credentials.json
+  volumes:
+    - name: gcloud-secret-volume
+      secret:
+        secretName: gcloud
+    - name: aws-secret-volume
+      secret:
+        secretName: credentials
+  volumeMounts:
+    - name: data-hub-config-volume
+      mountPath: /dag_config_files/
+      readOnly: true
+    - name: gcloud-secret-volume
+      mountPath: /dag_secret_files/gcloud/
+      readOnly: true
+    - name: aws-secret-volume
+      mountPath: /home/airflow/.aws
+      readOnly: true
+
+kubernetesPipelines:
+
+  - dataPipelineId: 'Elife_Article_Xml_Pipeline_Kubernetes'
+    airflow:
+      dagParameters:
+        schedule: null
+    image: 'docker.io/elifesciences/data-hub-with-dags_unstable:latest'
+    arguments: 
+      - 'python'
+      - '-m'
+      - 'data_pipeline.elife_article_xml.cli'
+    env:
+      - name: ELIFE_ARTICLE_XML_CONFIG_FILE_PATH
+        value: /dag_config_files/elife-article-xml.config.yaml
+    volumeMounts: # need to replicate secret volume to test locally
+      - name: github-api-secret-volume
+        mountPath: /dag_secret_files/github_api/
+        readOnly: true
+    volumes:
+      - name: github-api-secret-volume
+        secret:
+          secretName: github-api
+
+  # - dataPipelineId: 'CSV.manuscript_license_Kubernetes'
+  #   airflow:
+  #     dagParameters:
+  #       schedule: null
+  #     taskParameters:
+  #       image: 'docker.io/elifesciences/data-hub-with-dags_unstable:latest'
+  #       arguments: 
+  #         - 'python'
+  #         - '-m'
+  #         - 'data_pipeline.s3_csv_data.cli'
+  #         - '--data-pipeline-id=manuscript_license'
+  #   env:
+  #     - name: S3_CSV_CONFIG_FILE_PATH
+  #       value: /dag_config_files/s3-csv-data-pipeline.config.yaml
+
+
+
+
+
