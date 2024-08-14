@@ -39,10 +39,9 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
             tags=['Kubernetes']
         ) as dag:
             KubernetesPodOperator(
-                task_id='dry_run_demo',
-                name='hello-dry-run',
-                image='debian',
-                arguments=['sleep 60'],
+                task_id='kubernetes_test',
+                image=kubernetes_pipeline_config.image,
+                arguments=[kubernetes_pipeline_config.arguments],
                 do_xcom_push=False
             )
             dags.append(dag)
