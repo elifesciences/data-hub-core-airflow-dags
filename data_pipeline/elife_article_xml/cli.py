@@ -13,7 +13,6 @@ LOGGER = logging.getLogger(__name__)
 
 class ElifeArticleXmlEnvironmentVariables:
     CONFIG_FILE_PATH = 'ELIFE_ARTICLE_XML_CONFIG_FILE_PATH'
-    SCHEDULE_INTERVAL = 'ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL'
 
 
 def get_elife_article_xml_config_list() -> Sequence[ElifeArticleXmlConfig]:
