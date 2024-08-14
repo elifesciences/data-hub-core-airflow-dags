@@ -1,4 +1,4 @@
-# Note: DagBag.process_file skips files without "airflow" or "DAG" in them
+# Note: DagBag.process_file skips files without 'airflow' or 'DAG' in them
 
 from datetime import timedelta
 import logging
@@ -22,12 +22,12 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
         tags=['Kubernetes']
     ) as dag:
         KubernetesPodOperator(
-            name="hello-dry-run",
-            image="debian",
-            cmds=["bash", "-cx"],
-            arguments=["sleep 60"],
-            labels={"foo": "bar"},
-            task_id="dry_run_demo",
+            name='hello-dry-run',
+            image='debian',
+            cmds=['bash', '-cx'],
+            arguments=['sleep 60'],
+            labels={'foo': 'bar'},
+            task_id='dry_run_demo',
             do_xcom_push=False
         )
         dags.append(dag)
