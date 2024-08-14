@@ -24,7 +24,7 @@ class TestKubernetesPipelineConfig:
 
     def test_should_read_arguments(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
-        assert result.arguments == ['argument_1', 'argument_2']
+        assert result.arguments == 'argument_1 argument_2'
 
 
 class TestMultiKubernetesPipelineConfig:

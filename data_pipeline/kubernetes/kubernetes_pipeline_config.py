@@ -11,7 +11,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
-    arguments: Sequence[str]
+    arguments: str
 
     @staticmethod
     def from_dict(
@@ -20,7 +20,7 @@ class KubernetesPipelineConfig:
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             image=pipeline_config_dict['image'],
-            arguments=pipeline_config_dict['arguments']
+            arguments=' '.join(pipeline_config_dict['arguments'])
         )
 
 
