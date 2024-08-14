@@ -63,6 +63,7 @@ x-airflow-env:
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
     - KUBECONFIG=/home/airflow/k3s-config/kubeconfig.yaml
+    - KUBERNETES_PIPELINE_CONFIG_FILE_PATH=/home/airflow/sample_data_config/kubernetes/kubernetes-pipeline.config.yaml
 
 x-airflow-volumes:
   &airflow-volumes
