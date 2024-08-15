@@ -3,6 +3,7 @@ from typing import Sequence
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesPipelineConfigDict,
+    KubernetesVolumeMountConfigDict,
     MultiKubernetesPipelineConfigDict
 )
 
@@ -12,6 +13,7 @@ class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
     arguments: str
+    volume_mounts: Sequence[KubernetesVolumeMountConfigDict]
 
     @staticmethod
     def from_dict(
@@ -20,7 +22,8 @@ class KubernetesPipelineConfig:
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             image=pipeline_config_dict['image'],
-            arguments=' '.join(pipeline_config_dict['arguments'])
+            arguments=' '.join(pipeline_config_dict['arguments']),
+            volume_mounts=pipeline_config_dict['volumeMounts']
         )
 
 

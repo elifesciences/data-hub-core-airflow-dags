@@ -3,13 +3,21 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     MultiKubernetesPipelineConfig
 )
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
-    KubernetesPipelineConfigDict
+    KubernetesPipelineConfigDict,
+    KubernetesVolumeMountConfigDict
 )
+
+KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1: KubernetesVolumeMountConfigDict = {
+    'name': 'volume_mount_name_1',
+    'mounthPath': 'volume_mount_path_1',
+    'readOnly': True
+}
 
 KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'dataPipelineId': 'data_pipeline_id_1',
     'image': 'image_1',
-    'arguments': ['argument_1', 'argument_2']
+    'arguments': ['argument_1', 'argument_2'],
+    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
 }
 
 
@@ -25,6 +33,10 @@ class TestKubernetesPipelineConfig:
     def test_should_read_arguments(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.arguments == 'argument_1 argument_2'
+
+    def test_should_read_volume_mount(self):
+        result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        assert result.volume_mounts == [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
 
 
 class TestMultiKubernetesPipelineConfig:
