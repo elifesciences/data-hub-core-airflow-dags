@@ -13,11 +13,17 @@ KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1: KubernetesVolumeMountConfigDict = {
     'readOnly': True
 }
 
+KUBERNETES_VOLUME_CONFIG_DICT_1 = {
+    'name': 'volume_name_1',
+    'secret': {'secretName': 'secret_name_1'}
+}
+
 KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'dataPipelineId': 'data_pipeline_id_1',
     'image': 'image_1',
     'arguments': ['argument_1', 'argument_2'],
-    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
+    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1],
+    'volumes': [KUBERNETES_VOLUME_CONFIG_DICT_1]
 }
 
 
@@ -38,6 +44,9 @@ class TestKubernetesPipelineConfig:
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.volume_mounts == [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
 
+    def test_should_read_volume(self):
+        result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        assert result.volumes == [KUBERNETES_VOLUME_CONFIG_DICT_1]
 
 class TestMultiKubernetesPipelineConfig:
     def test_should_read_kubernetes_pipeline_configs(self):
