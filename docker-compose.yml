@@ -62,7 +62,7 @@ x-airflow-env:
     - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
-    - KUBECONFIG=/home/airflow/k3s-config/kubeconfig.yaml
+    - KUBECONFIG=/home/airflow/k3s-config/kubeconfig_corrected.yaml
 
 x-airflow-volumes:
   &airflow-volumes
@@ -129,6 +129,7 @@ services:
           - smtp-server
           - redis
           - scheduler
+          - fix-k3s-config
         volumes: *airflow-volumes
         image: elifesciences/data-hub-core-dags-dev
         entrypoint: /entrypoint
@@ -143,7 +144,7 @@ services:
         environment:
             - FTP_PASS=password1
             - FTP_USER=elinks
-        volumes: 
+        volumes:
             - ./testftp_server_config/vsftpd.conf:/tmp/vsftpd.conf
         command: >
             sh -c "install -D /tmp/vsftpd.conf -m 644 /etc/
@@ -221,7 +222,7 @@ services:
 
     k3s-server:
         image: "rancher/k3s:${K3S_VERSION:-latest}"
-        command: server
+        command: server --tls-san "k3s-server"
         tmpfs:
             - /run
             - /var/run
@@ -243,6 +244,12 @@ services:
             - 6443:6443  # Kubernetes API Server
             # - 80:80      # Ingress controller port 80
             # - 443:443    # Ingress controller port 443
+
+    fix-k3s-config:
+        image: ubuntu
+        command: bash -c "cat /k3s-config/kubeconfig.yaml | sed 's/127.0.0.1/k3s-server/g' | tee /k3s-config/kubeconfig_corrected.yaml"
+        volumes:
+            - ./k3s-config:/k3s-config
 
     k3s-agent:
         image: "rancher/k3s:${K3S_VERSION:-latest}"
