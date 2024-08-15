@@ -12,7 +12,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
-    arguments: str
+    arguments: Sequence[str]
     volume_mounts: Optional[Sequence[KubernetesVolumeMountConfigDict]]
     volumes: dict
 
@@ -23,7 +23,7 @@ class KubernetesPipelineConfig:
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             image=pipeline_config_dict['image'],
-            arguments=' '.join(pipeline_config_dict['arguments']),
+            arguments=pipeline_config_dict['arguments'],
             volume_mounts=pipeline_config_dict['volumeMounts'],
             volumes=pipeline_config_dict['volumes']
         )
