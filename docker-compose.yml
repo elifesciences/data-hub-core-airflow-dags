@@ -259,8 +259,9 @@ services:
         environment:
             - K3S_URL=https://k3s-server:6443
             - K3S_TOKEN=${K3S_TOKEN:?err}
-        # volumes:
-        #   - k3s-agent:/var/lib/rancher/k3s
+        volumes:
+            - ./.secrets:/secrets
+            - ./sample_data_config:/dag_config_files
 
 volumes:
   opensearch-data-airflow-dev:
