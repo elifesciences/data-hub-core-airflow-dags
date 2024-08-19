@@ -9,6 +9,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesPipelineConfigDict,
     MultiKubernetesPipelineConfigDict
 )
+from data_pipeline.utils.pipeline_config import AirflowConfig
 
 
 def convert_dict_to_kubernetes_client_object(
@@ -27,6 +28,7 @@ class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
     arguments: List[str]
+    airflow_config: AirflowConfig
     volume_mounts: Optional[List[k8s_models.v1_volume_mount.V1VolumeMount]]
     volumes: Optional[List[dict]]
     env: Optional[List[KubernetesEnvConfigDict]]
@@ -37,6 +39,7 @@ class KubernetesPipelineConfig:
     ) -> 'KubernetesPipelineConfig':
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
+            airflow_config=AirflowConfig.from_optional_dict(pipeline_config_dict.get('airflow')),
             image=pipeline_config_dict['image'],
             arguments=pipeline_config_dict['arguments'],
             volume_mounts=[

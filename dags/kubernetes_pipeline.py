@@ -33,10 +33,11 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
     dags = []
     multi_kubernetes_pipeline_config = get_multi_kubernetes_pipeline_config()
     for kubernetes_pipeline_config in multi_kubernetes_pipeline_config.kubernetes_pipelines:
+        airflow_config = kubernetes_pipeline_config.airflow_config
         with create_dag(
             dag_id=kubernetes_pipeline_config.data_pipeline_id,
             dagrun_timeout=timedelta(days=1),
-            tags=['Kubernetes']
+            **airflow_config.dag_parameters
         ) as dag:
             KubernetesPodOperator(
                 task_id='kubernetes_test',
@@ -46,7 +47,8 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
                 startup_timeout_seconds=600,
                 env_vars=kubernetes_pipeline_config.env,
                 volumes=kubernetes_pipeline_config.volumes,
-                volume_mounts=kubernetes_pipeline_config.volume_mounts
+                volume_mounts=kubernetes_pipeline_config.volume_mounts,
+                **airflow_config.task_parameters
             )
             dags.append(dag)
 
