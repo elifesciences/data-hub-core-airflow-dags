@@ -42,7 +42,11 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
                 task_id='kubernetes_test',
                 image=kubernetes_pipeline_config.image,
                 arguments=kubernetes_pipeline_config.arguments,
-                do_xcom_push=False
+                do_xcom_push=False,
+                startup_timeout_seconds=600,
+                env_vars=kubernetes_pipeline_config.env,
+                volumes=kubernetes_pipeline_config.volumes,
+                volume_mounts=kubernetes_pipeline_config.volume_mounts
             )
             dags.append(dag)
 
