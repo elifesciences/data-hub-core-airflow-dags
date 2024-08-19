@@ -1,11 +1,26 @@
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Type
+
+from kubernetes.client import api_client as k8s_api_client
+from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
+    KubernetesEnvConfigDict,
     KubernetesPipelineConfigDict,
     KubernetesVolumeMountConfigDict,
     MultiKubernetesPipelineConfigDict
 )
+
+
+def convert_dict_to_kubernetes_client_object(
+    config_dict: KubernetesVolumeMountConfigDict,
+    kubernetes_model_class : Type
+) -> Type:
+    api_client = k8s_api_client.ApiClient()
+    return api_client._ApiClient__deserialize_model(
+        config_dict, 
+        kubernetes_model_class
+    )
 
 
 @dataclass(frozen=True)
@@ -13,8 +28,9 @@ class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
     arguments: Sequence[str]
-    volume_mounts: Optional[Sequence[KubernetesVolumeMountConfigDict]]
-    volumes: dict
+    volume_mounts: Optional[Sequence[k8s_models.v1_volume_mount.V1VolumeMount]]
+    volumes: Optional[Sequence[dict]]
+    env: Optional[Sequence[KubernetesEnvConfigDict]]
 
     @staticmethod
     def from_dict(
@@ -24,8 +40,27 @@ class KubernetesPipelineConfig:
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             image=pipeline_config_dict['image'],
             arguments=pipeline_config_dict['arguments'],
-            volume_mounts=pipeline_config_dict['volumeMounts'],
-            volumes=pipeline_config_dict['volumes']
+            volume_mounts=[
+                convert_dict_to_kubernetes_client_object(
+                    config_dict,
+                    k8s_models.v1_volume_mount.V1VolumeMount
+                )
+                for config_dict in pipeline_config_dict['volumeMounts']
+            ],
+            volumes=[
+                convert_dict_to_kubernetes_client_object(
+                    config_dict,
+                    k8s_models.v1_volume.V1Volume
+                )
+                for config_dict in pipeline_config_dict['volumes']
+            ],
+            env=[
+                convert_dict_to_kubernetes_client_object(
+                    config_dict,
+                    k8s_models.v1_env_var.V1EnvVar
+                )
+                for config_dict in pipeline_config_dict['env']
+            ]
         )
 
 
