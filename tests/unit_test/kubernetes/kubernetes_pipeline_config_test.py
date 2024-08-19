@@ -9,6 +9,15 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesPipelineConfigDict,
     KubernetesVolumeMountConfigDict
 )
+from data_pipeline.utils.pipeline_config import AirflowConfig
+from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+
+
+AIRFLOW_CONFIG_DICT_1: AirflowConfigDict = {
+    'dagParameters': {'dag_param_1': 'dag value 1'},
+    'taskParameters': {'task_param_1': 'task value 1'},
+}
+
 
 KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1: KubernetesVolumeMountConfigDict = {
     'name': 'volume_mount_name_1',
@@ -58,6 +67,13 @@ class TestKubernetesPipelineConfig:
     def test_should_read_data_pipeline_id(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.data_pipeline_id == 'data_pipeline_id_1'
+
+    def test_should_read_airflow_config(self):
+        result = KubernetesPipelineConfig.from_dict({
+            **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'airflow': AIRFLOW_CONFIG_DICT_1
+        })
+        assert result.airflow_config == AirflowConfig.from_dict(AIRFLOW_CONFIG_DICT_1)
 
     def test_should_read_image(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
