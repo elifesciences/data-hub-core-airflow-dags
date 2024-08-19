@@ -13,7 +13,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 
 
 def convert_dict_to_kubernetes_client_object(
-    config_dict: KubernetesVolumeMountConfigDict,
+    config_dict,
     kubernetes_model_class: Type
 ):
     api_client = k8s_api_client.ApiClient()
