@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Sequence, Type
+from typing import List, Optional, Sequence, Type
 
 from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
@@ -7,7 +7,6 @@ from kubernetes.client import models as k8s_models
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesEnvConfigDict,
     KubernetesPipelineConfigDict,
-    KubernetesVolumeMountConfigDict,
     MultiKubernetesPipelineConfigDict
 )
 
@@ -27,10 +26,10 @@ def convert_dict_to_kubernetes_client_object(
 class KubernetesPipelineConfig:
     data_pipeline_id: str
     image: str
-    arguments: Sequence[str]
-    volume_mounts: Optional[Sequence[k8s_models.v1_volume_mount.V1VolumeMount]]
-    volumes: Optional[Sequence[dict]]
-    env: Optional[Sequence[KubernetesEnvConfigDict]]
+    arguments: List[str]
+    volume_mounts: Optional[List[k8s_models.v1_volume_mount.V1VolumeMount]]
+    volumes: Optional[List[dict]]
+    env: Optional[List[KubernetesEnvConfigDict]]
 
     @staticmethod
     def from_dict(
