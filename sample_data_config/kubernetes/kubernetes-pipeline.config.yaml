@@ -35,6 +35,9 @@ kubernetesPipelines:
     airflow:
       dagParameters:
         schedule: null
+        tags:
+          - 'Kubernetes'
+
     image: 'docker.io/elifesciences/data-hub-with-dags_unstable:latest'
     arguments: 
       - 'python'

@@ -37,7 +37,6 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
         with create_dag(
             dag_id=kubernetes_pipeline_config.data_pipeline_id,
             dagrun_timeout=timedelta(days=1),
-            tags=['Kubernetes'],
             **airflow_config.dag_parameters
         ) as dag:
             KubernetesPodOperator(
