@@ -15,7 +15,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 def convert_dict_to_kubernetes_client_object(
     config_dict: KubernetesVolumeMountConfigDict,
     kubernetes_model_class: Type
-) -> Type:
+):
     api_client = k8s_api_client.ApiClient()
     return api_client._ApiClient__deserialize_model(  # pylint: disable=protected-access
         config_dict,
