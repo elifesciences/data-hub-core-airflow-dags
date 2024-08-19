@@ -63,6 +63,7 @@ x-airflow-env:
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
     - KUBECONFIG=/home/airflow/k3s-config/kubeconfig_corrected.yaml
+    - KUBERNETES_PIPELINE_CONFIG_FILE_PATH=/home/airflow/sample_data_config/kubernetes/kubernetes-pipeline.config.yaml
 
 x-airflow-volumes:
   &airflow-volumes
@@ -265,8 +266,9 @@ services:
         environment:
             - K3S_URL=https://k3s-server:6443
             - K3S_TOKEN=${K3S_TOKEN:?err}
-        # volumes:
-        #   - k3s-agent:/var/lib/rancher/k3s
+        volumes:
+            - ./.secrets:/secrets
+            - ./sample_data_config:/dag_config_files
 
 volumes:
   opensearch-data-airflow-dev:
