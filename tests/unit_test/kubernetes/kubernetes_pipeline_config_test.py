@@ -1,4 +1,5 @@
-import kubernetes
+from kubernetes.client import models as k8s_models
+
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     KubernetesPipelineConfig,
     MultiKubernetesPipelineConfig
@@ -15,7 +16,7 @@ KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1: KubernetesVolumeMountConfigDict = {
     'readOnly': True
 }
 
-KUBERNETES_V1_VOLUME_MOUNT_1 = kubernetes.client.models.v1_volume_mount.V1VolumeMount(
+KUBERNETES_V1_VOLUME_MOUNT_1 = k8s_models.v1_volume_mount.V1VolumeMount(
     name=KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1['name'],
     mount_path=KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1['mountPath'],
     read_only=KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1['readOnly']
@@ -26,9 +27,9 @@ KUBERNETES_VOLUME_CONFIG_DICT_1 = {
     'secret': {'secretName': 'secret_name_1'}
 }
 
-KUBERNETES_V1_VOLUME_1 = kubernetes.client.models.v1_volume.V1Volume(
+KUBERNETES_V1_VOLUME_1 = k8s_models.v1_volume.V1Volume(
     name=KUBERNETES_VOLUME_CONFIG_DICT_1['name'],
-    secret=kubernetes.client.models.V1SecretVolumeSource(
+    secret=k8s_models.V1SecretVolumeSource(
         secret_name='secret_name_1'
     )
 )
@@ -38,7 +39,7 @@ KUBERNETES_ENV_CONFIG_DICT_1: KubernetesEnvConfigDict = {
     'value': 'env_value_1'
 }
 
-KUBERNETES_V1_ENV_1 = kubernetes.client.models.v1_env_var.V1EnvVar(
+KUBERNETES_V1_ENV_1 = k8s_models.v1_env_var.V1EnvVar(
     name=KUBERNETES_ENV_CONFIG_DICT_1['name'],
     value=KUBERNETES_ENV_CONFIG_DICT_1['value']
 )
