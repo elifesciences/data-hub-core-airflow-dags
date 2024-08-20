@@ -1,13 +1,20 @@
 elifePipeline {
     node('containers-jenkins-plugin') {
-        def commit
         def image_repo = 'elifesciences/data-hub-core-dags'
         def jenkins_image_building_ci_pipeline = 'process/process-data-hub-airflow-image-update-repo-list'
+
+        def commit
+        def commitShort
+        def branch
+        def timestamp
         def git_url
 
         stage 'Checkout', {
             checkout scm
             commit = elifeGitRevision()
+            commitShort = elifeGitRevision().substring(0, 8)
+            branch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+            timestamp = sh(script: 'date --utc +%Y%m%d.%H%M', returnStdout: true).trim()
             git_url = getGitUrl()
         }
 
