@@ -182,6 +182,16 @@ end2end-test:
 	$(MAKE) clean
 
 
+data-hub-pipelines-shell:
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+	bash
+
+
+data-hub-pipelines-run-elife-articles-xml:
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+	python -m data_pipeline.elife_article_xml.cli
+
+
 ci-test-exclude-e2e: build-dev
 	$(MAKE) DOCKER_COMPOSE="$(DOCKER_COMPOSE_CI)" \
 		test-exclude-e2e
