@@ -56,6 +56,7 @@ services:
     data-hub-pipelines:
         <<: *x-airflow-defaults
         environment:
+            - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
             - GOOGLE_APPLICATION_CREDENTIALS=/tmp/credentials.json
             - PYTHONPATH=/home/airflow/.local/lib/python3.8/site-packages
         user: 0:0
