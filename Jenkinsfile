@@ -1,6 +1,7 @@
 elifePipeline {
     node('containers-jenkins-plugin') {
         def commit
+        def image_repo = 'elifesciences/data-hub-core-dags'
         def jenkins_image_building_ci_pipeline = 'process/process-data-hub-airflow-image-update-repo-list'
         def git_url
 
@@ -29,9 +30,30 @@ elifePipeline {
             }
         }
 
+        stage 'Build main image', {
+            sh "make IMAGE_REPO=${image_repo} IMAGE_TAG=${commit} ci-build-main-image"
+        }
+
         elifeMainlineOnly {
+            def dev_image_repo = image_repo + '_unstable'
+
+            stage 'Push image', {
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=${commit} IMAGE_REPO=${dev_image_repo} retag-push-image"
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=${branch}-${commitShort}-${timestamp} IMAGE_REPO=${dev_image_repo} retag-push-image"
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=latest IMAGE_REPO=${dev_image_repo} retag-push-image"
+            }
+
             stage 'Build data pipeline image with latest commit', {
                 triggerImageBuild(jenkins_image_building_ci_pipeline, git_url, commit)
+            }
+        }
+
+        elifeTagOnly { tagName ->
+            def candidateVersion = tagName - "v"
+
+            stage 'Push release image', {
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=latest IMAGE_REPO=${image_repo} retag-push-image"
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=${candidateVersion} IMAGE_REPO=${image_repo} retag-push-image"
             }
         }
     }

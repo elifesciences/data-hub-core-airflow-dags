@@ -83,7 +83,7 @@ services:
             - ./credentials.json:/tmp/credentials.json
         build:
             context: .
-        image: elifesciences/data-hub-core-dags
+        image: ${IMAGE_REPO}:${IMAGE_TAG}
         command: ''
 
     data-hub-dags-dev:
@@ -94,7 +94,7 @@ services:
                 install_dev: "y"
         environment: *airflow-env
         volumes: *airflow-volumes
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         command: /bin/sh -c exit 0
         entrypoint: []
 
@@ -102,7 +102,7 @@ services:
         depends_on:
             - worker
         environment: *airflow-env
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         entrypoint: /entrypoint
         command: webserver
         volumes: *airflow-volumes
@@ -119,7 +119,7 @@ services:
         depends_on:
             - postgres
         volumes: *airflow-volumes
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
@@ -132,7 +132,7 @@ services:
           - scheduler
           - fix-k3s-config
         volumes: *airflow-volumes
-        image: elifesciences/data-hub-core-dags-dev
+        image: ${IMAGE_REPO}-dev:${IMAGE_TAG}
         entrypoint: /entrypoint
         hostname: worker
         command: >
@@ -155,7 +155,7 @@ services:
         image: willwill/wait-for-it
 
     test-client:
-        image:  elifesciences/data-hub-core-dags-dev
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         depends_on:
             - scheduler
             - test-ftpserver
