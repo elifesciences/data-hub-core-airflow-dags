@@ -167,6 +167,11 @@ services:
             && sudo install -D /tmp/.aws-credentials -m 644 --no-target-directory /home/airflow/.aws/credentials
             && ./run_test.sh with-end-to-end"
 
+    data-hub-pipelines:
+        image:  ${IMAGE_REPO}:${IMAGE_TAG}
+        environment: *airflow-env
+        volumes: *airflow-volumes
+
     postgres:
         image: postgres:15
         environment:
