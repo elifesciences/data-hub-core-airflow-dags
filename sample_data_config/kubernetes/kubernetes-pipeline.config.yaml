@@ -64,6 +64,13 @@ kubernetesPipelines:
         hostPath:
           path: /dag_config_files/
           type: Directory
+    resources:
+      limits:
+        memory: 1Gi
+        cpu: 1000m
+      requests:
+        memory: 1Gi
+        cpu: 100m
 
   # - dataPipelineId: 'CSV.manuscript_license_Kubernetes'
   #   airflow:

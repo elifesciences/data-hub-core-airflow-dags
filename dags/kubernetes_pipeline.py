@@ -48,6 +48,7 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
                 env_vars=kubernetes_pipeline_config.env,
                 volumes=kubernetes_pipeline_config.volumes,
                 volume_mounts=kubernetes_pipeline_config.volume_mounts,
+                container_resources=kubernetes_pipeline_config.resources,
                 **airflow_config.task_parameters
             )
             dags.append(dag)
