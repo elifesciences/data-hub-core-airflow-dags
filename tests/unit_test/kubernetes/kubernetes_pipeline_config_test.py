@@ -89,6 +89,13 @@ class TestKubernetesPipelineConfig:
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.image == 'image_1'
 
+    def test_should_read_image_pull_policy(self):
+        result = KubernetesPipelineConfig.from_dict({
+            **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'imagePullPolicy': 'Always'
+        })
+        assert result.image_pull_policy == 'Always'
+
     def test_should_read_arguments(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.arguments == ['argument_1', 'argument_2']
