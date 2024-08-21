@@ -36,7 +36,7 @@ KUBERNETES_VOLUME_CONFIG_DICT_1 = {
     'secret': {'secretName': 'secret_name_1'}
 }
 
-KUBERNETES_V1_VOLUME_1 = k8s_models.v1_volume.V1Volume(
+KUBERNETES_V1_VOLUME_1 = k8s_models.V1Volume(
     name=KUBERNETES_VOLUME_CONFIG_DICT_1['name'],
     secret=k8s_models.V1SecretVolumeSource(
         secret_name='secret_name_1'
@@ -48,9 +48,19 @@ KUBERNETES_ENV_CONFIG_DICT_1: KubernetesEnvConfigDict = {
     'value': 'env_value_1'
 }
 
-KUBERNETES_V1_ENV_1 = k8s_models.v1_env_var.V1EnvVar(
+KUBERNETES_V1_ENV_1 = k8s_models.V1EnvVar(
     name=KUBERNETES_ENV_CONFIG_DICT_1['name'],
     value=KUBERNETES_ENV_CONFIG_DICT_1['value']
+)
+
+KUBERNETES_RESOURCES_CONFIG_DICT_1 = {
+    'limits': {'memory': '1Gi', 'cpu': '10m'},
+    'requests': {'memory': '1Gi', 'cpu': '10m'}
+}
+
+KUBERNETES_V1_RESOURCES_1 = k8s_models.V1ResourceRequirements(
+    limits=KUBERNETES_RESOURCES_CONFIG_DICT_1['limits'],
+    requests=KUBERNETES_RESOURCES_CONFIG_DICT_1['requests']
 )
 
 KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
@@ -94,6 +104,13 @@ class TestKubernetesPipelineConfig:
     def test_should_read_env(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         assert result.env == [KUBERNETES_V1_ENV_1]
+
+    def test_should_read_resources(self):
+        result = KubernetesPipelineConfig.from_dict({
+            **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'resources': KUBERNETES_RESOURCES_CONFIG_DICT_1
+        })
+        assert result.resources == KUBERNETES_V1_RESOURCES_1
 
 
 class TestMultiKubernetesPipelineConfig:

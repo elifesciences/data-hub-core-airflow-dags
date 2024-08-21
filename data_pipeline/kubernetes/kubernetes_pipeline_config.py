@@ -24,14 +24,15 @@ def convert_dict_to_kubernetes_client_object(
 
 
 @dataclass(frozen=True)
-class KubernetesPipelineConfig:
+class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
     data_pipeline_id: str
     image: str
     arguments: List[str]
     airflow_config: AirflowConfig
-    volume_mounts: Optional[List[k8s_models.v1_volume_mount.V1VolumeMount]]
-    volumes: Optional[List[dict]]
+    volume_mounts: Optional[List[k8s_models.V1VolumeMount]]
+    volumes: Optional[List[k8s_models.V1Volume]]
     env: Optional[List[KubernetesEnvConfigDict]]
+    resources: Optional[k8s_models.V1ResourceRequirements]
 
     @staticmethod
     def from_dict(
@@ -45,24 +46,28 @@ class KubernetesPipelineConfig:
             volume_mounts=[
                 convert_dict_to_kubernetes_client_object(
                     config_dict,
-                    k8s_models.v1_volume_mount.V1VolumeMount
+                    k8s_models.V1VolumeMount
                 )
                 for config_dict in pipeline_config_dict['volumeMounts']
             ],
             volumes=[
                 convert_dict_to_kubernetes_client_object(
                     config_dict,
-                    k8s_models.v1_volume.V1Volume
+                    k8s_models.V1Volume
                 )
                 for config_dict in pipeline_config_dict['volumes']
             ],
             env=[
                 convert_dict_to_kubernetes_client_object(
                     config_dict,
-                    k8s_models.v1_env_var.V1EnvVar
+                    k8s_models.V1EnvVar
                 )
                 for config_dict in pipeline_config_dict['env']
-            ]
+            ],
+            resources=convert_dict_to_kubernetes_client_object(
+                pipeline_config_dict.get('resources'),
+                k8s_models.V1ResourceRequirements
+            )
         )
 
 
