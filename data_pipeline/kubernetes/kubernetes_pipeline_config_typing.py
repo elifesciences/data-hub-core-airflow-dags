@@ -19,6 +19,7 @@ class KubernetesPipelineConfigDict(TypedDict):
     dataPipelineId: str
     airflow: NotRequired[AirflowConfigDict]
     image: str
+    imagePullPolicy: NotRequired[str]
     arguments: List[str]
     env: NotRequired[Sequence[KubernetesEnvConfigDict]]
     volumeMounts: NotRequired[Sequence[KubernetesVolumeMountConfigDict]]
