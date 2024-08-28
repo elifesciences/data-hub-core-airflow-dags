@@ -1,7 +1,6 @@
 import logging
 from typing import Sequence
 
-from dags.europepmc_data_import_pipeline import EuropePmcPipelineEnvironmentVariables
 from data_pipeline.europepmc.europepmc_config import EuropePmcConfig
 from data_pipeline.europepmc.europepmc_pipeline import (
     fetch_article_data_from_europepmc_and_load_into_bigquery_from_config_list
@@ -13,7 +12,7 @@ from data_pipeline.utils.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
-class ElifeArticleXmlEnvironmentVariables:
+class EuropePmcPipelineEnvironmentVariables:
     CONFIG_FILE_PATH = 'EUROPEPMC_CONFIG_FILE_PATH'
 
 

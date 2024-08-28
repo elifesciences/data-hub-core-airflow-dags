@@ -1,5 +1,4 @@
 import logging
-from typing import Sequence
 
 from data_pipeline.europepmc.europepmc_labslink_config import (
     EuropePmcLabsLinkConfig
@@ -18,7 +17,7 @@ class EuropePmcLabsLinkPipelineEnvironmentVariables:
     CONFIG_FILE_PATH = 'EUROPEPMC_LABSLINK_CONFIG_FILE_PATH'
 
 
-def get_europepmc_labslink_pipeline_config_list() -> Sequence[EuropePmcLabsLinkConfig]:
+def get_europepmc_labslink_pipeline_config() -> EuropePmcLabsLinkConfig:
     return get_pipeline_config_for_env_name_and_config_parser(
         EuropePmcLabsLinkPipelineEnvironmentVariables.CONFIG_FILE_PATH,
         EuropePmcLabsLinkConfig.from_dict
@@ -26,8 +25,8 @@ def get_europepmc_labslink_pipeline_config_list() -> Sequence[EuropePmcLabsLinkC
 
 
 def main():
-    configs = get_europepmc_labslink_pipeline_config_list()
-    fetch_article_dois_from_bigquery_and_update_labslink_ftp(configs)
+    config = get_europepmc_labslink_pipeline_config()
+    fetch_article_dois_from_bigquery_and_update_labslink_ftp(config)
     LOGGER.info('Data fetch and load process completed successfully.')
 
 
