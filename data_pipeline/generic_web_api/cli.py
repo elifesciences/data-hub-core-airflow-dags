@@ -29,7 +29,7 @@ def web_api_data_etl(data_pipeline_id: str):
     data_config_dict = multi_web_api_config.web_api_config_dict_by_pipeline_id[data_pipeline_id]
     data_config = WebApiConfig.from_dict(data_config_dict)
     generic_web_api_data_etl(data_config=data_config)
-    LOGGER.info(f"Completed ETL for pipeline: {data_pipeline_id}")
+    LOGGER.info('Completed ETL for pipeline: %s', data_pipeline_id)
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
     for data_pipeline_id, _web_api_config_dict in (
         multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
     ):
-        LOGGER.info(f"Starting ETL for pipeline: {data_pipeline_id}")
+        LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
         web_api_data_etl(data_pipeline_id)
     LOGGER.info('All ETL processes completed successfully.')
 
