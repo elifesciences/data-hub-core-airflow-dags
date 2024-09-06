@@ -1,3 +1,4 @@
+import argparse
 import logging
 from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig,
@@ -33,13 +34,13 @@ def web_api_data_etl(data_pipeline_id: str):
 
 
 def main():
-    multi_web_api_config = get_multi_web_api_config()
-    for data_pipeline_id, _web_api_config_dict in (
-        multi_web_api_config.web_api_config_dict_by_pipeline_id.items()
-    ):
-        LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
-        web_api_data_etl(data_pipeline_id)
-    LOGGER.info('All ETL processes completed successfully.')
+    parser = argparse.ArgumentParser(description="Run ETL for a specific Web API pipeline")
+    parser.add_argument('--data-pipeline-id', required=True)
+    args = parser.parse_args()
+    data_pipeline_id = args.data_pipeline_id
+    LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
+    web_api_data_etl(data_pipeline_id)
+    LOGGER.info('ETL process completed successfully.')
 
 
 if __name__ == '__main__':
