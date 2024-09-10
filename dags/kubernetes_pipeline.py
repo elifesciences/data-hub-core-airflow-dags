@@ -45,6 +45,7 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
                 task_id=deployment_env + '-' + kubernetes_pipeline_config.data_pipeline_id,
                 random_name_suffix=True,
                 image=kubernetes_pipeline_config.image,
+                image_pull_policy=kubernetes_pipeline_config.image_pull_policy,
                 arguments=kubernetes_pipeline_config.arguments,
                 do_xcom_push=False,
                 startup_timeout_seconds=600,
