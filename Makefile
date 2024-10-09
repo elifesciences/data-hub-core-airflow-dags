@@ -202,12 +202,12 @@ end2end-test:
 
 data-hub-pipelines-shell:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
-	bash
+		bash
 
 
 data-hub-pipelines-run-elife-articles-xml:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
-	python -m data_pipeline.elife_article_xml.cli
+		python -m data_pipeline.elife_article_xml.cli
 
 
 data-hub-pipelines-run-web-api:  .require-DATA_PIPELINE_ID
