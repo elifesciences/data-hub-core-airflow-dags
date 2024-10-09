@@ -13,6 +13,13 @@ PYTHON = PYTHONPATH=dags $(VENV)/bin/python
 PYTEST_WATCH_MODULES = tests/unit_test
 
 
+.require-%:
+	@ if [ "${${*}}" = "" ]; then \
+		echo "Environment variable $* not set"; \
+		exit 1; \
+	fi
+
+
 venv-clean:
 	@if [ -d "$(VENV)" ]; then \
 		rm -rf "$(VENV)"; \
@@ -74,6 +81,17 @@ dev-watch:
 
 
 dev-test: dev-lint dev-unittest dev-dagtest
+
+
+dev-run-elife-articles-xml:
+	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
+		$(PYTHON) -m data_pipeline.elife_article_xml.cli
+
+
+dev-run-web-api:  .require-DATA_PIPELINE_ID
+	WEB_API_CONFIG_FILE_PATH=sample_data_config/web-api/web-api-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.generic_web_api.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
 build:
@@ -184,12 +202,18 @@ end2end-test:
 
 data-hub-pipelines-shell:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
-	bash
+		bash
 
 
 data-hub-pipelines-run-elife-articles-xml:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
-	python -m data_pipeline.elife_article_xml.cli
+		python -m data_pipeline.elife_article_xml.cli
+
+
+data-hub-pipelines-run-web-api:  .require-DATA_PIPELINE_ID
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+		python -m data_pipeline.generic_web_api.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
 ci-test-exclude-e2e: build-dev
