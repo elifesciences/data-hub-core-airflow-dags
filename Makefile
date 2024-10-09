@@ -83,6 +83,11 @@ dev-watch:
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
+dev-run-elife-articles-xml:
+	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
+	$(PYTHON) -m data_pipeline.elife_article_xml.cli
+
+
 dev-run-web-api:  .require-DATA_PIPELINE_ID
 	WEB_API_CONFIG_FILE_PATH=sample_data_config/web-api/web-api-data-pipeline.config.yaml \
 	$(PYTHON) -m data_pipeline.generic_web_api.cli \
