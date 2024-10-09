@@ -87,6 +87,10 @@ The environment (and BigQuery dataset) can be selected by setting the `DEPLOYMEN
 
     DEPLOYMENT_ENV=my_dev
 
+### eLife Articles Xml via Virtual Environment
+
+    make dev-run-elife-articles-xml
+
 ### Running Web API via Virtual Environment
 
     make dev-run-web-api DATA_PIPELINE_ID=people_api
