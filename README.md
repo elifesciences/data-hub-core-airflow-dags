@@ -47,6 +47,7 @@ To set up the development environment (virtual environment):
     make dev-install
 
 ### Run k3s locally
+
   The `kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
 
     make k3s-start
@@ -80,6 +81,29 @@ To set up the development environment (virtual environment):
     $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get pods -A
     ...
 
+## Running Pipelines via Virtual Environment
+
+The environment (and BigQuery dataset) can be selected by setting the `DEPLOYMENT_ENV` environment variable:
+
+    DEPLOYMENT_ENV=my_dev
+
+### Running Web API via Virtual Environment
+
+    make dev-run-web-api DATA_PIPELINE_ID=people_api
+
+## Running Pipelines via Docker
+
+The environment (and BigQuery dataset) can be selected by setting the `DATA_HUB_DEPLOYMENT_ENV` environment variable:
+
+    DATA_HUB_DEPLOYMENT_ENV=my_dev
+
+### eLife Articles Xml via Docker
+
+    make data-hub-pipelines-run-elife-articles-xml
+
+### Running Web API via Docker
+
+    make data-hub-pipelines-run-web-api DATA_PIPELINE_ID=people_api
 
 ## Project Folder/Package Organisation
 
