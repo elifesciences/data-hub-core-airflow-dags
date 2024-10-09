@@ -15,8 +15,8 @@ PYTEST_WATCH_MODULES = tests/unit_test
 
 .require-%:
 	@ if [ "${${*}}" = "" ]; then \
-			echo "Environment variable $* not set"; \
-			exit 1; \
+		echo "Environment variable $* not set"; \
+		exit 1; \
 	fi
 
 
