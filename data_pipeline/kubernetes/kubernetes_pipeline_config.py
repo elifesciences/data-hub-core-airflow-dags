@@ -12,6 +12,10 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 from data_pipeline.utils.pipeline_config import AirflowConfig
 
 
+class KubernetesPipelineConfigEnvironmentVariables:
+    CONFIG_FILE_PATH = 'KUBERNETES_PIPELINE_CONFIG_FILE_PATH'
+
+
 def convert_dict_to_kubernetes_client_object(
     config_dict,
     kubernetes_model_class: Type
