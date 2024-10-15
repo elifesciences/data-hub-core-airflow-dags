@@ -52,9 +52,11 @@ def run(
     output_format: OutputFormatLiteral,
     data_pipeline_id: Optional[str] = None
 ):
-    multi_pipeline_config_dict: MultiKubernetesPipelineConfigDict = update_deployment_env_placeholder(
-        get_yaml_file_as_dict(config_file_path),
-        deployment_env=deployment_env
+    multi_pipeline_config_dict: MultiKubernetesPipelineConfigDict = (
+        update_deployment_env_placeholder(
+            get_yaml_file_as_dict(config_file_path),
+            deployment_env=deployment_env
+        )
     )
     if data_pipeline_id:
         dump_config(
