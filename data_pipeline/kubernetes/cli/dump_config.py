@@ -105,7 +105,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 def main(argv: Optional[Sequence[str]] = None):
     args = parse_args(argv)
-    LOGGER.info('Arguments: %r', args)
+    LOGGER.debug('Arguments: %r', args)
     run(
         config_file_path=args.config_file,
         deployment_env=args.deployment_env,
