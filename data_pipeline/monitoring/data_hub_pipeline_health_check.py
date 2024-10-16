@@ -119,7 +119,7 @@ def run_data_hub_pipeline_health_check(
         LOGGER.info('status_df:\n%s', status_df)
         out_dated_status_df = get_out_dated_status(status_df)
         if len(out_dated_status_df) > 0:  # pylint: disable=len-as-condition
-            LOGGER.info('changed: %s', out_dated_status_df.to_dict(orient='rows'))
+            LOGGER.info('changed: %s', out_dated_status_df)
             if webhook_url:
                 send_slack_notification(out_dated_status_df, webhook_url)
         else:
