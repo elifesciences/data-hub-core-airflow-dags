@@ -1,6 +1,6 @@
 numpy>=1.22.0
 pandas==2.0.3
-pandas-gbq==0.17.9
+pandas-gbq==0.24.0
 pyarrow>=6.0.1, <18.0.0
 tqdm==4.66.4
 requests==2.32.3
