@@ -74,7 +74,7 @@ def get_formatted_out_dated_status_slack_message(  # pylint: disable=invalid-nam
     )
     return f'[{deployment_env}] Data pipeline out dated tables: %s' % '\n '.join([
         f"`{row['name']}` is `{row['status']}` since `{row['latest_imported_timestamp']}`."
-        for row in out_dated_status_df.to_dict(orient='rows')
+        for _, row in out_dated_status_df.iterrows()
     ])
 
 
