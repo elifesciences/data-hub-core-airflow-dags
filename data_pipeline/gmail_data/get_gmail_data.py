@@ -71,13 +71,14 @@ def get_dataframe_for_label_response(
         user_id: str,
         imported_timestamp: str) -> pd.DataFrame:
 
-    df_one_label = pd.DataFrame()
-    df_label = pd.DataFrame()
-    for label in label_response['labels']:
-        df_one_label['labelId'] = [label['id']]
-        df_one_label['labelName'] = [label['name']]
-        df_one_label['labelType'] = [label['type']]
-        df_label = df_label.append(df_one_label)
+    df_label = pd.DataFrame([
+        {
+            'labelId': label['id'],
+            'labelName': label['name'],
+            'labelType': label['type']
+        }
+        for label in label_response['labels']
+    ])
 
     df_label['user_id'] = user_id
     df_label['imported_timestamp'] = imported_timestamp
