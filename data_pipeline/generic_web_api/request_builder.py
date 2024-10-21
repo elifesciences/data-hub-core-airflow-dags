@@ -72,15 +72,27 @@ class WebApiDynamicRequestBuilder:
         parameters_key_value: dict,
         placeholder_values: Optional[dict] = None
     ) -> str:
-        url = self.url_excluding_configurable_parameters
-        url_separator = self._get_url_separator()
-        params = parse.urlencode(
-            {
-                key: value
-                for key, value in parameters_key_value.items() if key and value
-            }
+        url = replace_placeholders(
+            self.url_excluding_configurable_parameters,
+            placeholder_values
         )
-        return replace_placeholders(url, placeholder_values) + url_separator + params
+        filtered_params = {
+            key: value
+            for key, value in parameters_key_value.items()
+            if key and value
+        }
+        parsed_url = parse.urlparse(url)
+        parsed_qs = parse.parse_qs(parsed_url.query)
+        combined_query_params = {
+            **parsed_qs,
+            **filtered_params
+        }
+        LOGGER.debug('combined_query_params: %r', combined_query_params)
+        composed_url = parse.urlunparse(
+            parsed_url._replace(query=parse.urlencode(combined_query_params))
+        )
+        LOGGER.debug('composed_url: %r', composed_url)
+        return composed_url
 
     def get_url(
         self,
@@ -195,6 +207,17 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         ])
 
 
+# def urlunparse(
+#     scheme: str,
+#     netloc: str,
+#     path: str,
+#     params: str = '',
+#     query: str = '',
+#     fragment: str = ''
+# ) -> str:
+#     return parse.urlunparse([scheme, netloc, path, params, query, fragment])
+
+
 class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -220,6 +243,10 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         end_date = datetime_to_string(
             dynamic_request_parameters.to_date, self.date_format
         )
+        parsed_url = parse.urlparse(self.url_excluding_configurable_parameters)
+        parsed_qs = parse.parse_qs(parsed_url.query)
+        static_filter_expression = parsed_qs.get('filter') or []
+        LOGGER.debug('static_filter_expression: %r', static_filter_expression)
         filter_dict = {
             key: value
             for key, value in [
@@ -227,7 +254,7 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
                 (self.to_date_param, end_date),
             ] if key and value
         }
-        filter_value = ','.join([
+        filter_value = ','.join(static_filter_expression + [
             f'{key}:{value}'
             for key, value in filter_dict.items()
         ])

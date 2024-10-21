@@ -135,6 +135,25 @@ class TestCrossrefMetadataWebApiDynamicRequestBuilder:
         params = parse_qs(url.query)
         assert params.get('filter') == ['from-index-date:2024-01-29,until-index-date:2024-01-30']
 
+    def test_should_add_from_date_as_filter_parameter_to_existing_filter_parameter_in_url(self):
+        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=(
+                'https://test/api1?filter=existing-filter1:value1'
+            ),
+            from_date_param='from-index-date',
+            date_format=r'%Y-%m-%d',
+            static_parameters={}
+        )
+        LOGGER.debug('dynamic_request_builder: %r', dynamic_request_builder)
+        url = urlparse(dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                from_date=datetime.fromisoformat('2024-01-29+00:00')
+            )
+        ))
+        LOGGER.debug('url: %r', url)
+        params = parse_qs(url.query)
+        assert params.get('filter') == ['existing-filter1:value1,from-index-date:2024-01-29']
+
     def test_should_replace_placeholders(self):
         dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1 + '/{placeholder}',
