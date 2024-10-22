@@ -207,17 +207,6 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         ])
 
 
-# def urlunparse(
-#     scheme: str,
-#     netloc: str,
-#     path: str,
-#     params: str = '',
-#     query: str = '',
-#     fragment: str = ''
-# ) -> str:
-#     return parse.urlunparse([scheme, netloc, path, params, query, fragment])
-
-
 class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
