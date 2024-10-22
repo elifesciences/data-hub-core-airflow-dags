@@ -90,7 +90,7 @@ class WebApiDynamicRequestBuilder:
                 self.url_excluding_configurable_parameters,
                 placeholder_values
             ),
-            parameters=parameters_key_value
+            parameters=get_non_empty_parameters(parameters_key_value)
         )
         LOGGER.debug('composed_url: %r', composed_url)
         return composed_url
