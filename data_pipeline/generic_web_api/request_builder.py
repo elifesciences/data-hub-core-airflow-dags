@@ -29,6 +29,30 @@ class WebApiDynamicRequestParameters(NamedTuple):
     placeholder_values: Optional[dict] = None
 
 
+def get_non_empty_parameters(parameters: dict) -> dict:
+    return {
+        key: value
+        for key, value in parameters.items()
+        if key and value
+    }
+
+
+def get_url_with_added_or_replaced_query_parameters(
+    url: str,
+    parameters: dict
+) -> str:
+    parsed_url = parse.urlparse(url)
+    params_from_url = parse.parse_qs(parsed_url.query)
+    combined_query_params = {
+        **params_from_url,
+        **parameters
+    }
+    LOGGER.debug('combined_query_params: %r', combined_query_params)
+    return parse.urlunparse(
+        parsed_url._replace(query=parse.urlencode(combined_query_params))
+    )
+
+
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 @dataclass(frozen=True)
 class WebApiDynamicRequestBuilder:
@@ -56,31 +80,20 @@ class WebApiDynamicRequestBuilder:
     ) -> Optional[Any]:
         return None
 
-    def _get_url_separator(self) -> str:
-        url = self.url_excluding_configurable_parameters
-        if "?" in url:
-            if url.strip().endswith("&") or url.strip().endswith("?"):
-                url_separator = ""
-            else:
-                url_separator = "&"
-        else:
-            url_separator = "?"
-        return url_separator
-
     def compose_url(
         self,
         parameters_key_value: dict,
         placeholder_values: Optional[dict] = None
     ) -> str:
-        url = self.url_excluding_configurable_parameters
-        url_separator = self._get_url_separator()
-        params = parse.urlencode(
-            {
-                key: value
-                for key, value in parameters_key_value.items() if key and value
-            }
+        composed_url = get_url_with_added_or_replaced_query_parameters(
+            url=replace_placeholders(
+                self.url_excluding_configurable_parameters,
+                placeholder_values
+            ),
+            parameters=get_non_empty_parameters(parameters_key_value)
         )
-        return replace_placeholders(url, placeholder_values) + url_separator + params
+        LOGGER.debug('composed_url: %r', composed_url)
+        return composed_url
 
     def get_url(
         self,
@@ -220,6 +233,10 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         end_date = datetime_to_string(
             dynamic_request_parameters.to_date, self.date_format
         )
+        parsed_url = parse.urlparse(self.url_excluding_configurable_parameters)
+        parsed_qs = parse.parse_qs(parsed_url.query)
+        static_filter_expression = parsed_qs.get('filter') or []
+        LOGGER.debug('static_filter_expression: %r', static_filter_expression)
         filter_dict = {
             key: value
             for key, value in [
@@ -227,7 +244,7 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
                 (self.to_date_param, end_date),
             ] if key and value
         }
-        filter_value = ','.join([
+        filter_value = ','.join(static_filter_expression + [
             f'{key}:{value}'
             for key, value in filter_dict.items()
         ])

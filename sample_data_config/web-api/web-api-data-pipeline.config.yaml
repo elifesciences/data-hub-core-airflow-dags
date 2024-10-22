@@ -133,16 +133,25 @@ webApi:
   - dataPipelineId: openalex_works_metadata_for_preprints
     description:
       Retrieve OpenAlex metadata for all of the preprints.
-      Currently this will get all of the preprints every time because we do not yet have premium access.
+      Currently this will use the publication date to chunk data.
+      It is recommended to use the `updated_date` which requires premium access.
     dataset: '{ENV}'
     table: test_openalex_works_api_response
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-openalex-preprints-by-publication-date.json'
     urlSourceType:
       # Note: We currently need to use `crossref_metadata_api` for the cursor parameter to work
       name: 'crossref_metadata_api'
     dataUrl:
-      urlExcludingConfigurableParameters: 'https://api.openalex.org/works?filter=type:preprint,publication_date:2024-02-01'
+      urlExcludingConfigurableParameters: 'https://api.openalex.org/works?filter=type:preprint'
       configurableParameters:
         nextPageCursorParameterName: 'cursor'
+        fromDateParameterName: 'from_publication_date'
+        toDateParameterName: 'to_publication_date'
+        daysDiffFromStartTillEnd: 10  # load data one day at a time
+        defaultStartDate: '2024-10-01+00:00'
+        dateFormat: '%Y-%m-%d'
         pageSizeParameterName: 'per-page'
         defaultPageSize: 200
     response:
@@ -156,7 +165,7 @@ webApi:
         - count
       recordTimestamp:
         itemTimestampKeyFromItemRoot:
-          - 'updated_date'
+          - 'publication_date'
       provenanceEnabled: True
       fieldsToReturn:
         - id
