@@ -85,12 +85,11 @@ class WebApiDynamicRequestBuilder:
         parameters_key_value: dict,
         placeholder_values: Optional[dict] = None
     ) -> str:
-        url = replace_placeholders(
-            self.url_excluding_configurable_parameters,
-            placeholder_values
-        )
         composed_url = get_url_with_added_or_replaced_query_parameters(
-            url,
+            url=replace_placeholders(
+                self.url_excluding_configurable_parameters,
+                placeholder_values
+            ),
             parameters=parameters_key_value
         )
         LOGGER.debug('composed_url: %r', composed_url)
