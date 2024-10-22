@@ -74,9 +74,9 @@ class WebApiDynamicRequestBuilder:
             placeholder_values
         )
         parsed_url = parse.urlparse(url)
-        parsed_qs = parse.parse_qs(parsed_url.query)
+        params_from_url = parse.parse_qs(parsed_url.query)
         combined_query_params = {
-            **parsed_qs,
+            **params_from_url,
             **get_non_empty_parameters(parameters_key_value)
         }
         LOGGER.debug('combined_query_params: %r', combined_query_params)
