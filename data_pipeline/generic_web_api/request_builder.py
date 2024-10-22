@@ -56,17 +56,6 @@ class WebApiDynamicRequestBuilder:
     ) -> Optional[Any]:
         return None
 
-    def _get_url_separator(self) -> str:
-        url = self.url_excluding_configurable_parameters
-        if "?" in url:
-            if url.strip().endswith("&") or url.strip().endswith("?"):
-                url_separator = ""
-            else:
-                url_separator = "&"
-        else:
-            url_separator = "?"
-        return url_separator
-
     def compose_url(
         self,
         parameters_key_value: dict,
