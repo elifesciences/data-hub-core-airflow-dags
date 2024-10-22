@@ -37,6 +37,22 @@ def get_non_empty_parameters(parameters: dict) -> dict:
     }
 
 
+def get_url_with_added_or_replaced_query_parameters(
+    url: str,
+    parameters: dict
+) -> str:
+    parsed_url = parse.urlparse(url)
+    params_from_url = parse.parse_qs(parsed_url.query)
+    combined_query_params = {
+        **params_from_url,
+        **parameters
+    }
+    LOGGER.debug('combined_query_params: %r', combined_query_params)
+    return parse.urlunparse(
+        parsed_url._replace(query=parse.urlencode(combined_query_params))
+    )
+
+
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 @dataclass(frozen=True)
 class WebApiDynamicRequestBuilder:
@@ -73,15 +89,9 @@ class WebApiDynamicRequestBuilder:
             self.url_excluding_configurable_parameters,
             placeholder_values
         )
-        parsed_url = parse.urlparse(url)
-        params_from_url = parse.parse_qs(parsed_url.query)
-        combined_query_params = {
-            **params_from_url,
-            **get_non_empty_parameters(parameters_key_value)
-        }
-        LOGGER.debug('combined_query_params: %r', combined_query_params)
-        composed_url = parse.urlunparse(
-            parsed_url._replace(query=parse.urlencode(combined_query_params))
+        composed_url = get_url_with_added_or_replaced_query_parameters(
+            url,
+            parameters=parameters_key_value
         )
         LOGGER.debug('composed_url: %r', composed_url)
         return composed_url
