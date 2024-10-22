@@ -29,6 +29,14 @@ class WebApiDynamicRequestParameters(NamedTuple):
     placeholder_values: Optional[dict] = None
 
 
+def get_non_empty_parameters(parameters: dict) -> dict:
+    return {
+        key: value
+        for key, value in parameters.items()
+        if key and value
+    }
+
+
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 @dataclass(frozen=True)
 class WebApiDynamicRequestBuilder:
@@ -65,11 +73,7 @@ class WebApiDynamicRequestBuilder:
             self.url_excluding_configurable_parameters,
             placeholder_values
         )
-        filtered_params = {
-            key: value
-            for key, value in parameters_key_value.items()
-            if key and value
-        }
+        filtered_params = get_non_empty_parameters(parameters_key_value)
         parsed_url = parse.urlparse(url)
         parsed_qs = parse.parse_qs(parsed_url.query)
         combined_query_params = {
