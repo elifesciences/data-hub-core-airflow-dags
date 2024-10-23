@@ -705,13 +705,13 @@ def get_next_cursor_from_data(
             web_config.response.next_page_cursor_key_path_from_response_root
         )
         if next_cursor and next_cursor == previous_cursor:
-            if not web_config.dynamic_request_builder.allow_same_next_page_cursor:
-                LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+            if web_config.response.on_same_next_cursor == 'Continue':
+                LOGGER.info('Continue on same next cursor: %r', next_cursor)
+                return next_cursor
+            if web_config.response.on_same_next_cursor == 'Stop':
+                LOGGER.info('Stopping on same next cursor: %r', next_cursor)
                 return None
-            LOGGER.info(
-                'Proceeding with cursor that is the same as previous cursor: %r',
-                next_cursor
-            )
+            raise RuntimeError(f'Unexpected same next cursor: {next_cursor}')
         return next_cursor
     return None
 
