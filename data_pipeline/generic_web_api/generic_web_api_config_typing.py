@@ -65,7 +65,7 @@ class WebApiRecordTimestampResponseConfigDict(TypedDict):
     itemTimestampKeyFromItemRoot: NotRequired[Sequence[str]]
 
 
-OnSameNextCursorOption = Literal['Error', 'Stop', 'Continue']
+OnSameNextCursorConfig = Literal['Error', 'Stop', 'Continue']
 
 
 class WebApiResponseConfigDict(TypedDict):
@@ -76,7 +76,7 @@ class WebApiResponseConfigDict(TypedDict):
     fieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
     provenanceEnabled: NotRequired[bool]
-    onSameNextCursor: NotRequired[OnSameNextCursorOption]
+    onSameNextCursor: NotRequired[OnSameNextCursorConfig]
 
 
 class WebApiBaseConfigDict(TypedDict):
