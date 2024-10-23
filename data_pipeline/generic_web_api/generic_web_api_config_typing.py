@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Literal, Sequence
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import (
@@ -65,6 +65,9 @@ class WebApiRecordTimestampResponseConfigDict(TypedDict):
     itemTimestampKeyFromItemRoot: NotRequired[Sequence[str]]
 
 
+OnSameNextCursorOption = Literal['Error', 'Stop', 'Continue']
+
+
 class WebApiResponseConfigDict(TypedDict):
     itemsKeyFromResponseRoot: NotRequired[Sequence[str]]
     totalItemsCountKeyFromResponseRoot: NotRequired[Sequence[str]]
@@ -73,6 +76,7 @@ class WebApiResponseConfigDict(TypedDict):
     fieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
     provenanceEnabled: NotRequired[bool]
+    onSameNextCursor: NotRequired[OnSameNextCursorOption]
 
 
 class WebApiBaseConfigDict(TypedDict):
