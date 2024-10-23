@@ -22,14 +22,13 @@ TEST_API_URL_1 = 'https://test/api1'
 
 
 class TestWebApiDynamicRequestBuilder:
-    def test_should_enable_retry_and_not_allow_next_page_cursor(self):
+    def test_should_enable_retry(self):
         dynamic_request_builder = WebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             next_page_cursor='cursor',
             static_parameters={}
         )
         assert dynamic_request_builder.retry_config == DEFAULT_WEB_API_RETRY_CONFIG
-        assert not dynamic_request_builder.allow_same_next_page_cursor
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
@@ -61,14 +60,6 @@ class TestDynamicBioRxivMedRxivURLBuilder:
 
 
 class TestCrossrefMetadataWebApiDynamicRequestBuilder:
-    def test_should_allow_next_page_cursor(self):
-        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
-            url_excluding_configurable_parameters=TEST_API_URL_1,
-            next_page_cursor='cursor',
-            static_parameters={}
-        )
-        assert dynamic_request_builder.allow_same_next_page_cursor
-
     def test_should_pass_cursor_value_to_url(self):
         dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
