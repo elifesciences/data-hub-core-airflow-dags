@@ -131,6 +131,7 @@ webApi:
       #   - 'indexed'
       recordProcessingSteps:
         - transform_crossref_api_date_parts
+      onSameNextCursor: Continue
       provenanceEnabled: True
 
   - dataPipelineId: openalex_works_metadata_for_preprints
@@ -177,6 +178,7 @@ webApi:
       recordTimestamp:
         itemTimestampKeyFromItemRoot:
           - 'publication_date'
+      onSameNextCursor: Error
       provenanceEnabled: True
       fieldsToReturn:
         - id
