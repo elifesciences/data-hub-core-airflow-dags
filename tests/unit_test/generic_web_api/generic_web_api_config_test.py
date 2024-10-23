@@ -307,3 +307,12 @@ class TestWebApiConfig:
             }
         })
         assert web_api_config.response.on_same_next_cursor == 'Stop'
+
+    def test_should_valid_on_same_next_cursor(self):
+        with pytest.raises(AssertionError):
+            WebApiConfig.from_dict({
+                **MINIMAL_WEB_API_CONFIG_DICT,
+                'response': {
+                    'onSameNextCursor': 'Invalid'
+                }
+            })

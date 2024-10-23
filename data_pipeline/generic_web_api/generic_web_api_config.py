@@ -18,6 +18,7 @@ from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    VALID_ON_SAME_NEXT_CURSOR_VALUES,
     MultiWebApiConfigDict,
     ParameterFromEnvConfigDict,
     WebApiBaseConfigDict,
@@ -115,6 +116,11 @@ class WebApiResponseConfig:
     ) -> 'WebApiResponseConfig':
         if not web_api_response_config:
             return WebApiResponseConfig()
+        on_same_next_cursor = web_api_response_config.get(
+            'onSameNextCursor',
+            DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
+        )
+        assert on_same_next_cursor in VALID_ON_SAME_NEXT_CURSOR_VALUES
         return WebApiResponseConfig(
             items_key_path_from_response_root=(
                 web_api_response_config.get("itemsKeyFromResponseRoot", [])
@@ -138,10 +144,7 @@ class WebApiResponseConfig:
             provenance_enabled=web_api_response_config.get(
                 'provenanceEnabled', False
             ),
-            on_same_next_cursor=web_api_response_config.get(
-                'onSameNextCursor',
-                DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
-            )
+            on_same_next_cursor=on_same_next_cursor
         )
 
 

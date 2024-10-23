@@ -1,4 +1,4 @@
-from typing import Literal, Sequence
+from typing import Literal, Sequence, get_args
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import (
@@ -66,6 +66,7 @@ class WebApiRecordTimestampResponseConfigDict(TypedDict):
 
 
 OnSameNextCursorConfig = Literal['Error', 'Stop', 'Continue']
+VALID_ON_SAME_NEXT_CURSOR_VALUES = get_args(OnSameNextCursorConfig)
 
 
 class WebApiResponseConfigDict(TypedDict):
