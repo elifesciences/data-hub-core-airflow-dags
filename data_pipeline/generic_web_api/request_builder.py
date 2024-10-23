@@ -8,11 +8,6 @@ from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.pipeline_utils import replace_placeholders
-from data_pipeline.utils.web_api import (
-    DEFAULT_WEB_API_RETRY_CONFIG,
-    DISABLED_WEB_API_RETRY_CONFIG,
-    WebApiRetryConfig
-)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -62,7 +57,6 @@ class WebApiDynamicRequestBuilder:
     to_date_param: Optional[str] = None
     date_format: Optional[str] = None
     next_page_cursor: Optional[str] = None
-    allow_same_next_page_cursor: bool = False
     page_number_param: Optional[str] = None
     offset_param: Optional[str] = None
     page_size_param: Optional[str] = None
@@ -72,7 +66,6 @@ class WebApiDynamicRequestBuilder:
     method: str = 'GET'
     max_source_values_per_request: Optional[int] = None
     request_builder_parameters: Optional[dict] = None
-    retry_config: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
 
     def get_json(  # pylint: disable=unused-argument
         self,
@@ -209,15 +202,6 @@ class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
 
 
 class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
-    def __init__(self, **kwargs):
-        super().__init__(**{
-            **kwargs,
-            # We need to disable retry due to Crossref API with cursor not being stateless
-            'retry_config': DISABLED_WEB_API_RETRY_CONFIG,
-            # We are allowing the next page cursor to be the same as the previous cursor
-            'allow_same_next_page_cursor': True
-        })
-
     def get_url(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters

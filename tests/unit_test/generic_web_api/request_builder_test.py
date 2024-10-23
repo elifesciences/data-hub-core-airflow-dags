@@ -5,14 +5,9 @@ from urllib.parse import parse_qs, urlparse
 from data_pipeline.generic_web_api.request_builder import (
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
-    WebApiDynamicRequestBuilder,
     get_web_api_request_builder_class,
     BioRxivWebApiDynamicRequestBuilder,
     WebApiDynamicRequestParameters
-)
-from data_pipeline.utils.web_api import (
-    DEFAULT_WEB_API_RETRY_CONFIG,
-    DISABLED_WEB_API_RETRY_CONFIG
 )
 
 
@@ -20,17 +15,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 TEST_API_URL_1 = 'https://test/api1'
-
-
-class TestWebApiDynamicRequestBuilder:
-    def test_should_enable_retry_and_not_allow_next_page_cursor(self):
-        dynamic_request_builder = WebApiDynamicRequestBuilder(
-            url_excluding_configurable_parameters=TEST_API_URL_1,
-            next_page_cursor='cursor',
-            static_parameters={}
-        )
-        assert dynamic_request_builder.retry_config == DEFAULT_WEB_API_RETRY_CONFIG
-        assert not dynamic_request_builder.allow_same_next_page_cursor
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
@@ -62,15 +46,6 @@ class TestDynamicBioRxivMedRxivURLBuilder:
 
 
 class TestCrossrefMetadataWebApiDynamicRequestBuilder:
-    def test_should_disable_retry_and_allow_next_page_cursor(self):
-        dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
-            url_excluding_configurable_parameters=TEST_API_URL_1,
-            next_page_cursor='cursor',
-            static_parameters={}
-        )
-        assert dynamic_request_builder.retry_config == DISABLED_WEB_API_RETRY_CONFIG
-        assert dynamic_request_builder.allow_same_next_page_cursor
-
     def test_should_pass_cursor_value_to_url(self):
         dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,

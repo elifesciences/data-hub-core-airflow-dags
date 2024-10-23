@@ -96,6 +96,9 @@ webApi:
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state/{doi_prefix}.json'
+    retry:
+      maxRetryCount: 0
+      retryOnResponseStatusList: []
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
@@ -128,6 +131,7 @@ webApi:
       #   - 'indexed'
       recordProcessingSteps:
         - transform_crossref_api_date_parts
+      onSameNextCursor: Continue
       provenanceEnabled: True
 
   - dataPipelineId: openalex_works_metadata_for_preprints
@@ -140,6 +144,14 @@ webApi:
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-openalex-preprints-by-publication-date.json'
+    retry:
+      maxRetryCount: 10
+      retryBackoffFactor: 1
+      retryOnResponseStatusList:
+        - 429
+        - 500
+        - 502
+        - 504
     urlSourceType:
       # Note: We currently need to use `crossref_metadata_api` for the cursor parameter to work
       name: 'crossref_metadata_api'
@@ -166,6 +178,7 @@ webApi:
       recordTimestamp:
         itemTimestampKeyFromItemRoot:
           - 'publication_date'
+      onSameNextCursor: Error
       provenanceEnabled: True
       fieldsToReturn:
         - id
