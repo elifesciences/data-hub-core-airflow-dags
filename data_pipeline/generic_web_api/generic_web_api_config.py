@@ -24,7 +24,8 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiConfigDict,
     WebApiConfigurableParametersConfigDict,
     WebApiRequestBuilderConfigDict,
-    WebApiResponseConfigDict
+    WebApiResponseConfigDict,
+    OnSameNextCursorConfig
 )
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
@@ -94,6 +95,9 @@ class MultiWebApiConfig:
         }
 
 
+DEFAULT_ON_SAME_NEXT_CURSOR_OPTION: OnSameNextCursorConfig = 'Error'
+
+
 @dataclass(frozen=True)
 class WebApiResponseConfig:
     items_key_path_from_response_root: Sequence[str] = field(default_factory=list)
@@ -103,6 +107,7 @@ class WebApiResponseConfig:
     fields_to_return: Optional[Sequence[str]] = None
     record_processing_step_function: Optional[RecordProcessingStepFunction] = None
     provenance_enabled: bool = False
+    on_same_next_cursor: OnSameNextCursorConfig = DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
 
     @staticmethod
     def from_dict(
@@ -132,6 +137,10 @@ class WebApiResponseConfig:
             ),
             provenance_enabled=web_api_response_config.get(
                 'provenanceEnabled', False
+            ),
+            on_same_next_cursor=web_api_response_config.get(
+                'onSameNextCursor',
+                DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
             )
         )
 

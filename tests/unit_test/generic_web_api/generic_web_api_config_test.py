@@ -294,3 +294,16 @@ class TestWebApiConfig:
         assert web_api_config.dynamic_request_builder.retry_config == (
             WebApiRetryConfig.from_dict(RETRY_CONFIG_DICT_1)
         )
+
+    def test_should_use_on_same_next_cursor_error_config_by_default(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.response.on_same_next_cursor == 'Error'
+
+    def test_should_read_on_same_next_cursor(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'response': {
+                'onSameNextCursor': 'Stop'
+            }
+        })
+        assert web_api_config.response.on_same_next_cursor == 'Stop'
