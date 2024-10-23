@@ -18,9 +18,11 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
     WebApiConfig
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
-    WebApiResponseConfigDict
+    WebApiResponseConfigDict,
+    WebApiRetryConfigDict
 )
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+from data_pipeline.utils.web_api import DEFAULT_WEB_API_RETRY_CONFIG, WebApiRetryConfig
 from tests.unit_test.generic_web_api.test_data import (
     DATASET_1,
     MINIMAL_WEB_API_CONFIG_DICT,
@@ -45,6 +47,12 @@ BIGQUERY_INCLUDE_EXCLUDE_SOURCE_CONFIG_DICT_1 = {
 
 RESPONSE_CONFIG_DICT_1: WebApiResponseConfigDict = {
     'itemsKeyFromResponseRoot': ['items']
+}
+
+RETRY_CONFIG_DICT_1: WebApiRetryConfigDict = {
+    'maxRetryCount': 123,
+    'retryBackoffFactor': 0.123,
+    'retryOnResponseStatusList': [1, 2, 3]
 }
 
 
@@ -249,3 +257,21 @@ class TestWebApiConfig:
         assert web_api_config.dynamic_request_builder.request_builder_parameters == {
             'fieldsToReturn': ['field1', 'field2']
         }
+
+    def test_should_use_default_retry(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.dynamic_request_builder.retry_config == (
+            DEFAULT_WEB_API_RETRY_CONFIG
+        )
+
+    def test_should_use_configured_retry_config(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'retry': RETRY_CONFIG_DICT_1
+        })
+        assert web_api_config.dynamic_request_builder.retry_config == (
+            WebApiRetryConfig.from_dict(RETRY_CONFIG_DICT_1)
+        )
+        assert web_api_config.dynamic_request_builder.retry_config != (
+            DEFAULT_WEB_API_RETRY_CONFIG
+        )

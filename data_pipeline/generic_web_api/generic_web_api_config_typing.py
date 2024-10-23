@@ -9,6 +9,7 @@ from data_pipeline.utils.pipeline_config_typing import (
     RecordProcessingStepConfigList,
     StateFileConfigDict
 )
+from data_pipeline.utils.web_api_typing import WebApiRetryConfigDict
 
 
 class ParameterFromEnvConfigDict(TypedDict):
@@ -83,6 +84,7 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
+    retry: NotRequired[WebApiRetryConfigDict]
     requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
     urlSourceType: NotRequired[WebApiRequestBuilderConfigDict]  # deprecated
     response: NotRequired[WebApiResponseConfigDict]
