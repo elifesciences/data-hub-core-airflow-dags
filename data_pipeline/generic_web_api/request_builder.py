@@ -8,10 +8,6 @@ from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.pipeline_utils import replace_placeholders
-from data_pipeline.utils.web_api import (
-    DEFAULT_WEB_API_RETRY_CONFIG,
-    WebApiRetryConfig
-)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -70,7 +66,6 @@ class WebApiDynamicRequestBuilder:
     method: str = 'GET'
     max_source_values_per_request: Optional[int] = None
     request_builder_parameters: Optional[dict] = None
-    retry_config: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
 
     def get_json(  # pylint: disable=unused-argument
         self,

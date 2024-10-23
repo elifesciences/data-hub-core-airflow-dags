@@ -32,7 +32,10 @@ from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
     get_single_record_processing_step_function_for_function_names_or_none
 )
-from data_pipeline.utils.web_api import WebApiRetryConfig
+from data_pipeline.utils.web_api import (
+    DEFAULT_WEB_API_RETRY_CONFIG,
+    WebApiRetryConfig
+)
 
 
 def get_resolved_parameter_values_from_env_name(
@@ -159,6 +162,7 @@ class WebApiConfig:
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     response: WebApiResponseConfig
+    retry: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
     state_file_bucket_name: Optional[str] = None
@@ -261,10 +265,7 @@ class WebApiConfig:
             static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
-            request_builder_parameters=request_builder_parameters,
-            retry_config=WebApiRetryConfig.from_optional_dict(
-                api_config.get('retry')
-            )
+            request_builder_parameters=request_builder_parameters
         )
 
         auth_type = api_config.get("authentication", {}).get(
@@ -299,6 +300,9 @@ class WebApiConfig:
             ),
             state_file_object_name=(
                 api_config.get("stateFile", {}).get("objectName")
+            ),
+            retry=WebApiRetryConfig.from_optional_dict(
+                api_config.get('retry')
             ),
             headers=MappingConfig.from_dict(api_config.get('headers', {})),
             default_start_date=(

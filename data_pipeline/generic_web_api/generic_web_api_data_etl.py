@@ -146,9 +146,7 @@ def get_data_single_page_response(
         json_data
     )
 
-    with requests_retry_session_for_config(
-        data_config.dynamic_request_builder.retry_config
-    ) as session:
+    with requests_retry_session_for_config(data_config.retry) as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
             assert data_config.authentication.authentication_type == "basic"
             assert data_config.authentication.auth_val_list
