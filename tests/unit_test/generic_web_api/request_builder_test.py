@@ -11,8 +11,7 @@ from data_pipeline.generic_web_api.request_builder import (
     WebApiDynamicRequestParameters
 )
 from data_pipeline.utils.web_api import (
-    DEFAULT_WEB_API_RETRY_CONFIG,
-    DISABLED_WEB_API_RETRY_CONFIG
+    DEFAULT_WEB_API_RETRY_CONFIG
 )
 
 
@@ -62,13 +61,12 @@ class TestDynamicBioRxivMedRxivURLBuilder:
 
 
 class TestCrossrefMetadataWebApiDynamicRequestBuilder:
-    def test_should_disable_retry_and_allow_next_page_cursor(self):
+    def test_should_allow_next_page_cursor(self):
         dynamic_request_builder = CrossrefMetadataWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             next_page_cursor='cursor',
             static_parameters={}
         )
-        assert dynamic_request_builder.retry_config == DISABLED_WEB_API_RETRY_CONFIG
         assert dynamic_request_builder.allow_same_next_page_cursor
 
     def test_should_pass_cursor_value_to_url(self):

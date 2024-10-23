@@ -10,7 +10,6 @@ from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.pipeline_utils import replace_placeholders
 from data_pipeline.utils.web_api import (
     DEFAULT_WEB_API_RETRY_CONFIG,
-    DISABLED_WEB_API_RETRY_CONFIG,
     WebApiRetryConfig
 )
 
@@ -212,8 +211,6 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
             **kwargs,
-            # We need to disable retry due to Crossref API with cursor not being stateless
-            'retry_config': DISABLED_WEB_API_RETRY_CONFIG,
             # We are allowing the next page cursor to be the same as the previous cursor
             'allow_same_next_page_cursor': True
         })

@@ -3,7 +3,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_pipeline.generic_web_api.request_builder import CiviWebApiDynamicRequestBuilder
+from data_pipeline.generic_web_api.request_builder import (
+    CiviWebApiDynamicRequestBuilder,
+    CrossrefMetadataWebApiDynamicRequestBuilder
+)
 from data_pipeline.utils.pipeline_config import (
     AirflowConfig,
     BigQueryIncludeExcludeSourceConfig,
@@ -274,4 +277,20 @@ class TestWebApiConfig:
         )
         assert web_api_config.dynamic_request_builder.retry_config != (
             DEFAULT_WEB_API_RETRY_CONFIG
+        )
+
+    def test_should_also_use_configured_retry_config_for_crossref_request_builder(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'crossref_metadata_api'
+            },
+            'retry': RETRY_CONFIG_DICT_1
+        })
+        assert isinstance(
+            web_api_config.dynamic_request_builder,
+            CrossrefMetadataWebApiDynamicRequestBuilder
+        )
+        assert web_api_config.dynamic_request_builder.retry_config == (
+            WebApiRetryConfig.from_dict(RETRY_CONFIG_DICT_1)
         )
