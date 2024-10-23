@@ -96,6 +96,9 @@ webApi:
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state/{doi_prefix}.json'
+    retry:
+      maxRetryCount: 0
+      retryOnResponseStatusList: []
     urlSourceType:
       name: 'crossref_metadata_api'
     dataUrl:
