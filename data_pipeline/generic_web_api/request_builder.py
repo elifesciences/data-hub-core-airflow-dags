@@ -44,7 +44,7 @@ def get_url_with_added_or_replaced_query_parameters(
     }
     LOGGER.debug('combined_query_params: %r', combined_query_params)
     return parse.urlunparse(
-        parsed_url._replace(query=parse.urlencode(combined_query_params))
+        parsed_url._replace(query=parse.urlencode(combined_query_params, doseq=True))
     )
 
 
