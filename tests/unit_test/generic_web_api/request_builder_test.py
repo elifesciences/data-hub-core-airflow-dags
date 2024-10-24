@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from data_pipeline.generic_web_api.request_builder import (
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
+    get_url_with_added_or_replaced_query_parameters,
     get_web_api_request_builder_class,
     BioRxivWebApiDynamicRequestBuilder,
     WebApiDynamicRequestParameters
@@ -15,6 +16,26 @@ LOGGER = logging.getLogger(__name__)
 
 
 TEST_API_URL_1 = 'https://test/api1'
+
+
+class TestGetUrlWithAddedOrReplacedQueryParameters:
+    def test_should_add_parameter(self):
+        assert get_url_with_added_or_replaced_query_parameters(
+            'https://test/api1',
+            parameters={'param1': 'value1'}
+        ) == 'https://test/api1?param1=value1'
+
+    def test_should_replace_parameter(self):
+        assert get_url_with_added_or_replaced_query_parameters(
+            'https://test/api1?param1=old-value',
+            parameters={'param1': 'new-value'}
+        ) == 'https://test/api1?param1=new-value'
+
+    def test_should_keep_existing_parameter(self):
+        assert get_url_with_added_or_replaced_query_parameters(
+            'https://test/api1?existing-param=old-value',
+            parameters={'new-param': 'new-value'}
+        ) == 'https://test/api1?existing-param=old-value&new-param=new-value'
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
