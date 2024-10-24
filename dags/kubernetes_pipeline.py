@@ -7,7 +7,10 @@ from typing import Sequence
 import airflow
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
-from data_pipeline.kubernetes.kubernetes_pipeline_config import MultiKubernetesPipelineConfig
+from data_pipeline.kubernetes.kubernetes_pipeline_config import (
+    MultiKubernetesPipelineConfig,
+    KubernetesPipelineConfigEnvironmentVariables
+)
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
 )
@@ -17,10 +20,6 @@ from data_pipeline.utils.pipeline_config import (
 )
 
 LOGGER = logging.getLogger(__name__)
-
-
-class KubernetesPipelineConfigEnvironmentVariables:
-    CONFIG_FILE_PATH = 'KUBERNETES_PIPELINE_CONFIG_FILE_PATH'
 
 
 def get_multi_kubernetes_pipeline_config() -> MultiKubernetesPipelineConfig:
