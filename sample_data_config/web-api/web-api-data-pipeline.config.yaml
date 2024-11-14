@@ -134,6 +134,41 @@ webApi:
       onSameNextCursor: Continue
       provenanceEnabled: True
 
+  # bioRxiv/medRxiv MECA path metadata v2
+  # https://api.biorxiv.org/meca_index_v2/elife/help
+  - dataPipelineId: biorxiv_medrxiv_meca_path_metadata_v2
+    dataset: '{ENV}'
+    table: test_biorxiv_medrxiv_meca_path_metadata_v2_response
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery: |-
+            SELECT DISTINCT
+              CONCAT(manuscript_version.preprint_doi, 'v', manuscript_version.preprint_version) AS biorxiv_versioned_doi
+            FROM `elife-data-pipeline.staging.mv_docmaps_index`
+            JOIN UNNEST(manuscript_versions) AS manuscript_version
+            WHERE STARTS_WITH(manuscript_version.preprint_doi , '10.1101')
+              AND manuscript_version.preprint_version IS NOT NULL
+            LIMIT 100
+      exclude:
+        bigQuery:
+          ignoreNotFound: true
+          projectName: 'elife-data-pipeline'
+          sqlQuery:
+            SELECT
+              CONCAT(meca_path_metadata.tdm_doi, 'v', meca_path_metadata.ms_version) AS biorxiv_versioned_doi
+            FROM `elife-data-pipeline.{ENV}.test_biorxiv_medrxiv_meca_path_metadata_v2_response`
+            JOIN UNNEST(results) AS meca_path_metadata
+        keyFieldNameFromInclude: 'biorxiv_versioned_doi'
+    urlSourceType:
+      name: 'crossref_metadata_api'
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.biorxiv.org/meca_index_v2/elife/{biorxiv_versioned_doi}
+    response:
+      provenanceEnabled: True
+    batchSize: 10
+
   - dataPipelineId: openalex_works_metadata_for_preprints
     description:
       Retrieve OpenAlex metadata for all of the preprints.
