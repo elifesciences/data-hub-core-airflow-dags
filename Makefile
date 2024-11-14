@@ -89,6 +89,7 @@ dev-run-elife-articles-xml:
 
 
 dev-run-web-api:  .require-DATA_PIPELINE_ID
+	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
 	WEB_API_CONFIG_FILE_PATH=sample_data_config/web-api/web-api-data-pipeline.config.yaml \
 		$(PYTHON) -m data_pipeline.generic_web_api.cli \
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
