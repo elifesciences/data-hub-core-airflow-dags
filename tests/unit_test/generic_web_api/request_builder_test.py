@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from data_pipeline.generic_web_api.request_builder import (
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
+    WebApiDynamicRequestBuilder,
     get_url_with_added_or_replaced_query_parameters,
     get_web_api_request_builder_class,
     BioRxivWebApiDynamicRequestBuilder,
@@ -36,6 +37,21 @@ class TestGetUrlWithAddedOrReplacedQueryParameters:
             'https://test/api1?existing-param=old-value',
             parameters={'new-param': 'new-value'}
         ) == 'https://test/api1?existing-param=old-value&new-param=new-value'
+
+
+class TestWebApiDynamicRequestBuilder:
+    def test_should_replace_placeholders(self):
+        dynamic_request_builder = WebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1 + '/{placeholder}',
+            static_parameters={}
+        )
+        url = dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                placeholder_values={'placeholder': 'buddy1'}
+            )
+        )
+        LOGGER.debug('url: %r', url)
+        assert url.rstrip('?') == TEST_API_URL_1 + '/buddy1'
 
 
 class TestDynamicBioRxivMedRxivURLBuilder:
