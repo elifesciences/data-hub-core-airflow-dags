@@ -116,7 +116,10 @@ class WebApiDynamicRequestBuilder:
             **self.static_parameters
         }
 
-        return self.compose_url(param_dict)
+        return self.compose_url(
+            parameters_key_value=param_dict,
+            placeholder_values=dynamic_request_parameters.placeholder_values
+        )
 
 
 CiviFieldsToReturnDict = TypedDict(
