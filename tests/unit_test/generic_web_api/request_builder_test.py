@@ -5,6 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from data_pipeline.generic_web_api.request_builder import (
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
+    SingleSourceValueWebApiDynamicRequestBuilder,
     WebApiDynamicRequestBuilder,
     get_url_with_added_or_replaced_query_parameters,
     get_web_api_request_builder_class,
@@ -48,6 +49,28 @@ class TestWebApiDynamicRequestBuilder:
         url = dynamic_request_builder.get_url(
             dynamic_request_parameters=WebApiDynamicRequestParameters(
                 placeholder_values={'placeholder': 'buddy1'}
+            )
+        )
+        LOGGER.debug('url: %r', url)
+        assert url.rstrip('?') == TEST_API_URL_1 + '/buddy1'
+
+
+class TestSingleSourceValueWebApiDynamicRequestBuilder:
+    def test_should_set_max_source_values_per_request_to_one(self):
+        dynamic_request_builder = SingleSourceValueWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.max_source_values_per_request == 1
+
+    def test_should_use_single_source_value_as_placeholders(self):
+        dynamic_request_builder = SingleSourceValueWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1 + '/{placeholder}',
+            static_parameters={}
+        )
+        url = dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{'placeholder': 'buddy1'}])
             )
         )
         LOGGER.debug('url: %r', url)
