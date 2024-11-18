@@ -122,6 +122,28 @@ class WebApiDynamicRequestBuilder:
         )
 
 
+class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'max_source_values_per_request': 1
+        })
+
+    def get_url(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> str:
+        assert dynamic_request_parameters.source_values is not None
+        source_values = list(dynamic_request_parameters.source_values)
+        assert len(source_values) == 1
+        placeholder_values = source_values[0]
+        return super().get_url(
+            dynamic_request_parameters=dynamic_request_parameters._replace(
+                placeholder_values=placeholder_values
+            )
+        )
+
+
 CiviFieldsToReturnDict = TypedDict(
     'CiviFieldsToReturnDict',
     {
@@ -284,6 +306,7 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
 
 
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
+    'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
     'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
