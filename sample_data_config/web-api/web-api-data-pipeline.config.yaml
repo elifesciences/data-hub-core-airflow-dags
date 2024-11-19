@@ -236,3 +236,77 @@ webApi:
         - primary_location
         - best_oa_location
         - related_works
+
+  - dataPipelineId: openalex_works_metadata_for_preprints_by_updated_date
+    description:
+      Retrieve OpenAlex metadata for all of the preprints.
+      Currently this will use the publication date to chunk data.
+      It is recommended to use the `updated_date` which requires premium access.
+      This pipeline only works with the API key.
+    dataset: '{ENV}'
+    table: test_openalex_works_api_response
+    stateFile:
+      bucketName: '{ENV}-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-openalex-preprints-by-updated-date.json'
+    retry:
+      maxRetryCount: 10
+      retryBackoffFactor: 1
+      retryOnResponseStatusList:
+        - 429
+        - 500
+        - 502
+        - 504
+    headers:
+      parametersFromFile:
+        - parameterName: api_key
+          filePathEnvName: OPENALEX_API_KEY_FILE_PATH
+    urlSourceType:
+      # Note: We currently need to use `crossref_metadata_api` for the cursor parameter to work
+      name: 'crossref_metadata_api'
+    dataUrl:
+      urlExcludingConfigurableParameters: 'https://api.openalex.org/works?filter=type:preprint'
+      configurableParameters:
+        nextPageCursorParameterName: 'cursor'
+        fromDateParameterName: 'from_updated_date'
+        toDateParameterName: 'to_updated_date'
+        daysDiffFromStartTillEnd: 10  # load data one day at a time
+        defaultStartDate: '2024-11-10+00:00'
+        # Note: OpenAlex do not seem to use timezones
+        dateFormat: '%Y-%m-%dT%H:%M:%S.%f'
+        pageSizeParameterName: 'per-page'
+        defaultPageSize: 200
+    response:
+      nextPageCursorKeyFromResponseRoot:
+        - meta
+        - next_cursor
+      itemsKeyFromResponseRoot:
+        - results
+      totalItemsCountKeyFromResponseRoot:
+        - meta
+        - count
+      recordTimestamp:
+        itemTimestampKeyFromItemRoot:
+          - 'updated_date'
+      onSameNextCursor: Error
+      provenanceEnabled: True
+      fieldsToReturn:
+        - id
+        - doi
+        - type
+        - type_crossref
+        - indexed_in
+        - open_access
+        - title
+        - authorships
+        - concepts
+        - primary_topic
+        - topics
+        - keywords
+        - created_date
+        - updated_date
+        - publication_date
+        - language
+        - locations
+        - primary_location
+        - best_oa_location
+        - related_works
