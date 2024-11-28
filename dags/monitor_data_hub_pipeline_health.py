@@ -108,6 +108,7 @@ check_data_hub_tables_status_task = create_python_task(
     retries=5
 )
 
+# pylint: disable=superfluous-parens
 # defined dependencies between tasks in the DAG
 _ = (get_data_config_task >> check_data_hub_tables_status_task)
 _ = (check_data_hub_tables_status_task >> monitor_airflow_health_task)
