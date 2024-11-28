@@ -61,46 +61,46 @@ class GmailDataConfig:
 
         # label list
         self.table_name_labels = (
-            gmail_data_config.get("gmailLabelData").get("table")
+            gmail_data_config["gmailLabelData"].get("table")
         )
         self.temp_table_name_labels = (
-            gmail_data_config.get("gmailLabelData").get("tempTable")
+            gmail_data_config["gmailLabelData"].get("tempTable")
         )
         self.unique_id_column_labels = (
-            gmail_data_config.get("gmailLabelData").get("uniqueIdColumn")
+            gmail_data_config["gmailLabelData"].get("uniqueIdColumn")
         )
 
         # message-thread ids list
         self.table_name_thread_ids = (
-            gmail_data_config.get("gmailLinkIdsData").get("table")
+            gmail_data_config["gmailLinkIdsData"].get("table")
         )
         self.temp_table_name_thread_ids = (
-            gmail_data_config.get("gmailLinkIdsData").get("tempTable")
+            gmail_data_config["gmailLinkIdsData"].get("tempTable")
         )
         self.unique_id_column_thread_ids = (
-            gmail_data_config.get("gmailLinkIdsData").get("uniqueIdColumn")
+            gmail_data_config["gmailLinkIdsData"].get("uniqueIdColumn")
         )
 
         # history details
         self.temp_table_name_history_details = (
-            gmail_data_config.get("gmailHistoryData").get("tempTable")
+            gmail_data_config["gmailHistoryData"].get("tempTable")
         )
 
         # thread details
         self.table_name_thread_details = (
-            gmail_data_config.get("gmailThreadData").get("table")
+            gmail_data_config["gmailThreadData"].get("table")
         )
         self.column_name_input = (
-            gmail_data_config.get("gmailThreadData").get("inputColumn")
+            gmail_data_config["gmailThreadData"].get("inputColumn")
         )
         self.column_name_history_check = (
-            gmail_data_config.get("gmailThreadData").get("historyCheckColumn")
+            gmail_data_config["gmailThreadData"].get("historyCheckColumn")
         )
         self.array_name_in_thread_details = (
-            gmail_data_config.get("gmailThreadData").get("array_name_in_table")
+            gmail_data_config["gmailThreadData"].get("array_name_in_table")
         )
         self.array_column_name = (
-            gmail_data_config.get("gmailThreadData").get("array_column_name")
+            gmail_data_config["gmailThreadData"].get("array_column_name")
         )
 
         # secret
