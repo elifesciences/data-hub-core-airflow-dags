@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
 import json
 from json.decoder import JSONDecodeError
-from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
+from typing import Any, Iterable, Optional, Sequence, Tuple, TypeVar, cast
 
 import objsize
 
@@ -204,7 +204,7 @@ def iter_optional_source_values_from_bigquery(
 def get_next_source_values_or_none(
     data_config: WebApiConfig,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[Iterable[dict]]:
+) -> Optional[Sequence[dict]]:
     if all_source_values_iterator is None:
         return None
     assert data_config.dynamic_request_builder.max_source_values_per_request
@@ -375,11 +375,24 @@ def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-loca
         items_list = get_items_list(
             page_data, data_config
         )
-        if placeholder_values and data_config.response.source_value_fields_to_return:
+        single_source_values_or_placeholders: Optional[dict] = None
+        if (
+            current_dynamic_request_parameters.source_values
+            and len(current_dynamic_request_parameters.source_values) == 1
+        ):
+            single_source_values_or_placeholders = (
+                current_dynamic_request_parameters.source_values[0]
+            )
+        else:
+            single_source_values_or_placeholders = placeholder_values
+        if (
+            single_source_values_or_placeholders
+            and data_config.response.source_value_fields_to_return
+        ):
             items_list = get_dict_items_with_additional_properties(
                 items_list,
                 additional_properties=filter_dict_by_keys(
-                    dict_to_filter=placeholder_values,
+                    dict_to_filter=single_source_values_or_placeholders,
                     keys=data_config.response.source_value_fields_to_return
                 )
             )
