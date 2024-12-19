@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Callable, Optional, Tuple, TypeVar
+from typing import Any, Callable, Collection, Optional, Sequence, Tuple, TypeVar
 import pandas as pd
 import numpy as np
 
@@ -149,3 +149,29 @@ def remove_key_with_null_value(record: T) -> T:
         record,
         lambda value: not is_empty_value(value)
     )
+
+
+def get_dict_items_with_additional_properties(
+    dict_items: Sequence[dict],
+    additional_properties: Optional[dict]
+) -> Sequence[dict]:
+    if additional_properties:
+        return [
+            {
+                **dict_item,
+                **additional_properties
+            }
+            for dict_item in dict_items
+        ]
+    return dict_items
+
+
+def filter_dict_by_keys(
+    dict_to_filter: dict,
+    keys: Collection[str]
+) -> dict:
+    return {
+        key: value
+        for key, value in dict_to_filter.items()
+        if key in keys
+    }

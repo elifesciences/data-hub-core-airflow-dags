@@ -144,6 +144,26 @@ class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         )
 
 
+class SpacyKeywordExtractionWebApiDynamicRequestBuilder(
+    SingleSourceValueWebApiDynamicRequestBuilder
+):
+    def get_url(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> str:
+        assert dynamic_request_parameters.source_values is not None
+        source_values = list(dynamic_request_parameters.source_values)
+        assert len(source_values) == 1
+        placeholder_values = {
+            'text': parse.quote_plus(source_values[0]['text'])
+        }
+        return super().get_url(
+            dynamic_request_parameters=dynamic_request_parameters._replace(
+                placeholder_values=placeholder_values
+            )
+        )
+
+
 CiviFieldsToReturnDict = TypedDict(
     'CiviFieldsToReturnDict',
     {

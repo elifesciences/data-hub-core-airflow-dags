@@ -26,7 +26,11 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     create_or_extend_table_schema
 )
-from data_pipeline.utils.json import remove_key_with_null_value
+from data_pipeline.utils.json import (
+    filter_dict_by_keys,
+    get_dict_items_with_additional_properties,
+    remove_key_with_null_value
+)
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import (
     get_response_and_provenance_from_api,
@@ -371,6 +375,14 @@ def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-loca
         items_list = get_items_list(
             page_data, data_config
         )
+        if placeholder_values and data_config.response.source_value_fields_to_return:
+            items_list = get_dict_items_with_additional_properties(
+                items_list,
+                additional_properties=filter_dict_by_keys(
+                    dict_to_filter=placeholder_values,
+                    keys=data_config.response.source_value_fields_to_return
+                )
+            )
         LOGGER.debug('items_list: %r', items_list)
         if not items_list:
             LOGGER.info('Item list is empty, end reached')

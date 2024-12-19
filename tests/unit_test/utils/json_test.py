@@ -3,6 +3,8 @@ from datetime import date, datetime
 import numpy as np
 
 from data_pipeline.utils.json import (
+    filter_dict_by_keys,
+    get_dict_items_with_additional_properties,
     get_json_compatible_value,
     get_recursive_json_compatible_value,
     get_recursively_transformed_object,
@@ -229,3 +231,44 @@ class TestRemoveKeyWithNullValue:
         record_copy = record.copy()
         remove_key_with_null_value(record)
         assert record == record_copy
+
+
+class TestGetDictItemsWithAdditionalProperties:
+    def test_should_return_passed_dict_items_with_none_additional_properties(self):
+        assert get_dict_items_with_additional_properties(
+            [{'key_1': 'value_1'}],
+            additional_properties=None
+        ) == [{'key_1': 'value_1'}]
+
+    def test_should_return_passed_dict_items_with_empty_additional_properties(self):
+        assert get_dict_items_with_additional_properties(
+            [{'key_1': 'value_1'}],
+            additional_properties={}
+        ) == [{'key_1': 'value_1'}]
+
+    def test_should_add_additional_properties(self):
+        assert get_dict_items_with_additional_properties(
+            [{'key_1': 'value_1'}],
+            additional_properties={
+                'additional_key_1': 'additional_value_1'
+            }
+        ) == [{'key_1': 'value_1', 'additional_key_1': 'additional_value_1'}]
+
+
+class TestFilterDictByKeys:
+    def test_should_return_dict_with_selected_keys(self):
+        assert filter_dict_by_keys(
+            dict_to_filter={
+                'key_1': 'value_1',
+                'other_key': 'other_value'
+            },
+            keys=['key_1']
+        ) == {'key_1': 'value_1'}
+
+    def test_should_ignore_selected_key_not_in_dict(self):
+        assert filter_dict_by_keys(
+            dict_to_filter={
+                'key_1': 'value_1'
+            },
+            keys=['key_1', 'other_key']
+        ) == {'key_1': 'value_1'}

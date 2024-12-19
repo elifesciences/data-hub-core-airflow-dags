@@ -145,6 +145,12 @@ class TestWebApiResponseConfig:
         })
         assert response_config.fields_to_return == ['field-1', 'field-2']
 
+    def test_should_read_source_value_fields_to_return(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'sourceValueFieldsToReturn': ['field_1', 'field_2']
+        })
+        assert response_config.source_value_fields_to_return == ['field_1', 'field_2']
+
     def test_should_read_record_processing_steps(
         self,
         get_single_record_processing_step_function_for_function_names_or_none_mock: MagicMock
