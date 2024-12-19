@@ -75,6 +75,7 @@ class WebApiResponseConfigDict(TypedDict):
     nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
     fieldsToReturn: NotRequired[Sequence[str]]
+    sourceValueFieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
     provenanceEnabled: NotRequired[bool]
     onSameNextCursor: NotRequired[OnSameNextCursorConfig]

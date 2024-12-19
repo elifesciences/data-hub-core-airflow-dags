@@ -333,4 +333,7 @@ webApi:
       urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/extract-keywords?text={text}
     response:
       provenanceEnabled: True
+      sourceValueFieldsToReturn:
+        - manuscript_id
+        - version_id
     batchSize: 19
