@@ -91,7 +91,6 @@ class WebApiBaseConfigDict(TypedDict):
     headers: NotRequired[MappingConfigDict]
     retry: NotRequired[WebApiRetryConfigDict]
     requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
-    urlSourceType: NotRequired[WebApiRequestBuilderConfigDict]  # deprecated
     response: NotRequired[WebApiResponseConfigDict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]
