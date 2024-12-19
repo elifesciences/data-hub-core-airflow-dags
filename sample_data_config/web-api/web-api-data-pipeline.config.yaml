@@ -325,8 +325,9 @@ webApi:
               CONCAT(version_id, '/', TO_HEX(MD5(abstract))) AS change_id,
               abstract AS text
             FROM `elife-data-pipeline.{ENV}.mv_manuscript_version`
-            WHERE manuscript_id IN ('00001')
-              AND COALESCE(abstract, '') <> ''
+            WHERE COALESCE(abstract, '') <> ''
+            ORDER BY version_id
+            LIMIT 100
       exclude:
         bigQuery:
           ignoreNotFound: true

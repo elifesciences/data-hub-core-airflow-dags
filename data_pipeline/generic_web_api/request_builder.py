@@ -327,6 +327,7 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
 
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
     'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
+    'spacy_keyword_extraction': SpacyKeywordExtractionWebApiDynamicRequestBuilder,
     'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
