@@ -327,7 +327,7 @@ webApi:
             FROM `elife-data-pipeline.{ENV}.mv_manuscript_version`
             WHERE manuscript_id IN ('00001')
               AND COALESCE(abstract, '') <> ''
-    urlSourceType:
+    requestBuilder:
       name: 'spacy_keyword_extraction'
     dataUrl:
       urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/extract-keywords?text={text}
