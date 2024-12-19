@@ -237,12 +237,10 @@ class WebApiConfig:
         )
         request_builder_config_dict = cast(
             WebApiRequestBuilderConfigDict,
-            api_config.get(
-                'requestBuilder', api_config.get('urlSourceType', {})
-            )
+            api_config.get('requestBuilder', {})
         )
         request_builder_parameters = request_builder_config_dict.get(
-            'parameters', request_builder_config_dict.get('sourceTypeSpecificValues', {})
+            'parameters', {}
         )
         dynamic_request_builder_class = get_web_api_request_builder_class(
             request_builder_config_dict.get('name', '')
