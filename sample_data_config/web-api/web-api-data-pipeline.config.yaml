@@ -338,6 +338,7 @@ webApi:
     requestBuilder:
       name: 'spacy_keyword_extraction'
     dataUrl:
+      # Note: we currently require there to be a `text` value that will be url encoded by the `spacy_keyword_extraction` request builder
       urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/extract-keywords?text={text}
     response:
       provenanceEnabled: True
