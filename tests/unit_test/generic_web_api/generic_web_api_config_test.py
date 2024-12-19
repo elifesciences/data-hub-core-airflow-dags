@@ -242,24 +242,6 @@ class TestWebApiConfig:
             'fieldsToReturn': ['field1', 'field2']
         }
 
-    def test_should_read_deprecated_request_builder_name_and_parameters(self):
-        web_api_config = WebApiConfig.from_dict({
-            **MINIMAL_WEB_API_CONFIG_DICT,
-            'urlSourceType': {
-                'name': 'civi',
-                'sourceTypeSpecificValues': {
-                    'fieldsToReturn': ['field1', 'field2']
-                }
-            }
-        })
-        assert isinstance(
-            web_api_config.dynamic_request_builder,
-            CiviWebApiDynamicRequestBuilder
-        )
-        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
-            'fieldsToReturn': ['field1', 'field2']
-        }
-
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
         assert web_api_config.retry == (
