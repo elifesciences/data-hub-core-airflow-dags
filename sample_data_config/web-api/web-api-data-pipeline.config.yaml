@@ -320,7 +320,6 @@ webApi:
           projectName: 'elife-data-pipeline'
           sqlQuery: |-
             SELECT
-              manuscript_id,
               version_id,
               abstract AS text,
               modified_timestamp
@@ -334,6 +333,5 @@ webApi:
     response:
       provenanceEnabled: True
       sourceValueFieldsToReturn:
-        - manuscript_id
         - version_id
     batchSize: 19
