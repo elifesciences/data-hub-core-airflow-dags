@@ -321,8 +321,7 @@ webApi:
           sqlQuery: |-
             SELECT
               version_id,
-              abstract AS text,
-              modified_timestamp
+              abstract AS text
             FROM `elife-data-pipeline.{ENV}.mv_manuscript_version`
             WHERE manuscript_id IN ('00001')
               AND COALESCE(abstract, '') <> ''
