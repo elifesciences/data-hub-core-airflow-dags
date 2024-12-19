@@ -2,7 +2,7 @@ import logging
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence, Type
+from typing import Any, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
@@ -20,7 +20,7 @@ class WebApiDynamicRequestParameters(NamedTuple):
     cursor: Optional[str] = None
     page_size: Optional[int] = None
     page_offset: Optional[int] = None
-    source_values: Optional[Iterable[dict]] = None
+    source_values: Optional[Sequence[dict]] = None
     placeholder_values: Optional[dict] = None
 
 
