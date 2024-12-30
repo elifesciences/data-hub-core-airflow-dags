@@ -241,6 +241,34 @@ class TestSpacyBatchKeywordExtractionWebApiDynamicRequestBuilder:
             ]
         }
 
+    def test_should_generate_json_data_with_meta_for_source_values(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.get_json(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'text': 'Text 1',
+                    'meta': {
+                        'version_id': 'v1'
+                    }
+                }])
+            )
+        ) == {
+            "data": [
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": "Text 1"
+                    },
+                    'meta': {
+                        'version_id': 'v1'
+                    }
+                }
+            ]
+        }
+
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):

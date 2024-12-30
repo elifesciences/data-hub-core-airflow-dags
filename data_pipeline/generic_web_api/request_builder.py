@@ -7,6 +7,7 @@ from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import replace_placeholders
 
 
@@ -336,20 +337,20 @@ class SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(WebApiDynamicReques
     def get_json(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
-    ) -> Sequence[dict]:
+    ) -> dict:
         assert dynamic_request_parameters.source_values is not None
         return {
-            "data": [
+            "data": remove_key_with_null_value([
                 {
                     "type": "extract-keyword-request",
                     "attributes": {
                         "content": source_value['text']
-                    }
+                    },
+                    "meta": source_value.get('meta')
                 }
                 for source_value in dynamic_request_parameters.source_values
-            ]
+            ])
         }
-
 
 
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
