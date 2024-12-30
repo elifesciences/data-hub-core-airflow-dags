@@ -6,6 +6,7 @@ from data_pipeline.generic_web_api.request_builder import (
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
     SingleSourceValueWebApiDynamicRequestBuilder,
+    SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
     WebApiDynamicRequestBuilder,
     get_url_with_added_or_replaced_query_parameters,
     get_web_api_request_builder_class,
@@ -201,6 +202,44 @@ class TestCrossrefMetadataWebApiDynamicRequestBuilder:
         )
         LOGGER.debug('url: %r', url)
         assert url.rstrip('?') == TEST_API_URL_1 + '/buddy1'
+
+
+class TestSpacyBatchKeywordExtractionWebApiDynamicRequestBuilder:
+    def test_should_set_method_to_post(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.method == 'POST'
+
+    def test_should_set_max_source_values_per_request_to_10(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.max_source_values_per_request == 10
+
+    def test_should_generate_json_data_for_source_values(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.get_json(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'text': 'Text 1'
+                }])
+            )
+        ) == {
+            "data": [
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": "Text 1"
+                    }
+                }
+            ]
+        }
 
 
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:

@@ -325,9 +325,37 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+class SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'method': 'POST',
+            'max_source_values_per_request': 10
+        })
+
+    def get_json(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> Sequence[dict]:
+        assert dynamic_request_parameters.source_values is not None
+        return {
+            "data": [
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": source_value['text']
+                    }
+                }
+                for source_value in dynamic_request_parameters.source_values
+            ]
+        }
+
+
+
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
     'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
     'spacy_keyword_extraction': SpacyKeywordExtractionWebApiDynamicRequestBuilder,
+    'spacy_batch_keyword_extraction_api': SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
     'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
