@@ -144,6 +144,11 @@ def get_data_single_page_response(
         dynamic_request_parameters=dynamic_request_parameters
     )
     LOGGER.info(
+        "Request URL: %s %s",
+        data_config.dynamic_request_builder.method,
+        url
+    )
+    LOGGER.debug(
         "Request URL: %s %s (json: %r)",
         data_config.dynamic_request_builder.method,
         url,

@@ -7,6 +7,7 @@ from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import replace_placeholders
 
 
@@ -325,9 +326,37 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+class SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'method': 'POST',
+            'max_source_values_per_request': 10
+        })
+
+    def get_json(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> dict:
+        assert dynamic_request_parameters.source_values is not None
+        return {
+            "data": remove_key_with_null_value([
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": source_value['text']
+                    },
+                    "meta": source_value.get('meta')
+                }
+                for source_value in dynamic_request_parameters.source_values
+            ])
+        }
+
+
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
     'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
     'spacy_keyword_extraction': SpacyKeywordExtractionWebApiDynamicRequestBuilder,
+    'spacy_batch_keyword_extraction_api': SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
     'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
