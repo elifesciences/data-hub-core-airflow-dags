@@ -345,7 +345,4 @@ webApi:
       urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/batch-extract-keywords
     response:
       provenanceEnabled: True
-      sourceValueFieldsToReturn:
-        - version_id
-        - abstract_md5
     batchSize: 19
