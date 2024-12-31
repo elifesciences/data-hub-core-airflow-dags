@@ -57,6 +57,7 @@ class WebApiAuthenticationConfigDict(TypedDict):
 
 class WebApiRequestBuilderConfigDict(TypedDict):
     name: str
+    maxSourceValuesPerRequest: NotRequired[int]
     parameters: NotRequired[dict]
     sourceTypeSpecificValues: NotRequired[dict]  # deprecated
 

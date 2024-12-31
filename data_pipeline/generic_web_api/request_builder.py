@@ -326,12 +326,19 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST = 10
+
+
 class SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
-    def __init__(self, **kwargs):
+    def __init__(self, max_source_values_per_request: Optional[int] = None, **kwargs):
+        LOGGER.debug('max_source_values_per_request: %r', max_source_values_per_request)
         super().__init__(**{
             **kwargs,
             'method': 'POST',
-            'max_source_values_per_request': 10
+            'max_source_values_per_request': (
+                max_source_values_per_request
+                or DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
+            )
         })
 
     def get_json(

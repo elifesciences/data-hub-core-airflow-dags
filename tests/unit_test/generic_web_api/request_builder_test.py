@@ -3,6 +3,7 @@ import logging
 from urllib.parse import parse_qs, urlparse
 
 from data_pipeline.generic_web_api.request_builder import (
+    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST,
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
     SingleSourceValueWebApiDynamicRequestBuilder,
@@ -212,12 +213,15 @@ class TestSpacyBatchKeywordExtractionWebApiDynamicRequestBuilder:
         )
         assert dynamic_request_builder.method == 'POST'
 
-    def test_should_set_max_source_values_per_request_to_10(self):
+    def test_should_use_default_max_source_values_per_request(self):
         dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
             url_excluding_configurable_parameters=TEST_API_URL_1,
             static_parameters={}
         )
-        assert dynamic_request_builder.max_source_values_per_request == 10
+        assert (
+            dynamic_request_builder.max_source_values_per_request
+            == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
+        )
 
     def test_should_generate_json_data_for_source_values(self):
         dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(

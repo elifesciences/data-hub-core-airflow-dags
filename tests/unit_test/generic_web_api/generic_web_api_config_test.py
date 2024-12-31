@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api.request_builder import (
+    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST,
     CiviWebApiDynamicRequestBuilder
 )
 from data_pipeline.utils.pipeline_config import (
@@ -247,6 +248,28 @@ class TestWebApiConfig:
         assert web_api_config.dynamic_request_builder.request_builder_parameters == {
             'fieldsToReturn': ['field1', 'field2']
         }
+
+    def test_should_read_request_builder_max_source_values_per_request(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'spacy_batch_keyword_extraction_api',
+                'maxSourceValuesPerRequest': 123
+            }
+        })
+        assert web_api_config.dynamic_request_builder.max_source_values_per_request == 123
+
+    def test_should_use_default_request_builder_max_source_values_per_request(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'spacy_batch_keyword_extraction_api'
+            }
+        })
+        assert (
+            web_api_config.dynamic_request_builder.max_source_values_per_request
+            == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
+        )
 
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
