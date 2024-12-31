@@ -341,6 +341,7 @@ webApi:
         keyFieldNameFromInclude: 'change_id'
     requestBuilder:
       name: 'spacy_batch_keyword_extraction_api'
+      maxSourceValuesPerRequest: 10
     dataUrl:
       urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/batch-extract-keywords
     response:

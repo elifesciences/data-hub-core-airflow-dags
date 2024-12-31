@@ -265,6 +265,9 @@ class WebApiConfig:
             static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
+            max_source_values_per_request=(
+                request_builder_config_dict.get('maxSourceValuesPerRequest')
+            ),
             request_builder_parameters=request_builder_parameters
         )
 
