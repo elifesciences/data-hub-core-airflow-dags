@@ -178,7 +178,12 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
         )
     else:
         response = requests.request(
-            method, url, params=params, headers=headers, json=json_data, timeout=10
+            method,
+            url,
+            params=params,
+            headers=headers,
+            json=json_data,
+            timeout=timeout
         )
     response_timestamp = datetime.utcnow()
     LOGGER.debug('raise_on_status: %r', raise_on_status)

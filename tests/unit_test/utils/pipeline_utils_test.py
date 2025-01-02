@@ -291,7 +291,8 @@ class TestGetResponseJsonWithProvenanceFromApi:
             params=API_PARAMS_1,
             headers=API_HEADERS_1,
             method='POST',
-            json_data=JSON_DATA_1
+            json_data=JSON_DATA_1,
+            timeout=12.3
         )
         requests_mock.request.assert_called_with(
             'POST',
@@ -299,7 +300,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
             params=API_PARAMS_1,
             headers=API_HEADERS_1,
             json=JSON_DATA_1,
-            timeout=10
+            timeout=12.3
         )
 
     def test_should_pass_url_params_and_headers_to_session_request_if_provided(
