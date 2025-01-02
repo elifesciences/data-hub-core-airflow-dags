@@ -38,6 +38,7 @@ from data_pipeline.utils.web_api import (
     WebApiRetryConfig
 )
 
+
 def get_resolved_parameter_values_from_env_name(
     parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
 ):
