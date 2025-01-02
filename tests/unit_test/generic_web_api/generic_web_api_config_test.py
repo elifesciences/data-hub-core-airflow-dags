@@ -25,6 +25,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiRetryConfigDict
 )
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.web_api import DEFAULT_WEB_API_RETRY_CONFIG, WebApiRetryConfig
 from tests.unit_test.generic_web_api.test_data import (
     DATASET_1,
@@ -270,6 +271,17 @@ class TestWebApiConfig:
             web_api_config.dynamic_request_builder.max_source_values_per_request
             == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
         )
+
+    def test_should_use_default_timeout(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.timeout == DEFAULT_TIMEOUT
+
+    def test_should_use_read_config_timeout(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'timeout': 10.5
+        })
+        assert web_api_config.timeout == 10.5
 
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)

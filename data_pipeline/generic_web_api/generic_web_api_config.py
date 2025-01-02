@@ -28,6 +28,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiResponseConfigDict,
     OnSameNextCursorConfig
 )
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
     get_single_record_processing_step_function_for_function_names_or_none
@@ -164,6 +165,7 @@ class WebApiConfig:
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     response: WebApiResponseConfig
+    timeout: float = DEFAULT_TIMEOUT
     retry: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
@@ -304,6 +306,7 @@ class WebApiConfig:
             state_file_object_name=(
                 api_config.get("stateFile", {}).get("objectName")
             ),
+            timeout=api_config.get('timeout', DEFAULT_TIMEOUT),
             retry=WebApiRetryConfig.from_optional_dict(
                 api_config.get('retry')
             ),

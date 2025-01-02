@@ -91,6 +91,7 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
+    timeout: NotRequired[float]
     retry: NotRequired[WebApiRetryConfigDict]
     requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
     response: NotRequired[WebApiResponseConfigDict]

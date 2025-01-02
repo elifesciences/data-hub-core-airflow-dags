@@ -703,7 +703,8 @@ class TestGetDataSinglePage:
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
             headers=data_config.headers.mapping,
-            raise_on_status=True
+            raise_on_status=True,
+            timeout=data_config.timeout
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
