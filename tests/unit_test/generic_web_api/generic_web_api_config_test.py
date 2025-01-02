@@ -276,6 +276,13 @@ class TestWebApiConfig:
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
         assert web_api_config.timeout == DEFAULT_TIMEOUT
 
+    def test_should_use_read_config_timeout(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'timeout': 10.5
+        })
+        assert web_api_config.timeout == 10.5
+
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
         assert web_api_config.retry == (

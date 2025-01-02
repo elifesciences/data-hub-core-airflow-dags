@@ -307,6 +307,7 @@ class WebApiConfig:
             state_file_object_name=(
                 api_config.get("stateFile", {}).get("objectName")
             ),
+            timeout=api_config.get('timeout', DEFAULT_TIMEOUT),
             retry=WebApiRetryConfig.from_optional_dict(
                 api_config.get('retry')
             ),
