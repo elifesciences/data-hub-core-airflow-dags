@@ -147,6 +147,7 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
     raise_on_status: bool = True,
     progress_message: Optional[str] = None
 ) -> Tuple[requests.Response, dict]:
@@ -165,7 +166,14 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
     )
     request_timestamp = datetime.utcnow()
     if session:
-        response = session.request(method, url, params=params, headers=headers, json=json_data)
+        response = session.request(
+            method,
+            url,
+            params=params,
+            headers=headers,
+            json=json_data,
+            timeout=timeout
+        )
     else:
         response = requests.request(
             method, url, params=params, headers=headers, json=json_data, timeout=10
