@@ -15,6 +15,7 @@ from data_pipeline.utils.pipeline_config import (
 
 from data_pipeline.generic_web_api import generic_web_api_config as generic_web_api_config_module
 from data_pipeline.generic_web_api.generic_web_api_config import (
+    DEFAULT_TIMEOUT,
     WebApiResponseConfig,
     get_web_api_config_id,
     MultiWebApiConfig,
@@ -270,6 +271,10 @@ class TestWebApiConfig:
             web_api_config.dynamic_request_builder.max_source_values_per_request
             == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
         )
+
+    def test_should_use_default_timeout(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.timeout == DEFAULT_TIMEOUT
 
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)

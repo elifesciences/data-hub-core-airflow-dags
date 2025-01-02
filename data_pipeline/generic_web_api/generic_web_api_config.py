@@ -37,6 +37,8 @@ from data_pipeline.utils.web_api import (
     WebApiRetryConfig
 )
 
+DEFAULT_TIMEOUT = 10
+
 
 def get_resolved_parameter_values_from_env_name(
     parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]
@@ -164,6 +166,7 @@ class WebApiConfig:
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     response: WebApiResponseConfig
+    timeout: float = DEFAULT_TIMEOUT
     retry: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
