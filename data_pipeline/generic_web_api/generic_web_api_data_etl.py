@@ -168,7 +168,8 @@ def get_data_single_page_response(
             url=url,
             json_data=json_data,
             headers=data_config.headers.mapping,
-            raise_on_status=True
+            raise_on_status=True,
+            timeout=data_config.timeout
         )
         LOGGER.info('Request Provenance: %r', request_provenance)
         resp = session_response.content
