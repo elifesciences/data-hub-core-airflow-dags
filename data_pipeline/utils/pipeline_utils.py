@@ -21,6 +21,8 @@ from data_pipeline.utils.pipeline_config import (
 
 LOGGER = logging.getLogger(__name__)
 
+DEFAULT_TIMEOUT = 10
+
 
 def fetch_single_column_value_list_for_bigquery_source_config(
     bigquery_source_config: BigQuerySourceConfig

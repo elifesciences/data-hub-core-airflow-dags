@@ -28,6 +28,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiResponseConfigDict,
     OnSameNextCursorConfig
 )
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
     get_single_record_processing_step_function_for_function_names_or_none
@@ -36,9 +37,6 @@ from data_pipeline.utils.web_api import (
     DEFAULT_WEB_API_RETRY_CONFIG,
     WebApiRetryConfig
 )
-
-DEFAULT_TIMEOUT = 10
-
 
 def get_resolved_parameter_values_from_env_name(
     parameters_from_env_name: Sequence[ParameterFromEnvConfigDict]

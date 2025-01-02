@@ -15,7 +15,6 @@ from data_pipeline.utils.pipeline_config import (
 
 from data_pipeline.generic_web_api import generic_web_api_config as generic_web_api_config_module
 from data_pipeline.generic_web_api.generic_web_api_config import (
-    DEFAULT_TIMEOUT,
     WebApiResponseConfig,
     get_web_api_config_id,
     MultiWebApiConfig,
@@ -26,6 +25,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiRetryConfigDict
 )
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.web_api import DEFAULT_WEB_API_RETRY_CONFIG, WebApiRetryConfig
 from tests.unit_test.generic_web_api.test_data import (
     DATASET_1,
