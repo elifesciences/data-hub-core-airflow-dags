@@ -312,14 +312,16 @@ class TestGetResponseJsonWithProvenanceFromApi:
             headers=API_HEADERS_1,
             method='POST',
             json_data=JSON_DATA_1,
-            session=session_mock
+            session=session_mock,
+            timeout=12.3
         )
         session_mock.request.assert_called_with(
             'POST',
             API_URL_1,
             params=API_PARAMS_1,
             headers=API_HEADERS_1,
-            json=JSON_DATA_1
+            json=JSON_DATA_1,
+            timeout=12.3
         )
 
     def test_should_return_response_json(
