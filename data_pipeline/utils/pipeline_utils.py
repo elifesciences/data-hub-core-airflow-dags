@@ -149,7 +149,7 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
     json_data: Optional[Any] = None,
     provenance: Optional[Mapping[str, str]] = None,
     session: Optional[requests.Session] = None,
-    timeout: Optional[float] = None,
+    timeout: float = DEFAULT_TIMEOUT,
     raise_on_status: bool = True,
     progress_message: Optional[str] = None
 ) -> Tuple[requests.Response, dict]:
