@@ -123,6 +123,15 @@ class WebApiDynamicRequestBuilder:
         )
 
 
+def get_single_source_value(
+    dynamic_request_parameters: WebApiDynamicRequestParameters
+) -> dict:
+    assert dynamic_request_parameters.source_values is not None
+    source_values = list(dynamic_request_parameters.source_values)
+    assert len(source_values) == 1
+    return source_values[0]
+
+
 class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -134,10 +143,7 @@ class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> str:
-        assert dynamic_request_parameters.source_values is not None
-        source_values = list(dynamic_request_parameters.source_values)
-        assert len(source_values) == 1
-        placeholder_values = source_values[0]
+        placeholder_values = get_single_source_value(dynamic_request_parameters)
         return super().get_url(
             dynamic_request_parameters=dynamic_request_parameters._replace(
                 placeholder_values=placeholder_values
@@ -152,11 +158,10 @@ class SpacyKeywordExtractionWebApiDynamicRequestBuilder(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> str:
-        assert dynamic_request_parameters.source_values is not None
-        source_values = list(dynamic_request_parameters.source_values)
-        assert len(source_values) == 1
         placeholder_values = {
-            'text': parse.quote_plus(source_values[0]['text'])
+            'text': parse.quote_plus(
+                get_single_source_value(dynamic_request_parameters)['text']
+            )
         }
         return super().get_url(
             dynamic_request_parameters=dynamic_request_parameters._replace(
@@ -373,10 +378,7 @@ class VistalyUpdateCardMetricsWebApiDynamicRequestBuilder(
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> dict:
-        assert dynamic_request_parameters.source_values is not None
-        source_values = list(dynamic_request_parameters.source_values)
-        assert len(source_values) == 1
-        placeholder_values = source_values[0]
+        placeholder_values = get_single_source_value(dynamic_request_parameters)
         return {
             "timestamp": placeholder_values['timestamp'].isoformat(),
             "value": placeholder_values['value']
