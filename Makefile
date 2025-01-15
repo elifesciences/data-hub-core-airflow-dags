@@ -95,6 +95,12 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-end-to-end-monitoring:
+	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
+		$(PYTHON) -m pytest \
+		tests/end2end_test/data_hub_pipeline_health_check_test.py
+
+
 build:
 	$(DOCKER_COMPOSE) build data-hub-dags
 
