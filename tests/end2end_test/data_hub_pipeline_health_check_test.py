@@ -4,9 +4,6 @@ from data_pipeline.monitoring.data_hub_pipeline_health_check import (
     run_data_hub_pipeline_health_check
 )
 from data_pipeline.monitoring.monitoring_config import MonitoringConfig
-from data_pipeline.utils.pipeline_config import (
-    get_deployment_env
-)
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 
@@ -24,7 +21,9 @@ def test_run_data_hub_pipeline_health_check():
     data_config_dict = get_yaml_file_as_dict(
         config_file_path
     )
-    deployment_env_var = get_deployment_env()
+    # Hardcoding to `staging` because we do not have `v_Data_Hub_Pipeline_Status`
+    #   in the `ci` dataset
+    deployment_env_var = 'staging'
     data_config = MonitoringConfig(
         data_config_dict,
         deployment_env_var
