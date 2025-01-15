@@ -112,7 +112,7 @@ def load_tuple_list_page_into_bq(
     client: Client,
     table: bq_table.Table,
     tuple_list_to_insert: List[tuple],
-) -> List[dict]:
+) -> Sequence[dict]:
 
     errors = client.insert_rows(table, tuple_list_to_insert)
     return errors
