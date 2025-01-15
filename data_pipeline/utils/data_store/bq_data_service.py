@@ -83,7 +83,9 @@ def load_file_into_bq(
 
 
 def load_tuple_list_into_bq(
-        tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
+    tuple_list_to_insert: List[tuple],
+    dataset_name: str,
+    table_name: str
 ) -> List[dict]:
     client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
@@ -107,7 +109,9 @@ def load_tuple_list_into_bq(
 
 
 def load_tuple_list_page_into_bq(
-        client: Client, table: bq_table, tuple_list_to_insert: List[tuple],
+    client: Client,
+    table: bq_table.Table,
+    tuple_list_to_insert: List[tuple],
 ) -> List[dict]:
 
     errors = client.insert_rows(table, tuple_list_to_insert)
@@ -115,10 +119,10 @@ def load_tuple_list_page_into_bq(
 
 
 def create_table(
-        project_name: str,
-        dataset_name: str,
-        table_name: str,
-        json_schema: list
+    project_name: str,
+    dataset_name: str,
+    table_name: str,
+    json_schema: list
 ):
     client = get_bq_client(project=project_name)
     table_id = compose_full_table_name(
