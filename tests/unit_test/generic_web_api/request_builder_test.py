@@ -3,9 +3,12 @@ import logging
 from urllib.parse import parse_qs, urlparse
 
 from data_pipeline.generic_web_api.request_builder import (
+    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST,
     CrossrefMetadataWebApiDynamicRequestBuilder,
     S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
     SingleSourceValueWebApiDynamicRequestBuilder,
+    SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
+    VistalyUpdateCardMetricsWebApiDynamicRequestBuilder,
     WebApiDynamicRequestBuilder,
     get_url_with_added_or_replaced_query_parameters,
     get_web_api_request_builder_class,
@@ -18,6 +21,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 TEST_API_URL_1 = 'https://test/api1'
+
+
+TIMESTAMP_STRING_1 = '2020-01-01T00:00:00+00:00'
+
+TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 
 
 class TestGetUrlWithAddedOrReplacedQueryParameters:
@@ -203,6 +211,75 @@ class TestCrossrefMetadataWebApiDynamicRequestBuilder:
         assert url.rstrip('?') == TEST_API_URL_1 + '/buddy1'
 
 
+class TestSpacyBatchKeywordExtractionWebApiDynamicRequestBuilder:
+    def test_should_set_method_to_post(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.method == 'POST'
+
+    def test_should_use_default_max_source_values_per_request(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert (
+            dynamic_request_builder.max_source_values_per_request
+            == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
+        )
+
+    def test_should_generate_json_data_for_source_values(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.get_json(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'text': 'Text 1'
+                }])
+            )
+        ) == {
+            "data": [
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": "Text 1"
+                    }
+                }
+            ]
+        }
+
+    def test_should_generate_json_data_with_meta_for_source_values(self):
+        dynamic_request_builder = SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.get_json(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'text': 'Text 1',
+                    'meta': {
+                        'version_id': 'v1'
+                    }
+                }])
+            )
+        ) == {
+            "data": [
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": "Text 1"
+                    },
+                    'meta': {
+                        'version_id': 'v1'
+                    }
+                }
+            ]
+        }
+
+
 class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
     def test_should_set_method_to_post(self):
         dynamic_request_builder = S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(
@@ -236,6 +313,54 @@ class TestDynamicS2TitleAbstractEmbeddingsURLBuilder:
             'title': 'Title 1',
             'abstract': 'Abstract 1'
         }]
+
+
+class TestVistalyUpdateCardMetricsWebApiDynamicRequestBuilder:
+    def test_should_set_method_to_post(self):
+        dynamic_request_builder = VistalyUpdateCardMetricsWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.method == 'POST'
+
+    def test_should_use_single_source_value_as_placeholders(self):
+        dynamic_request_builder = VistalyUpdateCardMetricsWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=(
+                'https://api.vistaly.com/v1/cards/{card_id}/metrics'
+            ),
+            static_parameters={}
+        )
+        url = dynamic_request_builder.get_url(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'card_id': 'card_id_1',
+                    'timestamp': TIMESTAMP_1,
+                    'value': 123
+                }])
+            )
+        )
+        LOGGER.debug('url: %r', url)
+        assert url.rstrip('?') == (
+            'https://api.vistaly.com/v1/cards/card_id_1/metrics'
+        )
+
+    def test_should_generate_json_data_for_source_values(self):
+        dynamic_request_builder = VistalyUpdateCardMetricsWebApiDynamicRequestBuilder(
+            url_excluding_configurable_parameters=TEST_API_URL_1,
+            static_parameters={}
+        )
+        assert dynamic_request_builder.get_json(
+            dynamic_request_parameters=WebApiDynamicRequestParameters(
+                source_values=iter([{
+                    'card_id': 'card_id_1',
+                    'timestamp': TIMESTAMP_1,
+                    'value': 123
+                }])
+            )
+        ) == {
+            "timestamp": TIMESTAMP_1.isoformat(),
+            "value": 123
+        }
 
 
 class TestGetUrlBuilderClass:

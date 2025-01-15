@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api.request_builder import (
+    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST,
     CiviWebApiDynamicRequestBuilder
 )
 from data_pipeline.utils.pipeline_config import (
@@ -24,6 +25,7 @@ from data_pipeline.generic_web_api.generic_web_api_config_typing import (
     WebApiRetryConfigDict
 )
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.web_api import DEFAULT_WEB_API_RETRY_CONFIG, WebApiRetryConfig
 from tests.unit_test.generic_web_api.test_data import (
     DATASET_1,
@@ -145,6 +147,12 @@ class TestWebApiResponseConfig:
         })
         assert response_config.fields_to_return == ['field-1', 'field-2']
 
+    def test_should_read_source_value_fields_to_return(self):
+        response_config = WebApiResponseConfig.from_dict({
+            'sourceValueFieldsToReturn': ['field_1', 'field_2']
+        })
+        assert response_config.source_value_fields_to_return == ['field_1', 'field_2']
+
     def test_should_read_record_processing_steps(
         self,
         get_single_record_processing_step_function_for_function_names_or_none_mock: MagicMock
@@ -242,23 +250,38 @@ class TestWebApiConfig:
             'fieldsToReturn': ['field1', 'field2']
         }
 
-    def test_should_read_deprecated_request_builder_name_and_parameters(self):
+    def test_should_read_request_builder_max_source_values_per_request(self):
         web_api_config = WebApiConfig.from_dict({
             **MINIMAL_WEB_API_CONFIG_DICT,
-            'urlSourceType': {
-                'name': 'civi',
-                'sourceTypeSpecificValues': {
-                    'fieldsToReturn': ['field1', 'field2']
-                }
+            'requestBuilder': {
+                'name': 'spacy_batch_keyword_extraction_api',
+                'maxSourceValuesPerRequest': 123
             }
         })
-        assert isinstance(
-            web_api_config.dynamic_request_builder,
-            CiviWebApiDynamicRequestBuilder
+        assert web_api_config.dynamic_request_builder.max_source_values_per_request == 123
+
+    def test_should_use_default_request_builder_max_source_values_per_request(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'requestBuilder': {
+                'name': 'spacy_batch_keyword_extraction_api'
+            }
+        })
+        assert (
+            web_api_config.dynamic_request_builder.max_source_values_per_request
+            == DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
         )
-        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
-            'fieldsToReturn': ['field1', 'field2']
-        }
+
+    def test_should_use_default_timeout(self):
+        web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)
+        assert web_api_config.timeout == DEFAULT_TIMEOUT
+
+    def test_should_use_read_config_timeout(self):
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'timeout': 10.5
+        })
+        assert web_api_config.timeout == 10.5
 
     def test_should_use_default_retry(self):
         web_api_config = WebApiConfig.from_dict(MINIMAL_WEB_API_CONFIG_DICT)

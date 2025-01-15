@@ -57,6 +57,7 @@ class WebApiAuthenticationConfigDict(TypedDict):
 
 class WebApiRequestBuilderConfigDict(TypedDict):
     name: str
+    maxSourceValuesPerRequest: NotRequired[int]
     parameters: NotRequired[dict]
     sourceTypeSpecificValues: NotRequired[dict]  # deprecated
 
@@ -75,6 +76,7 @@ class WebApiResponseConfigDict(TypedDict):
     nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
     fieldsToReturn: NotRequired[Sequence[str]]
+    sourceValueFieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
     provenanceEnabled: NotRequired[bool]
     onSameNextCursor: NotRequired[OnSameNextCursorConfig]
@@ -89,9 +91,9 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
+    timeout: NotRequired[float]
     retry: NotRequired[WebApiRetryConfigDict]
     requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
-    urlSourceType: NotRequired[WebApiRequestBuilderConfigDict]  # deprecated
     response: NotRequired[WebApiResponseConfigDict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]

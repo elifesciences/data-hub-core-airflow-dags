@@ -703,7 +703,8 @@ class TestGetDataSinglePage:
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
             headers=data_config.headers.mapping,
-            raise_on_status=True
+            raise_on_status=True,
+            timeout=data_config.timeout
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
@@ -903,6 +904,57 @@ class TestIterProcessedWebApiDataEtlBatchData:
                 placeholder_values=PLACEHOLDER_VALUES_1
             )
         )
+
+    def test_should_return_selected_placeholder_values_in_response(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'response': {
+                'sourceValueFieldsToReturn': ['placeholder_1']
+            }
+        })
+        responses = [
+            WebApiPageResponse(
+                {'response_property_1': 'response_value_1'}
+            )
+        ]
+        get_data_single_page_response_mock.side_effect = responses
+        record_list = list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            placeholder_values={'placeholder_1': 'placeholder_value_1'}
+        ))
+        assert len(record_list) == 1
+        assert record_list[0]['response_property_1'] == 'response_value_1'
+        assert record_list[0]['placeholder_1'] == 'placeholder_value_1'
+
+    def test_should_return_selected_single_source_values_in_response(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'requestBuilder': {
+                'name': 'single_source_value'
+            },
+            'response': {
+                'sourceValueFieldsToReturn': ['placeholder_1']
+            }
+        })
+        responses = [
+            WebApiPageResponse(
+                {'response_property_1': 'response_value_1'}
+            )
+        ]
+        get_data_single_page_response_mock.side_effect = responses
+        record_list = list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            all_source_values_iterator=iter([{'placeholder_1': 'placeholder_value_1'}])
+        ))
+        assert len(record_list) == 1
+        assert record_list[0]['response_property_1'] == 'response_value_1'
+        assert record_list[0]['placeholder_1'] == 'placeholder_value_1'
 
 
 class TestProcessWebApiDataEtlBatchWithBatchSourceValueAndDateRange:

@@ -2,11 +2,12 @@ import logging
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Iterable, Mapping, NamedTuple, Optional, Sequence, Type
+from typing import Any, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
+from data_pipeline.utils.json import remove_key_with_null_value
 from data_pipeline.utils.pipeline_utils import replace_placeholders
 
 
@@ -20,7 +21,7 @@ class WebApiDynamicRequestParameters(NamedTuple):
     cursor: Optional[str] = None
     page_size: Optional[int] = None
     page_offset: Optional[int] = None
-    source_values: Optional[Iterable[dict]] = None
+    source_values: Optional[Sequence[dict]] = None
     placeholder_values: Optional[dict] = None
 
 
@@ -122,6 +123,15 @@ class WebApiDynamicRequestBuilder:
         )
 
 
+def get_single_source_value(
+    dynamic_request_parameters: WebApiDynamicRequestParameters
+) -> dict:
+    assert dynamic_request_parameters.source_values is not None
+    source_values = list(dynamic_request_parameters.source_values)
+    assert len(source_values) == 1
+    return source_values[0]
+
+
 class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     def __init__(self, **kwargs):
         super().__init__(**{
@@ -133,10 +143,26 @@ class SingleSourceValueWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
         self,
         dynamic_request_parameters: WebApiDynamicRequestParameters
     ) -> str:
-        assert dynamic_request_parameters.source_values is not None
-        source_values = list(dynamic_request_parameters.source_values)
-        assert len(source_values) == 1
-        placeholder_values = source_values[0]
+        placeholder_values = get_single_source_value(dynamic_request_parameters)
+        return super().get_url(
+            dynamic_request_parameters=dynamic_request_parameters._replace(
+                placeholder_values=placeholder_values
+            )
+        )
+
+
+class SpacyKeywordExtractionWebApiDynamicRequestBuilder(
+    SingleSourceValueWebApiDynamicRequestBuilder
+):
+    def get_url(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> str:
+        placeholder_values = {
+            'text': parse.quote_plus(
+                get_single_source_value(dynamic_request_parameters)['text']
+            )
+        }
         return super().get_url(
             dynamic_request_parameters=dynamic_request_parameters._replace(
                 placeholder_values=placeholder_values
@@ -305,12 +331,69 @@ class S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder(WebApiDynamicRequestB
         ]
 
 
+DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST = 10
+
+
+class SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
+    def __init__(self, max_source_values_per_request: Optional[int] = None, **kwargs):
+        LOGGER.debug('max_source_values_per_request: %r', max_source_values_per_request)
+        super().__init__(**{
+            **kwargs,
+            'method': 'POST',
+            'max_source_values_per_request': (
+                max_source_values_per_request
+                or DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
+            )
+        })
+
+    def get_json(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> dict:
+        assert dynamic_request_parameters.source_values is not None
+        return {
+            "data": remove_key_with_null_value([
+                {
+                    "type": "extract-keyword-request",
+                    "attributes": {
+                        "content": source_value['text']
+                    },
+                    "meta": source_value.get('meta')
+                }
+                for source_value in dynamic_request_parameters.source_values
+            ])
+        }
+
+
+class VistalyUpdateCardMetricsWebApiDynamicRequestBuilder(
+    SingleSourceValueWebApiDynamicRequestBuilder
+):
+    def __init__(self, **kwargs):
+        super().__init__(**{
+            **kwargs,
+            'method': 'POST'
+        })
+
+    def get_json(
+        self,
+        dynamic_request_parameters: WebApiDynamicRequestParameters
+    ) -> dict:
+        placeholder_values = get_single_source_value(dynamic_request_parameters)
+        return {
+            "timestamp": placeholder_values['timestamp'].isoformat(),
+            "value": placeholder_values['value']
+        }
+
+
 WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicRequestBuilder]] = {
     'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
+    'spacy_keyword_extraction': SpacyKeywordExtractionWebApiDynamicRequestBuilder,
+    'spacy_batch_keyword_extraction_api': SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
     'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
-    'crossref_metadata_api': CrossrefMetadataWebApiDynamicRequestBuilder
+    'crossref_metadata_api': CrossrefMetadataWebApiDynamicRequestBuilder,
+    'vistaly_update_card_metrics_api': VistalyUpdateCardMetricsWebApiDynamicRequestBuilder
 }
 
 

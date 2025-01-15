@@ -96,10 +96,11 @@ webApi:
     stateFile:
       bucketName: '{ENV}-elife-data-pipeline'
       objectName: 'airflow-config/generic-web-api/{ENV}-crossref-metadata-state/{doi_prefix}.json'
+    timeout: 10
     retry:
       maxRetryCount: 0
       retryOnResponseStatusList: []
-    urlSourceType:
+    requestBuilder:
       name: 'crossref_metadata_api'
     dataUrl:
       urlExcludingConfigurableParameters: http://api.crossref.org/prefixes/{doi_prefix}/works?sort=indexed&order=asc
@@ -161,7 +162,7 @@ webApi:
             FROM `elife-data-pipeline.{ENV}.test_biorxiv_medrxiv_meca_path_metadata_v2_response`
             JOIN UNNEST(results) AS meca_path_metadata
         keyFieldNameFromInclude: 'biorxiv_versioned_doi'
-    urlSourceType:
+    requestBuilder:
       name: 'single_source_value'
     dataUrl:
       urlExcludingConfigurableParameters: https://api.biorxiv.org/meca_index_v2/elife/{biorxiv_versioned_doi}
@@ -187,7 +188,7 @@ webApi:
         - 500
         - 502
         - 504
-    urlSourceType:
+    requestBuilder:
       # Note: We currently need to use `crossref_metadata_api` for the cursor parameter to work
       name: 'crossref_metadata_api'
     dataUrl:
@@ -260,7 +261,7 @@ webApi:
       parametersFromFile:
         - parameterName: api_key
           filePathEnvName: OPENALEX_API_KEY_FILE_PATH
-    urlSourceType:
+    requestBuilder:
       # Note: We currently need to use `crossref_metadata_api` for the cursor parameter to work
       name: 'crossref_metadata_api'
     dataUrl:
@@ -310,3 +311,70 @@ webApi:
         - primary_location
         - best_oa_location
         - related_works
+
+  - dataPipelineId: keywords_from_manuscript_abstract_batch
+    dataset: '{ENV}'
+    table: test_keywords_from_manuscript_abstract_batch
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery: |-
+            SELECT
+              STRUCT(
+                version_id,
+                TO_HEX(MD5(abstract)) AS abstract_md5
+              ) AS meta,
+              CONCAT(version_id, '/', TO_HEX(MD5(abstract))) AS change_id,
+              abstract AS text
+            FROM `elife-data-pipeline.{ENV}.mv_manuscript_version`
+            WHERE COALESCE(abstract, '') <> ''
+            ORDER BY version_id
+            LIMIT 100
+      exclude:
+        bigQuery:
+          ignoreNotFound: true
+          projectName: 'elife-data-pipeline'
+          sqlQuery:
+            SELECT CONCAT(extract_keyword_result.meta.version_id, '/', extract_keyword_result.meta.abstract_md5) AS change_id
+            FROM `elife-data-pipeline.{ENV}.test_keywords_from_manuscript_abstract_batch` AS response
+            JOIN UNNEST(response.data) AS extract_keyword_result
+        keyFieldNameFromInclude: 'change_id'
+    requestBuilder:
+      name: 'spacy_batch_keyword_extraction_api'
+      maxSourceValuesPerRequest: 10
+    dataUrl:
+      urlExcludingConfigurableParameters: https://spacy-keyword-extraction-api--stg.elifesciences.org/v1/batch-extract-keywords
+    response:
+      provenanceEnabled: True
+    batchSize: 19
+
+  - dataPipelineId: vistaly_update_card_metrics
+    description: Update the test card in Vistaly in the Data Hub Test workspace
+    dataset: '{ENV}'
+    table: test_vistaly_update_card_metrics
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery: |-
+            SELECT
+              '4y2ioMh6DNkFjcref-p6c' AS card_id,
+              CURRENT_TIMESTAMP() AS timestamp,
+              COUNT(DISTINCT event.group_id) AS value
+            FROM `elife-data-pipeline.prod.mv_sciety_event` AS event
+            WHERE NOT event.is_deleted
+              AND event.normalized_event_name IN ('EvaluationRecorded', 'EvaluationPublicationRecorded')
+              AND event.published_at_timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 90 DAY)
+    headers:
+      parametersFromFile:
+        - parameterName: Authorization
+          filePathEnvName: VISTALY_API_AUTHORIZATION_FILE_PATH
+    requestBuilder:
+      name: 'vistaly_update_card_metrics_api'
+      maxSourceValuesPerRequest: 10
+    dataUrl:
+      urlExcludingConfigurableParameters: https://api.vistaly.com/v1/cards/{card_id}/metrics
+    response:
+      provenanceEnabled: True
+    batchSize: 19
