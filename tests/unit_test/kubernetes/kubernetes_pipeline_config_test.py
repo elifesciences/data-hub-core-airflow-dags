@@ -121,3 +121,16 @@ class TestMultiKubernetesPipelineConfig:
         assert result.kubernetes_pipelines == [
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
+
+    def test_should_read_default_airflow_pipeline_configs(self):
+        assert 'airflow' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
+        result = MultiKubernetesPipelineConfig.from_dict({
+            'defaultConfig': {
+                'airflow': AIRFLOW_CONFIG_DICT_1
+            },
+            'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
+        })
+        assert len(result.kubernetes_pipelines) == 1
+        assert result.kubernetes_pipelines[0].airflow_config == (
+            AirflowConfig.from_dict(AIRFLOW_CONFIG_DICT_1)
+        )

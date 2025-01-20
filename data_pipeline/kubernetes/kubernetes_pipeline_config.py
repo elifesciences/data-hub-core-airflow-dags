@@ -5,6 +5,7 @@ from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
+    KubernetesDefaultConfigDict,
     KubernetesEnvConfigDict,
     KubernetesPipelineConfigDict,
     MultiKubernetesPipelineConfigDict
@@ -71,6 +72,18 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
         )
 
 
+def get_merged_kubernetes_config_dict(
+    pipeline_config_dict: KubernetesPipelineConfigDict,
+    default_config_dict: Optional[KubernetesDefaultConfigDict]
+) -> KubernetesPipelineConfigDict:
+    if not default_config_dict:
+        return pipeline_config_dict
+    return {
+        **default_config_dict,
+        **pipeline_config_dict
+    }
+
+
 @dataclass(frozen=True)
 class MultiKubernetesPipelineConfig:
     kubernetes_pipelines: Sequence[KubernetesPipelineConfig]
@@ -79,9 +92,17 @@ class MultiKubernetesPipelineConfig:
     def from_dict(
         multi_pipeline_config_dict: MultiKubernetesPipelineConfigDict
     ) -> 'MultiKubernetesPipelineConfig':
+        default_config_dict: Optional[KubernetesDefaultConfigDict] = (
+            multi_pipeline_config_dict.get('defaultConfig')
+        )
         return MultiKubernetesPipelineConfig(
             kubernetes_pipelines=[
-                KubernetesPipelineConfig.from_dict(pipeline_config_dict)
+                KubernetesPipelineConfig.from_dict(
+                    get_merged_kubernetes_config_dict(
+                        pipeline_config_dict=pipeline_config_dict,
+                        default_config_dict=default_config_dict
+                    )
+                )
                 for pipeline_config_dict in multi_pipeline_config_dict['kubernetesPipelines']
             ]
         )
