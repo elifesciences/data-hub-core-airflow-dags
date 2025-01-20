@@ -27,7 +27,6 @@ def convert_dict_to_kubernetes_client_object(
 class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
     data_pipeline_id: str
     image: str
-    image_pull_policy: Optional[str]
     arguments: List[str]
     airflow_config: AirflowConfig
     volume_mounts: Optional[List[k8s_models.V1VolumeMount]]
@@ -43,7 +42,6 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             airflow_config=AirflowConfig.from_optional_dict(pipeline_config_dict.get('airflow')),
             image=pipeline_config_dict['image'],
-            image_pull_policy=pipeline_config_dict.get('imagePullPolicy'),
             arguments=pipeline_config_dict['arguments'],
             volume_mounts=[
                 convert_dict_to_kubernetes_client_object(
