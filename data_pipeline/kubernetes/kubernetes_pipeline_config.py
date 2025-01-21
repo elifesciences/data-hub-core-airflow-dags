@@ -37,12 +37,10 @@ def get_merged_env_config_dict_list(
     env: Optional[Sequence[KubernetesEnvConfigDict]],
     default_env: Optional[Sequence[KubernetesEnvConfigDict]]
 ) -> List[KubernetesEnvConfigDict]:
-    if env and default_env:
-        return list({
-            **get_env_config_dict_for_env_config_dict_list(default_env),
-            **get_env_config_dict_for_env_config_dict_list(env)
-        }.values())
-    return list(default_env or []) + list(env or [])
+    return list({
+        **get_env_config_dict_for_env_config_dict_list(default_env or []),
+        **get_env_config_dict_for_env_config_dict_list(env or [])
+    }.values())
 
 
 @dataclass(frozen=True)
