@@ -40,8 +40,7 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
         pipeline_config_dict: KubernetesPipelineConfigDict,
         default_config_dict: Optional[KubernetesDefaultConfigDict] = None
     ) -> 'KubernetesPipelineConfig':
-        if not default_config_dict:
-            default_config_dict = {}
+        default_config_dict = default_config_dict or {}
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             airflow_config=AirflowConfig.from_optional_dict(
