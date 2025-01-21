@@ -4,8 +4,6 @@ defaultConfig:
       schedule: null
       tags:
         - 'Kubernetes'
-    taskParameters:
-      do_xcom_push: False
   env:
     - name: DEPLOYMENT_ENV
       value: ci
