@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Mapping, Optional, Sequence, Type
+from typing import Any, List, Mapping, Optional, Sequence, Type, TypeVar
 
 from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
@@ -11,6 +11,8 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     MultiKubernetesPipelineConfigDict
 )
 from data_pipeline.utils.pipeline_config import AirflowConfig
+
+T = TypeVar("T", bound=Mapping[str, Any])
 
 
 def convert_dict_to_kubernetes_client_object(
@@ -25,9 +27,9 @@ def convert_dict_to_kubernetes_client_object(
 
 
 def get_config_dict_for_config_dict_list(
-    config_dict_list: Sequence[dict],
+    config_dict_list: Sequence[T],
     unique_keys: List[str]
-) -> Mapping[tuple, dict]:
+) -> Mapping[tuple, T]:
     return {
         tuple(config_dict[key] for key in unique_keys): config_dict
         for config_dict in config_dict_list
@@ -35,10 +37,10 @@ def get_config_dict_for_config_dict_list(
 
 
 def get_merged_config_dict_list(
-    config: Optional[Sequence[dict]],
-    default_config: Optional[Sequence[dict]],
+    config: Optional[Sequence[T]],
+    default_config: Optional[Sequence[T]],
     unique_keys: List[str]
-) -> List[dict]:
+) -> List[T]:
     return list({
         **get_config_dict_for_config_dict_list(default_config or [], unique_keys),
         **get_config_dict_for_config_dict_list(config or [], unique_keys)
