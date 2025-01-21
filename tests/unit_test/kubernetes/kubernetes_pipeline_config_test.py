@@ -114,6 +114,49 @@ class TestKubernetesPipelineConfig:
         })
         assert result.volumes == [KUBERNETES_V1_VOLUME_1]
 
+    def test_should_override_volumes(self):
+        result = KubernetesPipelineConfig.from_dict(
+            {
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'volumes': [{
+                    'name': 'volume_name_1',
+                    'secret': {'secretName': 'updated_secret_name'}
+                }, {
+                    'name': 'new_volume_name',
+                    'secret': {'secretName': 'new_secret_name'}
+                }]
+            },
+            default_config_dict={
+                'volumes': [{
+                    'name': 'unchanged_volume_name',
+                    'secret': {'secretName': 'unchanged_secret_name'}
+                }, {
+                    'name': 'volume_name_1',
+                    'secret': {'secretName': 'original_secret_name'}
+                }]
+            }
+        )
+        assert result.volumes == [
+            k8s_models.V1Volume(
+                name='unchanged_volume_name',
+                secret=k8s_models.V1SecretVolumeSource(
+                    secret_name='unchanged_secret_name'
+                )
+            ),
+            k8s_models.V1Volume(
+                name='volume_name_1',
+                secret=k8s_models.V1SecretVolumeSource(
+                    secret_name='updated_secret_name'
+                )
+            ),
+            k8s_models.V1Volume(
+                name='new_volume_name',
+                secret=k8s_models.V1SecretVolumeSource(
+                    secret_name='new_secret_name'
+                )
+            )
+        ]
+
     def test_should_read_env(self):
         result = KubernetesPipelineConfig.from_dict({
             **KUBERNETES_PIPELINE_CONFIG_DICT_1,
