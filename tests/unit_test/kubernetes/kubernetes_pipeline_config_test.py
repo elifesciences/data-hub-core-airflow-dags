@@ -117,6 +117,16 @@ class TestKubernetesPipelineConfig:
         })
         assert result.env == [KUBERNETES_V1_ENV_1]
 
+    def test_should_use_env_variables_from_default_config(self):
+        assert 'env' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
+        result = KubernetesPipelineConfig.from_dict(
+            KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            default_config_dict={
+                'env': [KUBERNETES_ENV_CONFIG_DICT_1]
+            }
+        )
+        assert result.env == [KUBERNETES_V1_ENV_1]
+
     def test_should_read_resources(self):
         result = KubernetesPipelineConfig.from_dict({
             **KUBERNETES_PIPELINE_CONFIG_DICT_1,
@@ -169,21 +179,6 @@ class TestMultiKubernetesPipelineConfig:
                 }
             })
         )
-
-    def test_should_use_env_variables_from_default_config(self):
-        assert 'env' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
-        result = MultiKubernetesPipelineConfig.from_dict({
-            'defaultConfig': {
-                'env': [KUBERNETES_ENV_CONFIG_DICT_1]
-            },
-            'kubernetesPipelines': [{
-                **KUBERNETES_PIPELINE_CONFIG_DICT_1
-            }]
-        })
-        assert len(result.kubernetes_pipelines) == 1
-        assert result.kubernetes_pipelines[0].env == [
-            KUBERNETES_V1_ENV_1
-        ]
 
     def test_should_combined_env_variables_from_default_and_pipeline_config(self):
         result = MultiKubernetesPipelineConfig.from_dict({
