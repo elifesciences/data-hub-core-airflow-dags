@@ -24,41 +24,22 @@ def convert_dict_to_kubernetes_client_object(
     )
 
 
-def get_env_config_dict_for_env_config_dict_list(
-    env_config_dict_list: Sequence[KubernetesEnvConfigDict]
-) -> Mapping[str, KubernetesEnvConfigDict]:
-    return {
-        env_config_dict['name']: env_config_dict
-        for env_config_dict in env_config_dict_list
-    }
-
-
-def get_merged_env_config_dict_list(
-    env: Optional[Sequence[KubernetesEnvConfigDict]],
-    default_env: Optional[Sequence[KubernetesEnvConfigDict]]
-) -> List[KubernetesEnvConfigDict]:
-    return list({
-        **get_env_config_dict_for_env_config_dict_list(default_env or []),
-        **get_env_config_dict_for_env_config_dict_list(env or [])
-    }.values())
-
-
-def get_volume_config_dict_for_volume_config_dict_list(
-    volume_config_dict_list: Sequence[dict]
+def get_config_dict_for_config_dict_list(
+    config_dict_list: Sequence[dict]
 ) -> Mapping[str, dict]:
     return {
         volume_config_dict['name']: volume_config_dict
-        for volume_config_dict in volume_config_dict_list
+        for volume_config_dict in config_dict_list
     }
 
 
-def get_merged_volume_config_dict_list(
-    volumes: Optional[Sequence[dict]],
-    default_volumes: Optional[Sequence[dict]]
+def get_merged_config_dict_list(
+    config: Optional[Sequence[dict]],
+    default_config: Optional[Sequence[dict]]
 ) -> List[dict]:
     return list({
-        **get_volume_config_dict_for_volume_config_dict_list(default_volumes or []),
-        **get_volume_config_dict_for_volume_config_dict_list(volumes or [])
+        **get_config_dict_for_config_dict_list(default_config or []),
+        **get_config_dict_for_config_dict_list(config or [])
     }.values())
 
 
@@ -101,9 +82,9 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                     config_dict,
                     k8s_models.V1Volume
                 )
-                for config_dict in get_merged_volume_config_dict_list(
-                    volumes=pipeline_config_dict.get('volumes', []),
-                    default_volumes=default_config_dict.get('volumes', [])
+                for config_dict in get_merged_config_dict_list(
+                    config=pipeline_config_dict.get('volumes', []),
+                    default_config=default_config_dict.get('volumes', [])
                 )
             ],
             env=[
@@ -111,9 +92,9 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                     config_dict,
                     k8s_models.V1EnvVar
                 )
-                for config_dict in get_merged_env_config_dict_list(
-                    env=pipeline_config_dict.get('env'),
-                    default_env=default_config_dict.get('env')
+                for config_dict in get_merged_config_dict_list(
+                    config=pipeline_config_dict.get('env'),
+                    default_config=default_config_dict.get('env')
                 )
             ],
             resources=convert_dict_to_kubernetes_client_object(
