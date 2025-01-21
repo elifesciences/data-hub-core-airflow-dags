@@ -2,8 +2,7 @@ from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     KubernetesPipelineConfig,
-    MultiKubernetesPipelineConfig,
-    merge_env_configs
+    MultiKubernetesPipelineConfig
 )
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesEnvConfigDict,
@@ -44,11 +43,6 @@ KUBERNETES_V1_VOLUME_1 = k8s_models.V1Volume(
     )
 )
 
-DEFAULT_ENV_CONFIG_DICT_1: KubernetesEnvConfigDict = {
-    'name': 'default_env_name_1',
-    'value': 'default_env_value_1'
-}
-
 KUBERNETES_ENV_CONFIG_DICT_1: KubernetesEnvConfigDict = {
     'name': 'env_name_1',
     'value': 'env_value_1'
@@ -77,27 +71,6 @@ KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'volumes': [KUBERNETES_VOLUME_CONFIG_DICT_1],
     'env': [KUBERNETES_ENV_CONFIG_DICT_1]
 }
-
-
-class TestMergeEnvConfigs:
-    def test_should_read_only_pipeline_env_config_if_default_is_not_defined(self):
-        result = merge_env_configs(
-            pipeline_env_conf_dict=[KUBERNETES_ENV_CONFIG_DICT_1]
-        )
-        assert result == [KUBERNETES_ENV_CONFIG_DICT_1]
-
-    def test_should_read_only_default_env_config_if_pipeline_is_not_defined(self):
-        result = merge_env_configs(
-            default_env_conf_dict=[DEFAULT_ENV_CONFIG_DICT_1]
-        )
-        assert result == [DEFAULT_ENV_CONFIG_DICT_1]
-
-    def test_should_merge_defaultand_pipeline_env_configs(self):
-        result = merge_env_configs(
-            default_env_conf_dict=[DEFAULT_ENV_CONFIG_DICT_1],
-            pipeline_env_conf_dict=[KUBERNETES_ENV_CONFIG_DICT_1]
-        )
-        assert result == [DEFAULT_ENV_CONFIG_DICT_1, KUBERNETES_ENV_CONFIG_DICT_1]
 
 
 class TestKubernetesPipelineConfig:
