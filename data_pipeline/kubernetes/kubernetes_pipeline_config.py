@@ -37,11 +37,19 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
 
     @staticmethod
     def from_dict(
-        pipeline_config_dict: KubernetesPipelineConfigDict
+        pipeline_config_dict: KubernetesPipelineConfigDict,
+        default_config_dict: Optional[KubernetesDefaultConfigDict] = None
     ) -> 'KubernetesPipelineConfig':
+        if not default_config_dict:
+            default_config_dict = {}
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
-            airflow_config=AirflowConfig.from_optional_dict(pipeline_config_dict.get('airflow')),
+            airflow_config=AirflowConfig.from_optional_dict(
+                airflow_config_dict=pipeline_config_dict.get('airflow'),
+                default_airflow_config=AirflowConfig.from_optional_dict(
+                    default_config_dict.get('airflow')
+                )
+            ),
             image=pipeline_config_dict['image'],
             arguments=pipeline_config_dict['arguments'],
             volume_mounts=[
@@ -98,10 +106,8 @@ class MultiKubernetesPipelineConfig:
         return MultiKubernetesPipelineConfig(
             kubernetes_pipelines=[
                 KubernetesPipelineConfig.from_dict(
-                    get_merged_kubernetes_config_dict(
-                        pipeline_config_dict=pipeline_config_dict,
-                        default_config_dict=default_config_dict
-                    )
+                    pipeline_config_dict=pipeline_config_dict,
+                    default_config_dict=default_config_dict
                 )
                 for pipeline_config_dict in multi_pipeline_config_dict['kubernetesPipelines']
             ]

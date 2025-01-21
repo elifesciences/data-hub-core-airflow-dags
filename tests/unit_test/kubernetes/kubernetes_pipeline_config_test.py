@@ -134,3 +134,26 @@ class TestMultiKubernetesPipelineConfig:
         assert result.kubernetes_pipelines[0].airflow_config == (
             AirflowConfig.from_dict(AIRFLOW_CONFIG_DICT_1)
         )
+
+    def test_should_override_default_airflow_config_with_part_exists_in_pipeline_config(self):
+        result = MultiKubernetesPipelineConfig.from_dict({
+            'defaultConfig': {
+                'airflow': AIRFLOW_CONFIG_DICT_1
+            },
+            'kubernetesPipelines': [{
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'airflow': {
+                    'dagParameters': {'scheduler': '@hourly'}
+                }
+            }]
+        })
+        assert len(result.kubernetes_pipelines) == 1
+        assert result.kubernetes_pipelines[0].airflow_config == (
+            AirflowConfig.from_dict({
+                **AIRFLOW_CONFIG_DICT_1,
+                'dagParameters': {
+                    **AIRFLOW_CONFIG_DICT_1['dagParameters'],
+                    'scheduler': '@hourly'
+                }
+            })
+        )
