@@ -24,6 +24,17 @@ def convert_dict_to_kubernetes_client_object(
     )
 
 
+def merge_env_configs(
+    default_env_conf_dict: Optional[List[KubernetesEnvConfigDict]] = None,
+    pipeline_env_conf_dict: Optional[List[KubernetesEnvConfigDict]] = None
+) -> List[KubernetesEnvConfigDict]:
+    default_env_conf_dict = default_env_conf_dict or []
+    pipeline_env_conf_dict = pipeline_env_conf_dict or []
+    merged_env_conf_dict = {item['name']: item for item in default_env_conf_dict}
+    merged_env_conf_dict.update({item['name']: item for item in pipeline_env_conf_dict})
+    return list(merged_env_conf_dict.values())
+
+
 @dataclass(frozen=True)
 class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
     data_pipeline_id: str
