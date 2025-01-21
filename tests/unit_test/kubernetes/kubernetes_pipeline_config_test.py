@@ -48,9 +48,19 @@ KUBERNETES_ENV_CONFIG_DICT_1: KubernetesEnvConfigDict = {
     'value': 'env_value_1'
 }
 
+KUBERNETES_ENV_CONFIG_DICT_2: KubernetesEnvConfigDict = {
+    'name': 'env_name_2',
+    'value': 'env_value_2'
+}
+
 KUBERNETES_V1_ENV_1 = k8s_models.V1EnvVar(
     name=KUBERNETES_ENV_CONFIG_DICT_1['name'],
     value=KUBERNETES_ENV_CONFIG_DICT_1['value']
+)
+
+KUBERNETES_V1_ENV_2 = k8s_models.V1EnvVar(
+    name=KUBERNETES_ENV_CONFIG_DICT_2['name'],
+    value=KUBERNETES_ENV_CONFIG_DICT_2['value']
 )
 
 KUBERNETES_RESOURCES_CONFIG_DICT_1 = {
@@ -157,3 +167,19 @@ class TestMultiKubernetesPipelineConfig:
                 }
             })
         )
+
+    def test_should_combined_env_variables_from_default_and_pipeline_config(self):
+        result = MultiKubernetesPipelineConfig.from_dict({
+            'defaultConfig': {
+                'env': [KUBERNETES_ENV_CONFIG_DICT_1]
+            },
+            'kubernetesPipelines': [{
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'env': [KUBERNETES_ENV_CONFIG_DICT_2]
+            }]
+        })
+        assert len(result.kubernetes_pipelines) == 1
+        assert result.kubernetes_pipelines[0].env == [
+            KUBERNETES_V1_ENV_1,
+            KUBERNETES_V1_ENV_2
+        ]

@@ -24,6 +24,13 @@ def convert_dict_to_kubernetes_client_object(
     )
 
 
+def get_merged_env_config_dict_list(
+    env: Optional[Sequence[KubernetesEnvConfigDict]],
+    default_env: Optional[Sequence[KubernetesEnvConfigDict]]
+) -> List[KubernetesEnvConfigDict]:
+    return list(default_env or []) + list(env or [])
+
+
 @dataclass(frozen=True)
 class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
     data_pipeline_id: str
@@ -70,7 +77,10 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                     config_dict,
                     k8s_models.V1EnvVar
                 )
-                for config_dict in pipeline_config_dict['env']
+                for config_dict in get_merged_env_config_dict_list(
+                    env=pipeline_config_dict.get('env'),
+                    default_env=default_config_dict.get('env')
+                )
             ],
             resources=convert_dict_to_kubernetes_client_object(
                 pipeline_config_dict.get('resources'),
