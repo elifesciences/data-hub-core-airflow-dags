@@ -76,8 +76,7 @@ KUBERNETES_V1_RESOURCES_1 = k8s_models.V1ResourceRequirements(
 KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'dataPipelineId': 'data_pipeline_id_1',
     'image': 'image_1',
-    'arguments': ['argument_1', 'argument_2'],
-    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
+    'arguments': ['argument_1', 'argument_2']
 }
 
 
@@ -102,7 +101,10 @@ class TestKubernetesPipelineConfig:
         assert result.arguments == ['argument_1', 'argument_2']
 
     def test_should_read_volume_mount(self):
-        result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        result = KubernetesPipelineConfig.from_dict({
+            **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
+        })
         assert result.volume_mounts == [KUBERNETES_V1_VOLUME_MOUNT_1]
 
     def test_should_read_volume(self):
