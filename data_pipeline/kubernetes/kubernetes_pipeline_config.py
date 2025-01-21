@@ -108,7 +108,10 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                 )
             ],
             resources=convert_dict_to_kubernetes_client_object(
-                pipeline_config_dict.get('resources'),
+                {
+                    **(default_config_dict.get('resources') or {}),
+                    **(pipeline_config_dict.get('resources') or {})
+                },
                 k8s_models.V1ResourceRequirements
             )
         )

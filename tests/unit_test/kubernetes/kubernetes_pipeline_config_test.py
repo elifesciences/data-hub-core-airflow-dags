@@ -263,6 +263,42 @@ class TestKubernetesPipelineConfig:
         })
         assert result.resources == KUBERNETES_V1_RESOURCES_1
 
+    def test_should_use_default_resources_if_not_defined_in_pipeline(self):
+        result = KubernetesPipelineConfig.from_dict(
+            KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            default_config_dict={
+                'resources': {
+                    'limits': {'memory': '1Gi', 'cpu': '10m'},
+                    'requests': {'memory': '1Gi', 'cpu': '10m'}
+                }
+            }
+        )
+        assert result.resources == k8s_models.V1ResourceRequirements(
+            limits={'memory': '1Gi', 'cpu': '10m'},
+            requests={'memory': '1Gi', 'cpu': '10m'}
+        )
+
+    def test_should_overwrite_default_resources_if_defined_in_pipeline(self):
+        result = KubernetesPipelineConfig.from_dict(
+            {
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'resources': {
+                    'limits': {'memory': '2Gi', 'cpu': '20m'},
+                    'requests': {'memory': '2Gi', 'cpu': '20m'}
+                }
+            },
+            default_config_dict={
+                'resources': {
+                    'limits': {'memory': '1Gi', 'cpu': '10m'},
+                    'requests': {'memory': '1Gi', 'cpu': '10m'}
+                }
+            }
+        )
+        assert result.resources == k8s_models.V1ResourceRequirements(
+            limits={'memory': '2Gi', 'cpu': '20m'},
+            requests={'memory': '2Gi', 'cpu': '20m'}
+        )
+
 
 class TestMultiKubernetesPipelineConfig:
     def test_should_read_kubernetes_pipeline_configs(self):

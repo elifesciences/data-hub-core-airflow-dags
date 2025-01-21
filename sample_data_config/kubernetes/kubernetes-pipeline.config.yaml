@@ -26,6 +26,13 @@ defaultConfig:
     - name: aws-secret-volume
       mountPath: /home/airflow/.aws
       readOnly: true
+  resources:
+    limits:
+      memory: 600Mi
+      cpu: 1000m
+    requests:
+      memory: 500Mi
+      cpu: 100m
 
 kubernetesPipelines:
 
