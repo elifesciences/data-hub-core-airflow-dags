@@ -142,6 +142,29 @@ class TestKubernetesPipelineConfig:
             KUBERNETES_V1_ENV_2
         ]
 
+    def test_should_override_env_variable(self):
+        result = KubernetesPipelineConfig.from_dict(
+            {
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'env': [{
+                    'name': 'env_1',
+                    'value': 'updated-value'
+                }]
+            },
+            default_config_dict={
+                'env': [{
+                    'name': 'env_1',
+                    'value': 'original-value'
+                }]
+            }
+        )
+        assert result.env == [
+            k8s_models.V1EnvVar(
+                name='env_1',
+                value='updated-value'
+            )
+        ]
+
     def test_should_read_resources(self):
         result = KubernetesPipelineConfig.from_dict({
             **KUBERNETES_PIPELINE_CONFIG_DICT_1,

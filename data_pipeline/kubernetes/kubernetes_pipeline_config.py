@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Type
+from typing import List, Mapping, Optional, Sequence, Type
 
 from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
@@ -24,10 +24,24 @@ def convert_dict_to_kubernetes_client_object(
     )
 
 
+def get_env_config_dict_for_env_config_dict_list(
+    env_config_dict_list: Sequence[KubernetesEnvConfigDict]
+) -> Mapping[str, KubernetesEnvConfigDict]:
+    return {
+        env_config_dict['name']: env_config_dict
+        for env_config_dict in env_config_dict_list
+    }
+
+
 def get_merged_env_config_dict_list(
     env: Optional[Sequence[KubernetesEnvConfigDict]],
     default_env: Optional[Sequence[KubernetesEnvConfigDict]]
 ) -> List[KubernetesEnvConfigDict]:
+    if env and default_env:
+        return list({
+            **get_env_config_dict_for_env_config_dict_list(default_env),
+            **get_env_config_dict_for_env_config_dict_list(env)
+        }.values())
     return list(default_env or []) + list(env or [])
 
 
