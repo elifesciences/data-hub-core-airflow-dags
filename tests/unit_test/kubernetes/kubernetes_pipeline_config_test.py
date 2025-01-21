@@ -107,6 +107,50 @@ class TestKubernetesPipelineConfig:
         })
         assert result.volume_mounts == [KUBERNETES_V1_VOLUME_MOUNT_1]
 
+    def test_should_override_volume_mounths(self):
+        result = KubernetesPipelineConfig.from_dict(
+            {
+                **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'volumeMounts': [{
+                    'name': 'volume_mount_name_1',
+                    'mountPath': 'volume_mount_path_1',
+                    'readOnly': False
+                }, {
+                    'name': 'new_volume_mount_name',
+                    'mountPath': 'new_volume_mount_path',
+                    'readOnly': True
+                }]
+            },
+            default_config_dict={
+                'volumeMounts': [{
+                    'name': 'unchanged_volume_mount_name',
+                    'mountPath': 'unchanged_volume_mount_path',
+                    'readOnly': True
+                }, {
+                    'name': 'volume_mount_name_1',
+                    'mountPath': 'volume_mount_path_1',
+                    'readOnly': False
+                }]
+            }
+        )
+        assert result.volume_mounts == [
+            k8s_models.v1_volume_mount.V1VolumeMount(
+                name='unchanged_volume_mount_name',
+                mount_path='unchanged_volume_mount_path',
+                read_only=True
+            ),
+            k8s_models.v1_volume_mount.V1VolumeMount(
+                name='volume_mount_name_1',
+                mount_path='volume_mount_path_1',
+                read_only=False
+            ),
+            k8s_models.v1_volume_mount.V1VolumeMount(
+                name='new_volume_mount_name',
+                mount_path='new_volume_mount_path',
+                read_only=True
+            )
+        ]
+
     def test_should_read_volume(self):
         result = KubernetesPipelineConfig.from_dict({
             **KUBERNETES_PIPELINE_CONFIG_DICT_1,
