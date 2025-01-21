@@ -82,7 +82,7 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                     config_dict,
                     k8s_models.V1Volume
                 )
-                for config_dict in pipeline_config_dict['volumes']
+                for config_dict in pipeline_config_dict.get('volumes', [])
             ],
             env=[
                 convert_dict_to_kubernetes_client_object(

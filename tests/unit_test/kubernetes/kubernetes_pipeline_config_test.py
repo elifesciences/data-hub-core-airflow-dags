@@ -77,8 +77,7 @@ KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'dataPipelineId': 'data_pipeline_id_1',
     'image': 'image_1',
     'arguments': ['argument_1', 'argument_2'],
-    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1],
-    'volumes': [KUBERNETES_VOLUME_CONFIG_DICT_1]
+    'volumeMounts': [KUBERNETES_VOLUME_MOUNT_CONFIG_DICT_1]
 }
 
 
@@ -107,7 +106,10 @@ class TestKubernetesPipelineConfig:
         assert result.volume_mounts == [KUBERNETES_V1_VOLUME_MOUNT_1]
 
     def test_should_read_volume(self):
-        result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        result = KubernetesPipelineConfig.from_dict({
+            **KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'volumes': [KUBERNETES_VOLUME_CONFIG_DICT_1]
+        })
         assert result.volumes == [KUBERNETES_V1_VOLUME_1]
 
     def test_should_read_env(self):
