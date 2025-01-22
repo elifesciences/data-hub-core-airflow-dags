@@ -29,7 +29,7 @@ def convert_dict_to_kubernetes_client_object(
 def get_config_dict_for_config_dict_list(
     config_dict_list: Sequence[MappingT],
     unique_key: str
-) -> Mapping[tuple, MappingT]:
+) -> Mapping[str, MappingT]:
     return {
         config_dict[unique_key]: config_dict
         for config_dict in config_dict_list
