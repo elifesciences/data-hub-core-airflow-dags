@@ -32,6 +32,7 @@ class KubernetesDefaultConfigDict(TypedDict):
     env: NotRequired[Sequence[KubernetesEnvConfigDict]]
     volumes: NotRequired[Sequence[dict]]
     volumeMounts: NotRequired[Sequence[KubernetesVolumeMountConfigDict]]
+    resources: NotRequired[dict]
 
 
 class MultiKubernetesPipelineConfigDict(TypedDict):
