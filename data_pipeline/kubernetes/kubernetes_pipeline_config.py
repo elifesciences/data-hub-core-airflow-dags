@@ -12,7 +12,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 )
 from data_pipeline.utils.pipeline_config import AirflowConfig
 
-T = TypeVar("T", bound=Mapping[str, Any])
+MappingT = TypeVar("MappingT", bound=Mapping[str, Any])
 
 
 def convert_dict_to_kubernetes_client_object(
@@ -27,9 +27,9 @@ def convert_dict_to_kubernetes_client_object(
 
 
 def get_config_dict_for_config_dict_list(
-    config_dict_list: Sequence[T],
+    config_dict_list: Sequence[MappingT],
     unique_keys: List[str]
-) -> Mapping[tuple, T]:
+) -> Mapping[tuple, MappingT]:
     return {
         tuple(config_dict[key] for key in unique_keys): config_dict
         for config_dict in config_dict_list
@@ -37,10 +37,10 @@ def get_config_dict_for_config_dict_list(
 
 
 def get_merged_config_dict_list(
-    config: Optional[Sequence[T]],
-    default_config: Optional[Sequence[T]],
+    config: Optional[Sequence[MappingT]],
+    default_config: Optional[Sequence[MappingT]],
     unique_keys: List[str]
-) -> List[T]:
+) -> List[MappingT]:
     return list({
         **get_config_dict_for_config_dict_list(default_config or [], unique_keys),
         **get_config_dict_for_config_dict_list(config or [], unique_keys)
