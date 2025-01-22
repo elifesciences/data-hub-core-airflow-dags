@@ -40,7 +40,7 @@ def get_config_dict_for_config_dict_list(
 def get_merged_config_dict_list(
     config: Optional[Sequence[MappingT]],
     default_config: Optional[Sequence[MappingT]],
-    unique_key: List[str]
+    unique_key: str
 ) -> List[MappingT]:
     return list({
         **get_config_dict_for_config_dict_list(default_config or [], unique_key),
