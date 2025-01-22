@@ -29,6 +29,10 @@ class KubernetesPipelineConfigDict(TypedDict):
 
 class KubernetesDefaultConfigDict(TypedDict):
     airflow: NotRequired[AirflowConfigDict]
+    env: NotRequired[Sequence[KubernetesEnvConfigDict]]
+    volumes: NotRequired[Sequence[dict]]
+    volumeMounts: NotRequired[Sequence[KubernetesVolumeMountConfigDict]]
+    resources: NotRequired[dict]
 
 
 class MultiKubernetesPipelineConfigDict(TypedDict):
