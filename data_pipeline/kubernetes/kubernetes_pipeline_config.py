@@ -82,7 +82,7 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                 for config_dict in get_merged_config_dict_list(
                     config=pipeline_config_dict.get('volumeMounts', []),
                     default_config=default_config_dict.get('volumeMounts', []),
-                    unique_keys=['name', 'mountPath']
+                    unique_keys=['mountPath']
                 )
             ],
             volumes=[

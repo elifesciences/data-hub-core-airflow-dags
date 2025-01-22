@@ -112,7 +112,7 @@ class TestKubernetesPipelineConfig:
             {
                 **KUBERNETES_PIPELINE_CONFIG_DICT_1,
                 'volumeMounts': [{
-                    'name': 'volume_mount_name_1',
+                    'name': 'volume_mount_name_2',
                     'mountPath': 'volume_mount_path_1',
                     'readOnly': False
                 }, {
@@ -140,7 +140,7 @@ class TestKubernetesPipelineConfig:
                 read_only=True
             ),
             k8s_models.v1_volume_mount.V1VolumeMount(
-                name='volume_mount_name_1',
+                name='volume_mount_name_2',
                 mount_path='volume_mount_path_1',
                 read_only=False
             ),
