@@ -16,7 +16,7 @@ pendulum==2.1.2
 redis==4.6.0
 regex==2024.11.6
 fsspec==2022.8.2
-lxml>=4.8.0, <5.2.0
+lxml>=4.8.0, <5.4.0
 google-api-python-client==2.159.0
 google-cloud-bigquery>=1.27.2, !=2.4.0.a, <3.27.1
 google-oauth==1.0.1
