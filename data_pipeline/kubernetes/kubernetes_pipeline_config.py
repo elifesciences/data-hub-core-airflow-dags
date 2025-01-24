@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List, Mapping, Optional, Sequence, Type, TypeVar
+from typing import Any, Iterable, List, Mapping, Optional, Sequence, Type, TypeVar, cast
 
 from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
@@ -12,6 +12,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     MultiKubernetesPipelineConfigDict
 )
 from data_pipeline.utils.pipeline_config import AirflowConfig
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 MappingT = TypeVar("MappingT", bound=Mapping[str, Any])
 
@@ -158,11 +159,30 @@ class KubernetesPipelineFileConfig:
     kubernetes_pipelines: Sequence[KubernetesPipelineConfig]
 
     @staticmethod
+    def iter_pipeline_config_from_config_files(
+        config_files: Sequence[str]
+    ) -> Iterable['KubernetesPipelineConfig']:
+        for import_file in config_files:
+            pipeline_config_file_dict = cast(
+                KubernetesPipelineFileConfigDict,
+                get_yaml_file_as_dict(import_file)
+            )
+            yield from KubernetesPipelineFileConfig.from_dict(
+                pipeline_config_file_dict
+            ).kubernetes_pipelines
+
+    @staticmethod
     def from_dict(
         pipeline_config_file_dict: KubernetesPipelineFileConfigDict
     ) -> 'KubernetesPipelineFileConfig':
         if 'importFromFiles' in pipeline_config_file_dict:
-            return KubernetesPipelineFileConfig(kubernetes_pipelines=[])
+            return KubernetesPipelineFileConfig(
+                kubernetes_pipelines=list(
+                    KubernetesPipelineFileConfig.iter_pipeline_config_from_config_files(
+                        pipeline_config_file_dict['importFromFiles']  # type: ignore
+                    )
+                )
+            )
         return KubernetesPipelineFileConfig(
             kubernetes_pipelines=MultiKubernetesPipelineConfig.from_dict(
                 pipeline_config_file_dict  # type: ignore

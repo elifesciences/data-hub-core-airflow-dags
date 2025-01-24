@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
@@ -314,6 +317,18 @@ class TestKubernetesPipelineFileConfig:
             'importFromFiles': []
         })
         assert result.kubernetes_pipelines == []
+
+    def test_should_import_from_file(self, tmp_path: Path):
+        config_file_path_1 = tmp_path / 'config-file1.yaml'
+        config_file_path_1.write_text(json.dumps({
+            'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
+        }), encoding='utf-8')
+        result = KubernetesPipelineFileConfig.from_dict({
+            'importFromFiles': [str(config_file_path_1)]
+        })
+        assert result.kubernetes_pipelines == [
+            KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        ]
 
     def test_should_read_default_airflow_pipeline_configs(self):
         assert 'airflow' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
