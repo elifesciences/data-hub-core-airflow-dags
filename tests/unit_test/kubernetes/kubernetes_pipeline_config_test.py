@@ -5,7 +5,9 @@ from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     KubernetesPipelineConfig,
-    KubernetesPipelineFileConfig
+    KubernetesPipelineConfigEnvironmentVariables,
+    KubernetesPipelineFileConfig,
+    get_multi_kubernetes_pipeline_config
 )
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesEnvConfigDict,
@@ -377,3 +379,22 @@ class TestKubernetesPipelineFileConfig:
                 }
             })
         )
+
+
+class TestGetMultiKubernetesPipelineConfig:
+    def test_should_read_from_config_file_referenced_by_env_name(
+        self,
+        tmp_path: Path,
+        mock_env: dict
+    ):
+        config_file_path_1 = tmp_path / 'config-file1.yaml'
+        config_file_path_1.write_text(json.dumps({
+            'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
+        }), encoding='utf-8')
+        mock_env[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH] = (
+            str(config_file_path_1)
+        )
+        result = get_multi_kubernetes_pipeline_config()
+        assert result.kubernetes_pipelines == [
+            KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        ]
