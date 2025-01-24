@@ -8,6 +8,7 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesDefaultConfigDict,
     KubernetesEnvConfigDict,
     KubernetesPipelineConfigDict,
+    KubernetesPipelineFileConfigDict,
     MultiKubernetesPipelineConfigDict
 )
 from data_pipeline.utils.pipeline_config import AirflowConfig
@@ -149,4 +150,19 @@ class MultiKubernetesPipelineConfig:
                 )
                 for pipeline_config_dict in multi_pipeline_config_dict['kubernetesPipelines']
             ]
+        )
+
+
+@dataclass(frozen=True)
+class KubernetesPipelineFileConfig:
+    kubernetes_pipelines: Sequence[KubernetesPipelineConfig]
+
+    @staticmethod
+    def from_dict(
+        pipeline_config_file_dict: KubernetesPipelineFileConfigDict
+    ) -> 'KubernetesPipelineFileConfig':
+        return KubernetesPipelineFileConfig(
+            kubernetes_pipelines=MultiKubernetesPipelineConfig.from_dict(
+                pipeline_config_file_dict  # type: ignore
+            ).kubernetes_pipelines
         )

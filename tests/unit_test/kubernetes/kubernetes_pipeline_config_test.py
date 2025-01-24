@@ -2,7 +2,7 @@ from kubernetes.client import models as k8s_models
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     KubernetesPipelineConfig,
-    MultiKubernetesPipelineConfig
+    KubernetesPipelineFileConfig
 )
 from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesEnvConfigDict,
@@ -300,9 +300,9 @@ class TestKubernetesPipelineConfig:
         )
 
 
-class TestMultiKubernetesPipelineConfig:
+class TestKubernetesPipelineFileConfig:
     def test_should_read_kubernetes_pipeline_configs(self):
-        result = MultiKubernetesPipelineConfig.from_dict({
+        result = KubernetesPipelineFileConfig.from_dict({
             'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
         })
         assert result.kubernetes_pipelines == [
@@ -311,7 +311,7 @@ class TestMultiKubernetesPipelineConfig:
 
     def test_should_read_default_airflow_pipeline_configs(self):
         assert 'airflow' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
-        result = MultiKubernetesPipelineConfig.from_dict({
+        result = KubernetesPipelineFileConfig.from_dict({
             'defaultConfig': {
                 'airflow': AIRFLOW_CONFIG_DICT_1
             },
@@ -323,7 +323,7 @@ class TestMultiKubernetesPipelineConfig:
         )
 
     def test_should_override_default_airflow_config_with_part_exists_in_pipeline_config(self):
-        result = MultiKubernetesPipelineConfig.from_dict({
+        result = KubernetesPipelineFileConfig.from_dict({
             'defaultConfig': {
                 'airflow': AIRFLOW_CONFIG_DICT_1
             },
