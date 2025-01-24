@@ -161,6 +161,8 @@ class KubernetesPipelineFileConfig:
     def from_dict(
         pipeline_config_file_dict: KubernetesPipelineFileConfigDict
     ) -> 'KubernetesPipelineFileConfig':
+        if 'importFromFiles' in pipeline_config_file_dict:
+            return KubernetesPipelineFileConfig(kubernetes_pipelines=[])
         return KubernetesPipelineFileConfig(
             kubernetes_pipelines=MultiKubernetesPipelineConfig.from_dict(
                 pipeline_config_file_dict  # type: ignore

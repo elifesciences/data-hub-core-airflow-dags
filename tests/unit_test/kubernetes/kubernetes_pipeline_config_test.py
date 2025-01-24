@@ -309,6 +309,12 @@ class TestKubernetesPipelineFileConfig:
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
 
+    def test_should_return_empty_list_if_import_from_files_is_empty_list(self):
+        result = KubernetesPipelineFileConfig.from_dict({
+            'importFromFiles': []
+        })
+        assert result.kubernetes_pipelines == []
+
     def test_should_read_default_airflow_pipeline_configs(self):
         assert 'airflow' not in KUBERNETES_PIPELINE_CONFIG_DICT_1
         result = KubernetesPipelineFileConfig.from_dict({
