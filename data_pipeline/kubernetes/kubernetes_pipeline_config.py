@@ -13,7 +13,10 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesPipelineFileConfigDict,
     MultiKubernetesPipelineConfigDict
 )
-from data_pipeline.utils.pipeline_config import AirflowConfig
+from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
+    get_pipeline_config_for_env_name_and_config_parser
+)
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
 
@@ -200,3 +203,14 @@ class KubernetesPipelineFileConfig:
                 pipeline_config_file_dict  # type: ignore
             ).kubernetes_pipelines
         )
+
+
+class KubernetesPipelineConfigEnvironmentVariables:
+    CONFIG_FILE_PATH = 'KUBERNETES_PIPELINE_CONFIG_FILE_PATH'
+
+
+def get_multi_kubernetes_pipeline_config() -> MultiKubernetesPipelineConfig:
+    return get_pipeline_config_for_env_name_and_config_parser(
+        KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH,
+        MultiKubernetesPipelineConfig.from_dict
+    )
