@@ -44,7 +44,7 @@ class ImportFromFilesKubernetesPipelineConfigDict(TypedDict):
     importFromFiles: Sequence[str]
 
 
-KubernetesPipelineConfigFileDict = Union[
+KubernetesPipelineFileConfigDict = Union[
     MultiKubernetesPipelineConfigDict,
     ImportFromFilesKubernetesPipelineConfigDict
 ]
