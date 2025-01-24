@@ -410,7 +410,7 @@ class TestGetMultiKubernetesPipelineConfig:
         }), encoding='utf-8')
         config_file_path_2 = tmp_path / 'config-file2.yaml'
         config_file_path_2.write_text(json.dumps({
-            'importFromFiles': [str(config_file_path_1)]
+            'importFromFiles': [config_file_path_1.name]
         }), encoding='utf-8')
         mock_env[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH] = (
             str(config_file_path_2)

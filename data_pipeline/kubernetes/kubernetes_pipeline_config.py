@@ -15,7 +15,8 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
 )
 from data_pipeline.utils.pipeline_config import (
     AirflowConfig,
-    get_pipeline_config_for_env_name_and_config_parser
+    get_deployment_env,
+    update_deployment_env_placeholder
 )
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 
@@ -210,7 +211,17 @@ class KubernetesPipelineConfigEnvironmentVariables:
 
 
 def get_multi_kubernetes_pipeline_config() -> KubernetesPipelineFileConfig:
-    return get_pipeline_config_for_env_name_and_config_parser(
-        KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH,
-        KubernetesPipelineFileConfig.from_dict
+    deployment_env = get_deployment_env()
+    LOGGER.info('deployment_env: %s', deployment_env)
+    config_file_path = os.environ[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH]
+    pipeline_config_dict = update_deployment_env_placeholder(
+        get_yaml_file_as_dict(config_file_path),
+        deployment_env=deployment_env
     )
+    LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
+    pipeline_config = KubernetesPipelineFileConfig.from_dict(
+        pipeline_config_dict,
+        base_path=os.path.dirname(config_file_path)
+    )
+    LOGGER.info('pipeline_config: %s', pipeline_config)
+    return pipeline_config
