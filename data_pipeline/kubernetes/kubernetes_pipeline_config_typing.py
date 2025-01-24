@@ -40,11 +40,11 @@ class MultiKubernetesPipelineConfigDict(TypedDict):
     kubernetesPipelines: Sequence[KubernetesPipelineConfigDict]
 
 
-class ImportFromFilesKubernetesPipelineConfigDict(TypedDict):
-    importFromFiles: Sequence[str]
+class ImportFilesFromKubernetesPipelineConfigDict(TypedDict):
+    importFilesFrom: Sequence[str]
 
 
 KubernetesPipelineFileConfigDict = Union[
     MultiKubernetesPipelineConfigDict,
-    ImportFromFilesKubernetesPipelineConfigDict
+    ImportFilesFromKubernetesPipelineConfigDict
 ]

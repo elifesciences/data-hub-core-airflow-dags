@@ -190,11 +190,11 @@ class KubernetesPipelineFileConfig:
         pipeline_config_file_dict: KubernetesPipelineFileConfigDict,
         base_path: str = '.'
     ) -> 'KubernetesPipelineFileConfig':
-        if 'importFromFiles' in pipeline_config_file_dict:
+        if 'importFilesFrom' in pipeline_config_file_dict:
             return KubernetesPipelineFileConfig(
                 kubernetes_pipelines=list(
                     KubernetesPipelineFileConfig.iter_pipeline_config_from_config_files(
-                        pipeline_config_file_dict['importFromFiles'],  # type: ignore
+                        pipeline_config_file_dict['importFilesFrom'],  # type: ignore
                         base_path=base_path
                     )
                 )

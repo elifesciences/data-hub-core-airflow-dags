@@ -314,31 +314,31 @@ class TestKubernetesPipelineFileConfig:
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
 
-    def test_should_return_empty_list_if_import_from_files_is_empty_list(self):
+    def test_should_return_empty_list_if_import_files_from_is_empty_list(self):
         result = KubernetesPipelineFileConfig.from_dict({
-            'importFromFiles': []
+            'importFilesFrom': []
         })
         assert result.kubernetes_pipelines == []
 
-    def test_should_import_from_file_using_absolute_path(self, tmp_path: Path):
+    def test_should_import_files_from_using_absolute_path(self, tmp_path: Path):
         config_file_path_1 = tmp_path / 'config-file1.yaml'
         config_file_path_1.write_text(json.dumps({
             'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
         }), encoding='utf-8')
         result = KubernetesPipelineFileConfig.from_dict({
-            'importFromFiles': [str(config_file_path_1)]
+            'importFilesFrom': [str(config_file_path_1)]
         })
         assert result.kubernetes_pipelines == [
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
 
-    def test_should_import_from_file_using_relative_path(self, tmp_path: Path):
+    def test_should_import_files_from_using_relative_path(self, tmp_path: Path):
         config_file_path_1 = tmp_path / 'config-file1.yaml'
         config_file_path_1.write_text(json.dumps({
             'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
         }), encoding='utf-8')
         result = KubernetesPipelineFileConfig.from_dict({
-            'importFromFiles': [config_file_path_1.name]
+            'importFilesFrom': [config_file_path_1.name]
         }, base_path=str(tmp_path))
         assert result.kubernetes_pipelines == [
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
@@ -399,7 +399,7 @@ class TestGetMultiKubernetesPipelineConfig:
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
 
-    def test_should_read_from_config_file_with_import_from_files_referenced_by_env_name(
+    def test_should_read_from_config_file_with_import_files_from_referenced_by_env_name(
         self,
         tmp_path: Path,
         mock_env: dict
@@ -410,7 +410,7 @@ class TestGetMultiKubernetesPipelineConfig:
         }), encoding='utf-8')
         config_file_path_2 = tmp_path / 'config-file2.yaml'
         config_file_path_2.write_text(json.dumps({
-            'importFromFiles': [config_file_path_1.name]
+            'importFilesFrom': [config_file_path_1.name]
         }), encoding='utf-8')
         mock_env[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH] = (
             str(config_file_path_2)
