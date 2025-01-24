@@ -209,8 +209,8 @@ class KubernetesPipelineConfigEnvironmentVariables:
     CONFIG_FILE_PATH = 'KUBERNETES_PIPELINE_CONFIG_FILE_PATH'
 
 
-def get_multi_kubernetes_pipeline_config() -> MultiKubernetesPipelineConfig:
+def get_multi_kubernetes_pipeline_config() -> KubernetesPipelineFileConfig:
     return get_pipeline_config_for_env_name_and_config_parser(
         KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH,
-        MultiKubernetesPipelineConfig.from_dict
+        KubernetesPipelineFileConfig.from_dict
     )

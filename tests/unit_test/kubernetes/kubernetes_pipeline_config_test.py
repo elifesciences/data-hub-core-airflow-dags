@@ -398,3 +398,24 @@ class TestGetMultiKubernetesPipelineConfig:
         assert result.kubernetes_pipelines == [
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
+
+    def test_should_read_from_config_file_with_import_from_files_referenced_by_env_name(
+        self,
+        tmp_path: Path,
+        mock_env: dict
+    ):
+        config_file_path_1 = tmp_path / 'config-file1.yaml'
+        config_file_path_1.write_text(json.dumps({
+            'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
+        }), encoding='utf-8')
+        config_file_path_2 = tmp_path / 'config-file2.yaml'
+        config_file_path_2.write_text(json.dumps({
+            'importFromFiles': [str(config_file_path_1)]
+        }), encoding='utf-8')
+        mock_env[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH] = (
+            str(config_file_path_2)
+        )
+        result = get_multi_kubernetes_pipeline_config()
+        assert result.kubernetes_pipelines == [
+            KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        ]
