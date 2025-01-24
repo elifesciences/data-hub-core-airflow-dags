@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, List, Mapping, Optional, Sequence, Type, TypeVar
+import logging
+import os
+from typing import Any, Iterable, List, Mapping, Optional, Sequence, Type, TypeVar, cast
 
 from kubernetes.client import api_client as k8s_api_client
 from kubernetes.client import models as k8s_models
@@ -8,9 +10,19 @@ from data_pipeline.kubernetes.kubernetes_pipeline_config_typing import (
     KubernetesDefaultConfigDict,
     KubernetesEnvConfigDict,
     KubernetesPipelineConfigDict,
+    KubernetesPipelineFileConfigDict,
     MultiKubernetesPipelineConfigDict
 )
-from data_pipeline.utils.pipeline_config import AirflowConfig
+from data_pipeline.utils.pipeline_config import (
+    AirflowConfig,
+    get_deployment_env,
+    update_deployment_env_placeholder
+)
+from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 MappingT = TypeVar("MappingT", bound=Mapping[str, Any])
 
@@ -150,3 +162,66 @@ class MultiKubernetesPipelineConfig:
                 for pipeline_config_dict in multi_pipeline_config_dict['kubernetesPipelines']
             ]
         )
+
+
+@dataclass(frozen=True)
+class KubernetesPipelineFileConfig:
+    kubernetes_pipelines: Sequence[KubernetesPipelineConfig]
+
+    @staticmethod
+    def iter_pipeline_config_from_config_files(
+        config_files: Sequence[str],
+        base_path: str
+    ) -> Iterable['KubernetesPipelineConfig']:
+        for import_file in config_files:
+            full_import_file = os.path.join(base_path, import_file)
+            LOGGER.info('Importing from: %r', full_import_file)
+            pipeline_config_file_dict = cast(
+                KubernetesPipelineFileConfigDict,
+                get_yaml_file_as_dict(full_import_file)
+            )
+            yield from KubernetesPipelineFileConfig.from_dict(
+                pipeline_config_file_dict,
+                base_path=base_path
+            ).kubernetes_pipelines
+
+    @staticmethod
+    def from_dict(
+        pipeline_config_file_dict: KubernetesPipelineFileConfigDict,
+        base_path: str = '.'
+    ) -> 'KubernetesPipelineFileConfig':
+        if 'importFilesFrom' in pipeline_config_file_dict:
+            return KubernetesPipelineFileConfig(
+                kubernetes_pipelines=list(
+                    KubernetesPipelineFileConfig.iter_pipeline_config_from_config_files(
+                        pipeline_config_file_dict['importFilesFrom'],  # type: ignore
+                        base_path=base_path
+                    )
+                )
+            )
+        return KubernetesPipelineFileConfig(
+            kubernetes_pipelines=MultiKubernetesPipelineConfig.from_dict(
+                pipeline_config_file_dict  # type: ignore
+            ).kubernetes_pipelines
+        )
+
+
+class KubernetesPipelineConfigEnvironmentVariables:
+    CONFIG_FILE_PATH = 'KUBERNETES_PIPELINE_CONFIG_FILE_PATH'
+
+
+def get_multi_kubernetes_pipeline_config() -> KubernetesPipelineFileConfig:
+    deployment_env = get_deployment_env()
+    LOGGER.info('deployment_env: %s', deployment_env)
+    config_file_path = os.environ[KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH]
+    pipeline_config_dict = update_deployment_env_placeholder(
+        get_yaml_file_as_dict(config_file_path),
+        deployment_env=deployment_env
+    )
+    LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
+    pipeline_config = KubernetesPipelineFileConfig.from_dict(
+        pipeline_config_dict,
+        base_path=os.path.dirname(config_file_path)
+    )
+    LOGGER.info('pipeline_config: %s', pipeline_config)
+    return pipeline_config

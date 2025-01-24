@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from typing import List, Sequence, Union
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
@@ -38,3 +38,13 @@ class KubernetesDefaultConfigDict(TypedDict):
 class MultiKubernetesPipelineConfigDict(TypedDict):
     defaultConfig: NotRequired[KubernetesDefaultConfigDict]
     kubernetesPipelines: Sequence[KubernetesPipelineConfigDict]
+
+
+class ImportFilesFromKubernetesPipelineConfigDict(TypedDict):
+    importFilesFrom: Sequence[str]
+
+
+KubernetesPipelineFileConfigDict = Union[
+    MultiKubernetesPipelineConfigDict,
+    ImportFilesFromKubernetesPipelineConfigDict
+]
