@@ -318,7 +318,7 @@ class TestKubernetesPipelineFileConfig:
         })
         assert result.kubernetes_pipelines == []
 
-    def test_should_import_from_file(self, tmp_path: Path):
+    def test_should_import_from_file_using_absolute_path(self, tmp_path: Path):
         config_file_path_1 = tmp_path / 'config-file1.yaml'
         config_file_path_1.write_text(json.dumps({
             'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
@@ -326,6 +326,18 @@ class TestKubernetesPipelineFileConfig:
         result = KubernetesPipelineFileConfig.from_dict({
             'importFromFiles': [str(config_file_path_1)]
         })
+        assert result.kubernetes_pipelines == [
+            KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+        ]
+
+    def test_should_import_from_file_using_relative_path(self, tmp_path: Path):
+        config_file_path_1 = tmp_path / 'config-file1.yaml'
+        config_file_path_1.write_text(json.dumps({
+            'kubernetesPipelines': [KUBERNETES_PIPELINE_CONFIG_DICT_1]
+        }), encoding='utf-8')
+        result = KubernetesPipelineFileConfig.from_dict({
+            'importFromFiles': [config_file_path_1.name]
+        }, base_path=str(tmp_path))
         assert result.kubernetes_pipelines == [
             KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
         ]
