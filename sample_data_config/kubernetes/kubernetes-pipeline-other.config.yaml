@@ -4,6 +4,7 @@ defaultConfig:
       schedule: null
       tags:
         - 'Kubernetes'
+  image: 'docker.io/elifesciences/data-hub-with-dags_unstable:latest'
   env:
     - name: DEPLOYMENT_ENV
       value: ci
@@ -42,8 +43,6 @@ kubernetesPipelines:
         schedule: null
         tags:
           - 'Kubernetes'
-
-    image: 'docker.io/elifesciences/data-hub-with-dags_unstable:latest'
     arguments: 
       - 'python'
       - '-m'

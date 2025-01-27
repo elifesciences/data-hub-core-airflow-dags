@@ -18,7 +18,7 @@ class KubernetesVolumeMountConfigDict(TypedDict):
 class KubernetesPipelineConfigDict(TypedDict):
     dataPipelineId: str
     airflow: NotRequired[AirflowConfigDict]
-    image: str
+    image: NotRequired[str]  # should be define either in default or in pipeline config
     imagePullPolicy: NotRequired[str]
     arguments: List[str]
     env: NotRequired[Sequence[KubernetesEnvConfigDict]]
@@ -29,6 +29,7 @@ class KubernetesPipelineConfigDict(TypedDict):
 
 class KubernetesDefaultConfigDict(TypedDict):
     airflow: NotRequired[AirflowConfigDict]
+    image: NotRequired[str]  # should be define either in default or in pipeline config
     env: NotRequired[Sequence[KubernetesEnvConfigDict]]
     volumes: NotRequired[Sequence[dict]]
     volumeMounts: NotRequired[Sequence[KubernetesVolumeMountConfigDict]]
