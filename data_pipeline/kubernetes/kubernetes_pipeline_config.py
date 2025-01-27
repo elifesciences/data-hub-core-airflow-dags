@@ -77,6 +77,11 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
         default_config_dict: Optional[KubernetesDefaultConfigDict] = None
     ) -> 'KubernetesPipelineConfig':
         default_config_dict = default_config_dict or {}
+        image = pipeline_config_dict.get(
+            'image',
+            default_config_dict.get('image')
+        )
+        assert image, 'image must be configured in default or pipeline config'
         return KubernetesPipelineConfig(
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             airflow_config=AirflowConfig.from_optional_dict(
@@ -85,7 +90,7 @@ class KubernetesPipelineConfig:  # pylint: disable=too-many-instance-attributes
                     default_config_dict.get('airflow')
                 )
             ),
-            image=pipeline_config_dict['image'],
+            image=image,
             arguments=pipeline_config_dict['arguments'],
             volume_mounts=[
                 convert_dict_to_kubernetes_client_object(

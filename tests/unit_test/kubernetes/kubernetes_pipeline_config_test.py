@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from kubernetes.client import models as k8s_models
+import pytest
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
     KubernetesPipelineConfig,
@@ -78,10 +79,14 @@ KUBERNETES_V1_RESOURCES_1 = k8s_models.V1ResourceRequirements(
     requests=KUBERNETES_RESOURCES_CONFIG_DICT_1['requests']
 )
 
-KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
+MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
     'dataPipelineId': 'data_pipeline_id_1',
-    'image': 'image_1',
     'arguments': ['argument_1', 'argument_2']
+}
+
+KUBERNETES_PIPELINE_CONFIG_DICT_1: KubernetesPipelineConfigDict = {
+    **MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1,
+    'image': 'image_1'
 }
 
 
@@ -97,9 +102,41 @@ class TestKubernetesPipelineConfig:
         })
         assert result.airflow_config == AirflowConfig.from_dict(AIRFLOW_CONFIG_DICT_1)
 
-    def test_should_read_image(self):
-        result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
+    def test_should_read_image_from_pipeline_config_without_default(self):
+        result = KubernetesPipelineConfig.from_dict({
+            **MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            'image': 'image_1'
+        })
         assert result.image == 'image_1'
+
+    def test_should_override_default_image_with_pipeline_config(self):
+        result = KubernetesPipelineConfig.from_dict(
+            {
+                **MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1,
+                'image': 'image_1'
+            },
+            default_config_dict={
+                'image': 'default_image_1'
+            }
+        )
+        assert result.image == 'image_1'
+
+    def test_should_read_default_image_config(self):
+        assert 'image' not in MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1
+        result = KubernetesPipelineConfig.from_dict(
+            MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1,
+            default_config_dict={
+                'image': 'default_image_1'
+            }
+        )
+        assert result.image == 'default_image_1'
+
+    def test_should_fail_if_image_isnt_defined_in_default_or_pipeline_config(self):
+        assert 'image' not in MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1
+        with pytest.raises(AssertionError):
+            KubernetesPipelineConfig.from_dict(
+                MINIMAL_KUBERNETES_PIPELINE_CONFIG_DICT_1
+            )
 
     def test_should_read_arguments(self):
         result = KubernetesPipelineConfig.from_dict(KUBERNETES_PIPELINE_CONFIG_DICT_1)
