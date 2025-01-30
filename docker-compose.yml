@@ -46,8 +46,6 @@ x-airflow-env:
     - WEB_API_SCHEDULE_INTERVAL=${WEB_API_SCHEDULE_INTERVAL:-}
     - WEB_API_CONFIG_FILE_PATH=${WEB_API_CONFIG_FILE_PATH:-/home/airflow/sample_data_config/web-api/web-api-data-pipeline.config.yaml}
     - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/home/airflow/sample_data_config/google-analytics/ga-data-pipeline.config.yaml
-    - CIVICRM_API_KEY_FILE_PATH=path-to-civi-api-key
-    - CIVICRM_SITE_KEY_FILE_PATH=path-to-civi-site-key
     - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
     - MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL=${MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL}
     - MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=${MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH}
