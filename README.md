@@ -23,7 +23,6 @@ Following are the credentials that you may need to provide
 * GCP's service account json key (mandatory for all data pipelines)
 * AWS credentials
 * Twitter's developer credentials
-* CiviCRM's credentials
 * Toggl credentials
 * Gmail refresh token credentials
 

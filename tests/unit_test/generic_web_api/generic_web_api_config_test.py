@@ -4,8 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from data_pipeline.generic_web_api.request_builder import (
-    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST,
-    CiviWebApiDynamicRequestBuilder
+    DEFAULT_SPACY_BATCH_MAX_SOURCE_VALUES_PER_REQUEST
 )
 from data_pipeline.utils.pipeline_config import (
     AirflowConfig,
@@ -231,24 +230,6 @@ class TestWebApiConfig:
             'batchSize': 123
         })
         assert web_api_config.batch_size == 123
-
-    def test_should_read_request_builder_name_and_parameters(self):
-        web_api_config = WebApiConfig.from_dict({
-            **MINIMAL_WEB_API_CONFIG_DICT,
-            'requestBuilder': {
-                'name': 'civi',
-                'parameters': {
-                    'fieldsToReturn': ['field1', 'field2']
-                }
-            }
-        })
-        assert isinstance(
-            web_api_config.dynamic_request_builder,
-            CiviWebApiDynamicRequestBuilder
-        )
-        assert web_api_config.dynamic_request_builder.request_builder_parameters == {
-            'fieldsToReturn': ['field1', 'field2']
-        }
 
     def test_should_read_request_builder_max_source_values_per_request(self):
         web_api_config = WebApiConfig.from_dict({
