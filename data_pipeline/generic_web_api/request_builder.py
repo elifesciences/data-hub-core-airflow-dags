@@ -170,63 +170,6 @@ class SpacyKeywordExtractionWebApiDynamicRequestBuilder(
         )
 
 
-CiviFieldsToReturnDict = TypedDict(
-    'CiviFieldsToReturnDict',
-    {
-        'return': NotRequired[str]
-    }
-)
-
-
-class CiviWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
-    def get_url(
-        self,
-        dynamic_request_parameters: WebApiDynamicRequestParameters,
-    ) -> str:
-        start_date = datetime_to_string(
-            dynamic_request_parameters.from_date, self.date_format
-        )
-        options = dict((key, value) for key, value in [
-            (self.offset_param, dynamic_request_parameters.page_offset),
-            (
-                self.page_size_param,
-                dynamic_request_parameters.page_size or self.page_size
-            ),
-            ("sort", self.sort_key_value)
-        ] if key and value)
-        start_date_param = {
-            self.from_date_param: {">=": start_date}
-        } if start_date else {}
-
-        field_to_return_param = self.get_fields_to_return_dict()
-        url_query_json_arg: dict = {
-            "sequential": 1,
-            **start_date_param,
-            **field_to_return_param,
-            "options": options
-        }
-        url_query_json_arg_as_str = json.dumps(
-            url_query_json_arg
-        )
-        param_dict = {
-            **self.static_parameters
-        }
-        url_no_options = self.compose_url(param_dict)
-        return url_no_options + "&json=" + url_query_json_arg_as_str
-
-    def get_fields_to_return_dict(self) -> CiviFieldsToReturnDict:
-        field_to_return_param: CiviFieldsToReturnDict = {}
-        assert self.request_builder_parameters is not None
-        field_to_return_list = self.request_builder_parameters.get(
-            "fieldsToReturn"
-        )
-        if field_to_return_list:
-            field_to_return_param = {
-                "return": ",".join(field_to_return_list)
-            }
-        return field_to_return_param
-
-
 class BioRxivWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
     #  setting none configurable parameters with dummy values
     def __init__(self, **kwargs):
@@ -389,7 +332,6 @@ WEB_API_REQUEST_BUILDER_CLASS_BY_NAME_MAP: Mapping[str, Type[WebApiDynamicReques
     'single_source_value': SingleSourceValueWebApiDynamicRequestBuilder,
     'spacy_keyword_extraction': SpacyKeywordExtractionWebApiDynamicRequestBuilder,
     'spacy_batch_keyword_extraction_api': SpacyBatchKeywordExtractionWebApiDynamicRequestBuilder,
-    'civi': CiviWebApiDynamicRequestBuilder,
     'biorxiv_medrxiv_api': BioRxivWebApiDynamicRequestBuilder,
     's2_title_abstract_embeddings_api': S2TitleAbstractEmbeddingsWebApiDynamicRequestBuilder,
     'crossref_metadata_api': CrossrefMetadataWebApiDynamicRequestBuilder,
