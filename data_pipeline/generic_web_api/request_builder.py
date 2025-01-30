@@ -1,10 +1,8 @@
 import logging
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Mapping, NamedTuple, Optional, Sequence, Type
 from urllib import parse
-from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.data_pipeline_timestamp import datetime_to_string
 from data_pipeline.utils.json import remove_key_with_null_value
