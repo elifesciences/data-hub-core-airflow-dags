@@ -38,7 +38,7 @@ ENV PATH /home/airflow/.local/bin:$PATH
 COPY data_pipeline ./data_pipeline
 COPY dags ./dags
 COPY setup.py ./setup.py
-RUN pip install -e . --user --no-dependencies
+RUN pip install -e . --no-dependencies
 
 COPY .flake8 .pylintrc mypy.ini run_test.sh ./
 COPY tests ./tests
