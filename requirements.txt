@@ -11,7 +11,7 @@ dateparser==1.2.0
 kubernetes==23.6.0
 apache-airflow-providers-cncf-kubernetes==7.5.0
 objsize==0.7.1
-pendulum==2.1.2
+pendulum==3.0.0
 redis==5.2.1
 regex==2024.11.6
 fsspec==2023.10.0
