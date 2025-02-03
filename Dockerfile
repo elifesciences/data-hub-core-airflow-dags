@@ -27,7 +27,7 @@ RUN pip install --disable-pip-version-check \
 ARG install_dev=n
 COPY requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then \
-    pip install --user --disable-pip-version-check \
+    pip install --disable-pip-version-check \
       -r requirements.monitoring.txt \
       -r requirements.txt \
       -r requirements.dev.txt; \
