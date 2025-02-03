@@ -27,7 +27,7 @@ RUN pip install --disable-pip-version-check \
 ARG install_dev=n
 COPY requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then \
-    pip install --user --disable-pip-version-check \
+    pip install --disable-pip-version-check \
       -r requirements.monitoring.txt \
       -r requirements.txt \
       -r requirements.dev.txt; \
@@ -38,7 +38,7 @@ ENV PATH /home/airflow/.local/bin:$PATH
 COPY data_pipeline ./data_pipeline
 COPY dags ./dags
 COPY setup.py ./setup.py
-RUN pip install -e . --user --no-dependencies
+RUN pip install -e . --no-dependencies
 
 COPY .flake8 .pylintrc mypy.ini run_test.sh ./
 COPY tests ./tests
