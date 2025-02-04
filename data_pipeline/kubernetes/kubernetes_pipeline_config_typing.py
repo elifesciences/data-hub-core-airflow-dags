@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from typing import List, Sequence, Union
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import AirflowConfigDict
@@ -18,7 +18,7 @@ class KubernetesVolumeMountConfigDict(TypedDict):
 class KubernetesPipelineConfigDict(TypedDict):
     dataPipelineId: str
     airflow: NotRequired[AirflowConfigDict]
-    image: str
+    image: NotRequired[str]  # should be define either in default or in pipeline config
     imagePullPolicy: NotRequired[str]
     arguments: List[str]
     env: NotRequired[Sequence[KubernetesEnvConfigDict]]
@@ -29,8 +29,23 @@ class KubernetesPipelineConfigDict(TypedDict):
 
 class KubernetesDefaultConfigDict(TypedDict):
     airflow: NotRequired[AirflowConfigDict]
+    image: NotRequired[str]  # should be define either in default or in pipeline config
+    env: NotRequired[Sequence[KubernetesEnvConfigDict]]
+    volumes: NotRequired[Sequence[dict]]
+    volumeMounts: NotRequired[Sequence[KubernetesVolumeMountConfigDict]]
+    resources: NotRequired[dict]
 
 
 class MultiKubernetesPipelineConfigDict(TypedDict):
     defaultConfig: NotRequired[KubernetesDefaultConfigDict]
     kubernetesPipelines: Sequence[KubernetesPipelineConfigDict]
+
+
+class ImportFilesFromKubernetesPipelineConfigDict(TypedDict):
+    importFilesFrom: Sequence[str]
+
+
+KubernetesPipelineFileConfigDict = Union[
+    MultiKubernetesPipelineConfigDict,
+    ImportFilesFromKubernetesPipelineConfigDict
+]

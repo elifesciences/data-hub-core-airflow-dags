@@ -537,18 +537,18 @@ class TestNextCursor:
     def test_should_ignore_get_cursor_value_when_matching_previous_cursor_by_default(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
         data = {'cursor_key1': 'cursor1'}
-        actual_next_cursor = get_next_cursor_from_data(
-            data, data_config, previous_cursor='cursor1'
-        )
-        assert actual_next_cursor is None
+        with pytest.raises(RuntimeError):
+            get_next_cursor_from_data(
+                data, data_config, previous_cursor='cursor1'
+            )
 
-    def test_should_not_ignore_same_cursor_if_configured_to_allow_it(self):
+    def test_should_continue_on_same_same_cursor_if_configured(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
         data_config = dataclasses.replace(
             data_config,
-            dynamic_request_builder=dataclasses.replace(
-                data_config.dynamic_request_builder,
-                allow_same_next_page_cursor=True
+            response=dataclasses.replace(
+                data_config.response,
+                on_same_next_cursor='Continue'
             )
         )
         data = {'cursor_key1': 'cursor1'}
@@ -556,6 +556,21 @@ class TestNextCursor:
             data, data_config, previous_cursor='cursor1'
         )
         assert actual_next_cursor == 'cursor1'
+
+    def test_should_stop_on_same_same_cursor_if_configured(self):
+        data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
+        data_config = dataclasses.replace(
+            data_config,
+            response=dataclasses.replace(
+                data_config.response,
+                on_same_next_cursor='Stop'
+            )
+        )
+        data = {'cursor_key1': 'cursor1'}
+        actual_next_cursor = get_next_cursor_from_data(
+            data, data_config, previous_cursor='cursor1'
+        )
+        assert actual_next_cursor is None
 
     def test_should_be_none_when_configured_but_not_in_data(self):
         data_config = _get_web_api_config_with_cursor_path(cursor_path=['cursor_key1'])
@@ -688,7 +703,8 @@ class TestGetDataSinglePage:
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
             headers=data_config.headers.mapping,
-            raise_on_status=True
+            raise_on_status=True,
+            timeout=data_config.timeout
         )
 
     def test_should_pass_dynamic_request_parameters_to_get_json(self):
@@ -888,6 +904,57 @@ class TestIterProcessedWebApiDataEtlBatchData:
                 placeholder_values=PLACEHOLDER_VALUES_1
             )
         )
+
+    def test_should_return_selected_placeholder_values_in_response(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'response': {
+                'sourceValueFieldsToReturn': ['placeholder_1']
+            }
+        })
+        responses = [
+            WebApiPageResponse(
+                {'response_property_1': 'response_value_1'}
+            )
+        ]
+        get_data_single_page_response_mock.side_effect = responses
+        record_list = list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            placeholder_values={'placeholder_1': 'placeholder_value_1'}
+        ))
+        assert len(record_list) == 1
+        assert record_list[0]['response_property_1'] == 'response_value_1'
+        assert record_list[0]['placeholder_1'] == 'placeholder_value_1'
+
+    def test_should_return_selected_single_source_values_in_response(
+        self,
+        get_data_single_page_response_mock: MagicMock
+    ):
+        data_config = get_data_config({
+            **WEB_API_CONFIG,
+            'requestBuilder': {
+                'name': 'single_source_value'
+            },
+            'response': {
+                'sourceValueFieldsToReturn': ['placeholder_1']
+            }
+        })
+        responses = [
+            WebApiPageResponse(
+                {'response_property_1': 'response_value_1'}
+            )
+        ]
+        get_data_single_page_response_mock.side_effect = responses
+        record_list = list(iter_processed_web_api_data_etl_batch_data(
+            data_config=data_config,
+            all_source_values_iterator=iter([{'placeholder_1': 'placeholder_value_1'}])
+        ))
+        assert len(record_list) == 1
+        assert record_list[0]['response_property_1'] == 'response_value_1'
+        assert record_list[0]['placeholder_1'] == 'placeholder_value_1'
 
 
 class TestProcessWebApiDataEtlBatchWithBatchSourceValueAndDateRange:

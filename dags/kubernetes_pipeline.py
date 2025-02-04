@@ -8,25 +8,14 @@ import airflow
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 
 from data_pipeline.kubernetes.kubernetes_pipeline_config import (
-    MultiKubernetesPipelineConfig,
-    KubernetesPipelineConfigEnvironmentVariables
+    get_multi_kubernetes_pipeline_config
 )
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
 )
-from data_pipeline.utils.pipeline_config import (
-    get_deployment_env,
-    get_pipeline_config_for_env_name_and_config_parser
-)
+from data_pipeline.utils.pipeline_config import get_deployment_env
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_multi_kubernetes_pipeline_config() -> MultiKubernetesPipelineConfig:
-    return get_pipeline_config_for_env_name_and_config_parser(
-        KubernetesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH,
-        MultiKubernetesPipelineConfig.from_dict
-    )
 
 
 def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
@@ -44,7 +33,6 @@ def create_kubernetes_pipeline_dags() -> Sequence[airflow.DAG]:
                 task_id=deployment_env + '-' + kubernetes_pipeline_config.data_pipeline_id,
                 random_name_suffix=True,
                 image=kubernetes_pipeline_config.image,
-                image_pull_policy=kubernetes_pipeline_config.image_pull_policy,
                 arguments=kubernetes_pipeline_config.arguments,
                 do_xcom_push=False,
                 startup_timeout_seconds=600,

@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Literal, Sequence, get_args
 from typing_extensions import NotRequired, TypedDict
 
 from data_pipeline.utils.pipeline_config_typing import (
@@ -9,6 +9,7 @@ from data_pipeline.utils.pipeline_config_typing import (
     RecordProcessingStepConfigList,
     StateFileConfigDict
 )
+from data_pipeline.utils.web_api_typing import WebApiRetryConfigDict
 
 
 class ParameterFromEnvConfigDict(TypedDict):
@@ -56,6 +57,7 @@ class WebApiAuthenticationConfigDict(TypedDict):
 
 class WebApiRequestBuilderConfigDict(TypedDict):
     name: str
+    maxSourceValuesPerRequest: NotRequired[int]
     parameters: NotRequired[dict]
     sourceTypeSpecificValues: NotRequired[dict]  # deprecated
 
@@ -64,14 +66,20 @@ class WebApiRecordTimestampResponseConfigDict(TypedDict):
     itemTimestampKeyFromItemRoot: NotRequired[Sequence[str]]
 
 
+OnSameNextCursorConfig = Literal['Error', 'Stop', 'Continue']
+VALID_ON_SAME_NEXT_CURSOR_VALUES = get_args(OnSameNextCursorConfig)
+
+
 class WebApiResponseConfigDict(TypedDict):
     itemsKeyFromResponseRoot: NotRequired[Sequence[str]]
     totalItemsCountKeyFromResponseRoot: NotRequired[Sequence[str]]
     nextPageCursorKeyFromResponseRoot: NotRequired[Sequence[str]]
     recordTimestamp: NotRequired[WebApiRecordTimestampResponseConfigDict]
     fieldsToReturn: NotRequired[Sequence[str]]
+    sourceValueFieldsToReturn: NotRequired[Sequence[str]]
     recordProcessingSteps: NotRequired[RecordProcessingStepConfigList]
     provenanceEnabled: NotRequired[bool]
+    onSameNextCursor: NotRequired[OnSameNextCursorConfig]
 
 
 class WebApiBaseConfigDict(TypedDict):
@@ -83,8 +91,9 @@ class WebApiBaseConfigDict(TypedDict):
     dataUrl: WebApiDataUrlConfigDict
     authentication: NotRequired[WebApiAuthenticationConfigDict]
     headers: NotRequired[MappingConfigDict]
+    timeout: NotRequired[float]
+    retry: NotRequired[WebApiRetryConfigDict]
     requestBuilder: NotRequired[WebApiRequestBuilderConfigDict]
-    urlSourceType: NotRequired[WebApiRequestBuilderConfigDict]  # deprecated
     response: NotRequired[WebApiResponseConfigDict]
     source: NotRequired[BigQueryIncludeExcludeSourceConfigDict]
     schemaFile: NotRequired[SchemaFileConfigDict]

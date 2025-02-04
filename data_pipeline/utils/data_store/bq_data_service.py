@@ -83,13 +83,15 @@ def load_file_into_bq(
 
 
 def load_tuple_list_into_bq(
-        tuple_list_to_insert: List[tuple], dataset_name: str, table_name: str
+    tuple_list_to_insert: List[tuple],
+    dataset_name: str,
+    table_name: str
 ) -> List[dict]:
     client = Client()
     table_ref = client.dataset(dataset_name).table(table_name)
     table = client.get_table(table_ref)  # API request
 
-    errors = []
+    errors: list = []
 
     for indx in range(ceil(len(tuple_list_to_insert) / MAX_ROWS_INSERTABLE)):
         errors.extend(
@@ -107,18 +109,20 @@ def load_tuple_list_into_bq(
 
 
 def load_tuple_list_page_into_bq(
-        client: Client, table: bq_table, tuple_list_to_insert: List[tuple],
-) -> List[dict]:
+    client: Client,
+    table: bq_table.Table,
+    tuple_list_to_insert: List[tuple],
+) -> Sequence[dict]:
 
     errors = client.insert_rows(table, tuple_list_to_insert)
     return errors
 
 
 def create_table(
-        project_name: str,
-        dataset_name: str,
-        table_name: str,
-        json_schema: list
+    project_name: str,
+    dataset_name: str,
+    table_name: str,
+    json_schema: list
 ):
     client = get_bq_client(project=project_name)
     table_id = compose_full_table_name(

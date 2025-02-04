@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from tempfile import TemporaryDirectory
 import json
 from json.decoder import JSONDecodeError
-from typing import Any, Iterable, Optional, Tuple, TypeVar, cast
+from typing import Any, Iterable, Optional, Sequence, Tuple, TypeVar, cast
 
 import objsize
 
@@ -26,7 +26,11 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     create_or_extend_table_schema
 )
-from data_pipeline.utils.json import remove_key_with_null_value
+from data_pipeline.utils.json import (
+    filter_dict_by_keys,
+    get_dict_items_with_additional_properties,
+    remove_key_with_null_value
+)
 from data_pipeline.utils.pipeline_file_io import iter_write_jsonl_to_file
 from data_pipeline.utils.pipeline_utils import (
     get_response_and_provenance_from_api,
@@ -140,15 +144,18 @@ def get_data_single_page_response(
         dynamic_request_parameters=dynamic_request_parameters
     )
     LOGGER.info(
+        "Request URL: %s %s",
+        data_config.dynamic_request_builder.method,
+        url
+    )
+    LOGGER.debug(
         "Request URL: %s %s (json: %r)",
         data_config.dynamic_request_builder.method,
         url,
         json_data
     )
 
-    with requests_retry_session_for_config(
-        data_config.dynamic_request_builder.retry_config
-    ) as session:
+    with requests_retry_session_for_config(data_config.retry) as session:
         if (data_config.authentication and data_config.authentication.authentication_type):
             assert data_config.authentication.authentication_type == "basic"
             assert data_config.authentication.auth_val_list
@@ -161,7 +168,8 @@ def get_data_single_page_response(
             url=url,
             json_data=json_data,
             headers=data_config.headers.mapping,
-            raise_on_status=True
+            raise_on_status=True,
+            timeout=data_config.timeout
         )
         LOGGER.info('Request Provenance: %r', request_provenance)
         resp = session_response.content
@@ -202,7 +210,7 @@ def iter_optional_source_values_from_bigquery(
 def get_next_source_values_or_none(
     data_config: WebApiConfig,
     all_source_values_iterator: Optional[Iterable[dict]] = None
-) -> Optional[Iterable[dict]]:
+) -> Optional[Sequence[dict]]:
     if all_source_values_iterator is None:
         return None
     assert data_config.dynamic_request_builder.max_source_values_per_request
@@ -373,6 +381,27 @@ def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-loca
         items_list = get_items_list(
             page_data, data_config
         )
+        single_source_values_or_placeholders: Optional[dict] = None
+        if (
+            current_dynamic_request_parameters.source_values
+            and len(current_dynamic_request_parameters.source_values) == 1
+        ):
+            single_source_values_or_placeholders = (
+                current_dynamic_request_parameters.source_values[0]
+            )
+        else:
+            single_source_values_or_placeholders = placeholder_values
+        if (
+            single_source_values_or_placeholders
+            and data_config.response.source_value_fields_to_return
+        ):
+            items_list = get_dict_items_with_additional_properties(
+                items_list,
+                additional_properties=filter_dict_by_keys(
+                    dict_to_filter=single_source_values_or_placeholders,
+                    keys=data_config.response.source_value_fields_to_return
+                )
+            )
         LOGGER.debug('items_list: %r', items_list)
         if not items_list:
             LOGGER.info('Item list is empty, end reached')
@@ -705,13 +734,13 @@ def get_next_cursor_from_data(
             web_config.response.next_page_cursor_key_path_from_response_root
         )
         if next_cursor and next_cursor == previous_cursor:
-            if not web_config.dynamic_request_builder.allow_same_next_page_cursor:
-                LOGGER.info('Ignoring cursor that is the same as previous cursor: %r', next_cursor)
+            if web_config.response.on_same_next_cursor == 'Continue':
+                LOGGER.info('Continue on same next cursor: %r', next_cursor)
+                return next_cursor
+            if web_config.response.on_same_next_cursor == 'Stop':
+                LOGGER.info('Stopping on same next cursor: %r', next_cursor)
                 return None
-            LOGGER.info(
-                'Proceeding with cursor that is the same as previous cursor: %r',
-                next_cursor
-            )
+            raise RuntimeError(f'Unexpected same next cursor: {next_cursor}')
         return next_cursor
     return None
 

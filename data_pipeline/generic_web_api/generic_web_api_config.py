@@ -18,17 +18,24 @@ from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
+    VALID_ON_SAME_NEXT_CURSOR_VALUES,
     MultiWebApiConfigDict,
     ParameterFromEnvConfigDict,
     WebApiBaseConfigDict,
     WebApiConfigDict,
     WebApiConfigurableParametersConfigDict,
     WebApiRequestBuilderConfigDict,
-    WebApiResponseConfigDict
+    WebApiResponseConfigDict,
+    OnSameNextCursorConfig
 )
+from data_pipeline.utils.pipeline_utils import DEFAULT_TIMEOUT
 from data_pipeline.utils.record_processing import RecordProcessingStepFunction
 from data_pipeline.utils.record_processing_functions import (
     get_single_record_processing_step_function_for_function_names_or_none
+)
+from data_pipeline.utils.web_api import (
+    DEFAULT_WEB_API_RETRY_CONFIG,
+    WebApiRetryConfig
 )
 
 
@@ -93,6 +100,9 @@ class MultiWebApiConfig:
         }
 
 
+DEFAULT_ON_SAME_NEXT_CURSOR_OPTION: OnSameNextCursorConfig = 'Error'
+
+
 @dataclass(frozen=True)
 class WebApiResponseConfig:
     items_key_path_from_response_root: Sequence[str] = field(default_factory=list)
@@ -100,8 +110,10 @@ class WebApiResponseConfig:
     next_page_cursor_key_path_from_response_root: Sequence[str] = field(default_factory=list)
     item_timestamp_key_path_from_item_root: Sequence[str] = field(default_factory=list)
     fields_to_return: Optional[Sequence[str]] = None
+    source_value_fields_to_return: Optional[Sequence[str]] = None
     record_processing_step_function: Optional[RecordProcessingStepFunction] = None
     provenance_enabled: bool = False
+    on_same_next_cursor: OnSameNextCursorConfig = DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
 
     @staticmethod
     def from_dict(
@@ -109,6 +121,11 @@ class WebApiResponseConfig:
     ) -> 'WebApiResponseConfig':
         if not web_api_response_config:
             return WebApiResponseConfig()
+        on_same_next_cursor = web_api_response_config.get(
+            'onSameNextCursor',
+            DEFAULT_ON_SAME_NEXT_CURSOR_OPTION
+        )
+        assert on_same_next_cursor in VALID_ON_SAME_NEXT_CURSOR_VALUES
         return WebApiResponseConfig(
             items_key_path_from_response_root=(
                 web_api_response_config.get("itemsKeyFromResponseRoot", [])
@@ -124,6 +141,7 @@ class WebApiResponseConfig:
                 .get("itemTimestampKeyFromItemRoot", [])
             ),
             fields_to_return=web_api_response_config.get('fieldsToReturn'),
+            source_value_fields_to_return=web_api_response_config.get('sourceValueFieldsToReturn'),
             record_processing_step_function=(
                 get_single_record_processing_step_function_for_function_names_or_none(
                     web_api_response_config.get('recordProcessingSteps')
@@ -131,7 +149,8 @@ class WebApiResponseConfig:
             ),
             provenance_enabled=web_api_response_config.get(
                 'provenanceEnabled', False
-            )
+            ),
+            on_same_next_cursor=on_same_next_cursor
         )
 
 
@@ -146,6 +165,8 @@ class WebApiConfig:
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
     response: WebApiResponseConfig
+    timeout: float = DEFAULT_TIMEOUT
+    retry: WebApiRetryConfig = DEFAULT_WEB_API_RETRY_CONFIG
     schema_file_s3_bucket: Optional[str] = None
     schema_file_object_name: Optional[str] = None
     state_file_bucket_name: Optional[str] = None
@@ -220,12 +241,10 @@ class WebApiConfig:
         )
         request_builder_config_dict = cast(
             WebApiRequestBuilderConfigDict,
-            api_config.get(
-                'requestBuilder', api_config.get('urlSourceType', {})
-            )
+            api_config.get('requestBuilder', {})
         )
         request_builder_parameters = request_builder_config_dict.get(
-            'parameters', request_builder_config_dict.get('sourceTypeSpecificValues', {})
+            'parameters', {}
         )
         dynamic_request_builder_class = get_web_api_request_builder_class(
             request_builder_config_dict.get('name', '')
@@ -248,6 +267,9 @@ class WebApiConfig:
             static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
+            max_source_values_per_request=(
+                request_builder_config_dict.get('maxSourceValuesPerRequest')
+            ),
             request_builder_parameters=request_builder_parameters
         )
 
@@ -283,6 +305,10 @@ class WebApiConfig:
             ),
             state_file_object_name=(
                 api_config.get("stateFile", {}).get("objectName")
+            ),
+            timeout=api_config.get('timeout', DEFAULT_TIMEOUT),
+            retry=WebApiRetryConfig.from_optional_dict(
+                api_config.get('retry')
             ),
             headers=MappingConfig.from_dict(api_config.get('headers', {})),
             default_start_date=(
