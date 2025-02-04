@@ -8,8 +8,8 @@ botocore==1.31.16
 cattrs==24.1.2
 cloudpickle==3.1.1
 dateparser==1.2.0
-kubernetes==23.6.0
-apache-airflow-providers-cncf-kubernetes==7.5.0
+kubernetes==31.0.0
+apache-airflow-providers-cncf-kubernetes==10.1.0
 objsize==0.7.1
 pendulum==3.0.0
 redis==5.2.1
