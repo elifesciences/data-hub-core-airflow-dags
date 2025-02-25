@@ -14,7 +14,7 @@ scheduledQueries:
                   PARTITION BY DOI
                   ORDER BY imported_timestamp DESC
               ) AS _row_number
-            FROM `elife-data-pipeline.de_dev.crossref_metadata_api_response`
+            FROM `elife-data-pipeline.{ENV}.crossref_metadata_api_response`
           ) AS t_source
           WHERE t_source._row_number > 1
             AND t_delete.DOI = t_source.DOI
