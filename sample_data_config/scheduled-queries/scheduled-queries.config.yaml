@@ -1,0 +1,22 @@
+scheduledQueries:
+  - dataPipelineId: scheduled_query_data_pipeline_1
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        DELETE FROM `elife-data-pipeline.{ENV}.crossref_metadata_api_response` AS t_delete
+        WHERE EXISTS (
+          SELECT 1
+          FROM (
+            SELECT
+              DOI,
+              imported_timestamp,
+              ROW_NUMBER() OVER(
+                  PARTITION BY DOI
+                  ORDER BY imported_timestamp DESC
+              ) AS _row_number
+            FROM `elife-data-pipeline.de_dev.crossref_metadata_api_response`
+          ) AS t_source
+          WHERE t_source._row_number > 1
+            AND t_delete.DOI = t_source.DOI
+            AND t_delete.imported_timestamp = t_source.imported_timestamp
+        )
