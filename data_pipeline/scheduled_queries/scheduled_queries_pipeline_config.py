@@ -6,6 +6,7 @@ from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config_typing im
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict
 )
+from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
 
 
 @dataclass(frozen=True)
@@ -54,3 +55,14 @@ class MultiScheduledQueryPipelineConfig:
                 for query_config_dict in multi_pipeline_config_dict['scheduledQueries']
             ]
         )
+
+
+class ScheduledQueriesPipelineConfigEnvironmentVariables:
+    CONFIG_FILE_PATH = 'SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH'
+
+
+def get_multi_scheduled_queries_pipeline_config() -> MultiScheduledQueryPipelineConfig:
+    return get_pipeline_config_for_env_name_and_config_parser(
+        ScheduledQueriesPipelineConfigEnvironmentVariables.CONFIG_FILE_PATH,
+        MultiScheduledQueryPipelineConfig.from_dict
+    )
