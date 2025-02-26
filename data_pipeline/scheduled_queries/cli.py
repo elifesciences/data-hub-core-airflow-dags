@@ -1,11 +1,17 @@
 import logging
 
+from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config import (
+    get_multi_scheduled_queries_pipeline_config
+)
+
 
 LOGGER = logging.getLogger(__name__)
 
 
 def main():
     LOGGER.info('Starting Scheduled Queries pipeline')
+    multi_config = get_multi_scheduled_queries_pipeline_config()
+    LOGGER.info('multi_config: %r', multi_config)
     LOGGER.info('Done')
 
 

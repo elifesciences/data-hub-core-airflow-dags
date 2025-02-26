@@ -98,8 +98,9 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
-dev-run-scheduled-queries:
-	$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
+dev-run-scheduled-queries-pipeline:
+	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
+		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
 
 
 dev-end-to-end-monitoring:
