@@ -70,7 +70,7 @@ class TestProcessScheduledQuery:
         query_job_mock.result.assert_called()
 
 
-class TestProcessProcessedQueries:
+class TestProcessScheduledQueries:
     def test_should_call_process_processed_scheduled_query(
         self,
         process_scheduled_query_mock: MagicMock
