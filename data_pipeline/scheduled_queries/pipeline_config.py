@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Sequence
 
-from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config_typing import (
+from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict

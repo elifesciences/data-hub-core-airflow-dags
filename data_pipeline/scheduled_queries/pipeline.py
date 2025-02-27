@@ -1,6 +1,6 @@
 import logging
 
-from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config import (
+from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig
 )
 

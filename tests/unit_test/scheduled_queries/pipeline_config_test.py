@@ -4,14 +4,14 @@ import yaml
 
 from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables
 
-from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config import (
+from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
     ScheduledBigQueryConfig,
     ScheduledQueriesPipelineConfigEnvironmentVariables,
     ScheduledQueryPipelineConfig,
     get_multi_scheduled_queries_pipeline_config
 )
-from data_pipeline.scheduled_queries.scheduled_queries_pipeline_config_typing import (
+from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict
