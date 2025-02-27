@@ -1,0 +1,7 @@
+scheduledQueries:
+  - dataPipelineId: scheduled_query_data_pipeline_1
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        CREATE OR REPLACE TABLE `elife-data-pipeline.{ENV}.test_scheduled_query_data_pipeline_1` AS
+        SELECT 'value_1' AS column_1
