@@ -25,11 +25,13 @@ def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     query_job.result()
 
     duration = time.perf_counter() - start_time
-
     total_bytes_billed = query_job.total_bytes_billed
+    slot_millis = query_job.slot_millis
+
     LOGGER.info(
-        'Scheduled Query: %s bytes billed, took: %.3fs',
+        'Scheduled Query: %s bytes billed, slot time: %.3fs, took: %.3fs',
         total_bytes_billed,
+        slot_millis / 1000,
         duration
     )
 
