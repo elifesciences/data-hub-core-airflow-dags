@@ -8,5 +8,5 @@ from data_pipeline.scheduled_queries.pipeline_config import (
 LOGGER = logging.getLogger(__name__)
 
 
-def process_processed_queries(multi_config: MultiScheduledQueryPipelineConfig):
+def process_processed_scheduled_queries(multi_config: MultiScheduledQueryPipelineConfig):
     LOGGER.info('multi_config: %r', multi_config)
