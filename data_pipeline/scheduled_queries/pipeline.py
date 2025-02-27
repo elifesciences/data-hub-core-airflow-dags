@@ -29,7 +29,7 @@ def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     slot_millis = query_job.slot_millis
 
     LOGGER.info(
-        'Scheduled Query: %s bytes billed, slot time: %.3fs, took: %.3fs',
+        'Scheduled Query: total_bytes_billed=%s, slot_time=%.3fs, took=%.3fs',
         total_bytes_billed,
         slot_millis / 1000,
         duration
