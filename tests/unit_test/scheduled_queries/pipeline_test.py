@@ -23,10 +23,20 @@ PIPELINE_CONFIG_1 = ScheduledQueryPipelineConfig(
 )
 
 
-@pytest.fixture(name='get_bq_result_from_bq_query_mock', autouse=True)
-def _get_bq_result_from_bq_query_mock():
-    with patch.object(pipeline, 'get_bq_result_from_bq_query') as mock:
+@pytest.fixture(name='get_bq_client_mock', autouse=True)
+def _get_bq_client_mock():
+    with patch.object(pipeline, 'get_bq_client') as mock:
         yield mock
+
+
+@pytest.fixture(name='bq_client_mock')
+def _bq_client_mock(get_bq_client_mock: MagicMock):
+    return get_bq_client_mock.return_value
+
+
+@pytest.fixture(name='query_job_mock')
+def _query_job_mock(bq_client_mock: MagicMock):
+    return bq_client_mock.query.return_value
 
 
 @pytest.fixture(name='process_scheduled_query_mock')
@@ -36,15 +46,28 @@ def _process_scheduled_query_mock():
 
 
 class TestProcessScheduledQuery:
-    def test_should_call_get_bq_result_from_bq_query(
+    def test_should_call_get_bq_client(
         self,
-        get_bq_result_from_bq_query_mock: MagicMock
+        get_bq_client_mock: MagicMock
     ):
         pipeline.process_scheduled_query(PIPELINE_CONFIG_1)
-        get_bq_result_from_bq_query_mock.assert_called_with(
-            project_name=PIPELINE_CONFIG_1.bigquery.project_name,
-            query=PIPELINE_CONFIG_1.bigquery.sql_query
+        get_bq_client_mock.assert_called_with(
+            project=PIPELINE_CONFIG_1.bigquery.project_name
         )
+
+    def test_should_call_client_query(
+        self,
+        bq_client_mock: MagicMock
+    ):
+        pipeline.process_scheduled_query(PIPELINE_CONFIG_1)
+        bq_client_mock.query.assert_called_with(PIPELINE_CONFIG_1.bigquery.sql_query)
+
+    def test_should_call_query_job_result_to_execute(
+        self,
+        query_job_mock: MagicMock
+    ):
+        pipeline.process_scheduled_query(PIPELINE_CONFIG_1)
+        query_job_mock.result.assert_called()
 
 
 class TestProcessProcessedQueries:
