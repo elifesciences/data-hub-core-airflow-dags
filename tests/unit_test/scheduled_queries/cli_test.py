@@ -14,9 +14,9 @@ def _get_multi_scheduled_queries_pipeline_config_mock():
         yield mock
 
 
-@pytest.fixture(name='process_processed_scheduled_queries_mock', autouse=True)
-def _process_processed_scheduled_queries_mock():
-    with patch.object(cli, 'process_processed_scheduled_queries') as mock:
+@pytest.fixture(name='process_scheduled_queries_mock', autouse=True)
+def _process_scheduled_queries_mock():
+    with patch.object(cli, 'process_scheduled_queries') as mock:
         yield mock
 
 
@@ -31,9 +31,9 @@ class TestMain:
     def test_should_pass_config_to_run_process_processed_queries(
         self,
         get_multi_scheduled_queries_pipeline_config_mock: MagicMock,
-        process_processed_scheduled_queries_mock: MagicMock
+        process_scheduled_queries_mock: MagicMock
     ):
         main()
-        process_processed_scheduled_queries_mock.assert_called_with(
+        process_scheduled_queries_mock.assert_called_with(
             get_multi_scheduled_queries_pipeline_config_mock.return_value
         )

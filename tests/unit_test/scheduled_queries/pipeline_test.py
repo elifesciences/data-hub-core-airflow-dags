@@ -29,9 +29,9 @@ def _get_bq_result_from_bq_query_mock():
         yield mock
 
 
-@pytest.fixture(name='process_processed_scheduled_query_mock')
-def _process_processed_scheduled_query_mock():
-    with patch.object(pipeline, 'process_processed_scheduled_query') as mock:
+@pytest.fixture(name='process_scheduled_query_mock')
+def _process_scheduled_query_mock():
+    with patch.object(pipeline, 'process_scheduled_query') as mock:
         yield mock
 
 
@@ -40,7 +40,7 @@ class TestProcessScheduledQuery:
         self,
         get_bq_result_from_bq_query_mock: MagicMock
     ):
-        pipeline.process_processed_scheduled_query(PIPELINE_CONFIG_1)
+        pipeline.process_scheduled_query(PIPELINE_CONFIG_1)
         get_bq_result_from_bq_query_mock.assert_called_with(
             project_name=PIPELINE_CONFIG_1.bigquery.project_name,
             query=PIPELINE_CONFIG_1.bigquery.sql_query
@@ -50,11 +50,11 @@ class TestProcessScheduledQuery:
 class TestProcessProcessedQueries:
     def test_should_call_process_processed_scheduled_query(
         self,
-        process_processed_scheduled_query_mock: MagicMock
+        process_scheduled_query_mock: MagicMock
     ):
-        pipeline.process_processed_scheduled_queries(
+        pipeline.process_scheduled_queries(
             MultiScheduledQueryPipelineConfig(
                 scheduled_queries=[PIPELINE_CONFIG_1]
             )
         )
-        process_processed_scheduled_query_mock.assert_called_with(PIPELINE_CONFIG_1)
+        process_scheduled_query_mock.assert_called_with(PIPELINE_CONFIG_1)
