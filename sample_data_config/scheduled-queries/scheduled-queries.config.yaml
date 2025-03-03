@@ -5,3 +5,10 @@ scheduledQueries:
       sqlQuery: |-
         CREATE OR REPLACE TABLE `elife-data-pipeline.{ENV}.test_scheduled_query_data_pipeline_1` AS
         SELECT 'value_1' AS column_1
+
+  - dataPipelineId: scheduled_query_data_pipeline_2
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        DELETE FROM `elife-data-pipeline.{ENV}.test_scheduled_query_data_pipeline_1`
+        WHERE 1=1
