@@ -164,6 +164,7 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
         printable_mapping=printable_headers
     )
     if printable_params is None:
+        # Note: if printable_params is None (not empty) we assume params do not contain secrets
         printable_params = params
     LOGGER.info(
         'requesting url%s: %r %r (params=%r, headers=%r)',
