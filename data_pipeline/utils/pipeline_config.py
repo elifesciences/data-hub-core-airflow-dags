@@ -336,6 +336,13 @@ class MappingConfig:
     printable_mapping: Mapping[str, Any]
 
     @staticmethod
+    def from_printable_mapping(printable_mapping: Mapping[str, Any]) -> 'MappingConfig':
+        return MappingConfig(
+            mapping=printable_mapping,
+            printable_mapping=printable_mapping
+        )
+
+    @staticmethod
     def from_dict(mapping_config_dict: MappingConfigDict) -> 'MappingConfig':
         mapping = dict(mapping_config_dict)
         secrets_config_list = mapping.pop('parametersFromFile', [])

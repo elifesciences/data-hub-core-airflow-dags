@@ -694,9 +694,8 @@ class TestGetDataSinglePage:
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
             dynamic_request_builder=dynamic_request_builder,
-            static_parameters=MappingConfig(
-                mapping={'param_1': 'param_value_1'},
-                printable_mapping={}
+            static_parameters=MappingConfig.from_printable_mapping(
+                {'param_1': 'param_value_1'}
             )
         )
         get_data_single_page_response(
