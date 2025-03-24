@@ -14,7 +14,6 @@ from data_pipeline.utils.pipeline_config import (
     BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
-    get_resolved_parameter_values_from_file_path_env_name,
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
@@ -220,13 +219,9 @@ class WebApiConfig:
         result_sort_param_value = configurable_parameters.get(
             "resultSortParameterValue", None
         )
-        static_parameters = (
-            {
-                **(get_resolved_parameter_values_from_file_path_env_name(
-                    data_url_config_dict.get("parametersFromFile", [])
-                )),
-            }
-        )
+        static_parameters = MappingConfig.from_dict({
+            'parametersFromFile': data_url_config_dict.get("parametersFromFile", [])
+        }).mapping
         from_date_param = configurable_parameters.get(
             "fromDateParameterName", None)
         to_date_param = configurable_parameters.get(
