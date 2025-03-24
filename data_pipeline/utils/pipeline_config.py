@@ -2,7 +2,7 @@ import dataclasses
 import os
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, Optional, Sequence, Type, TypeVar, Union
+from typing import Any, Callable, KeysView, Mapping, Optional, Sequence, Set, Type, TypeVar, Union
 
 from airflow.providers.cncf.kubernetes.pod_generator import PodGenerator
 
@@ -330,6 +330,16 @@ def get_pipeline_config_for_env_name_and_config_parser(
     return pipeline_config
 
 
+def get_printable_mapping(
+    mapping: Mapping[str, Any],
+    secret_keys: Union[Set[str], KeysView[str]]
+) -> Mapping[str, Any]:
+    return {
+        key: SECRET_VALUE_PLACEHOLDER if key in secret_keys else value
+        for key, value in mapping.items()
+    }
+
+
 @dataclass(frozen=True)
 class MappingConfig:
     mapping: Mapping[str, Any] = field(repr=False)
@@ -343,6 +353,16 @@ class MappingConfig:
         )
 
     @staticmethod
+    def from_secret_mapping(secret_mapping: Mapping[str, Any]) -> 'MappingConfig':
+        return MappingConfig(
+            mapping=secret_mapping,
+            printable_mapping=get_printable_mapping(
+                secret_mapping,
+                secret_keys=secret_mapping.keys()
+            )
+        )
+
+    @staticmethod
     def from_dict(mapping_config_dict: MappingConfigDict) -> 'MappingConfig':
         mapping = dict(mapping_config_dict)
         secrets_config_list = mapping.pop('parametersFromFile', [])
@@ -353,10 +373,10 @@ class MappingConfig:
         LOGGER.debug('secrets.keys: %r', secrets_dict.keys())
         mapping.update(secrets_dict)
         secret_keys = secrets_dict.keys()
-        printable_mapping = {
-            key: SECRET_VALUE_PLACEHOLDER if key in secret_keys else value
-            for key, value in mapping.items()
-        }
+        printable_mapping = get_printable_mapping(
+            mapping,
+            secret_keys=secret_keys
+        )
         return MappingConfig(
             mapping=mapping,
             printable_mapping=printable_mapping

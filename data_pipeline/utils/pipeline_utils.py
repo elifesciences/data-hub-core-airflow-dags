@@ -143,6 +143,7 @@ def get_default_printable_mapping_with_secrets(
 def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Optional[Mapping[str, str]] = None,
+    printable_params: Optional[Mapping[str, str]] = None,
     headers: Optional[Mapping[str, str]] = None,
     printable_headers: Optional[Mapping[str, str]] = None,
     method: str = 'GET',
@@ -162,9 +163,11 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
         mapping=headers,
         printable_mapping=printable_headers
     )
+    if printable_params is None:
+        printable_params = params
     LOGGER.info(
         'requesting url%s: %r %r (params=%r, headers=%r)',
-        progress_message_str, method, url, params, printable_headers
+        progress_message_str, method, url, printable_params, printable_headers
     )
     request_timestamp = datetime.utcnow()
     if session:

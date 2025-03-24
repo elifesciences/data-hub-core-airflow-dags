@@ -708,6 +708,7 @@ class TestGetDataSinglePage:
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
             params=data_config.static_parameters.mapping,
+            printable_params=data_config.static_parameters.printable_mapping,
             headers=data_config.headers.mapping,
             raise_on_status=True,
             timeout=data_config.timeout
