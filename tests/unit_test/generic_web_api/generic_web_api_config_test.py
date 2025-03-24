@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Iterator
 from unittest.mock import MagicMock, patch
 
@@ -195,6 +196,24 @@ class TestWebApiConfig:
             'headers': headers
         })
         assert web_api_config.headers.mapping == headers
+
+    def test_should_read_static_parameters_from_file(self, tmp_path: Path, mock_env: dict):
+        secret_file = tmp_path / '.secret'
+        secret_file.write_text('secret_value_1', encoding='utf-8')
+        mock_env['SECRET_FILE_PATH'] = str(secret_file)
+        web_api_config = WebApiConfig.from_dict({
+            **MINIMAL_WEB_API_CONFIG_DICT,
+            'dataUrl': {
+                **MINIMAL_WEB_API_CONFIG_DICT['dataUrl'],
+                'parametersFromFile': [{
+                    'parameterName': 'secret_1',
+                    'filePathEnvName': 'SECRET_FILE_PATH'
+                }]
+            }
+        })
+        assert web_api_config.dynamic_request_builder.static_parameters == {
+            'secret_1': 'secret_value_1'
+        }
 
     def test_should_read_bigquery_source_config(self):
         web_api_config = WebApiConfig.from_dict({
