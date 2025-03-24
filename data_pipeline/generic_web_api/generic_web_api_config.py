@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field, replace
-from typing import Any, Mapping, Optional, Sequence, cast
+from typing import Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -160,7 +160,7 @@ class WebApiConfig:
     dataset_name: str
     table_name: str
     table_write_disposition: str
-    static_parameters: Mapping[str, Any]
+    static_parameters: MappingConfig
     headers: MappingConfig
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
@@ -222,7 +222,7 @@ class WebApiConfig:
         )
         static_parameters = MappingConfig.from_dict({
             'parametersFromFile': data_url_config_dict.get("parametersFromFile", [])
-        }).mapping
+        })
         from_date_param = configurable_parameters.get(
             "fromDateParameterName", None)
         to_date_param = configurable_parameters.get(
