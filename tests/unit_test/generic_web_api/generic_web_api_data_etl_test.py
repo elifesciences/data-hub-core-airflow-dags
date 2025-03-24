@@ -682,13 +682,14 @@ class TestNextOffset:
 
 
 class TestGetDataSinglePage:
-    def test_should_pass_method_url_and_header_to_session_request(
+    def test_should_pass_method_url_params_and_header_to_session_request(
         self,
         requests_session_mock: MagicMock,
         get_response_and_provenance_from_api_mock: MagicMock
     ):
         dynamic_request_builder = MagicMock(name='dynamic_request_builder')
         dynamic_request_builder.method = 'POST'
+        dynamic_request_builder.static_parameters = {'param_1': 'param_value_1'}
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
             dynamic_request_builder=dynamic_request_builder
@@ -702,6 +703,7 @@ class TestGetDataSinglePage:
             method=data_config.dynamic_request_builder.method,
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
+            params=dynamic_request_builder.static_parameters,
             headers=data_config.headers.mapping,
             raise_on_status=True,
             timeout=data_config.timeout

@@ -239,10 +239,6 @@ class CrossrefMetadataWebApiDynamicRequestBuilder(WebApiDynamicRequestBuilder):
             ]
             if key and value
         }
-        param_dict = {
-            **param_dict,
-            **self.static_parameters
-        }
         return self.compose_url(
             parameters_key_value=param_dict,
             placeholder_values=dynamic_request_parameters.placeholder_values
