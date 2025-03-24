@@ -378,3 +378,20 @@ webApi:
     response:
       provenanceEnabled: True
     batchSize: 19
+
+  - dataPipelineId: crossref_cited_by
+    description: https://www.crossref.org/documentation/cited-by/retrieve-citations/
+    dataset: '{ENV}'
+    table: test_crossref_cited_by
+    requestBuilder:
+      name: 'crossref_cited_by_api'
+      maxSourceValuesPerRequest: 10
+    dataUrl:
+      urlExcludingConfigurableParameters: https://doi.crossref.org/servlet/getForwardLinks?include_postedcontent=true&doi=10.7554&startDate=2000-01-01&endDate=2013-12-01
+      parametersFromFile:
+        - parameterName: usr
+          filePathEnvName: CROSSREF_API_USERNAME_FILE_PATH
+        - parameterName: pwd
+          filePathEnvName: CROSSREF_API_PASSWORD_FILE_PATH
+    response:
+      provenanceEnabled: True
