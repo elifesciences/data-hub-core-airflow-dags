@@ -222,9 +222,6 @@ class WebApiConfig:
         )
         static_parameters = (
             {
-                **(get_resolved_parameter_values_from_env_name(
-                    data_url_config_dict.get("parametersFromEnv", [])
-                )),
                 **(get_resolved_parameter_values_from_file_path_env_name(
                     data_url_config_dict.get("parametersFromFile", [])
                 )),
