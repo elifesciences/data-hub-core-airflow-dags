@@ -211,7 +211,7 @@ class TestWebApiConfig:
                 }]
             }
         })
-        assert web_api_config.dynamic_request_builder.static_parameters == {
+        assert web_api_config.static_parameters == {
             'secret_1': 'secret_value_1'
         }
 

@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field, replace
-from typing import Mapping, Optional, Sequence, cast
+from typing import Any, Mapping, Optional, Sequence, cast
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -160,6 +160,7 @@ class WebApiConfig:
     dataset_name: str
     table_name: str
     table_write_disposition: str
+    static_parameters: Mapping[str, Any]
     headers: MappingConfig
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
@@ -256,7 +257,6 @@ class WebApiConfig:
             offset_param=offset_param,
             page_size_param=page_size_param,
             page_size=page_size,
-            static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
             max_source_values_per_request=(
@@ -302,6 +302,7 @@ class WebApiConfig:
             retry=WebApiRetryConfig.from_optional_dict(
                 api_config.get('retry')
             ),
+            static_parameters=static_parameters,
             headers=MappingConfig.from_dict(api_config.get('headers', {})),
             default_start_date=(
                 configurable_parameters.get("defaultStartDate", None)

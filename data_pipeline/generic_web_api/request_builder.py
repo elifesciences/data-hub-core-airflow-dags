@@ -51,7 +51,6 @@ def get_url_with_added_or_replaced_query_parameters(
 @dataclass(frozen=True)
 class WebApiDynamicRequestBuilder:
     url_excluding_configurable_parameters: str
-    static_parameters: Mapping[str, Any]
     from_date_param: Optional[str] = None
     to_date_param: Optional[str] = None
     date_format: Optional[str] = None
@@ -110,10 +109,6 @@ class WebApiDynamicRequestBuilder:
             ),
             (self.sort_key, self.sort_key_value)
             ] if key and value)
-        param_dict = {
-            **param_dict,
-            **self.static_parameters
-        }
 
         return self.compose_url(
             parameters_key_value=param_dict,
