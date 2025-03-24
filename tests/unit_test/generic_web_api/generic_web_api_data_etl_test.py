@@ -710,6 +710,7 @@ class TestGetDataSinglePage:
             params=data_config.static_parameters.mapping,
             printable_params=data_config.static_parameters.printable_mapping,
             headers=data_config.headers.mapping,
+            printable_headers=data_config.headers.printable_mapping,
             raise_on_status=True,
             timeout=data_config.timeout
         )
