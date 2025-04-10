@@ -24,6 +24,13 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 10
 
 
+def get_query(
+        project: str,
+        dataset: str,
+        table: str):
+    return f'SELECT * FROM {project}.{dataset}.{table}'
+
+
 def fetch_single_column_value_list_for_bigquery_source_config(
     bigquery_source_config: BigQuerySourceConfig
 ) -> Sequence[str]:
