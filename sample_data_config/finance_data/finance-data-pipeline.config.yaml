@@ -1,7 +1,9 @@
-source:
-  projectName: 'elife-data-pipeline'
-  dataset: '{ENV}'
-  table: 'finance_data_test'
-target:
-  bucket: 'hazal-test'
-  objectName: 'finance_data_test.csv'
+financeDataPipeline:
+  - dataPipelineId: 'finance_data_pipeline_rp_site'
+    source:
+      projectName: 'elife-data-pipeline'
+      dataset: '{ENV}'
+      table: 'finance_data_rp_site_test'
+    target:
+      bucket: 'hazal-test'
+      objectName: 'finance_data_rp_site_test.csv'

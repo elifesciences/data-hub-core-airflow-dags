@@ -13,5 +13,6 @@ class FinanceDataTargetConfigDict(TypedDict):
 
 
 class FinanceDataPipelineConfigDict(TypedDict):
+    dataPipelineId: str
     source: FinanceDataSourceConfigDict
     target: FinanceDataTargetConfigDict
