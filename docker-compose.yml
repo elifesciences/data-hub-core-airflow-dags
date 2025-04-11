@@ -30,6 +30,7 @@ x-airflow-env:
     - GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=/home/airflow/secrets/gmail_end2end_test_credentials.json
     - GMAIL_THREAD_DETAILS_CHUNK_SIZE=100
     - ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=/home/airflow/sample_data_config/elife-article-xml/elife-article-xml.config.yaml
+    - FINANCE_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/finance_data/finance-data-pipeline.config.yaml
     - ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL=${ELIFE_ARTICLE_XML_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL=${EUROPEPMC_PIPELINE_SCHEDULE_INTERVAL}
     - EUROPEPMC_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc.config.yaml
