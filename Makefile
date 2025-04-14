@@ -91,7 +91,7 @@ dev-run-elife-articles-xml:
 		$(PYTHON) -m data_pipeline.elife_article_xml.cli
 
 dev-run-finance-data:
-	FINANCE_DATA_PIPELINE_CONFIG_FILE_PATH=sample_data_config/finance-data-pipeline/finance-data-pipeline.config.yaml \
+	FINANCE_DATA_CONFIG_FILE_PATH=sample_data_config/finance-data-pipeline/finance-data-pipeline.config.yaml \
 		$(PYTHON) -m data_pipeline.finance_data.cli
 
 dev-run-web-api:  .require-DATA_PIPELINE_ID
