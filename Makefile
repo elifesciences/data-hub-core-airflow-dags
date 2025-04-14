@@ -90,6 +90,9 @@ dev-run-elife-articles-xml:
 	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
 		$(PYTHON) -m data_pipeline.elife_article_xml.cli
 
+dev-run-finance-data:
+	FINANCE_DATA_PIPELINE_CONFIG_FILE_PATH=sample_data_config/finance-data-pipeline/finance-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.finance_data.cli
 
 dev-run-web-api:  .require-DATA_PIPELINE_ID
 	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
@@ -223,6 +226,10 @@ data-hub-pipelines-shell:
 data-hub-pipelines-run-elife-articles-xml:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
 		python -m data_pipeline.elife_article_xml.cli
+
+data-hub-pipelines-run-finance-data:
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+		python -m data_pipeline.finance_data.cli
 
 
 data-hub-pipelines-run-web-api:  .require-DATA_PIPELINE_ID
