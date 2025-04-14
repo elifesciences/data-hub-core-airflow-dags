@@ -36,6 +36,8 @@ x-airflow-env:
     - EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=/home/airflow/sample_data_config/europepmc/europepmc-labslink.config.yaml
     - EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-password.txt
     - EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=/home/airflow/sample_data_config/europepmc/test-ftp-directory-name.txt
+    - FINANCE_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/finance_data/finance-data-pipeline.config.yaml
+    - FINANCE_DATA_SCHEDULE_INTERVAL=${FINANCE_DATA_SCHEDULE_INTERVAL}
     - SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_PIPELINE_SCHEDULE_INTERVAL}
     - SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=/home/airflow/sample_data_config/semantic-scholar/semantic-scholar.config.yaml
     - SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL=${SEMANTIC_SCHOLAR_RECOMMENDATION_PIPELINE_SCHEDULE_INTERVAL}

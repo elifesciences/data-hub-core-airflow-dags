@@ -1,10 +1,9 @@
 import os
 import logging
-from io import StringIO
 import pandas as pd
 import requests
 
-import boto3
+from data_pipeline.utils.pipeline_utils import get_query
 
 
 DEPLOYMENT_ENV_ENV_NAME = "DEPLOYMENT_ENV"
@@ -24,30 +23,11 @@ def read_big_query(query: str, **kwargs):
     )
 
 
-def get_query(
-        project: str,
-        dataset: str,
-        table: str):
-    return f'SELECT * FROM {project}.{dataset}.{table}'
-
-
 def read_dataframe_from_s3_bucket(
     bucket_name: str,
     object_name: str
 ) -> pd.DataFrame:
     return pd.read_csv(f's3://{bucket_name}/{object_name}')
-
-
-def write_dataframe_to_s3_bucket(
-    df_name: pd.DataFrame,
-    bucket_name: str,
-    object_name: str
-):
-    csv_buffer = StringIO()
-    df_name.to_csv(csv_buffer, index=False)
-    s3_resource = boto3.resource('s3')
-    s3_resource.Object(bucket_name, object_name).put(Body=csv_buffer.getvalue())
-    csv_buffer.truncate(0)
 
 
 def get_out_dated_status(
