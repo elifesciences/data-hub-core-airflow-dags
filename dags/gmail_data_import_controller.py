@@ -1,7 +1,8 @@
 # Note: DagBag.process_file skips files without "airflow" or "DAG" in them
 
+import logging
 import os
-from dags.gmail_data_import_pipeline import LOGGER
+
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     trigger_data_pipeline_dag,
@@ -9,6 +10,9 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task
 )
 from data_pipeline.gmail_data.get_gmail_data_config import MultiGmailDataConfig
+
+
+LOGGER = logging.getLogger(__name__)
 
 GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL_ENV_NAME = "GMAIL_DATA_PIPELINE_SCHEDULE_INTERVAL"
 GMAIL_DATA_CONFIG_FILE_PATH_ENV_NAME = "GMAIL_DATA_CONFIG_FILE_PATH"
