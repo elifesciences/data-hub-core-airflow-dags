@@ -1,5 +1,6 @@
-from typing import Sequence
-from typing_extensions import TypedDict
+from typing_extensions import TypedDict, NotRequired, Sequence
+
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
 
 class ScheduledBigQueryConfigDict(TypedDict):
@@ -9,6 +10,7 @@ class ScheduledBigQueryConfigDict(TypedDict):
 
 class ScheduledQueryPipelineConfigDict(TypedDict):
     dataPipelineId: str
+    stateFile: NotRequired[StateFileConfigDict]
     bigQuery: ScheduledBigQueryConfigDict
 
 

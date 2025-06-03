@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables
+from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables, StateFileConfig
 
 from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
@@ -16,6 +16,7 @@ from data_pipeline.scheduled_queries.pipeline_config_typing import (
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict
 )
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
 
 BIGQUERY_CONFIG_DICT_1: ScheduledBigQueryConfigDict = {
@@ -29,6 +30,10 @@ PIPELINE_CONFIG_DICT_1: ScheduledQueryPipelineConfigDict = {
     'bigQuery': BIGQUERY_CONFIG_DICT_1
 }
 
+STATE_FILE_CONFIG_DICT_1: StateFileConfigDict = {
+    'bucketName': 'bucket_1',
+    'objectName': 'object_1'
+}
 
 MULTI_PIPELINE_CONFIG_DICT_1: MultiScheduledQueryPipelineConfigDict = {
     'scheduledQueries': [PIPELINE_CONFIG_DICT_1]
@@ -48,6 +53,16 @@ class TestScheduledQueryConfig:
         assert config.data_pipeline_id == PIPELINE_CONFIG_DICT_1['dataPipelineId']
         assert config.bigquery == ScheduledBigQueryConfig.from_dict(
             PIPELINE_CONFIG_DICT_1['bigQuery']
+        )
+
+    def test_should_parse_state_file_if_exists_in_config(self):
+        config_dict = {
+            **PIPELINE_CONFIG_DICT_1,
+            'stateFile': STATE_FILE_CONFIG_DICT_1
+        }
+        config = ScheduledQueryPipelineConfig.from_dict(config_dict)
+        assert config.state_file == StateFileConfig.from_dict(
+            STATE_FILE_CONFIG_DICT_1
         )
 
 

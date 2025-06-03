@@ -1,12 +1,15 @@
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Optional, Sequence
 
 from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict
 )
-from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
+from data_pipeline.utils.pipeline_config import (
+    StateFileConfig,
+    get_pipeline_config_for_env_name_and_config_parser
+)
 
 
 @dataclass(frozen=True)
@@ -28,6 +31,7 @@ class ScheduledBigQueryConfig:
 class ScheduledQueryPipelineConfig:
     data_pipeline_id: str
     bigquery: ScheduledBigQueryConfig
+    state_file: Optional[StateFileConfig] = None
 
     @staticmethod
     def from_dict(
@@ -37,6 +41,9 @@ class ScheduledQueryPipelineConfig:
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             bigquery=ScheduledBigQueryConfig.from_dict(
                 pipeline_config_dict['bigQuery']
+            ),
+            state_file=StateFileConfig.from_optional_dict(
+                pipeline_config_dict.get('stateFile')
             )
         )
 
