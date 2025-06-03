@@ -12,3 +12,14 @@ scheduledQueries:
       sqlQuery: |-
         DELETE FROM `elife-data-pipeline.{ENV}.test_scheduled_query_data_pipeline_1`
         WHERE 1=1
+
+  - dataPipelineId: scheduled_query_create_test_ga4_page_views_by_page_and_date
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        CREATE TABLE IF NOT EXISTS elife-data-pipeline.{ENV}.test_ga4_page_views_by_page_and_date (
+          page_location STRING,
+          event_date DATE,
+          unique_page_views INT64,
+          page_views INT64
+        )
