@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables
+from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables, StateFileConfig
 
 from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
@@ -54,6 +54,14 @@ class TestScheduledBigQueryConfig:
         assert config.sql_query == BIGQUERY_CONFIG_DICT_1['sqlQuery']
 
 
+class TestScheduledQueryPipelineStateConfig:
+    def test_should_parse_state_file(self):
+        config = ScheduledQueryPipelineStateConfig.from_dict(STATE_CONFIG_DICT_1)
+        assert config.state_file == StateFileConfig.from_dict(
+            STATE_FILE_CONFIG_DICT_1
+        )
+
+
 class TestScheduledQueryConfig:
     def test_should_parse_bigquery_config(self):
         config = ScheduledQueryPipelineConfig.from_dict(PIPELINE_CONFIG_DICT_1)
@@ -62,7 +70,7 @@ class TestScheduledQueryConfig:
             PIPELINE_CONFIG_DICT_1['bigQuery']
         )
 
-    def test_should_parse_state_file_if_exists_in_config(self):
+    def test_should_parse_state_if_exists_in_config(self):
         config_dict = {
             **PIPELINE_CONFIG_DICT_1,
             'state': STATE_CONFIG_DICT_1
