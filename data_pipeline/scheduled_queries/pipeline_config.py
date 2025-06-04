@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from datetime import date
 from typing import Optional, Sequence
 
 from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
     ScheduledQueryPipelineConfigDict,
+    ScheduledQueryPipelineInitialStateConfigDict,
     ScheduledQueryPipelineStateConfigDict
 )
 from data_pipeline.utils.pipeline_config import (
@@ -29,7 +31,23 @@ class ScheduledBigQueryConfig:
 
 
 @dataclass(frozen=True)
+class ScheduledQueryPipelineInitialStateConfig:
+    start_date: date
+
+    @staticmethod
+    def from_dict(
+        pipeline_initial_state_config_dict: ScheduledQueryPipelineInitialStateConfigDict
+    ) -> 'ScheduledQueryPipelineInitialStateConfig':
+        return ScheduledQueryPipelineInitialStateConfig(
+            start_date=date.fromisoformat(
+                pipeline_initial_state_config_dict['startDate']
+            )
+        )
+
+
+@dataclass(frozen=True)
 class ScheduledQueryPipelineStateConfig:
+    initial_state: ScheduledQueryPipelineInitialStateConfig
     state_file: StateFileConfig
 
     @staticmethod
@@ -37,6 +55,9 @@ class ScheduledQueryPipelineStateConfig:
         pipeline_state_config_dict: ScheduledQueryPipelineStateConfigDict
     ) -> 'ScheduledQueryPipelineStateConfig':
         return ScheduledQueryPipelineStateConfig(
+            initial_state=ScheduledQueryPipelineInitialStateConfig.from_dict(
+                pipeline_state_config_dict['initialState']
+            ),
             state_file=StateFileConfig.from_dict(
                 pipeline_state_config_dict['stateFile']
             )
