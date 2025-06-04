@@ -45,7 +45,7 @@ class ScheduledQueryPipelineStateConfig:
     @staticmethod
     def from_optional_dict(
         pipeline_state_config_dict: Optional[ScheduledQueryPipelineStateConfigDict]
-    ) -> 'ScheduledQueryPipelineStateConfig':
+    ) -> Optional['ScheduledQueryPipelineStateConfig']:
         if pipeline_state_config_dict is None:
             return None
         return ScheduledQueryPipelineStateConfig.from_dict(
