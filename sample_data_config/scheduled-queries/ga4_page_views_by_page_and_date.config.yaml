@@ -11,9 +11,12 @@ scheduledQueries:
         )
 
   - dataPipelineId: scheduled_query_update_test_ga4_page_views_by_page_and_date
-    stateFile:
-      bucketName: 'ci-elife-data-pipeline'
-      objectName: 'airflow-config/scheduled-queries/{ENV}-test_ga4_page_views_by_page_and_date-state.json'
+    state:
+      initialState:
+        startDate: '2025-05-25'
+      stateFile:
+        bucketName: 'ci-elife-data-pipeline'
+        objectName: 'airflow-config/scheduled-queries/{ENV}-test_ga4_page_views_by_page_and_date-state.json'
     bigQuery:
       projectName: 'elife-data-pipeline'
       sqlQuery: |-

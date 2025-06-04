@@ -4,7 +4,8 @@ from typing import Optional, Sequence
 from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
-    ScheduledQueryPipelineConfigDict
+    ScheduledQueryPipelineConfigDict,
+    ScheduledQueryPipelineStateConfigDict
 )
 from data_pipeline.utils.pipeline_config import (
     StateFileConfig,
@@ -28,10 +29,35 @@ class ScheduledBigQueryConfig:
 
 
 @dataclass(frozen=True)
+class ScheduledQueryPipelineStateConfig:
+    state_file: StateFileConfig
+
+    @staticmethod
+    def from_dict(
+        pipeline_state_config_dict: ScheduledQueryPipelineStateConfigDict
+    ) -> 'ScheduledQueryPipelineStateConfig':
+        return ScheduledQueryPipelineStateConfig(
+            state_file=StateFileConfig.from_dict(
+                pipeline_state_config_dict['stateFile']
+            )
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        pipeline_state_config_dict: Optional[ScheduledQueryPipelineStateConfigDict]
+    ) -> 'ScheduledQueryPipelineStateConfig':
+        if pipeline_state_config_dict is None:
+            return None
+        return ScheduledQueryPipelineStateConfig.from_dict(
+            pipeline_state_config_dict
+        )
+
+
+@dataclass(frozen=True)
 class ScheduledQueryPipelineConfig:
     data_pipeline_id: str
     bigquery: ScheduledBigQueryConfig
-    state_file: Optional[StateFileConfig] = None
+    state: Optional[ScheduledQueryPipelineStateConfig] = None
 
     @staticmethod
     def from_dict(
@@ -42,8 +68,8 @@ class ScheduledQueryPipelineConfig:
             bigquery=ScheduledBigQueryConfig.from_dict(
                 pipeline_config_dict['bigQuery']
             ),
-            state_file=StateFileConfig.from_optional_dict(
-                pipeline_config_dict.get('stateFile')
+            state=ScheduledQueryPipelineStateConfig.from_optional_dict(
+                pipeline_config_dict.get('state')
             )
         )
 

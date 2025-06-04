@@ -8,9 +8,18 @@ class ScheduledBigQueryConfigDict(TypedDict):
     sqlQuery: str
 
 
+class ScheduledQueryPipelineInitialStateConfigDict(TypedDict):
+    startDate: str
+
+
+class ScheduledQueryPipelineStateConfigDict(TypedDict):
+    initialState: ScheduledQueryPipelineInitialStateConfigDict
+    stateFile: StateFileConfigDict
+
+
 class ScheduledQueryPipelineConfigDict(TypedDict):
     dataPipelineId: str
-    stateFile: NotRequired[StateFileConfigDict]
+    state: NotRequired[ScheduledQueryPipelineStateConfigDict]
     bigQuery: ScheduledBigQueryConfigDict
 
 
