@@ -69,6 +69,12 @@ def _update_state_file_mock():
         yield mock
 
 
+@pytest.fixture(name='upload_s3_object_mock', autouse=True)
+def _upload_s3_object_mock():
+    with patch.object(pipeline, 'upload_s3_object') as mock:
+        yield mock
+
+
 class TestReplaceStartDateInSqlQuery:
     def test_should_replace_start_date_in_sql_query(self):
         sql_query = 'SELECT * FROM table WHERE date = "{start_date}"'
@@ -77,6 +83,36 @@ class TestReplaceStartDateInSqlQuery:
             sql_query, start_date=date.fromisoformat('2025-05-25')
         )
         assert result_query == expected_query
+
+
+class TestSaveStateToS3ForConfig:
+    def test_should_pass_bucket_and_object_to_upload_s3_object(
+        self,
+        upload_s3_object_mock: MagicMock
+    ):
+        pipeline.update_state_file(
+            state_file=STATE_FILE_CONFIG_1,
+            current_date=date.fromisoformat('2025-05-25')
+        )
+        upload_s3_object_mock.assert_called_with(
+            bucket=STATE_FILE_CONFIG_1.bucket_name,
+            object_key=STATE_FILE_CONFIG_1.object_name,
+            data_object=ANY
+        )
+
+    def test_should_passed_in_start_date_to_upload_s3_object(
+        self,
+        upload_s3_object_mock: MagicMock
+    ):
+        pipeline.update_state_file(
+            state_file=STATE_FILE_CONFIG_1,
+            current_date=date.fromisoformat('2025-05-25')
+        )
+        upload_s3_object_mock.assert_called_with(
+            bucket=ANY,
+            object_key=ANY,
+            data_object='2025-05-25'
+        )
 
 
 class TestProcessScheduledQuery:
