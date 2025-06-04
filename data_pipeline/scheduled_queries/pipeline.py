@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 
 def replace_start_date_in_sql_query(
     sql_query: str,
-    start_date: date = date.fromisoformat('2025-05-25')
+    start_date: date
 ) -> str:
     return sql_query.replace('{start_date}', start_date.isoformat().replace('-', ''))
 
@@ -25,7 +25,8 @@ def replace_start_date_in_sql_query(
 def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     LOGGER.info('pipeline_config: %r', pipeline_config)
     updated_sql_query = replace_start_date_in_sql_query(
-        pipeline_config.bigquery.sql_query
+        sql_query=pipeline_config.bigquery.sql_query,
+        start_date=date.fromisoformat('2025-05-25')
     )
     LOGGER.info('Running SQL Query: %r', updated_sql_query)
 
