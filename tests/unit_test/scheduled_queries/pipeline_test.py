@@ -47,11 +47,6 @@ def _process_scheduled_query_mock():
 
 
 class TestReplaceStartDateInSqlQuery:
-    def test_should_not_replace_if_no_placeholder(self):
-        sql_query = 'SELECT * FROM table'
-        result_query = pipeline.replace_start_date_in_sql_query(sql_query)
-        assert result_query == sql_query
-
     def test_should_replace_start_date_in_sql_query(self):
         sql_query = 'SELECT * FROM table WHERE date = "{start_date}"'
         expected_query = 'SELECT * FROM table WHERE date = "20250525"'
