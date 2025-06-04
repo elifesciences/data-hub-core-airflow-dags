@@ -1,13 +1,18 @@
 
+import dataclasses
 from datetime import date
 from unittest.mock import patch, MagicMock
 
 import pytest
 
+from data_pipeline.utils.pipeline_config import StateFileConfig
+
 from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
     ScheduledBigQueryConfig,
-    ScheduledQueryPipelineConfig
+    ScheduledQueryPipelineConfig,
+    ScheduledQueryPipelineInitialStateConfig,
+    ScheduledQueryPipelineStateConfig
 )
 
 from data_pipeline.scheduled_queries import pipeline
@@ -21,6 +26,17 @@ BIGQUERY_CONFIG_1 = ScheduledBigQueryConfig(
 PIPELINE_CONFIG_1 = ScheduledQueryPipelineConfig(
     data_pipeline_id='data_pipeline_1',
     bigquery=BIGQUERY_CONFIG_1
+)
+
+
+STATE_CONFIG_1 = ScheduledQueryPipelineStateConfig(
+    initial_state=ScheduledQueryPipelineInitialStateConfig(
+        start_date=date.fromisoformat('2025-05-25')
+    ),
+    state_file=StateFileConfig(
+        bucket_name='bucket_name_1',
+        object_name='object_name_1'
+    )
 )
 
 
@@ -79,6 +95,24 @@ class TestProcessScheduledQuery:
     ):
         pipeline.process_scheduled_query(PIPELINE_CONFIG_1)
         query_job_mock.result.assert_called()
+
+    def test_should_replace_sql_query_placeholder_if_state_is_configured(
+        self,
+        bq_client_mock: MagicMock
+    ):
+        pipeline.process_scheduled_query(
+            dataclasses.replace(
+                PIPELINE_CONFIG_1,
+                bigquery=dataclasses.replace(
+                    PIPELINE_CONFIG_1.bigquery,
+                    sql_query='SELECT * FROM table WHERE date = "{start_date}"'
+                ),
+                state=STATE_CONFIG_1
+            )
+        )
+        bq_client_mock.query.assert_called_with(
+            'SELECT * FROM table WHERE date = "20250525"'
+        )
 
 
 class TestProcessScheduledQueries:
