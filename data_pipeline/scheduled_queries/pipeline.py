@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 import time
 
@@ -16,9 +17,9 @@ LOGGER = logging.getLogger(__name__)
 
 def replace_start_date_in_sql_query(
     sql_query: str,
-    start_date: str = '20250525'
+    start_date: date = date.fromisoformat('2025-05-25')
 ) -> str:
-    return sql_query.replace('{start_date}', start_date)
+    return sql_query.replace('{start_date}', start_date.isoformat().replace('-', ''))
 
 
 def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):

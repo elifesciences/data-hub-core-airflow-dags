@@ -1,4 +1,5 @@
 
+from datetime import date
 from unittest.mock import patch, MagicMock
 
 import pytest
@@ -55,7 +56,7 @@ class TestReplaceStartDateInSqlQuery:
         sql_query = 'SELECT * FROM table WHERE date = "{start_date}"'
         expected_query = 'SELECT * FROM table WHERE date = "20250525"'
         result_query = pipeline.replace_start_date_in_sql_query(
-            sql_query, start_date='20250525'
+            sql_query, start_date=date.fromisoformat('2025-05-25')
         )
         assert result_query == expected_query
 
