@@ -1,7 +1,7 @@
 
 import dataclasses
 from datetime import date
-from unittest.mock import patch, MagicMock
+from unittest.mock import ANY, patch, MagicMock
 
 import pytest
 
@@ -33,6 +33,13 @@ STATE_FILE_CONFIG_1 = StateFileConfig(
     object_name='object_name_1'
 )
 
+STATE_CONFIG_1 = ScheduledQueryPipelineStateConfig(
+    initial_state=ScheduledQueryPipelineInitialStateConfig(
+        start_date=date.fromisoformat('2025-05-26')
+    ),
+    state_file=STATE_FILE_CONFIG_1
+)
+
 
 @pytest.fixture(name='get_bq_client_mock', autouse=True)
 def _get_bq_client_mock():
@@ -53,6 +60,12 @@ def _query_job_mock(bq_client_mock: MagicMock):
 @pytest.fixture(name='process_scheduled_query_mock')
 def _process_scheduled_query_mock():
     with patch.object(pipeline, 'process_scheduled_query') as mock:
+        yield mock
+
+
+@pytest.fixture(name='update_state_file_mock')
+def _update_state_file_mock():
+    with patch.object(pipeline, 'update_state_file') as mock:
         yield mock
 
 
@@ -111,6 +124,21 @@ class TestProcessScheduledQuery:
         )
         bq_client_mock.query.assert_called_with(
             'SELECT * FROM table WHERE date = "20250526"'
+        )
+
+    def test_should_update_state_file_with_current_date(
+        self,
+        update_state_file_mock: MagicMock
+    ):
+        pipeline.process_scheduled_query(
+            dataclasses.replace(
+                PIPELINE_CONFIG_1,
+                state=STATE_CONFIG_1
+            )
+        )
+        update_state_file_mock.assert_called_with(
+            state_file=STATE_CONFIG_1.state_file,
+            current_date=ANY
         )
 
 

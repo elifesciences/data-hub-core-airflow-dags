@@ -10,6 +10,7 @@ from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
     ScheduledQueryPipelineConfig
 )
+from data_pipeline.utils.pipeline_config import StateFileConfig
 
 
 LOGGER = logging.getLogger(__name__)
@@ -20,6 +21,17 @@ def replace_start_date_in_sql_query(
     start_date: date
 ) -> str:
     return sql_query.replace('{start_date}', start_date.isoformat().replace('-', ''))
+
+
+def update_state_file(
+    state_file: StateFileConfig,
+    current_date: date
+) -> None:
+    LOGGER.info(
+        'Updated state file: %s with current date: %s',
+        state_file,
+        current_date.isoformat()
+    )
 
 
 def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
@@ -57,6 +69,12 @@ def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
         slot_millis / 1000,
         duration
     )
+
+    if pipeline_config.state:
+        update_state_file(
+            state_file=pipeline_config.state.state_file,
+            current_date=date.today()
+        )
 
 
 def process_scheduled_queries(multi_config: MultiScheduledQueryPipelineConfig):
