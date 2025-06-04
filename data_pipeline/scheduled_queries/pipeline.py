@@ -24,16 +24,20 @@ def replace_start_date_in_sql_query(
 
 def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     LOGGER.info('pipeline_config: %r', pipeline_config)
-    updated_sql_query = replace_start_date_in_sql_query(
-        sql_query=pipeline_config.bigquery.sql_query,
-        start_date=date.fromisoformat('2025-05-25')
-    )
-    LOGGER.info('Running SQL Query: %r', updated_sql_query)
+
+    sql_query = pipeline_config.bigquery.sql_query
+    if pipeline_config.state:
+        sql_query = replace_start_date_in_sql_query(
+            sql_query=pipeline_config.bigquery.sql_query,
+            start_date=pipeline_config.state.initial_state.start_date
+        )
+
+    LOGGER.info('Running SQL Query: %r', sql_query)
 
     start_time = time.perf_counter()
 
     client = get_bq_client(project=pipeline_config.bigquery.project_name)
-    query_job = client.query(updated_sql_query)
+    query_job = client.query(sql_query)
     query_job.result()
 
     duration = time.perf_counter() - start_time

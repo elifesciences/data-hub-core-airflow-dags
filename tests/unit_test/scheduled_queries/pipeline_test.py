@@ -28,15 +28,9 @@ PIPELINE_CONFIG_1 = ScheduledQueryPipelineConfig(
     bigquery=BIGQUERY_CONFIG_1
 )
 
-
-STATE_CONFIG_1 = ScheduledQueryPipelineStateConfig(
-    initial_state=ScheduledQueryPipelineInitialStateConfig(
-        start_date=date.fromisoformat('2025-05-25')
-    ),
-    state_file=StateFileConfig(
-        bucket_name='bucket_name_1',
-        object_name='object_name_1'
-    )
+STATE_FILE_CONFIG_1 = StateFileConfig(
+    bucket_name='bucket_name_1',
+    object_name='object_name_1'
 )
 
 
@@ -107,11 +101,16 @@ class TestProcessScheduledQuery:
                     PIPELINE_CONFIG_1.bigquery,
                     sql_query='SELECT * FROM table WHERE date = "{start_date}"'
                 ),
-                state=STATE_CONFIG_1
+                state=ScheduledQueryPipelineStateConfig(
+                    initial_state=ScheduledQueryPipelineInitialStateConfig(
+                        start_date=date.fromisoformat('2025-05-26')
+                    ),
+                    state_file=STATE_FILE_CONFIG_1
+                )
             )
         )
         bq_client_mock.query.assert_called_with(
-            'SELECT * FROM table WHERE date = "20250525"'
+            'SELECT * FROM table WHERE date = "20250526"'
         )
 
 
