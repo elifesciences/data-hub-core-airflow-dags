@@ -312,6 +312,37 @@ webApi:
         - best_oa_location
         - related_works
 
+  # hypothesis api (for selected groups)
+  - dataPipelineId: hypothesis_annotations_by_group
+    dataset: '{ENV}'
+    table: test_hypothesis_annotations
+    source:
+      include:
+        bigQuery:
+          projectName: 'elife-data-pipeline'
+          sqlQuery: |-
+            SELECT *
+            FROM UNNEST([
+              'vweBiYd7'  -- eLife (unscoped)
+            ]) AS hypothesis_group_id
+    stateFile:
+      bucketName: 'ci-elife-data-pipeline'
+      objectName: 'airflow-config/generic-web-api/{ENV}-hypothesis-processing-state-{hypothesis_group_id}.json'
+    dataUrl:
+      urlExcludingConfigurableParameters: https://hypothes.is/api/search?group={hypothesis_group_id}&sort=updated&order=asc
+      configurableParameters:
+        pageSizeParameterName: limit
+        defaultPageSize: 100
+        fromDateParameterName: search_after
+        defaultStartDate: "2012-01-01T01:01:01.000000+00:00"
+        dateFormat: "%Y-%m-%dT%H:%M:%S.%f%z"
+    response:
+      recordTimestamp:
+        itemTimestampKeyFromItemRoot:
+          - updated
+      itemsKeyFromResponseRoot:
+        - rows
+
   - dataPipelineId: keywords_from_manuscript_abstract_batch
     dataset: '{ENV}'
     table: test_keywords_from_manuscript_abstract_batch
