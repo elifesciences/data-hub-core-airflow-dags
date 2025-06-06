@@ -75,6 +75,15 @@ def _upload_s3_object_mock():
         yield mock
 
 
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock', autouse=True)
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        pipeline,
+        'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
+        yield mock
+
+
 class TestReplaceStartDateInSqlQuery:
     def test_should_replace_start_date_in_sql_query(self):
         sql_query = 'SELECT * FROM table WHERE date = "{start_date}"'
@@ -113,6 +122,38 @@ class TestSaveStateToS3ForConfig:
             object_key=ANY,
             data_object='2025-05-25'
         )
+
+
+class TestLoadStateOrDefaulthFromS3ForConfig:
+    def test_should_call_download_s3_object_as_string(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = '2025-05-25'
+        result = pipeline.load_state_or_default_from_s3_for_config(
+            STATE_CONFIG_1
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket=STATE_CONFIG_1.state_file.bucket_name,
+            object_key=STATE_CONFIG_1.state_file.object_name
+        )
+        assert result == date.fromisoformat('2025-05-25')
+
+    def test_should_return_initial_state_if_file_does_not_exist(
+        self,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = (
+            FileNotFoundError()
+        )
+        result = pipeline.load_state_or_default_from_s3_for_config(
+            STATE_CONFIG_1
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket=STATE_CONFIG_1.state_file.bucket_name,
+            object_key=STATE_CONFIG_1.state_file.object_name
+        )
+        assert result == STATE_CONFIG_1.initial_state.start_date
 
 
 class TestProcessScheduledQuery:
