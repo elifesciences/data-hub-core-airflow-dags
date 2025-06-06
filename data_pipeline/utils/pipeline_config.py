@@ -152,6 +152,14 @@ class StateFileConfig:
             object_name=state_file_config_dict['objectName']
         )
 
+    @staticmethod
+    def from_optional_dict(
+        state_file_config_dict: Optional[StateFileConfigDict] = None,
+    ) -> Optional['StateFileConfig']:
+        if state_file_config_dict is None:
+            return None
+        return StateFileConfig.from_dict(state_file_config_dict)
+
 
 @dataclass(frozen=True)
 class AirflowConfig:
