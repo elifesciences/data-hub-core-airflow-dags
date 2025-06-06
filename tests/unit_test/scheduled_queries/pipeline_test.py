@@ -97,7 +97,7 @@ def _load_state_or_default_from_s3_for_config_mock():
 class TestReplaceStartDateInSqlQuery:
     def test_should_replace_start_date_in_sql_query(self):
         sql_query = 'SELECT * FROM table WHERE date = "{start_date}"'
-        expected_query = 'SELECT * FROM table WHERE date = "20250525"'
+        expected_query = 'SELECT * FROM table WHERE date = "2025-05-25"'
         result_query = pipeline.replace_start_date_in_sql_query(
             sql_query, start_date=date.fromisoformat('2025-05-25')
         )
@@ -212,7 +212,7 @@ class TestProcessScheduledQuery:
             STATE_CONFIG_1
         )
         bq_client_mock.query.assert_called_with(
-            'SELECT * FROM table WHERE date = "20250527"'
+            'SELECT * FROM table WHERE date = "2025-05-27"'
         )
 
     def test_should_update_state_file_with_current_date(

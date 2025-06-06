@@ -25,7 +25,7 @@ def replace_start_date_in_sql_query(
     sql_query: str,
     start_date: date
 ) -> str:
-    return sql_query.replace('{start_date}', start_date.isoformat().replace('-', ''))
+    return sql_query.replace('{start_date}', start_date.isoformat())
 
 
 def update_state_file(
