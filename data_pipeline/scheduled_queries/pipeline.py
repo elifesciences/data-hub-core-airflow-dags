@@ -67,7 +67,9 @@ def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     if pipeline_config.state:
         sql_query = replace_start_date_in_sql_query(
             sql_query=pipeline_config.bigquery.sql_query,
-            start_date=pipeline_config.state.initial_state.start_date
+            start_date=load_state_or_default_from_s3_for_config(
+                pipeline_config.state
+            )
         )
 
     LOGGER.info('Running SQL Query: %r', sql_query)

@@ -81,6 +81,16 @@ def _download_s3_object_as_string_or_file_not_found_error_mock():
         pipeline,
         'download_s3_object_as_string_or_file_not_found_error'
     ) as mock:
+        mock.return_value = '2001-01-01'
+        yield mock
+
+
+@pytest.fixture(name='load_state_or_default_from_s3_for_config_mock')
+def _load_state_or_default_from_s3_for_config_mock():
+    with patch.object(
+        pipeline,
+        'load_state_or_default_from_s3_for_config'
+    ) as mock:
         yield mock
 
 
@@ -182,8 +192,12 @@ class TestProcessScheduledQuery:
 
     def test_should_replace_sql_query_placeholder_if_state_is_configured(
         self,
-        bq_client_mock: MagicMock
+        bq_client_mock: MagicMock,
+        load_state_or_default_from_s3_for_config_mock: MagicMock
     ):
+        load_state_or_default_from_s3_for_config_mock.return_value = (
+            date.fromisoformat('2025-05-27')
+        )
         pipeline.process_scheduled_query(
             dataclasses.replace(
                 PIPELINE_CONFIG_1,
@@ -191,16 +205,14 @@ class TestProcessScheduledQuery:
                     PIPELINE_CONFIG_1.bigquery,
                     sql_query='SELECT * FROM table WHERE date = "{start_date}"'
                 ),
-                state=ScheduledQueryPipelineStateConfig(
-                    initial_state=ScheduledQueryPipelineInitialStateConfig(
-                        start_date=date.fromisoformat('2025-05-26')
-                    ),
-                    state_file=STATE_FILE_CONFIG_1
-                )
+                state=STATE_CONFIG_1
             )
         )
+        load_state_or_default_from_s3_for_config_mock.assert_called_with(
+            STATE_CONFIG_1
+        )
         bq_client_mock.query.assert_called_with(
-            'SELECT * FROM table WHERE date = "20250526"'
+            'SELECT * FROM table WHERE date = "20250527"'
         )
 
     def test_should_update_state_file_with_current_date(
