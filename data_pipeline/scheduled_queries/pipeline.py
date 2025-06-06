@@ -11,7 +11,10 @@ from data_pipeline.scheduled_queries.pipeline_config import (
     ScheduledQueryPipelineConfig,
     ScheduledQueryPipelineStateConfig
 )
-from data_pipeline.utils.data_store.s3_data_service import download_s3_object_as_string_or_file_not_found_error, upload_s3_object
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string_or_file_not_found_error,
+    upload_s3_object
+)
 from data_pipeline.utils.pipeline_config import StateFileConfig
 
 
