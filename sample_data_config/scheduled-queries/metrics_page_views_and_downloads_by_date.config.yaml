@@ -1,0 +1,67 @@
+scheduledQueries:
+  - dataPipelineId: scheduled_query_create_metrics_page_views_and_downloads_by_date
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        CREATE TABLE IF NOT EXISTS elife-data-pipeline.{ENV}.test_metrics_page_views_and_downloads_by_date (
+          page_location STRING,
+          event_name STRING,
+          event_date DATE,
+          unique_event_count INT64,
+          event_count INT64
+        )
+        PARTITION BY event_date
+
+  - dataPipelineId: scheduled_query_update_test_metrics_page_views_and_downloads_by_date
+    state:
+      initialState:
+        startDate: '2025-05-25'
+      stateFile:
+        bucketName: 'ci-elife-data-pipeline'
+        objectName: 'airflow-config/scheduled-queries/{ENV}-test_metrics_page_views_and_downloads_by_date-state.json'
+    bigQuery:
+      projectName: 'elife-data-pipeline'
+      sqlQuery: |-
+        MERGE INTO `elife-data-pipeline.{ENV}.test_metrics_page_views_and_downloads_by_date` AS target
+        USING (
+          WITH t_ga4_event AS (
+            SELECT 
+              event_name,
+              PARSE_DATE(r'%Y%m%d', REGEXP_EXTRACT(event._TABLE_SUFFIX, r'(2\d+)$')) AS event_date,
+              event._TABLE_SUFFIX AS table_suffix,
+              page_location_event_param.value.string_value AS page_location,
+              CAST(ga_session_id_event_param.value.int_value AS STRING) AS ga_session_id,  
+              debug_mode_event_param.value.int_value AS debug_mode,
+              (debug_mode_event_param.value.int_value IS NOT NULL) AS is_debug_mode
+            FROM `elife-data-pipeline.analytics_316514145.events_*` AS event
+            LEFT JOIN UNNEST(event.event_params) AS page_location_event_param
+              ON page_location_event_param.key = 'page_location'
+            LEFT JOIN UNNEST(event.event_params) AS ga_session_id_event_param
+              ON ga_session_id_event_param.key = 'ga_session_id'
+            LEFT JOIN UNNEST(event.event_params) AS debug_mode_event_param
+              ON debug_mode_event_param.key = 'debug_mode'
+            WHERE event_name IN ('page_view', 'file_download')
+              AND event._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(DATE('{start_date}'), INTERVAL 3 DAY))
+              AND event._TABLE_SUFFIX < FORMAT_DATE('%Y%m%d', DATE_ADD(DATE('{start_date}'), INTERVAL 1 DAY))
+          )
+          SELECT
+            page_location,
+            event_name,
+            event_date,
+            COUNT(DISTINCT ga_session_id) AS unique_event_count,
+            COUNT(*) AS event_count
+          FROM t_ga4_event
+          WHERE NOT is_debug_mode
+            AND ga_session_id IS NOT NULL
+          GROUP BY page_location, event_name, event_date
+        ) AS source
+        ON target.page_location = source.page_location
+          AND target.event_name = source.event_name
+          AND target.event_date = source.event_date
+        WHEN MATCHED THEN
+          UPDATE SET
+            unique_event_count = source.unique_event_count,
+            event_count = source.event_count
+        WHEN NOT MATCHED THEN
+          INSERT (page_location, event_name, event_date, unique_event_count, event_count)
+          VALUES (source.page_location, source.event_name, source.event_date, source.unique_event_count, source.event_count)
