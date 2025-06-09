@@ -1,10 +1,12 @@
 scheduledQueries:
-  - dataPipelineId: scheduled_query_create_test_ga4_metrics_event_counts_by_date
+  - dataPipelineId: create_test_ga4_metrics_event_counts_by_date
     bigQuery:
       projectName: 'elife-data-pipeline'
       sqlQuery: |-
         CREATE TABLE IF NOT EXISTS elife-data-pipeline.{ENV}.test_ga4_metrics_event_counts_by_date (
           page_location STRING,
+          top_level_page_path STRING,
+          article_id STRING,
           event_name STRING,
           event_date DATE,
           unique_event_count INT64,
@@ -12,10 +14,10 @@ scheduledQueries:
         )
         PARTITION BY event_date
 
-  - dataPipelineId: scheduled_query_update_test_ga4_metrics_event_counts_by_date
+  - dataPipelineId: update_test_ga4_metrics_event_counts_by_date
     state:
       initialState:
-        startDate: '2025-05-25'
+        startDate: '2022-05-24'
       stateFile:
         bucketName: 'ci-elife-data-pipeline'
         objectName: 'airflow-config/scheduled-queries/{ENV}-test_ga4_metrics_event_counts_by_date-state.json'
@@ -30,6 +32,8 @@ scheduledQueries:
               PARSE_DATE(r'%Y%m%d', REGEXP_EXTRACT(event._TABLE_SUFFIX, r'(2\d+)$')) AS event_date,
               event._TABLE_SUFFIX AS table_suffix,
               page_location_event_param.value.string_value AS page_location,
+              REGEXP_EXTRACT(page_location_event_param.value.string_value, r'/(?:articles|reviewed-preprints|digests)/(\d+)') AS article_id,
+              REGEXP_EXTRACT(page_location_event_param.value.string_value, r'://(?:[^/]+)(/[^/?]*)') AS top_level_page_path,
               CAST(ga_session_id_event_param.value.int_value AS STRING) AS ga_session_id,  
               debug_mode_event_param.value.int_value AS debug_mode,
               (debug_mode_event_param.value.int_value IS NOT NULL) AS is_debug_mode
@@ -42,10 +46,11 @@ scheduledQueries:
               ON debug_mode_event_param.key = 'debug_mode'
             WHERE event_name IN ('page_view', 'file_download')
               AND event._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(DATE('{start_date}'), INTERVAL 3 DAY))
-              AND event._TABLE_SUFFIX < FORMAT_DATE('%Y%m%d', DATE_ADD(DATE('{start_date}'), INTERVAL 1 DAY))
-          )
+              AND event._TABLE_SUFFIX < FORMAT_DATE('%Y%m%d', DATE_ADD(DATE('{start_date}'), INTERVAL 1 DAY))          )
           SELECT
             page_location,
+            top_level_page_path,
+            LPAD(article_id, GREATEST(5, LENGTH(article_id)), '0') AS article_id,
             event_name,
             event_date,
             COUNT(DISTINCT ga_session_id) AS unique_event_count,
@@ -53,7 +58,7 @@ scheduledQueries:
           FROM t_ga4_event
           WHERE NOT is_debug_mode
             AND ga_session_id IS NOT NULL
-          GROUP BY page_location, event_name, event_date
+          GROUP BY page_location, top_level_page_path, article_id, event_name, event_date
         ) AS source
         ON target.page_location = source.page_location
           AND target.event_name = source.event_name
@@ -63,5 +68,5 @@ scheduledQueries:
             unique_event_count = source.unique_event_count,
             event_count = source.event_count
         WHEN NOT MATCHED THEN
-          INSERT (page_location, event_name, event_date, unique_event_count, event_count)
-          VALUES (source.page_location, source.event_name, source.event_date, source.unique_event_count, source.event_count)
+          INSERT (page_location, top_level_page_path, article_id, event_name, event_date, unique_event_count, event_count)
+          VALUES (source.page_location, source.top_level_page_path, source.article_id, source.event_name, source.event_date, source.unique_event_count, source.event_count)
