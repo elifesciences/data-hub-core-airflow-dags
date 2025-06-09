@@ -9,6 +9,7 @@ scheduledQueries:
           unique_page_views INT64,
           page_views INT64
         )
+        PARTITION BY event_date
 
   - dataPipelineId: scheduled_query_update_test_ga4_page_views_by_page_and_date
     state:
