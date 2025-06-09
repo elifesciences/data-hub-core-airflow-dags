@@ -3,7 +3,7 @@ scheduledQueries:
     bigQuery:
       projectName: 'elife-data-pipeline'
       sqlQuery: |-
-        CREATE TABLE IF NOT EXISTS elife-data-pipeline.{ENV}.test_metrics_page_views_and_downloads_by_date (
+        CREATE TABLE IF NOT EXISTS elife-data-pipeline.{ENV}.test_ga4_metrics_event_counts_by_date (
           page_location STRING,
           event_name STRING,
           event_date DATE,
@@ -18,11 +18,11 @@ scheduledQueries:
         startDate: '2025-05-25'
       stateFile:
         bucketName: 'ci-elife-data-pipeline'
-        objectName: 'airflow-config/scheduled-queries/{ENV}-test_metrics_page_views_and_downloads_by_date-state.json'
+        objectName: 'airflow-config/scheduled-queries/{ENV}-test_ga4_metrics_event_counts_by_date-state.json'
     bigQuery:
       projectName: 'elife-data-pipeline'
       sqlQuery: |-
-        MERGE INTO `elife-data-pipeline.{ENV}.test_metrics_page_views_and_downloads_by_date` AS target
+        MERGE INTO `elife-data-pipeline.{ENV}.test_ga4_metrics_event_counts_by_date` AS target
         USING (
           WITH t_ga4_event AS (
             SELECT 
