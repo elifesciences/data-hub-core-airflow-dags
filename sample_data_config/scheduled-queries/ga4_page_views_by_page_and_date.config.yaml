@@ -9,6 +9,7 @@ scheduledQueries:
           unique_page_views INT64,
           page_views INT64
         )
+        PARTITION BY event_date
 
   - dataPipelineId: scheduled_query_update_test_ga4_page_views_by_page_and_date
     state:
@@ -39,7 +40,7 @@ scheduledQueries:
             LEFT JOIN UNNEST(event.event_params) AS debug_mode_event_param
               ON debug_mode_event_param.key = 'debug_mode'
             WHERE event_name IN ('page_view')
-              AND event._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(DATE('{start_date}'), INTERVAL 1 DAY))
+              AND event._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(DATE('{start_date}'), INTERVAL 3 DAY))
               AND event._TABLE_SUFFIX < FORMAT_DATE('%Y%m%d', DATE_ADD(DATE('{start_date}'), INTERVAL 1 DAY))
           )
           SELECT
