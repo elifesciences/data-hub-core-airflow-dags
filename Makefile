@@ -105,9 +105,8 @@ dev-run-scheduled-queries-pipeline:
 	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
 
-
-dev-run-scheduled-queries-pipeline-ga4-page-views-by-page-and-date:
-	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/ga4_page_views_by_page_and_date.config.yaml \
+dev-run-scheduled-queries-pipeline-ga4-metrics-event-counts-by-date:
+	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/ga4_metrics_event_counts_by_date.config.yaml \
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
 
 
