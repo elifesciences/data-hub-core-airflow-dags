@@ -1,5 +1,5 @@
 scheduledQueries:
-  - dataPipelineId: scheduled_query_create_metrics_page_views_and_downloads_by_date
+  - dataPipelineId: scheduled_query_create_test_ga4_metrics_event_counts_by_date
     bigQuery:
       projectName: 'elife-data-pipeline'
       sqlQuery: |-
@@ -12,7 +12,7 @@ scheduledQueries:
         )
         PARTITION BY event_date
 
-  - dataPipelineId: scheduled_query_update_test_metrics_page_views_and_downloads_by_date
+  - dataPipelineId: scheduled_query_update_test_ga4_metrics_event_counts_by_date
     state:
       initialState:
         startDate: '2025-05-25'
