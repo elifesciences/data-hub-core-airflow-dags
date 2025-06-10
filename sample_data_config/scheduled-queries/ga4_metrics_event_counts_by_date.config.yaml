@@ -9,7 +9,7 @@ scheduledQueries:
           article_id STRING,
           event_name STRING,
           event_date DATE,
-          unique_event_count INT64,
+          unique_session_count INT64,
           event_count INT64
         )
         PARTITION BY event_date
@@ -53,7 +53,7 @@ scheduledQueries:
             LPAD(article_id, GREATEST(5, LENGTH(article_id)), '0') AS article_id,
             event_name,
             event_date,
-            COUNT(DISTINCT ga_session_id) AS unique_event_count,
+            COUNT(DISTINCT ga_session_id) AS unique_session_count,
             COUNT(*) AS event_count
           FROM t_ga4_event
           WHERE NOT is_debug_mode
@@ -65,8 +65,8 @@ scheduledQueries:
           AND target.event_date = source.event_date
         WHEN MATCHED THEN
           UPDATE SET
-            unique_event_count = source.unique_event_count,
+            unique_session_count = source.unique_session_count,
             event_count = source.event_count
         WHEN NOT MATCHED THEN
-          INSERT (page_location, top_level_page_path, article_id, event_name, event_date, unique_event_count, event_count)
-          VALUES (source.page_location, source.top_level_page_path, source.article_id, source.event_name, source.event_date, source.unique_event_count, source.event_count)
+          INSERT (page_location, top_level_page_path, article_id, event_name, event_date, unique_session_count, event_count)
+          VALUES (source.page_location, source.top_level_page_path, source.article_id, source.event_name, source.event_date, source.unique_session_count, source.event_count)
