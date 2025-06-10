@@ -8,6 +8,7 @@ scheduledQueries:
           top_level_page_path STRING,
           article_id STRING,
           event_name STRING,
+          file_extension STRING,
           event_date DATE,
           unique_session_count INT64,
           event_count INT64
@@ -36,7 +37,8 @@ scheduledQueries:
               REGEXP_EXTRACT(page_location_event_param.value.string_value, r'://(?:[^/]+)(/[^/?]*)') AS top_level_page_path,
               CAST(ga_session_id_event_param.value.int_value AS STRING) AS ga_session_id,  
               debug_mode_event_param.value.int_value AS debug_mode,
-              (debug_mode_event_param.value.int_value IS NOT NULL) AS is_debug_mode
+              (debug_mode_event_param.value.int_value IS NOT NULL) AS is_debug_mode,
+              file_extension_event_param.value.string_value AS file_extension
             FROM `elife-data-pipeline.analytics_316514145.events_*` AS event
             LEFT JOIN UNNEST(event.event_params) AS page_location_event_param
               ON page_location_event_param.key = 'page_location'
@@ -44,6 +46,8 @@ scheduledQueries:
               ON ga_session_id_event_param.key = 'ga_session_id'
             LEFT JOIN UNNEST(event.event_params) AS debug_mode_event_param
               ON debug_mode_event_param.key = 'debug_mode'
+            LEFT JOIN UNNEST(event.event_params) AS file_extension_event_param
+              ON file_extension_event_param.key = 'file_extension'
             WHERE event_name IN ('page_view', 'file_download')
               AND event._TABLE_SUFFIX >= FORMAT_DATE('%Y%m%d', DATE_SUB(DATE('{start_date}'), INTERVAL 3 DAY))
               AND event._TABLE_SUFFIX < FORMAT_DATE('%Y%m%d', DATE_ADD(DATE('{start_date}'), INTERVAL 1 DAY))          )
@@ -52,21 +56,23 @@ scheduledQueries:
             top_level_page_path,
             LPAD(article_id, GREATEST(5, LENGTH(article_id)), '0') AS article_id,
             event_name,
+            file_extension,
             event_date,
             COUNT(DISTINCT ga_session_id) AS unique_session_count,
             COUNT(*) AS event_count
           FROM t_ga4_event
           WHERE NOT is_debug_mode
             AND ga_session_id IS NOT NULL
-          GROUP BY page_location, top_level_page_path, article_id, event_name, event_date
+          GROUP BY page_location, top_level_page_path, article_id, event_name, file_extension, event_date
         ) AS source
         ON target.page_location = source.page_location
           AND target.event_name = source.event_name
+          AND target.file_extension = source.file_extension
           AND target.event_date = source.event_date
         WHEN MATCHED THEN
           UPDATE SET
             unique_session_count = source.unique_session_count,
             event_count = source.event_count
         WHEN NOT MATCHED THEN
-          INSERT (page_location, top_level_page_path, article_id, event_name, event_date, unique_session_count, event_count)
-          VALUES (source.page_location, source.top_level_page_path, source.article_id, source.event_name, source.event_date, source.unique_session_count, source.event_count)
+          INSERT (page_location, top_level_page_path, article_id, event_name, file_extension, event_date, unique_session_count, event_count)
+          VALUES (source.page_location, source.top_level_page_path, source.article_id, source.event_name, file_extension, source.event_date, source.unique_session_count, source.event_count)
