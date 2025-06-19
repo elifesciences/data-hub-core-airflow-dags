@@ -110,6 +110,16 @@ dev-run-scheduled-queries-pipeline-ga4-metrics-event-counts-by-date:
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
 
 
+dev-run-bigquery-to-opensearch-pipeline:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
+dev-run-bigquery-to-opensearch-pipeline-ecr:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch-ecr.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
 dev-end-to-end-monitoring:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m pytest \
