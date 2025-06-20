@@ -86,7 +86,7 @@ def create_or_update_opensearch_index(
     index_settings = opensearch_target_config.index_settings
     LOGGER.info('index_name: %r', index_name)
     LOGGER.info('index_settings: %r', index_settings)
-    index_exists = client.indices.exists(index_name)
+    index_exists = client.indices.exists(index=index_name)
     LOGGER.info('index_exists: %r', index_exists)
     if index_exists:
         if index_settings:
