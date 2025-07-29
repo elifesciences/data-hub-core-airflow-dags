@@ -12,11 +12,6 @@ from bigquery_views_manager.materialize_views import (
     MaterializeViewResult
 )
 
-from bigquery_views_manager.view_list import (
-    DATASET_NAME_KEY,
-    VIEW_OR_TABLE_NAME_KEY
-)
-
 import data_pipeline.bigquery_views.pipeline as target_module
 from data_pipeline.bigquery_views.pipeline import (
     BigQueryViewsConfig,
@@ -208,8 +203,8 @@ class TestMaterializeBigQueryViews:
         kwargs = mock_materialize_views.call_args[1]
         assert kwargs['materialized_view_dict'] == {
             'view1': {
-                DATASET_NAME_KEY: OUTPUT_DATASET_1,
-                VIEW_OR_TABLE_NAME_KEY: OUTPUT_TABLE_1
+                'dataset_name': OUTPUT_DATASET_1,
+                'table_name': OUTPUT_TABLE_1
             }
         }
 
@@ -224,8 +219,8 @@ class TestMaterializeBigQueryViews:
         kwargs = mock_materialize_views.call_args[1]
         assert kwargs['materialized_view_dict'] == {
             'view1': {
-                DATASET_NAME_KEY: OTHER_DATASET_1,
-                VIEW_OR_TABLE_NAME_KEY: 'mview1'
+                'dataset_name': OTHER_DATASET_1,
+                'table_name': 'mview1'
             }
         }
 
