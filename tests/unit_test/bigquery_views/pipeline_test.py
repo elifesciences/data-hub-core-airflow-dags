@@ -34,10 +34,7 @@ GCP_PROJECT_1 = 'gcp-project-1'
 
 CURRENT_TIMESTAMP = datetime.fromisoformat('2023-01-02T03:04:05+00:00')
 
-MATCHING_DATASET_1 = 'matching_dataset1'
 OTHER_DATASET_1 = 'other_dataset1'
-OUTPUT_DATASET_1 = 'output_dataset1'
-OUTPUT_TABLE_1 = 'output_table1'
 
 VIEW_LIST_CONFIG_1 = ViewListConfig([
     ViewConfig(view_name='view_1'),
