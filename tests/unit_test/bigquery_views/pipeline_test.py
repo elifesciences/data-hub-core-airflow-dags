@@ -10,7 +10,7 @@ import pytest
 from bigquery_views_manager.view_list import (
     ViewConfig,
     ViewListConfig,
-    save_view_list_config
+    load_view_list_config
 )
 from bigquery_views_manager.materialize_views import (
     MaterializeViewListResult,
@@ -78,7 +78,7 @@ def _materialize_views_if_necessary_mock() -> Iterable[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='mock_load_view_list_config', autouse=False)
+@pytest.fixture(name='mock_load_view_list_config', autouse=True)
 def _mock_load_view_list_config() -> Iterable[MagicMock]:
     with patch.object(target_module, 'load_view_list_config') as mock:
         yield mock
@@ -99,22 +99,10 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
-@pytest.fixture(name='sample_config_path')
-def _views_sample_config_path(tmp_path: Path) -> Path:
-    sample_config_path = tmp_path / 'sample_config'
-    sample_config_path.mkdir()
-    view_list_config_path = sample_config_path / 'views.yml'
-    save_view_list_config(
-        view_list_config=VIEW_LIST_CONFIG_1,
-        path=view_list_config_path
-    )
-    return sample_config_path
-
-
 @pytest.fixture(name='bigquery_views_config')
-def _bigquery_views_config(sample_config_path: Path) -> BigQueryViewsConfig:
+def _bigquery_views_config() -> BigQueryViewsConfig:
     config = BigQueryViewsConfig(
-        bigquery_views_config_path=str(sample_config_path),
+        bigquery_views_config_path='/dummy/views-config',
         gcp_project=GCP_PROJECT_1,
         dataset=OTHER_DATASET_1
     )
@@ -133,12 +121,17 @@ class TestGetClient:
 
 
 class TestLoadRemoteViewListConfig:
-    def test_can_load_local_view_list_config(self, tmp_path: Path):
+    def test_can_load_local_view_list_config(
+        self,
+        tmp_path: Path,
+        mock_load_view_list_config: MagicMock
+    ):
         view_list_config_path = tmp_path / 'views.yml'
         view_list_config_path.write_text('\n'.join([
             '- view1',
             '- view2'
         ]))
+        mock_load_view_list_config.side_effect = load_view_list_config
         view_list_config = load_remote_view_list_config(
             str(view_list_config_path)
         )
