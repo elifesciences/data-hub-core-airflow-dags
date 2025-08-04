@@ -111,9 +111,10 @@ def _bigquery_views_config() -> BigQueryViewsConfig:
 
 class TestGetClient:
     def test_should_pass_gcp_project(
-            self,
-            bigquery_views_config: BigQueryViewsConfig,
-            bigquery: MagicMock):
+        self,
+        bigquery_views_config: BigQueryViewsConfig,
+        bigquery: MagicMock
+    ):
         get_client(bigquery_views_config)
         bigquery.Client.assert_called_with(
             project=bigquery_views_config.gcp_project
