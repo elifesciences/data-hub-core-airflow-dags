@@ -86,6 +86,12 @@ dev-watch:
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
+dev-run-bigquery-views-materialize-views:
+	MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=elife-data-pipeline \
+	MATERIALIZE_BIGQUERY_VIEWS_DATASET=development \
+	MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=s3://ci-elife-data-pipeline/airflow-config/bigquery-views \
+		$(PYTHON) -m data_pipeline.bigquery_views.cli
+
 dev-run-elife-articles-xml:
 	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
 		$(PYTHON) -m data_pipeline.elife_article_xml.cli
