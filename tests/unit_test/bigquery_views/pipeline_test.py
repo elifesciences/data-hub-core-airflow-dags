@@ -55,6 +55,13 @@ MATERIALIZE_VIEW_RESULT_1 = MaterializeViewResult(
 )
 
 
+BIGQUERY_VIEWS_CONFIG_1 = BigQueryViewsConfig(
+    bigquery_views_config_path='/dummy/views-config',
+    gcp_project=GCP_PROJECT_1,
+    dataset=OTHER_DATASET_1
+)
+
+
 @pytest.fixture(name='get_current_timestamp_mock', autouse=True)
 def _get_current_timestamp_mock() -> Iterable[MagicMock]:
     with patch.object(target_module, 'get_current_timestamp') as mock:
@@ -96,25 +103,14 @@ def _load_given_json_list_data_from_tempdir_to_bq_mock():
         yield mock
 
 
-@pytest.fixture(name='bigquery_views_config')
-def _bigquery_views_config() -> BigQueryViewsConfig:
-    config = BigQueryViewsConfig(
-        bigquery_views_config_path='/dummy/views-config',
-        gcp_project=GCP_PROJECT_1,
-        dataset=OTHER_DATASET_1
-    )
-    return config
-
-
 class TestGetClient:
     def test_should_pass_gcp_project(
         self,
-        bigquery_views_config: BigQueryViewsConfig,
         bigquery: MagicMock
     ):
-        get_client(bigquery_views_config)
+        get_client(BIGQUERY_VIEWS_CONFIG_1)
         bigquery.Client.assert_called_with(
-            project=bigquery_views_config.gcp_project
+            project=BIGQUERY_VIEWS_CONFIG_1.gcp_project
         )
 
 
@@ -175,31 +171,29 @@ class TestGetJsonListForMaterializeViewsLog:
 class TestMaterializeBigQueryViews:
     def test_should_call_materialize_views_if_necessary(
         self,
-        bigquery_views_config: BigQueryViewsConfig,
         materialize_views_if_necessary_mock: MagicMock,
         mock_load_view_list_config: MagicMock,
         mock_get_client: MagicMock
     ):
         mock_load_view_list_config.return_value = VIEW_LIST_CONFIG_1
         client = mock_get_client.return_value
-        materialize_bigquery_views(bigquery_views_config)
+        materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         materialize_views_if_necessary_mock.assert_called_with(
             client=client,
             project=client.project,
-            dataset=bigquery_views_config.dataset,
+            dataset=BIGQUERY_VIEWS_CONFIG_1.dataset,
             view_list_config=VIEW_LIST_CONFIG_1
         )
 
     def test_should_resolve_conditions(
         self,
-        bigquery_views_config: BigQueryViewsConfig,
         materialize_views_if_necessary_mock: MagicMock,
         mock_load_view_list_config: MagicMock
     ):
         view_list_config_mock = MagicMock(name='view_list_config_mock')
         mock_load_view_list_config.return_value = view_list_config_mock
         view_list_config_mock.resolve_conditions.return_value = VIEW_LIST_CONFIG_1
-        materialize_bigquery_views(bigquery_views_config)
+        materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         materialize_views_if_necessary_mock.assert_called_with(
             client=ANY,
             project=ANY,
@@ -209,7 +203,6 @@ class TestMaterializeBigQueryViews:
 
     def test_should_call_load_given_json_list_data_from_tempdir_to_bq_func(
         self,
-        bigquery_views_config: BigQueryViewsConfig,
         load_given_json_list_data_from_tempdir_to_bq_mock: MagicMock,
         materialize_views_if_necessary_mock: MagicMock
     ):
@@ -219,10 +212,10 @@ class TestMaterializeBigQueryViews:
         json_list = get_json_list_for_materialize_views_log(
             materialize_views_if_necessary_mock.return_value
         )
-        materialize_bigquery_views(bigquery_views_config)
+        materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         load_given_json_list_data_from_tempdir_to_bq_mock.assert_called_with(
-            project_name=bigquery_views_config.gcp_project,
-            dataset_name=bigquery_views_config.dataset,
-            table_name=bigquery_views_config.log_table_name,
+            project_name=BIGQUERY_VIEWS_CONFIG_1.gcp_project,
+            dataset_name=BIGQUERY_VIEWS_CONFIG_1.dataset,
+            table_name=BIGQUERY_VIEWS_CONFIG_1.log_table_name,
             json_list=json_list
         )
