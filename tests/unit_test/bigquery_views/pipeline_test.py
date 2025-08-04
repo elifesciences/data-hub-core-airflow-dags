@@ -88,8 +88,8 @@ def _load_view_list_config_mock() -> Iterable[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='mock_get_client', autouse=False)
-def _mock_get_client() -> Iterable[MagicMock]:
+@pytest.fixture(name='get_client_mock', autouse=False)
+def _get_client_mock() -> Iterable[MagicMock]:
     with patch.object(target_module, 'get_client') as mock:
         yield mock
 
@@ -173,10 +173,10 @@ class TestMaterializeBigQueryViews:
         self,
         materialize_views_if_necessary_mock: MagicMock,
         load_view_list_config_mock: MagicMock,
-        mock_get_client: MagicMock
+        get_client_mock: MagicMock
     ):
         load_view_list_config_mock.return_value = VIEW_LIST_CONFIG_1
-        client = mock_get_client.return_value
+        client = get_client_mock.return_value
         materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         materialize_views_if_necessary_mock.assert_called_with(
             client=client,
