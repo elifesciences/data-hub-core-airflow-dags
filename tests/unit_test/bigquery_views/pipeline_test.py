@@ -82,8 +82,8 @@ def _materialize_views_if_necessary_mock() -> Iterable[MagicMock]:
         yield mock
 
 
-@pytest.fixture(name='mock_load_view_list_config', autouse=True)
-def _mock_load_view_list_config() -> Iterable[MagicMock]:
+@pytest.fixture(name='load_view_list_config_mock', autouse=True)
+def _load_view_list_config_mock() -> Iterable[MagicMock]:
     with patch.object(target_module, 'load_view_list_config') as mock:
         yield mock
 
@@ -118,14 +118,14 @@ class TestLoadRemoteViewListConfig:
     def test_can_load_local_view_list_config(
         self,
         tmp_path: Path,
-        mock_load_view_list_config: MagicMock
+        load_view_list_config_mock: MagicMock
     ):
         view_list_config_path = tmp_path / 'views.yml'
         view_list_config_path.write_text('\n'.join([
             '- view1',
             '- view2'
         ]))
-        mock_load_view_list_config.side_effect = load_view_list_config
+        load_view_list_config_mock.side_effect = load_view_list_config
         view_list_config = load_remote_view_list_config(
             str(view_list_config_path)
         )
@@ -172,10 +172,10 @@ class TestMaterializeBigQueryViews:
     def test_should_call_materialize_views_if_necessary(
         self,
         materialize_views_if_necessary_mock: MagicMock,
-        mock_load_view_list_config: MagicMock,
+        load_view_list_config_mock: MagicMock,
         mock_get_client: MagicMock
     ):
-        mock_load_view_list_config.return_value = VIEW_LIST_CONFIG_1
+        load_view_list_config_mock.return_value = VIEW_LIST_CONFIG_1
         client = mock_get_client.return_value
         materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         materialize_views_if_necessary_mock.assert_called_with(
@@ -188,10 +188,10 @@ class TestMaterializeBigQueryViews:
     def test_should_resolve_conditions(
         self,
         materialize_views_if_necessary_mock: MagicMock,
-        mock_load_view_list_config: MagicMock
+        load_view_list_config_mock: MagicMock
     ):
         view_list_config_mock = MagicMock(name='view_list_config_mock')
-        mock_load_view_list_config.return_value = view_list_config_mock
+        load_view_list_config_mock.return_value = view_list_config_mock
         view_list_config_mock.resolve_conditions.return_value = VIEW_LIST_CONFIG_1
         materialize_bigquery_views(BIGQUERY_VIEWS_CONFIG_1)
         materialize_views_if_necessary_mock.assert_called_with(
