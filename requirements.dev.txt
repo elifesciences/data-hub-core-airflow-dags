@@ -3,7 +3,7 @@ pylint==3.3.8
 pytest==8.4.1
 pytest-watch==4.2.0
 mypy==1.17.1
-types-requests==2.32.4.20250611
+types-requests==2.32.4.20250809
 types-python-dateutil
 types-dateparser
 types-pytz
