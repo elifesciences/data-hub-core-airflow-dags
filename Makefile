@@ -107,6 +107,12 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
+	S3_CSV_CONFIG_FILE_PATH=sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.s3_csv_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
 dev-run-scheduled-queries-pipeline:
 	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
