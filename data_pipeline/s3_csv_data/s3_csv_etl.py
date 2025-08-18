@@ -246,7 +246,7 @@ def iter_transformed_json_from_csv(
         yield processed_record_iterable
 
 
-def get_file_hash(file_path: str) -> str:
+def get_file_hash(file_path: str | Path) -> str:
     sha3_512 = hashlib.sha3_512()
     with open(file_path, 'rb') as f:
         while True:
