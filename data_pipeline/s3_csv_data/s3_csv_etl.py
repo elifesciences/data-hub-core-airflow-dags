@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import hashlib
 import os
 import io
 import logging
@@ -246,7 +247,14 @@ def iter_transformed_json_from_csv(
 
 
 def get_file_hash(file_path: str) -> str:
-    return ''
+    sha3_512 = hashlib.sha3_512()
+    with open(file_path, 'rb') as f:
+        while True:
+            data = f.read(65536)  # 64KB buffer size
+            if not data:
+                break
+            sha3_512.update(data)
+    return sha3_512.hexdigest()
 
 
 def transform_load_data(

@@ -1,6 +1,8 @@
+import hashlib
 import io
 import os
 from collections import OrderedDict
+from pathlib import Path
 from typing import Optional
 from unittest.mock import MagicMock, patch
 import pytest
@@ -8,6 +10,7 @@ import botocore
 
 from data_pipeline.s3_csv_data import s3_csv_etl
 from data_pipeline.s3_csv_data.s3_csv_etl import (
+    get_file_hash,
     get_record_metadata,
     iter_transformed_json_from_csv,
     transform_load_data,
@@ -109,6 +112,12 @@ def _download_s3_json_object():
 def _write_to_file():
     with patch.object(s3_csv_etl,
                       "write_jsonl_to_file") as mock:
+        yield mock
+
+
+@pytest.fixture(name='mock_get_file_hash', autouse=True)
+def _get_file_hash():
+    with patch.object(s3_csv_etl, 'get_file_hash') as mock:
         yield mock
 
 
@@ -383,6 +392,17 @@ class TestIterTransformedJsonFromCsv:
             'metadata_field': 'metadata'
         }]
         assert actual_result == expected_result
+
+
+class TestGetFileHash:
+    def test_should_return_file_hash(self, tmp_path: Path,):
+        file_path = tmp_path / 'test_file.txt'
+        file_path.write_text('test content', encoding='utf-8')
+
+        file_hash = get_file_hash(file_path)
+        expected_hash = hashlib.sha3_512('test content'.encode()).hexdigest()
+
+        assert file_hash == expected_hash
 
 
 class TestTransformAndLoadData:
