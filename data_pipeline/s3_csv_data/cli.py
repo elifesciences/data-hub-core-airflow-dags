@@ -43,11 +43,9 @@ def get_multi_csv_pipeline_config() -> MultiS3CsvConfig:
 
 
 def etl_new_csv_files(data_config: S3BaseCsvConfig):
-    obj_pattern_with_latest_dates = (
-        get_stored_state(
-            data_config,
-            get_default_initial_s3_last_modified_date()
-        )
+    obj_pattern_with_latest_dates = get_stored_state(
+        data_config,
+        get_default_initial_s3_last_modified_date()
     )
     new_s3_files = list(iter_sorted_new_s3_files_to_process(
         obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
