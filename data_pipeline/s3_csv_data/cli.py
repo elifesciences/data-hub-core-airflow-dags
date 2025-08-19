@@ -49,7 +49,7 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
     )
     if not new_s3_files:
         LOGGER.info('No new file found and skipped the task.')
-        return None
+        return
     for object_key_pattern, matching_files_list in new_s3_files.items():
         record_import_timestamp_as_string = get_current_timestamp_as_string()
         sorted_matching_files_list = (
