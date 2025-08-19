@@ -3,6 +3,6 @@ pandas==2.3.1
 pandas-gbq==0.29.2
 pyarrow>=6.0.1, <22.0.0
 tqdm==4.67.1
-requests==2.32.4
+requests==2.32.5
 fsspec==2025.2.0
 s3fs==2025.2.0
