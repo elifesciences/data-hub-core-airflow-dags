@@ -66,7 +66,7 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
         verify=None
     )
     new_s3_files = hook.get_new_object_key_names(
-        obj_pattern_with_latest_dates,
+        obj_pattern_with_latest_dates,  # type: ignore
         data_config.s3_bucket_name
     )
     if not new_s3_files:

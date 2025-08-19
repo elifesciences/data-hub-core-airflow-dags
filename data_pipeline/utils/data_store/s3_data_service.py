@@ -1,8 +1,13 @@
+from dataclasses import dataclass
+from datetime import datetime
+import fnmatch
 import json
 from contextlib import contextmanager
 import logging
 from tempfile import NamedTemporaryFile
+from typing import Iterable, Mapping, Sequence
 
+import botocore
 import yaml
 import boto3
 from botocore.exceptions import ClientError
@@ -79,3 +84,106 @@ def delete_s3_object(bucket, object_key):
         Bucket=bucket,
         Key=object_key
     )
+
+
+@dataclass(frozen=True)
+class FileMetadata:
+    bucket: str
+    name: str
+    last_modified: datetime
+
+
+def list_objects_with_pattern_and_timestamp(
+    s3_client,
+    bucket: str,
+    pattern: str,
+    latest_timestamp: datetime
+) -> Sequence[FileMetadata]:
+    """
+    List objects in S3 matching pattern and modified after latest_timestamp
+    """
+    prefix = pattern.split('*')[0]
+    paginator = s3_client.get_paginator('list_objects_v2')
+    matching_objects: list[FileMetadata] = []
+    LOGGER.info(
+        'listing s3 objects with bucket: %s, pattern: %s and prefix: %s',
+        bucket,
+        pattern,
+        prefix
+    )
+    try:
+        for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+            if 'Contents' not in page:
+                continue
+            for obj in page['Contents']:
+                key = obj['Key']
+                last_modified = obj['LastModified']
+                # Check both pattern match and timestamp
+                if (fnmatch.fnmatch(key, pattern) and last_modified > latest_timestamp):
+                    matching_objects.append(FileMetadata(
+                        bucket=bucket,
+                        name=key,
+                        last_modified=last_modified
+                    ))
+    except botocore.exceptions.ClientError as err:
+        LOGGER.error('Error listing objects with prefix %s: %s', prefix, err)
+        raise
+
+    return matching_objects
+
+
+@dataclass(frozen=True)
+class FileMetadataWithObjectPattern:
+    file_metadata: FileMetadata
+    object_key_pattern: str
+
+
+def iter_sorted_new_s3_files_to_process(
+    obj_pattern_with_latest_dates: Mapping[str, datetime],
+    s3_bucket_name: str
+) -> Iterable[FileMetadataWithObjectPattern]:
+
+    s3_client = boto3.client("s3")
+    matching_files: dict[str, Sequence[FileMetadata]] = {}
+    LOGGER.debug('obj_pattern_with_latest_dates: %s', obj_pattern_with_latest_dates)
+
+    # For each pattern and its timestamp, get matching objects
+    for pattern, latest_timestamp in obj_pattern_with_latest_dates.items():
+        objects = list_objects_with_pattern_and_timestamp(
+            s3_client=s3_client,
+            bucket=s3_bucket_name,
+            pattern=pattern,
+            latest_timestamp=latest_timestamp
+        )
+        if objects:
+            matching_files[pattern] = objects
+            LOGGER.info(
+                'Found %d new files for pattern %s modified after %s',
+                len(objects),
+                pattern,
+                latest_timestamp.isoformat()
+            )
+
+    # Process matching files
+    for object_key_pattern, files_list in matching_files.items():
+        sorted_files = sorted(
+            files_list,
+            key=lambda x: x.last_modified
+        )
+
+        for object_index, file_metadata in enumerate(sorted_files):
+            object_key = file_metadata.name
+            s3_bucket = file_metadata.bucket
+
+            LOGGER.info(
+                'processing file (%d / %d): s3://%s/%s',
+                1 + object_index,
+                len(sorted_files),
+                s3_bucket,
+                object_key
+            )
+
+            yield FileMetadataWithObjectPattern(
+                file_metadata=file_metadata,
+                object_key_pattern=object_key_pattern
+            )

@@ -1,32 +1,62 @@
+from datetime import datetime
 import logging
 from typing import IO, Iterator
 from unittest.mock import MagicMock, patch
 
-import boto3
 import pytest
 from botocore.compat import six
 from botocore.response import StreamingBody
 
 from data_pipeline.utils.data_store.s3_data_service import (
+    FileMetadata,
+    FileMetadataWithObjectPattern,
     download_s3_yaml_object_as_json,
+    iter_sorted_new_s3_files_to_process,
     s3_open_binary_read_with_temp_file,
 )
+
+import data_pipeline.utils.data_store.s3_data_service as s3_data_service_module
 
 
 LOGGER = logging.getLogger(__name__)
 
 BINARY_DATA_1 = b'binary data 1'
 
+TIMESTAMP_STRING_1 = '2020-01-01T00:00:00+00:00'
+TIMESTAMP_STRING_2 = '2020-01-02T00:00:00+00:00'
 
-@pytest.fixture(name="mock_s3_client_function", autouse=True)
-def _mock_s3_client_function() -> Iterator[MagicMock]:
-    with patch.object(boto3, "client") as mock:
-        yield mock
+TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
+TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
+
+S3_BUCKET_NAME_1 = 's3_bucket_name_1'
+
+OBJECT_PATTERN_1 = 'object_pattern_1*'
+
+OBJECT_KEY_1 = 'object_key_1'
+OBJECT_KEY_2 = 'object_key_2'
+
+FILE_METADATA_1 = FileMetadata(
+    bucket=S3_BUCKET_NAME_1,
+    name=OBJECT_KEY_1,
+    last_modified=TIMESTAMP_1
+)
+
+FILE_METADATA_2 = FileMetadata(
+    bucket=S3_BUCKET_NAME_1,
+    name=OBJECT_KEY_2,
+    last_modified=TIMESTAMP_2
+)
 
 
 @pytest.fixture(name="mock_s3_client", autouse=True)
 def _mock_s3_client(mock_s3_client_function: MagicMock) -> MagicMock:
     return mock_s3_client_function.return_value
+
+
+@pytest.fixture(name='mock_list_objects_with_pattern_and_timestamp', autouse=True)
+def _mock_list_objects_with_pattern_and_timestamp() -> Iterator[MagicMock]:
+    with patch.object(s3_data_service_module, 'list_objects_with_pattern_and_timestamp') as mock:
+        yield mock
 
 
 def _mock_download_fileobj(Bucket: str, Key: str, Fileobj: IO):  # pylint: disable=invalid-name
@@ -96,7 +126,6 @@ def test_should_download_string_file(
 
 
 class UnitTestData:
-
     def __init__(self):
         self.source_bucket = "test_bucket"
         self.source_object = "test_object"
@@ -122,3 +151,61 @@ class UnitTestData:
         response = {}
         response["Body"] = self.source_sample_string
         return response
+
+
+class TestIterSortedNewS3FilesToProcess:
+    def test_should_call_list_objects_with_pattern_and_timestamp(
+        self,
+        mock_list_objects_with_pattern_and_timestamp: MagicMock,
+        mock_s3_client: MagicMock
+    ):
+        list(iter_sorted_new_s3_files_to_process(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1
+        ))
+
+        mock_list_objects_with_pattern_and_timestamp.assert_called_with(
+            s3_client=mock_s3_client,
+            bucket=S3_BUCKET_NAME_1,
+            pattern=OBJECT_PATTERN_1,
+            latest_timestamp=TIMESTAMP_1
+        )
+
+    def test_should_return_file_metadata_with_object_pattern(
+        self,
+        mock_list_objects_with_pattern_and_timestamp: MagicMock
+    ):
+        mock_list_objects_with_pattern_and_timestamp.return_value = [
+            FILE_METADATA_1
+        ]
+        assert list(iter_sorted_new_s3_files_to_process(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1
+        )) == [
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_1,
+                object_key_pattern=OBJECT_PATTERN_1
+            )
+        ]
+
+    def test_should_return_sorted_file_metadata_with_object_pattern(
+        self,
+        mock_list_objects_with_pattern_and_timestamp: MagicMock
+    ):
+        mock_list_objects_with_pattern_and_timestamp.return_value = [
+            FILE_METADATA_2,
+            FILE_METADATA_1
+        ]
+        assert list(iter_sorted_new_s3_files_to_process(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1
+        )) == [
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_1,
+                object_key_pattern=OBJECT_PATTERN_1
+            ),
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_2,
+                object_key_pattern=OBJECT_PATTERN_1
+            )
+        ]

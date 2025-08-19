@@ -5,6 +5,7 @@ extension-pkg-whitelist=
 [MESSAGES CONTROL]
 disable=
     missing-docstring,
+    missing-class-docstring,
     too-few-public-methods,
     too-many-positional-arguments,
     duplicate-code
