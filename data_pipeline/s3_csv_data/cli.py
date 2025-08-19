@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from typing import Optional, Sequence
 
 from data_pipeline.s3_csv_data.s3_csv_config import (
     DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
@@ -85,10 +86,10 @@ def csv_etl(data_pipeline_id: str, **_kwargs):
     etl_new_csv_files(data_config=data_config)
 
 
-def main():
+def main(argv: Optional[Sequence[str]] = None):
     parser = argparse.ArgumentParser(description='Run ETL for a specific S3 CSV pipeline')
     parser.add_argument('--data-pipeline-id', required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     data_pipeline_id = args.data_pipeline_id
     LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
     csv_etl(data_pipeline_id)
