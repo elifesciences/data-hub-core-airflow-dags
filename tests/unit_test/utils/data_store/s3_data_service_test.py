@@ -34,11 +34,18 @@ S3_BUCKET_NAME_1 = 's3_bucket_name_1'
 OBJECT_PATTERN_1 = 'object_pattern_1*'
 
 OBJECT_KEY_1 = 'object_key_1'
+OBJECT_KEY_2 = 'object_key_2'
 
 FILE_METADATA_1 = FileMetadata(
     bucket=S3_BUCKET_NAME_1,
     name=OBJECT_KEY_1,
     last_modified=TIMESTAMP_1
+)
+
+FILE_METADATA_2 = FileMetadata(
+    bucket=S3_BUCKET_NAME_1,
+    name=OBJECT_KEY_2,
+    last_modified=TIMESTAMP_2
 )
 
 
@@ -184,6 +191,28 @@ class TestIterSortedNewS3FilesToProcess:
         )) == [
             FileMetadataWithObjectPattern(
                 file_metadata=FILE_METADATA_1,
+                object_key_pattern=OBJECT_PATTERN_1
+            )
+        ]
+
+    def test_should_return_sorted_file_metadata_with_object_pattern(
+        self,
+        mock_list_objects_with_pattern_and_timestamp: MagicMock
+    ):
+        mock_list_objects_with_pattern_and_timestamp.return_value = [
+            FILE_METADATA_2,
+            FILE_METADATA_1
+        ]
+        assert list(iter_sorted_new_s3_files_to_process(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1
+        )) == [
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_1,
+                object_key_pattern=OBJECT_PATTERN_1
+            ),
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_2,
                 object_key_pattern=OBJECT_PATTERN_1
             )
         ]
