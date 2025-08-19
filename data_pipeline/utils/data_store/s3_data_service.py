@@ -5,7 +5,7 @@ import json
 from contextlib import contextmanager
 import logging
 from tempfile import NamedTemporaryFile
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 import botocore
 import yaml
@@ -139,20 +139,21 @@ class FileMetadataWithObjectPattern:
 
 
 def iter_sorted_new_s3_files_to_process(
-    obj_pattern_with_latest_dates: dict,
+    obj_pattern_with_latest_dates: Mapping[str, datetime],
     s3_bucket_name: str
 ) -> Iterable[FileMetadataWithObjectPattern]:
 
     s3_client = boto3.client("s3")
     matching_files: dict[str, Sequence[FileMetadata]] = {}
+    LOGGER.debug('obj_pattern_with_latest_dates: %s', obj_pattern_with_latest_dates)
 
     # For each pattern and its timestamp, get matching objects
     for pattern, latest_timestamp in obj_pattern_with_latest_dates.items():
         objects = list_objects_with_pattern_and_timestamp(
-            s3_client,
-            s3_bucket_name,
-            pattern,
-            latest_timestamp
+            s3_client=s3_client,
+            bucket=s3_bucket_name,
+            pattern=pattern,
+            latest_timestamp=latest_timestamp
         )
         if objects:
             matching_files[pattern] = objects
