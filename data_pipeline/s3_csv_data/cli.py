@@ -68,11 +68,10 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
             object_pattern=object_key_pattern,
             file_modified_timestamp=matching_file_metadata.last_modified
         )
-
         upload_s3_object_json(
-            updated_obj_pattern_with_latest_dates,
-            data_config.state_file_bucket_name,
-            data_config.state_file_object_name
+            obj_pattern_with_latest_dates=updated_obj_pattern_with_latest_dates,
+            statefile_s3_bucket=data_config.state_file_bucket_name,
+            statefile_s3_object=data_config.state_file_object_name
         )
 
 
