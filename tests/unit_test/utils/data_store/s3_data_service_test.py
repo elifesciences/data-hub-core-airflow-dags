@@ -3,7 +3,6 @@ import logging
 from typing import IO, Iterator
 from unittest.mock import MagicMock, patch
 
-import boto3
 import pytest
 from botocore.compat import six
 from botocore.response import StreamingBody
@@ -47,12 +46,6 @@ FILE_METADATA_2 = FileMetadata(
     name=OBJECT_KEY_2,
     last_modified=TIMESTAMP_2
 )
-
-
-@pytest.fixture(name="mock_s3_client_function", autouse=True)
-def _mock_s3_client_function() -> Iterator[MagicMock]:
-    with patch.object(boto3, "client") as mock:
-        yield mock
 
 
 @pytest.fixture(name="mock_s3_client", autouse=True)

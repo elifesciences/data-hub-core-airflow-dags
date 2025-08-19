@@ -1,6 +1,7 @@
 import logging
-from unittest.mock import patch
-from typing import Iterable
+from unittest.mock import MagicMock, patch
+from typing import Iterable, Iterator
+import boto3
 import pytest
 
 
@@ -16,3 +17,9 @@ def mock_env() -> Iterable[dict]:
     env_dict: dict = {}
     with patch('os.environ', env_dict):
         yield env_dict
+
+
+@pytest.fixture(name="mock_s3_client_function", autouse=True)
+def _mock_s3_client_function() -> Iterator[MagicMock]:
+    with patch.object(boto3, "client") as mock:
+        yield mock
