@@ -9,7 +9,7 @@ import csv
 from csv import DictReader
 import json
 from datetime import datetime
-from typing import Iterable, Iterator, Optional
+from typing import Iterable, Iterator, Mapping, Optional
 
 from botocore.exceptions import ClientError
 from dateutil import tz
@@ -51,7 +51,7 @@ def convert_datetime_to_string(dtobj, dt_format="%Y-%m-%d %H:%M:%S"):
 
 
 def update_object_latest_dates(
-        obj_pattern_with_latest_dates: dict,
+        obj_pattern_with_latest_dates: Mapping[str, datetime],
         object_pattern: str,
         file_modified_timestamp,
 ):
@@ -65,7 +65,7 @@ def update_object_latest_dates(
 
 
 def upload_s3_object_json(
-        obj_pattern_with_latest_dates: dict,
+        obj_pattern_with_latest_dates: Mapping[str, datetime],
         statefile_s3_bucket: str,
         statefile_s3_object: str
 ):
@@ -87,9 +87,9 @@ def get_initial_state(
 
 
 def get_stored_state(
-        data_config: S3BaseCsvConfig,
-        default_latest_file_date,
-):
+    data_config: S3BaseCsvConfig,
+    default_latest_file_date: str
+) -> Mapping[str, datetime]:
     try:
         downloaded_state = download_s3_json_object(
             data_config.state_file_bucket_name,
