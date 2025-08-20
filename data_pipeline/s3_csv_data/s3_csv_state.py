@@ -50,3 +50,12 @@ class CsvState:
             )
             for object_pattern, object_pattern_csv_state in self.state_dict.items()
         }
+
+    def update_last_modified_datetime(
+        self,
+        object_pattern: str,
+        last_modified_datetime: datetime
+    ):
+        self.state_dict[object_pattern] = ObjectPatternCsvState(
+            last_modified_datetime=last_modified_datetime
+        )
