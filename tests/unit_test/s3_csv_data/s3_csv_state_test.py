@@ -14,7 +14,7 @@ class TestCsvState:
         state = CsvState.from_dict({})
         assert not state.state_dict
 
-    def test_should_parse_timestamp(self):
+    def test_should_parse_datetime(self):
         state = CsvState.from_dict({
             OBJECT_PATTERN_1: DATETTIME_STRING_1
         })
