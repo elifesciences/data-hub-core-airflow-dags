@@ -114,17 +114,6 @@ def get_stored_state(
     }
 
 
-def get_sorted_in_sheet_metadata_index(csv_config: S3BaseCsvConfig):
-    record_metadata = [
-        {line_index_in_data: metadata_col_name}
-        for metadata_col_name, line_index_in_data
-        in csv_config.in_sheet_record_metadata.items()
-    ]
-    return sorted(
-        record_metadata, key=lambda i: list(i.keys())
-    )
-
-
 def get_standardized_csv_header(
         record_list: list,
         csv_config: S3BaseCsvConfig
@@ -315,26 +304,6 @@ def merge_record_with_metadata(
         **record,
         **record_metadata
     }
-
-
-def get_s3_csv_provenance_schema():
-    prov_dict = {
-        "type": "RECORD",
-        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
-        "fields": [
-            {
-                "name":
-                    NamedLiterals.PROVENANCE_S3_BUCKET_FIELD_NAME,
-                "type": "STRING"
-            },
-            {
-                "name":
-                    NamedLiterals.PROVENANCE_S3_OBJECT_FIELD_NAME,
-                "type": "STRING"
-            },
-        ]
-    }
-    return [prov_dict]
 
 
 class NamedLiterals:
