@@ -86,6 +86,12 @@ def delete_s3_object(bucket, object_key):
     )
 
 
+def get_s3_object_etag(bucket: str, object_key: str) -> str:
+    s3_client = boto3.client("s3")
+    response_json = s3_client.head_object(Bucket=bucket, Key=object_key)
+    return response_json['ETag']
+
+
 @dataclass(frozen=True)
 class FileMetadata:
     bucket: str
