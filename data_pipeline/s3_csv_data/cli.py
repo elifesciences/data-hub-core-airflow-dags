@@ -15,7 +15,10 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     upload_s3_object_json
 )
 from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
-from data_pipeline.utils.data_store.s3_data_service import iter_sorted_new_s3_files_to_process
+from data_pipeline.utils.data_store.s3_data_service import (
+    get_s3_object_etag,
+    iter_sorted_new_s3_files_to_process
+)
 from data_pipeline.utils.pipeline_config import (
     get_pipeline_config_for_env_name_and_config_parser
 )
@@ -55,8 +58,18 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
         LOGGER.info('No new file found and skipped the task.')
         return
     for matching_file_metadata_with_object_pattern in new_s3_files:
-        record_import_timestamp_as_string = get_current_timestamp_as_string()
         matching_file_metadata = matching_file_metadata_with_object_pattern.file_metadata
+        etag = get_s3_object_etag(
+            bucket=matching_file_metadata.bucket,
+            object_key=matching_file_metadata.name
+        )
+        LOGGER.info(
+            'ETag for s3://%s/%s is %r',
+            matching_file_metadata.bucket,
+            matching_file_metadata.name,
+            etag
+        )
+        record_import_timestamp_as_string = get_current_timestamp_as_string()
         object_key_pattern = matching_file_metadata_with_object_pattern.object_key_pattern
         transform_load_data(
             matching_file_metadata.name,

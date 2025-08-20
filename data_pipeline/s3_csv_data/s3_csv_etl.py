@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-import hashlib
 import os
 import io
 import logging
@@ -246,17 +245,6 @@ def iter_transformed_json_from_csv(
         yield processed_record_iterable
 
 
-def get_file_hash(file_path: str | Path) -> str:
-    sha3_512 = hashlib.sha3_512()
-    with open(file_path, 'rb') as f:
-        while True:
-            data = f.read(65536)  # 64KB buffer size
-            if not data:
-                break
-            sha3_512.update(data)
-    return sha3_512.hexdigest()
-
-
 def transform_load_data(
     s3_object_name: str,
     csv_config: S3BaseCsvConfig,
@@ -277,7 +265,6 @@ def transform_load_data(
             )
 
             if os.path.getsize(full_temp_file_location) > 0:
-                LOGGER.info('File hash: %r', get_file_hash(full_temp_file_location))
                 create_or_extend_table_schema(
                     csv_config.gcp_project,
                     csv_config.dataset_name,
