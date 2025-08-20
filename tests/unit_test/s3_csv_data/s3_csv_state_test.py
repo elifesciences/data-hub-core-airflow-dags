@@ -23,3 +23,13 @@ class TestCsvState:
                 last_modified_datetime=DATETTIME_1
             )
         }
+
+    def test_should_serialize_datetime_to_string(self):
+        state = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=DATETTIME_1
+            )
+        })
+        assert state.to_dict() == {
+            OBJECT_PATTERN_1: DATETTIME_STRING_1
+        }

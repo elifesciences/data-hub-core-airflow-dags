@@ -17,6 +17,10 @@ def convert_datetime_string_to_datetime(
     return tz_aware
 
 
+def convert_datetime_to_string(dtobj: datetime) -> str:
+    return dtobj.strftime(DATETIME_FORMAT)
+
+
 @dataclass(frozen=True)
 class ObjectPatternCsvState:
     last_modified_datetime: datetime
@@ -38,3 +42,11 @@ class CsvState:
                 for object_pattern, datetime_str in state_dict.items()
             }
         )
+
+    def to_dict(self) -> Mapping[str, str]:
+        return {
+            object_pattern: convert_datetime_to_string(
+                object_pattern_csv_state.last_modified_datetime
+            )
+            for object_pattern, object_pattern_csv_state in self.state_dict.items()
+        }
