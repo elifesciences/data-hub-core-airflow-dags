@@ -1,10 +1,10 @@
 import io
+import json
 import os
 from collections import OrderedDict
 from typing import Optional
 from unittest.mock import MagicMock, patch
 import pytest
-import botocore
 
 from data_pipeline.s3_csv_data import s3_csv_etl
 from data_pipeline.s3_csv_data.s3_csv_etl import (
@@ -97,11 +97,12 @@ def _get_initial_state():
         yield mock
 
 
-@pytest.fixture(name="mock_download_s3_json_object", autouse=True)
-def _download_s3_json_object():
-    with patch.object(s3_csv_etl,
-                      "download_s3_json_object") as mock:
-
+@pytest.fixture(name="mock_download_s3_object_as_string_or_file_not_found_error", autouse=True)
+def _mock_download_s3_object_as_string_or_file_not_found_error():
+    with patch.object(
+        s3_csv_etl,
+        "download_s3_object_as_string_or_file_not_found_error"
+    ) as mock:
         yield mock
 
 
@@ -608,14 +609,13 @@ class TestStoredState:
             TestStoredState.csv_config.s3_object_key_pattern_list
         ) == set(returned_state.keys())
 
-    def test_should_get_default_state_on_no_such_s3_key_failure(
-            self, mock_get_initial_state,
-            mock_download_s3_json_object):
+    def test_should_get_default_state_on_file_not_found_error(
+        self,
+        mock_get_initial_state: MagicMock,
+        mock_download_s3_object_as_string_or_file_not_found_error: MagicMock
+    ):
 
-        error_response = {'Error': {'Code': 'NoSuchKey'}}
-        side_effect = botocore.errorfactory.ClientError(
-            error_response, 'unexpected')
-        mock_download_s3_json_object.side_effect = side_effect
+        mock_download_s3_object_as_string_or_file_not_found_error.side_effect = FileNotFoundError()
 
         get_stored_state(
             TestStoredState.csv_config,
@@ -627,13 +627,14 @@ class TestStoredState:
         )
 
     def test_should_not_get_default_state_when_no_key_failure(
-            self,
-            mock_get_initial_state,
-            mock_download_s3_json_object):
-        mock_download_s3_json_object.return_value = {
+        self,
+        mock_get_initial_state: MagicMock,
+        mock_download_s3_object_as_string_or_file_not_found_error: MagicMock
+    ):
+        mock_download_s3_object_as_string_or_file_not_found_error.return_value = json.dumps({
             'obj_key_pattern_1*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
             'obj_key_pattern_2*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-        }
+        })
         get_stored_state(
             TestStoredState.csv_config,
             DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE

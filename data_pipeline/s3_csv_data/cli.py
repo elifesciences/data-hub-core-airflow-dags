@@ -50,6 +50,7 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
         data_config,
         get_default_initial_s3_last_modified_date()
     )
+    LOGGER.info('obj_pattern_with_latest_dates: %r', obj_pattern_with_latest_dates)
     new_s3_files = list(iter_sorted_new_s3_files_to_process(
         obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
         s3_bucket_name=data_config.s3_bucket_name

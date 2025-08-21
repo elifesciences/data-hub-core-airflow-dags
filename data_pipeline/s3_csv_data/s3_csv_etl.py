@@ -10,7 +10,6 @@ import json
 from datetime import datetime
 from typing import Iterable, Iterator, Mapping, Optional
 
-from botocore.exceptions import ClientError
 from dateutil import tz
 
 from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
@@ -23,7 +22,7 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     get_write_disposition
 )
 from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_json_object,
+    download_s3_object_as_string_or_file_not_found_error,
     s3_open_binary_read_with_temp_file,
     upload_s3_object
 )
@@ -90,9 +89,11 @@ def get_stored_state(
     default_latest_file_date: str
 ) -> Mapping[str, datetime]:
     try:
-        downloaded_state = download_s3_json_object(
-            data_config.state_file_bucket_name,
-            data_config.state_file_object_name
+        downloaded_state = json.loads(
+            download_s3_object_as_string_or_file_not_found_error(
+                data_config.state_file_bucket_name,
+                data_config.state_file_object_name
+            )
         )
         stored_state = {
             object_pattern:
@@ -101,13 +102,11 @@ def get_stored_state(
                 )
             for object_pattern in data_config.s3_object_key_pattern_list
         }
-    except ClientError as ex:
-        if ex.response['Error']['Code'] == 'NoSuchKey':
-            stored_state = get_initial_state(data_config,
-                                             default_latest_file_date
-                                             )
-        else:
-            raise ex
+    except FileNotFoundError:
+        stored_state = get_initial_state(
+            data_config,
+            default_latest_file_date
+        )
     return {
         k: convert_datetime_string_to_datetime(v)
         for k, v in stored_state.items()
