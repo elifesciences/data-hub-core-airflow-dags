@@ -1,13 +1,23 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import logging
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Optional
+
+from typing_extensions import NotRequired, TypedDict
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
+
+
+class ObjectPatternStateTypeDict(TypedDict):
+    last_modified_timestamp: str
+    file_hash: NotRequired[str]
+
+
+CsvStateDict = Mapping[str, str | ObjectPatternStateTypeDict]
 
 
 def parse_timestamp(timestamp_string: str) -> datetime:
@@ -21,6 +31,33 @@ def parse_timestamp(timestamp_string: str) -> datetime:
 @dataclass(frozen=True)
 class ObjectPatternCsvState:
     last_modified_timestamp: datetime
+    file_hash: Optional[str] = None
+
+    @staticmethod
+    def from_dict_or_string(
+        object_pattern_state_dict_or_string: str | ObjectPatternStateTypeDict
+    ) -> 'ObjectPatternCsvState':
+        if isinstance(object_pattern_state_dict_or_string, str):
+            return ObjectPatternCsvState(
+                last_modified_timestamp=parse_timestamp(
+                    object_pattern_state_dict_or_string
+                )
+            )
+        object_pattern_state_dict: ObjectPatternStateTypeDict = object_pattern_state_dict_or_string
+        return ObjectPatternCsvState(
+            last_modified_timestamp=parse_timestamp(
+                object_pattern_state_dict['last_modified_timestamp']
+            ),
+            file_hash=object_pattern_state_dict.get('file_hash')
+        )
+
+    def to_dict(self) -> ObjectPatternStateTypeDict:
+        result: ObjectPatternStateTypeDict = {
+            'last_modified_timestamp': self.last_modified_timestamp.isoformat()
+        }
+        if self.file_hash:
+            result['file_hash'] = self.file_hash
+        return result
 
 
 @dataclass(frozen=True)
@@ -28,15 +65,13 @@ class CsvState:
     state_dict: dict[str, ObjectPatternCsvState]
 
     @staticmethod
-    def from_dict(state_dict: Mapping[str, str]) -> 'CsvState':
+    def from_dict(state_dict: CsvStateDict) -> 'CsvState':
         return CsvState(
             state_dict={
-                object_pattern: ObjectPatternCsvState(
-                    last_modified_timestamp=parse_timestamp(
-                        timestamp_str
-                    )
+                object_pattern: ObjectPatternCsvState.from_dict_or_string(
+                    object_pattern_state_dict_or_string
                 )
-                for object_pattern, timestamp_str in state_dict.items()
+                for object_pattern, object_pattern_state_dict_or_string in state_dict.items()
             }
         )
 
@@ -54,19 +89,19 @@ class CsvState:
             }
         )
 
-    def to_dict(self) -> Mapping[str, str]:
+    def to_dict(self) -> CsvStateDict:
         return {
-            object_pattern: (
-                object_pattern_csv_state.last_modified_timestamp.isoformat()
-            )
+            object_pattern: object_pattern_csv_state.to_dict()
             for object_pattern, object_pattern_csv_state in self.state_dict.items()
         }
 
     def update_last_modified_timestamp(
         self,
         object_pattern: str,
-        last_modified_timestamp: datetime
+        last_modified_timestamp: datetime,
+        file_hash: Optional[str] = None
     ):
         self.state_dict[object_pattern] = ObjectPatternCsvState(
-            last_modified_timestamp=last_modified_timestamp
+            last_modified_timestamp=last_modified_timestamp,
+            file_hash=file_hash
         )
