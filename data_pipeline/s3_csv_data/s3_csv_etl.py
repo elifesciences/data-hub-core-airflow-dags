@@ -291,6 +291,7 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
         LOGGER.info('No new file found and skipped the task.')
         return
     for matching_file_metadata_with_object_pattern in new_s3_files:
+        object_key_pattern = matching_file_metadata_with_object_pattern.object_key_pattern
         matching_file_metadata = matching_file_metadata_with_object_pattern.file_metadata
         etag = get_s3_object_etag(
             bucket=matching_file_metadata.bucket,
@@ -302,8 +303,10 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
             matching_file_metadata.name,
             etag
         )
+        if etag == csv_state.state_dict[object_key_pattern].file_hash:
+            LOGGER.info('Skipping file because it matches the previous file hash (ETag)')
+            continue
         record_import_timestamp_as_string = get_current_timestamp_as_string()
-        object_key_pattern = matching_file_metadata_with_object_pattern.object_key_pattern
         transform_load_data(
             matching_file_metadata.name,
             data_config,
