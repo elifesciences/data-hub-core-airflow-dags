@@ -7,11 +7,9 @@ from pathlib import Path
 import csv
 from csv import DictReader
 import json
-from datetime import datetime
 from typing import Iterable, Iterator, Mapping, Optional
 
-from dateutil import tz
-
+from data_pipeline.s3_csv_data.s3_csv_state import CsvState, convert_datetime_string_to_datetime
 from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig,
@@ -40,83 +38,36 @@ from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 LOGGER = logging.getLogger(__name__)
 
 
-def convert_datetime_string_to_datetime(
-        datetime_as_string: str,
-        time_format: str = "%Y-%m-%d %H:%M:%S"
-) -> datetime:
-    tz_unaware = datetime.strptime(datetime_as_string.strip(), time_format)
-    tz_aware = tz_unaware.replace(tzinfo=tz.tzlocal())
-
-    return tz_aware
-
-
-def convert_datetime_to_string(dtobj, dt_format="%Y-%m-%d %H:%M:%S"):
-    return dtobj.strftime(dt_format)
-
-
-def update_object_latest_dates(
-        obj_pattern_with_latest_dates: Mapping[str, datetime],
-        object_pattern: str,
-        file_modified_timestamp,
-):
-    new_obj_pattern_with_latest_dates = {
-        **{key: convert_datetime_to_string(value)
-           for key, value
-           in obj_pattern_with_latest_dates.items()},
-        object_pattern: convert_datetime_to_string(file_modified_timestamp)
-    }
-    return new_obj_pattern_with_latest_dates
-
-
 def upload_s3_object_json(
-        obj_pattern_with_latest_dates: Mapping[str, datetime],
-        statefile_s3_bucket: str,
-        statefile_s3_object: str
+    state_dict: Mapping[str, str],
+    statefile_s3_bucket: str,
+    statefile_s3_object: str
 ):
     upload_s3_object(
         bucket=statefile_s3_bucket,
         object_key=statefile_s3_object,
-        data_object=json.dumps(obj_pattern_with_latest_dates)
+        data_object=json.dumps(state_dict)
     )
-
-
-def get_initial_state(
-        data_config: S3BaseCsvConfig,
-        latest_processed_file_date: str
-):
-    return {
-        object_name_pattern: latest_processed_file_date
-        for object_name_pattern in data_config.s3_object_key_pattern_list
-    }
 
 
 def get_stored_state(
     data_config: S3BaseCsvConfig,
     default_latest_file_date: str
-) -> Mapping[str, datetime]:
+) -> CsvState:
     try:
-        downloaded_state = json.loads(
+        return CsvState.from_dict(json.loads(
             download_s3_object_as_string_or_file_not_found_error(
                 data_config.state_file_bucket_name,
                 data_config.state_file_object_name
             )
-        )
-        stored_state = {
-            object_pattern:
-                downloaded_state.get(
-                    object_pattern, default_latest_file_date
-                )
-            for object_pattern in data_config.s3_object_key_pattern_list
-        }
+        ))
     except FileNotFoundError:
-        stored_state = get_initial_state(
-            data_config,
-            default_latest_file_date
+        return CsvState.get_initial_state(
+            object_patterns=data_config.s3_object_key_pattern_list,
+            last_modified_datetime=convert_datetime_string_to_datetime(
+                default_latest_file_date
+            )
         )
-    return {
-        k: convert_datetime_string_to_datetime(v)
-        for k, v in stored_state.items()
-    }
 
 
 def get_standardized_csv_header(
@@ -324,13 +275,16 @@ class NamedLiterals:
 
 
 def etl_new_csv_files(data_config: S3BaseCsvConfig):
-    obj_pattern_with_latest_dates = get_stored_state(
+    csv_state = get_stored_state(
         data_config,
         get_default_initial_s3_last_modified_date()
     )
-    LOGGER.info('obj_pattern_with_latest_dates: %r', obj_pattern_with_latest_dates)
+    LOGGER.info('csv_state: %r', csv_state)
     new_s3_files = list(iter_sorted_new_s3_files_to_process(
-        obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
+        obj_pattern_with_latest_dates={
+            object_pattern: object_pattern_csv_state.last_modified_datetime
+            for object_pattern, object_pattern_csv_state in csv_state.state_dict.items()
+        },
         s3_bucket_name=data_config.s3_bucket_name
     ))
     if not new_s3_files:
@@ -355,13 +309,12 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
             data_config,
             record_import_timestamp_as_string,
         )
-        updated_obj_pattern_with_latest_dates = update_object_latest_dates(
-            obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
+        csv_state.update_last_modified_datetime(
             object_pattern=object_key_pattern,
-            file_modified_timestamp=matching_file_metadata.last_modified
+            last_modified_datetime=matching_file_metadata.last_modified
         )
         upload_s3_object_json(
-            obj_pattern_with_latest_dates=updated_obj_pattern_with_latest_dates,
+            state_dict=csv_state.to_dict(),
             statefile_s3_bucket=data_config.state_file_bucket_name,
             statefile_s3_object=data_config.state_file_object_name
         )

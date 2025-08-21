@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import datetime
 import io
 import json
@@ -8,12 +9,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from data_pipeline.s3_csv_data.s3_csv_state import CsvState, ObjectPatternCsvState
 from data_pipeline.utils.data_store.s3_data_service import (
     FileMetadata,
     FileMetadataWithObjectPattern
 )
 from data_pipeline.s3_csv_data import s3_csv_etl
 from data_pipeline.s3_csv_data.s3_csv_etl import (
+    convert_datetime_string_to_datetime,
     etl_new_csv_files,
     get_record_metadata,
     iter_transformed_json_from_csv,
@@ -21,7 +24,6 @@ from data_pipeline.s3_csv_data.s3_csv_etl import (
     get_standardized_csv_header,
     process_record_list,
     get_csv_dict_reader,
-    get_initial_state,
     get_stored_state,
     update_metadata_with_provenance,
     merge_record_with_metadata
@@ -38,6 +40,10 @@ TIMESTAMP_STRING_2 = '2020-01-02T00:00:00+00:00'
 
 TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
+
+DATETTIME_STRING_1 = '2020-01-01 00:00:00'
+
+DATETTIME_1 = convert_datetime_string_to_datetime(DATETTIME_STRING_1)
 
 S3_BUCKET_NAME_1 = 's3_bucket_name_1'
 
@@ -125,13 +131,6 @@ def _load_file_into_bq():
 def _merge_record_with_metadata():
     with patch.object(s3_csv_etl,
                       "merge_record_with_metadata") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_get_initial_state", autouse=True)
-def _get_initial_state():
-    with patch.object(s3_csv_etl,
-                      "get_initial_state") as mock:
         yield mock
 
 
@@ -649,71 +648,41 @@ class TestStoredState:
         deployment_env
     )
 
-    def test_should_get_default_initial_state(self):
-        returned_state = get_initial_state(
-            TestStoredState.csv_config,
-            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-        )
-        expected_state = {
-            'obj_key_pattern_1*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
-            'obj_key_pattern_2*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-        }
-
-        assert returned_state == expected_state
-
-    def test_should_get_initial_state(self):
-        initial_time_as_string = "initial_time_as_string"
-        returned_state = get_initial_state(
-            TestStoredState.csv_config, initial_time_as_string
-        )
-        expected_state = {
-            'obj_key_pattern_1*': initial_time_as_string,
-            'obj_key_pattern_2*': initial_time_as_string
-        }
-        assert returned_state == expected_state
-
-    def test_should_get_initial_state_for_csv_config_keys(
-            self):
-        returned_state = get_initial_state(
-            TestStoredState.csv_config,
-            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-        )
-
-        assert set(
-            TestStoredState.csv_config.s3_object_key_pattern_list
-        ) == set(returned_state.keys())
-
-    def test_should_get_default_state_on_file_not_found_error(
+    def test_should_get_default_state_if_file_not_found(
         self,
-        mock_get_initial_state: MagicMock,
         mock_download_s3_object_as_string_or_file_not_found_error: MagicMock
     ):
 
         mock_download_s3_object_as_string_or_file_not_found_error.side_effect = FileNotFoundError()
 
-        get_stored_state(
+        state = get_stored_state(
             TestStoredState.csv_config,
             DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         )
-        mock_get_initial_state.assert_called_with(
-            TestStoredState.csv_config,
-            DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+        assert state == CsvState.get_initial_state(
+            object_patterns=TestStoredState.csv_config.s3_object_key_pattern_list,
+            last_modified_datetime=convert_datetime_string_to_datetime(
+                DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+            )
         )
 
     def test_should_not_get_default_state_when_no_key_failure(
         self,
-        mock_get_initial_state: MagicMock,
         mock_download_s3_object_as_string_or_file_not_found_error: MagicMock
     ):
-        mock_download_s3_object_as_string_or_file_not_found_error.return_value = json.dumps({
-            'obj_key_pattern_1*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
-            'obj_key_pattern_2*': DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+        expected_state = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=DATETTIME_1
+            )
         })
-        get_stored_state(
+        mock_download_s3_object_as_string_or_file_not_found_error.return_value = json.dumps(
+            expected_state.to_dict()
+        )
+        state = get_stored_state(
             TestStoredState.csv_config,
             DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
         )
-        mock_get_initial_state.assert_not_called()
+        assert state == expected_state
 
 
 class TestRecordWithMetadata:
@@ -748,7 +717,11 @@ class TestEtlNewCsvFiles:
         iter_sorted_new_s3_files_to_process_mock: MagicMock,
         get_stored_state_mock: MagicMock
     ):
-        get_stored_state_mock.return_value = {OBJECT_PATTERN_1: TIMESTAMP_1}
+        get_stored_state_mock.return_value = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=TIMESTAMP_1
+            )
+        })
         etl_new_csv_files(
             data_config=get_s3_csv_config({
                 **CSV_CONFIG_DICT_1,
@@ -768,7 +741,11 @@ class TestEtlNewCsvFiles:
         get_current_timestamp_as_string_mock: MagicMock,
         transform_load_data_mock: MagicMock
     ):
-        get_stored_state_mock.return_value = {OBJECT_PATTERN_1: TIMESTAMP_1}
+        get_stored_state_mock.return_value = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=TIMESTAMP_1
+            )
+        })
         iter_sorted_new_s3_files_to_process_mock.return_value = iter([
             FileMetadataWithObjectPattern(
                 file_metadata=FILE_METADATA_1,
@@ -787,43 +764,24 @@ class TestEtlNewCsvFiles:
             get_current_timestamp_as_string_mock.return_value
         )
 
-    def test_should_call_update_object_latest_dates(
+    def test_should_update_state(
         self,
         get_stored_state_mock: MagicMock,
         iter_sorted_new_s3_files_to_process_mock: MagicMock,
-        update_object_latest_dates_mock: MagicMock
-    ):
-        get_stored_state_mock.return_value = {OBJECT_PATTERN_1: TIMESTAMP_1}
-        iter_sorted_new_s3_files_to_process_mock.return_value = iter([
-            FileMetadataWithObjectPattern(
-                file_metadata=FILE_METADATA_1,
-                object_key_pattern=OBJECT_PATTERN_1
-            )
-        ])
-        data_config = get_s3_csv_config({
-            **CSV_CONFIG_DICT_1,
-            'bucketName': S3_BUCKET_NAME_1,
-            'objectKeyPattern': [OBJECT_PATTERN_1],
-        })
-        update_object_latest_dates_mock.return_value = {}
-        etl_new_csv_files(data_config=data_config)
-        update_object_latest_dates_mock.assert_called_with(
-            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
-            object_pattern=OBJECT_PATTERN_1,
-            file_modified_timestamp=TIMESTAMP_1
-        )
-
-    def test_should_call_upload_s3_object_json(
-        self,
-        get_stored_state_mock: MagicMock,
-        iter_sorted_new_s3_files_to_process_mock: MagicMock,
-        update_object_latest_dates_mock: MagicMock,
         upload_s3_object_json_mock: MagicMock
     ):
-        get_stored_state_mock.return_value = {OBJECT_PATTERN_1: TIMESTAMP_1}
+        csv_state = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=TIMESTAMP_1
+            )
+        })
+        get_stored_state_mock.return_value = csv_state
         iter_sorted_new_s3_files_to_process_mock.return_value = iter([
             FileMetadataWithObjectPattern(
-                file_metadata=FILE_METADATA_1,
+                file_metadata=dataclasses.replace(
+                    FILE_METADATA_1,
+                    last_modified=TIMESTAMP_2
+                ),
                 object_key_pattern=OBJECT_PATTERN_1
             )
         ])
@@ -836,10 +794,14 @@ class TestEtlNewCsvFiles:
                 'objectName': OBJECT_KEY_1,
             }
         })
-        update_object_latest_dates_mock.return_value = {OBJECT_PATTERN_1: TIMESTAMP_1}
+        updated_csv_state = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=TIMESTAMP_2
+            )
+        })
         etl_new_csv_files(data_config=data_config)
         upload_s3_object_json_mock.assert_called_with(
-            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            state_dict=updated_csv_state.to_dict(),
             statefile_s3_bucket=S3_BUCKET_NAME_1,
             statefile_s3_object=OBJECT_KEY_1
         )
