@@ -15,6 +15,8 @@ TIMESTAMP_2 = parse_timestamp(TIMESTAMP_STRING_2)
 
 OBJECT_PATTERN_1 = 'object_pattern_1*'
 
+FILE_HASH_1 = 'file_hash_1'
+
 
 class TestParseTimestamp:
     def test_should_parse_old_datetime_format(self):
@@ -47,7 +49,7 @@ class TestCsvState:
             )
         }
 
-    def test_should_parse_state_format_v2(self):
+    def test_should_parse_state_format_v2_without_file_hash(self):
         state = CsvState.from_dict({
             OBJECT_PATTERN_1: {
                 'last_modified_timestamp': TIMESTAMP_STRING_1
@@ -59,7 +61,21 @@ class TestCsvState:
             )
         }
 
-    def test_should_serialize_state_to_dict(self):
+    def test_should_parse_state_format_v2_with_file_hash(self):
+        state = CsvState.from_dict({
+            OBJECT_PATTERN_1: {
+                'last_modified_timestamp': TIMESTAMP_STRING_1,
+                'file_hash': FILE_HASH_1
+            }
+        })
+        assert state.state_dict == {
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_timestamp=TIMESTAMP_1,
+                file_hash=FILE_HASH_1
+            )
+        }
+
+    def test_should_serialize_state_to_dict_without_file_hash(self):
         state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
                 last_modified_timestamp=TIMESTAMP_1
@@ -71,6 +87,20 @@ class TestCsvState:
             }
         }
 
+    def test_should_serialize_state_to_dict_with_file_hash(self):
+        state = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_timestamp=TIMESTAMP_1,
+                file_hash=FILE_HASH_1
+            )
+        })
+        assert state.to_dict() == {
+            OBJECT_PATTERN_1: {
+                'last_modified_timestamp': TIMESTAMP_1.isoformat(),
+                'file_hash': FILE_HASH_1
+            }
+        }
+
     def test_should_update_timestamp_for_object_pattern(self):
         state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
@@ -79,7 +109,8 @@ class TestCsvState:
         })
         state.update_last_modified_timestamp(
             object_pattern=OBJECT_PATTERN_1,
-            last_modified_timestamp=TIMESTAMP_2
+            last_modified_timestamp=TIMESTAMP_2,
+            file_hash=FILE_HASH_1
         )
         assert state.state_dict[OBJECT_PATTERN_1].last_modified_timestamp == (
             TIMESTAMP_2

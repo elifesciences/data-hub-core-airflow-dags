@@ -47,6 +47,8 @@ OBJECT_KEY_1 = 'object_key_1'
 
 OBJECT_PATTERN_1 = 'object_pattern_1*'
 
+FILE_HASH_1 = 'file_hash_1'
+
 
 FILE_METADATA_1 = FileMetadata(
     bucket=S3_BUCKET_NAME_1,
@@ -179,6 +181,13 @@ def _upload_s3_object_json_mock() -> Iterator[MagicMock]:
 @pytest.fixture(name='get_stored_state_mock')
 def _get_stored_state_mock() -> Iterator[MagicMock]:
     with patch.object(s3_csv_etl, 'get_stored_state') as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_s3_object_etag_mock', autouse=True)
+def _get_s3_object_etag_mock() -> Iterator[MagicMock]:
+    with patch.object(s3_csv_etl, 'get_s3_object_etag') as mock:
+        mock.return_value = FILE_HASH_1
         yield mock
 
 
@@ -763,6 +772,7 @@ class TestEtlNewCsvFiles:
     def test_should_update_state(
         self,
         get_stored_state_mock: MagicMock,
+        get_s3_object_etag_mock: MagicMock,
         iter_sorted_new_s3_files_to_process_mock: MagicMock,
         upload_s3_object_json_mock: MagicMock
     ):
@@ -772,6 +782,7 @@ class TestEtlNewCsvFiles:
             )
         })
         get_stored_state_mock.return_value = csv_state
+        get_s3_object_etag_mock.return_value = FILE_HASH_1
         iter_sorted_new_s3_files_to_process_mock.return_value = iter([
             FileMetadataWithObjectPattern(
                 file_metadata=dataclasses.replace(
@@ -792,7 +803,8 @@ class TestEtlNewCsvFiles:
         })
         updated_csv_state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_timestamp=TIMESTAMP_2
+                last_modified_timestamp=TIMESTAMP_2,
+                file_hash=FILE_HASH_1
             )
         })
         etl_new_csv_files(data_config=data_config)

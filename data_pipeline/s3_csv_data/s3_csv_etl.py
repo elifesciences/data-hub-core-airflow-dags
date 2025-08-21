@@ -311,7 +311,8 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
         )
         csv_state.update_last_modified_timestamp(
             object_pattern=object_key_pattern,
-            last_modified_timestamp=matching_file_metadata.last_modified
+            last_modified_timestamp=matching_file_metadata.last_modified,
+            file_hash=etag
         )
         upload_s3_object_json(
             state_dict=csv_state.to_dict(),

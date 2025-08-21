@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import logging
-from typing import Iterable, Mapping, TypedDict
+from typing import Iterable, Mapping, Optional
+
+from typing_extensions import NotRequired, TypedDict
 
 
 LOGGER = logging.getLogger(__name__)
@@ -12,6 +14,7 @@ DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
 class ObjectPatternStateTypeDict(TypedDict):
     last_modified_timestamp: str
+    file_hash: NotRequired[str]
 
 
 CsvStateDict = Mapping[str, str | ObjectPatternStateTypeDict]
@@ -28,6 +31,7 @@ def parse_timestamp(timestamp_string: str) -> datetime:
 @dataclass(frozen=True)
 class ObjectPatternCsvState:
     last_modified_timestamp: datetime
+    file_hash: Optional[str] = None
 
     @staticmethod
     def from_dict_or_string(
@@ -43,13 +47,17 @@ class ObjectPatternCsvState:
         return ObjectPatternCsvState(
             last_modified_timestamp=parse_timestamp(
                 object_pattern_state_dict['last_modified_timestamp']
-            )
+            ),
+            file_hash=object_pattern_state_dict.get('file_hash')
         )
 
     def to_dict(self) -> ObjectPatternStateTypeDict:
-        return {
+        result: ObjectPatternStateTypeDict = {
             'last_modified_timestamp': self.last_modified_timestamp.isoformat()
         }
+        if self.file_hash:
+            result['file_hash'] = self.file_hash
+        return result
 
 
 @dataclass(frozen=True)
@@ -90,8 +98,10 @@ class CsvState:
     def update_last_modified_timestamp(
         self,
         object_pattern: str,
-        last_modified_timestamp: datetime
+        last_modified_timestamp: datetime,
+        file_hash: Optional[str] = None
     ):
         self.state_dict[object_pattern] = ObjectPatternCsvState(
-            last_modified_timestamp=last_modified_timestamp
+            last_modified_timestamp=last_modified_timestamp,
+            file_hash=file_hash
         )
