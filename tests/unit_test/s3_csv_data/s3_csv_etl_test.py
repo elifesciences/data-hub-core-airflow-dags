@@ -657,7 +657,7 @@ class TestStoredState:
         )
         assert state == CsvState.get_initial_state(
             object_patterns=TestStoredState.csv_config.s3_object_key_pattern_list,
-            last_modified_datetime=parse_timestamp(
+            last_modified_timestamp=parse_timestamp(
                 DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
             )
         )
@@ -668,7 +668,7 @@ class TestStoredState:
     ):
         expected_state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
         mock_download_s3_object_as_string_or_file_not_found_error.return_value = json.dumps(
@@ -715,7 +715,7 @@ class TestEtlNewCsvFiles:
     ):
         get_stored_state_mock.return_value = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
         etl_new_csv_files(
@@ -739,7 +739,7 @@ class TestEtlNewCsvFiles:
     ):
         get_stored_state_mock.return_value = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
         iter_sorted_new_s3_files_to_process_mock.return_value = iter([
@@ -768,7 +768,7 @@ class TestEtlNewCsvFiles:
     ):
         csv_state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
         get_stored_state_mock.return_value = csv_state
@@ -792,7 +792,7 @@ class TestEtlNewCsvFiles:
         })
         updated_csv_state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_2
+                last_modified_timestamp=TIMESTAMP_2
             )
         })
         etl_new_csv_files(data_config=data_config)

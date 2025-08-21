@@ -20,7 +20,7 @@ def parse_timestamp(timestamp_string: str) -> datetime:
 
 @dataclass(frozen=True)
 class ObjectPatternCsvState:
-    last_modified_datetime: datetime
+    last_modified_timestamp: datetime
 
 
 @dataclass(frozen=True)
@@ -32,23 +32,23 @@ class CsvState:
         return CsvState(
             state_dict={
                 object_pattern: ObjectPatternCsvState(
-                    last_modified_datetime=parse_timestamp(
-                        datetime_str
+                    last_modified_timestamp=parse_timestamp(
+                        timestamp_str
                     )
                 )
-                for object_pattern, datetime_str in state_dict.items()
+                for object_pattern, timestamp_str in state_dict.items()
             }
         )
 
     @staticmethod
     def get_initial_state(
         object_patterns: Iterable[str],
-        last_modified_datetime: datetime
+        last_modified_timestamp: datetime
     ) -> 'CsvState':
         return CsvState(
             state_dict={
                 object_pattern: ObjectPatternCsvState(
-                    last_modified_datetime=last_modified_datetime
+                    last_modified_timestamp=last_modified_timestamp
                 )
                 for object_pattern in object_patterns
             }
@@ -57,16 +57,16 @@ class CsvState:
     def to_dict(self) -> Mapping[str, str]:
         return {
             object_pattern: (
-                object_pattern_csv_state.last_modified_datetime.isoformat()
+                object_pattern_csv_state.last_modified_timestamp.isoformat()
             )
             for object_pattern, object_pattern_csv_state in self.state_dict.items()
         }
 
-    def update_last_modified_datetime(
+    def update_last_modified_timestamp(
         self,
         object_pattern: str,
-        last_modified_datetime: datetime
+        last_modified_timestamp: datetime
     ):
         self.state_dict[object_pattern] = ObjectPatternCsvState(
-            last_modified_datetime=last_modified_datetime
+            last_modified_timestamp=last_modified_timestamp
         )

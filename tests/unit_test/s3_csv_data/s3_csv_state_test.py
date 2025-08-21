@@ -37,47 +37,47 @@ class TestCsvState:
         state = CsvState.from_dict({})
         assert not state.state_dict
 
-    def test_should_parse_datetime(self):
+    def test_should_parse_timestamp(self):
         state = CsvState.from_dict({
             OBJECT_PATTERN_1: TIMESTAMP_STRING_1
         })
         assert state.state_dict == {
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         }
 
-    def test_should_serialize_datetime_to_string(self):
+    def test_should_serialize_timestamp_to_string(self):
         state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
         assert state.to_dict() == {
             OBJECT_PATTERN_1: TIMESTAMP_1.isoformat()
         }
 
-    def test_should_update_datetime_for_object_pattern(self):
+    def test_should_update_timestamp_for_object_pattern(self):
         state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         })
-        state.update_last_modified_datetime(
+        state.update_last_modified_timestamp(
             object_pattern=OBJECT_PATTERN_1,
-            last_modified_datetime=TIMESTAMP_2
+            last_modified_timestamp=TIMESTAMP_2
         )
-        assert state.state_dict[OBJECT_PATTERN_1].last_modified_datetime == (
+        assert state.state_dict[OBJECT_PATTERN_1].last_modified_timestamp == (
             TIMESTAMP_2
         )
 
     def test_should_return_initial_state(self):
         state = CsvState.get_initial_state(
             object_patterns=[OBJECT_PATTERN_1],
-            last_modified_datetime=TIMESTAMP_1
+            last_modified_timestamp=TIMESTAMP_1
         )
         assert state.state_dict == {
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=TIMESTAMP_1
+                last_modified_timestamp=TIMESTAMP_1
             )
         }
