@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from dateutil import tz
 
@@ -40,6 +40,20 @@ class CsvState:
                     )
                 )
                 for object_pattern, datetime_str in state_dict.items()
+            }
+        )
+
+    @staticmethod
+    def get_initial_state(
+        object_patterns: Iterable[str],
+        last_modified_datetime: datetime
+    ) -> 'CsvState':
+        return CsvState(
+            state_dict={
+                object_pattern: ObjectPatternCsvState(
+                    last_modified_datetime=last_modified_datetime
+                )
+                for object_pattern in object_patterns
             }
         )
 

@@ -49,3 +49,14 @@ class TestCsvState:
         assert state.state_dict[OBJECT_PATTERN_1].last_modified_datetime == (
             DATETTIME_2
         )
+
+    def test_should_return_initial_state(self):
+        state = CsvState.get_initial_state(
+            object_patterns=[OBJECT_PATTERN_1],
+            last_modified_datetime=DATETTIME_1
+        )
+        assert state.state_dict == {
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_datetime=DATETTIME_1
+            )
+        }
