@@ -12,7 +12,11 @@ from typing import Iterable, Iterator, Mapping, Optional
 
 from dateutil import tz
 
-from data_pipeline.s3_csv_data.s3_csv_config import S3BaseCsvConfig
+from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
+from data_pipeline.s3_csv_data.s3_csv_config import (
+    S3BaseCsvConfig,
+    get_default_initial_s3_last_modified_date
+)
 from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     create_or_extend_table_schema
@@ -23,6 +27,8 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
+    get_s3_object_etag,
+    iter_sorted_new_s3_files_to_process,
     s3_open_binary_read_with_temp_file,
     upload_s3_object
 )
@@ -315,3 +321,47 @@ class NamedLiterals:
     PROVENANCE_FIELD_NAME = "provenance"
     PROVENANCE_S3_BUCKET_FIELD_NAME = "s3_bucket"
     PROVENANCE_S3_OBJECT_FIELD_NAME = "source_filename"
+
+
+def etl_new_csv_files(data_config: S3BaseCsvConfig):
+    obj_pattern_with_latest_dates = get_stored_state(
+        data_config,
+        get_default_initial_s3_last_modified_date()
+    )
+    LOGGER.info('obj_pattern_with_latest_dates: %r', obj_pattern_with_latest_dates)
+    new_s3_files = list(iter_sorted_new_s3_files_to_process(
+        obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
+        s3_bucket_name=data_config.s3_bucket_name
+    ))
+    if not new_s3_files:
+        LOGGER.info('No new file found and skipped the task.')
+        return
+    for matching_file_metadata_with_object_pattern in new_s3_files:
+        matching_file_metadata = matching_file_metadata_with_object_pattern.file_metadata
+        etag = get_s3_object_etag(
+            bucket=matching_file_metadata.bucket,
+            object_key=matching_file_metadata.name
+        )
+        LOGGER.info(
+            'ETag for s3://%s/%s is %r',
+            matching_file_metadata.bucket,
+            matching_file_metadata.name,
+            etag
+        )
+        record_import_timestamp_as_string = get_current_timestamp_as_string()
+        object_key_pattern = matching_file_metadata_with_object_pattern.object_key_pattern
+        transform_load_data(
+            matching_file_metadata.name,
+            data_config,
+            record_import_timestamp_as_string,
+        )
+        updated_obj_pattern_with_latest_dates = update_object_latest_dates(
+            obj_pattern_with_latest_dates=obj_pattern_with_latest_dates,
+            object_pattern=object_key_pattern,
+            file_modified_timestamp=matching_file_metadata.last_modified
+        )
+        upload_s3_object_json(
+            obj_pattern_with_latest_dates=updated_obj_pattern_with_latest_dates,
+            statefile_s3_bucket=data_config.state_file_bucket_name,
+            statefile_s3_object=data_config.state_file_object_name
+        )

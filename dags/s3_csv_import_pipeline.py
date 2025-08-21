@@ -2,15 +2,13 @@
 
 from datetime import timedelta
 import functools
-import os
 import logging
 from typing import Sequence
 
 import airflow
 
-from data_pipeline.s3_csv_data.cli import etl_new_csv_files
+from data_pipeline.s3_csv_data.s3_csv_etl import etl_new_csv_files
 from data_pipeline.s3_csv_data.s3_csv_config import (
-    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
     MultiS3CsvConfig,
     S3BaseCsvConfig
 )
@@ -81,13 +79,6 @@ def create_csv_pipeline_dags() -> Sequence[airflow.DAG]:
             )
             dags.append(dag)
     return dags
-
-
-def get_default_initial_s3_last_modified_date():
-    return os.getenv(
-        INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME,
-        DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-    )
 
 
 DAGS = create_csv_pipeline_dags()

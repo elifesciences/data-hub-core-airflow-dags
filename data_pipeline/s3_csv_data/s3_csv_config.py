@@ -1,4 +1,5 @@
 import hashlib
+import os
 from typing import Optional
 
 from data_pipeline.utils.csv.config import BaseCsvConfig
@@ -9,6 +10,18 @@ from data_pipeline.utils.pipeline_config import (
 
 
 DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE = "2019-04-11 21:10:13"
+
+
+class S3CsvEnvironmentVariables:
+    CONFIG_FILE_PATH = 'S3_CSV_CONFIG_FILE_PATH'
+    INITIAL_S3_FILE_LAST_MODIFIED_DATE = 'INITIAL_S3_FILE_LAST_MODIFIED_DATE'
+
+
+def get_default_initial_s3_last_modified_date():
+    return os.getenv(
+        S3CsvEnvironmentVariables.INITIAL_S3_FILE_LAST_MODIFIED_DATE,
+        DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
+    )
 
 
 class MultiS3CsvConfig:
