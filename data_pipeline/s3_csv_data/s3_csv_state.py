@@ -10,13 +10,11 @@ LOGGER = logging.getLogger(__name__)
 DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
 
 
-def convert_datetime_string_to_datetime(
-    datetime_as_string: str
-) -> datetime:
-    timestamp = datetime.fromisoformat(datetime_as_string)
+def parse_timestamp(timestamp_string: str) -> datetime:
+    timestamp = datetime.fromisoformat(timestamp_string)
     if not timestamp.tzinfo:
         timestamp = timestamp.replace(tzinfo=timezone.utc)
-    LOGGER.debug('parsed timestamp: %r => %r', datetime_as_string, timestamp)
+    LOGGER.debug('parsed timestamp: %r => %r', timestamp_string, timestamp)
     return timestamp
 
 
@@ -34,7 +32,7 @@ class CsvState:
         return CsvState(
             state_dict={
                 object_pattern: ObjectPatternCsvState(
-                    last_modified_datetime=convert_datetime_string_to_datetime(
+                    last_modified_datetime=parse_timestamp(
                         datetime_str
                     )
                 )

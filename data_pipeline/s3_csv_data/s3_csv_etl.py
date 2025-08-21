@@ -9,7 +9,7 @@ from csv import DictReader
 import json
 from typing import Iterable, Iterator, Mapping, Optional
 
-from data_pipeline.s3_csv_data.s3_csv_state import CsvState, convert_datetime_string_to_datetime
+from data_pipeline.s3_csv_data.s3_csv_state import CsvState, parse_timestamp
 from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig,
@@ -64,7 +64,7 @@ def get_stored_state(
     except FileNotFoundError:
         return CsvState.get_initial_state(
             object_patterns=data_config.s3_object_key_pattern_list,
-            last_modified_datetime=convert_datetime_string_to_datetime(
+            last_modified_datetime=parse_timestamp(
                 default_latest_file_date
             )
         )

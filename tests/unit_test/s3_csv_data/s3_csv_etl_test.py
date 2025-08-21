@@ -16,7 +16,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
 )
 from data_pipeline.s3_csv_data import s3_csv_etl
 from data_pipeline.s3_csv_data.s3_csv_etl import (
-    convert_datetime_string_to_datetime,
+    parse_timestamp,
     etl_new_csv_files,
     get_record_metadata,
     iter_transformed_json_from_csv,
@@ -43,7 +43,7 @@ TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
 
 DATETTIME_STRING_1 = '2020-01-01 00:00:00'
 
-DATETTIME_1 = convert_datetime_string_to_datetime(DATETTIME_STRING_1)
+DATETTIME_1 = parse_timestamp(DATETTIME_STRING_1)
 
 S3_BUCKET_NAME_1 = 's3_bucket_name_1'
 
@@ -661,7 +661,7 @@ class TestStoredState:
         )
         assert state == CsvState.get_initial_state(
             object_patterns=TestStoredState.csv_config.s3_object_key_pattern_list,
-            last_modified_datetime=convert_datetime_string_to_datetime(
+            last_modified_datetime=parse_timestamp(
                 DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
             )
         )
