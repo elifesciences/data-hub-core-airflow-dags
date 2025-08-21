@@ -20,10 +20,6 @@ def convert_datetime_string_to_datetime(
     return timestamp
 
 
-def convert_datetime_to_string(dtobj: datetime) -> str:
-    return dtobj.isoformat()
-
-
 @dataclass(frozen=True)
 class ObjectPatternCsvState:
     last_modified_datetime: datetime
@@ -62,8 +58,8 @@ class CsvState:
 
     def to_dict(self) -> Mapping[str, str]:
         return {
-            object_pattern: convert_datetime_to_string(
-                object_pattern_csv_state.last_modified_datetime
+            object_pattern: (
+                object_pattern_csv_state.last_modified_datetime.isoformat()
             )
             for object_pattern, object_pattern_csv_state in self.state_dict.items()
         }

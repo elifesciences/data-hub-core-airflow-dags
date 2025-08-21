@@ -3,8 +3,7 @@ from datetime import timezone
 from data_pipeline.s3_csv_data.s3_csv_state import (
     CsvState,
     ObjectPatternCsvState,
-    convert_datetime_string_to_datetime,
-    convert_datetime_to_string
+    convert_datetime_string_to_datetime
 )
 
 
@@ -31,13 +30,6 @@ class TestConvertDatetimeStringToDatetime:
         )
         assert timestamp.date().isoformat() == '2001-02-03'
         assert timestamp.tzinfo == timezone.utc
-
-
-class TestConvertDatetimeToString:
-    def test_should_format_timestamp_as_isoformat(self):
-        assert convert_datetime_to_string(
-            DATETTIME_1
-        ) == DATETTIME_1.isoformat()
 
 
 class TestCsvState:
