@@ -55,6 +55,11 @@ def get_stored_state(
     default_latest_file_date: str
 ) -> CsvState:
     try:
+        LOGGER.info(
+            'Loading state from: s3://%s/%s',
+            data_config.state_file_bucket_name,
+            data_config.state_file_object_name
+        )
         return CsvState.from_dict(json.loads(
             download_s3_object_as_string_or_file_not_found_error(
                 data_config.state_file_bucket_name,
@@ -62,6 +67,10 @@ def get_stored_state(
             )
         ))
     except FileNotFoundError:
+        LOGGER.info(
+            'State file not found. Using initial state with timestamp: %r',
+            default_latest_file_date
+        )
         return CsvState.get_initial_state(
             object_patterns=data_config.s3_object_key_pattern_list,
             last_modified_timestamp=parse_timestamp(
