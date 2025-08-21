@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
+import logging
 from typing import Iterable, Mapping
 
-from dateutil import tz
+
+LOGGER = logging.getLogger(__name__)
 
 
 DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
@@ -11,10 +13,11 @@ DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
 def convert_datetime_string_to_datetime(
     datetime_as_string: str
 ) -> datetime:
-    tz_unaware = datetime.strptime(datetime_as_string.strip(), DATETIME_FORMAT)
-    tz_aware = tz_unaware.replace(tzinfo=tz.tzlocal())
-
-    return tz_aware
+    timestamp = datetime.fromisoformat(datetime_as_string)
+    if not timestamp.tzinfo:
+        timestamp = timestamp.replace(tzinfo=timezone.utc)
+    LOGGER.debug('parsed timestamp: %r => %r', datetime_as_string, timestamp)
+    return timestamp
 
 
 def convert_datetime_to_string(dtobj: datetime) -> str:
