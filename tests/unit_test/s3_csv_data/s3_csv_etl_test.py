@@ -41,10 +41,6 @@ TIMESTAMP_STRING_2 = '2020-01-02T00:00:00+00:00'
 TIMESTAMP_1 = datetime.fromisoformat(TIMESTAMP_STRING_1)
 TIMESTAMP_2 = datetime.fromisoformat(TIMESTAMP_STRING_2)
 
-DATETTIME_STRING_1 = '2020-01-01 00:00:00'
-
-DATETTIME_1 = parse_timestamp(DATETTIME_STRING_1)
-
 S3_BUCKET_NAME_1 = 's3_bucket_name_1'
 
 OBJECT_KEY_1 = 'object_key_1'
@@ -672,7 +668,7 @@ class TestStoredState:
     ):
         expected_state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
-                last_modified_datetime=DATETTIME_1
+                last_modified_datetime=TIMESTAMP_1
             )
         })
         mock_download_s3_object_as_string_or_file_not_found_error.return_value = json.dumps(
