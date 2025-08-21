@@ -59,14 +59,16 @@ class TestCsvState:
             )
         }
 
-    def test_should_serialize_timestamp_to_string(self):
+    def test_should_serialize_state_to_dict(self):
         state = CsvState(state_dict={
             OBJECT_PATTERN_1: ObjectPatternCsvState(
                 last_modified_timestamp=TIMESTAMP_1
             )
         })
         assert state.to_dict() == {
-            OBJECT_PATTERN_1: TIMESTAMP_1.isoformat()
+            OBJECT_PATTERN_1: {
+                'last_modified_timestamp': TIMESTAMP_1.isoformat()
+            }
         }
 
     def test_should_update_timestamp_for_object_pattern(self):

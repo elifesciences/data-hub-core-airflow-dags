@@ -7,9 +7,9 @@ from pathlib import Path
 import csv
 from csv import DictReader
 import json
-from typing import Iterable, Iterator, Mapping, Optional
+from typing import Iterable, Iterator, Optional
 
-from data_pipeline.s3_csv_data.s3_csv_state import CsvState, parse_timestamp
+from data_pipeline.s3_csv_data.s3_csv_state import CsvState, CsvStateDict, parse_timestamp
 from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp_as_string
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig,
@@ -39,7 +39,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def upload_s3_object_json(
-    state_dict: Mapping[str, str],
+    state_dict: CsvStateDict,
     statefile_s3_bucket: str,
     statefile_s3_object: str
 ):

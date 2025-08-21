@@ -46,6 +46,11 @@ class ObjectPatternCsvState:
             )
         )
 
+    def to_dict(self) -> ObjectPatternStateTypeDict:
+        return {
+            'last_modified_timestamp': self.last_modified_timestamp.isoformat()
+        }
+
 
 @dataclass(frozen=True)
 class CsvState:
@@ -76,11 +81,9 @@ class CsvState:
             }
         )
 
-    def to_dict(self) -> Mapping[str, str]:
+    def to_dict(self) -> CsvStateDict:
         return {
-            object_pattern: (
-                object_pattern_csv_state.last_modified_timestamp.isoformat()
-            )
+            object_pattern: object_pattern_csv_state.to_dict()
             for object_pattern, object_pattern_csv_state in self.state_dict.items()
         }
 
