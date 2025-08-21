@@ -2,35 +2,20 @@
 
 from datetime import timedelta
 import functools
-import os
 import logging
 from typing import Sequence
 
 import airflow
-from airflow.exceptions import AirflowSkipException
 
+from data_pipeline.s3_csv_data.s3_csv_etl import etl_new_csv_files
 from data_pipeline.s3_csv_data.s3_csv_config import (
-    DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE,
     MultiS3CsvConfig,
     S3BaseCsvConfig
 )
 from data_pipeline.s3_csv_data.s3_csv_config_typing import S3CsvConfigDict
-from data_pipeline.s3_csv_data.s3_csv_etl import (
-    transform_load_data,
-    get_stored_state,
-    update_object_latest_dates,
-    upload_s3_object_json,
-    NamedLiterals
-)
-from data_pipeline.utils.dags.airflow_s3_util_extension import (
-    S3HookNewFileMonitor
-)
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task
-)
-from data_pipeline.utils.data_pipeline_timestamp import (
-    get_current_timestamp_as_string
 )
 from data_pipeline.utils.pipeline_config import (
     AirflowConfig,
@@ -53,56 +38,6 @@ def get_multi_csv_pipeline_config() -> MultiS3CsvConfig:
         S3_CSV_CONFIG_FILE_PATH_ENV_NAME,
         MultiS3CsvConfig
     )
-
-
-def etl_new_csv_files(data_config: S3BaseCsvConfig):
-    obj_pattern_with_latest_dates = (
-        get_stored_state(data_config,
-                         get_default_initial_s3_last_modified_date()
-                         )
-    )
-    hook = S3HookNewFileMonitor(
-        aws_conn_id=NamedLiterals.DEFAULT_AWS_CONN_ID,
-        verify=None
-    )
-    new_s3_files = hook.get_new_object_key_names(
-        obj_pattern_with_latest_dates,  # type: ignore
-        data_config.s3_bucket_name
-    )
-    if not new_s3_files:
-        LOGGER.info('No new file found and skipped the task.')
-        raise AirflowSkipException
-    for object_key_pattern, matching_files_list in new_s3_files.items():
-        record_import_timestamp_as_string = get_current_timestamp_as_string()
-        sorted_matching_files_list = (
-            sorted(matching_files_list,
-                   key=lambda file_meta:
-                   file_meta[NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY]
-                   )
-        )
-
-        for matching_file_metadata in sorted_matching_files_list:
-            transform_load_data(
-                matching_file_metadata.get(
-                    NamedLiterals.S3_FILE_METADATA_NAME_KEY
-                ),
-                data_config,
-                record_import_timestamp_as_string,
-            )
-            updated_obj_pattern_with_latest_dates = (
-                update_object_latest_dates(
-                    obj_pattern_with_latest_dates,
-                    object_key_pattern,
-                    matching_file_metadata.get(
-                        NamedLiterals.S3_FILE_METADATA_LAST_MODIFIED_KEY
-                    )
-                )
-            )
-            upload_s3_object_json(
-                updated_obj_pattern_with_latest_dates,
-                data_config.state_file_bucket_name,
-                data_config.state_file_object_name
-            )
 
 
 def csv_etl(data_pipeline_id: str, **_kwargs):
@@ -144,13 +79,6 @@ def create_csv_pipeline_dags() -> Sequence[airflow.DAG]:
             )
             dags.append(dag)
     return dags
-
-
-def get_default_initial_s3_last_modified_date():
-    return os.getenv(
-        INITIAL_S3_FILE_LAST_MODIFIED_DATE_ENV_NAME,
-        DEFAULT_INITIAL_S3_FILE_LAST_MODIFIED_DATE
-    )
 
 
 DAGS = create_csv_pipeline_dags()
