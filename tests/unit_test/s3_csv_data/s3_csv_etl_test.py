@@ -769,6 +769,34 @@ class TestEtlNewCsvFiles:
             get_current_timestamp_as_string_mock.return_value
         )
 
+    def test_should_skip_file_if_it_matches_previous_etag_from_state(
+        self,
+        get_stored_state_mock: MagicMock,
+        get_s3_object_etag_mock: MagicMock,
+        iter_sorted_new_s3_files_to_process_mock: MagicMock,
+        transform_load_data_mock: MagicMock
+    ):
+        get_stored_state_mock.return_value = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_timestamp=TIMESTAMP_1,
+                file_hash=FILE_HASH_1
+            )
+        })
+        get_s3_object_etag_mock.return_value = FILE_HASH_1
+        iter_sorted_new_s3_files_to_process_mock.return_value = iter([
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_1,
+                object_key_pattern=OBJECT_PATTERN_1
+            )
+        ])
+        data_config = get_s3_csv_config({
+            **CSV_CONFIG_DICT_1,
+            'bucketName': S3_BUCKET_NAME_1,
+            'objectKeyPattern': [OBJECT_PATTERN_1],
+        })
+        etl_new_csv_files(data_config=data_config)
+        transform_load_data_mock.assert_not_called()
+
     def test_should_update_state(
         self,
         get_stored_state_mock: MagicMock,
