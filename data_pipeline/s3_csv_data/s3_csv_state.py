@@ -21,7 +21,7 @@ def convert_datetime_string_to_datetime(
 
 
 def convert_datetime_to_string(dtobj: datetime) -> str:
-    return dtobj.strftime(DATETIME_FORMAT)
+    return dtobj.isoformat()
 
 
 @dataclass(frozen=True)

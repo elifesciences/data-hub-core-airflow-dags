@@ -3,7 +3,8 @@ from datetime import timezone
 from data_pipeline.s3_csv_data.s3_csv_state import (
     CsvState,
     ObjectPatternCsvState,
-    convert_datetime_string_to_datetime
+    convert_datetime_string_to_datetime,
+    convert_datetime_to_string
 )
 
 
@@ -32,6 +33,13 @@ class TestConvertDatetimeStringToDatetime:
         assert timestamp.tzinfo == timezone.utc
 
 
+class TestConvertDatetimeToString:
+    def test_should_format_timestamp_as_isoformat(self):
+        assert convert_datetime_to_string(
+            DATETTIME_1
+        ) == DATETTIME_1.isoformat()
+
+
 class TestCsvState:
     def test_should_load_from_empty_dict(self):
         state = CsvState.from_dict({})
@@ -54,7 +62,7 @@ class TestCsvState:
             )
         })
         assert state.to_dict() == {
-            OBJECT_PATTERN_1: DATETTIME_STRING_1
+            OBJECT_PATTERN_1: DATETTIME_1.isoformat()
         }
 
     def test_should_update_datetime_for_object_pattern(self):
