@@ -1,13 +1,20 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import logging
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, TypedDict
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 DATETIME_FORMAT = r"%Y-%m-%d %H:%M:%S"
+
+
+class ObjectPatternStateTypeDict(TypedDict):
+    last_modified_timestamp: str
+
+
+CsvStateDict = Mapping[str, str | ObjectPatternStateTypeDict]
 
 
 def parse_timestamp(timestamp_string: str) -> datetime:
@@ -22,21 +29,36 @@ def parse_timestamp(timestamp_string: str) -> datetime:
 class ObjectPatternCsvState:
     last_modified_timestamp: datetime
 
+    @staticmethod
+    def from_dict_or_string(
+        object_pattern_state_dict_or_string: str | ObjectPatternStateTypeDict
+    ) -> 'ObjectPatternCsvState':
+        if isinstance(object_pattern_state_dict_or_string, str):
+            return ObjectPatternCsvState(
+                last_modified_timestamp=parse_timestamp(
+                    object_pattern_state_dict_or_string
+                )
+            )
+        object_pattern_state_dict: ObjectPatternStateTypeDict = object_pattern_state_dict_or_string
+        return ObjectPatternCsvState(
+            last_modified_timestamp=parse_timestamp(
+                object_pattern_state_dict['last_modified_timestamp']
+            )
+        )
+
 
 @dataclass(frozen=True)
 class CsvState:
     state_dict: dict[str, ObjectPatternCsvState]
 
     @staticmethod
-    def from_dict(state_dict: Mapping[str, str]) -> 'CsvState':
+    def from_dict(state_dict: CsvStateDict) -> 'CsvState':
         return CsvState(
             state_dict={
-                object_pattern: ObjectPatternCsvState(
-                    last_modified_timestamp=parse_timestamp(
-                        timestamp_str
-                    )
+                object_pattern: ObjectPatternCsvState.from_dict_or_string(
+                    object_pattern_state_dict_or_string
                 )
-                for object_pattern, timestamp_str in state_dict.items()
+                for object_pattern, object_pattern_state_dict_or_string in state_dict.items()
             }
         )
 

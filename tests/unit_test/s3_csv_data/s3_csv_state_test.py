@@ -37,9 +37,21 @@ class TestCsvState:
         state = CsvState.from_dict({})
         assert not state.state_dict
 
-    def test_should_parse_timestamp(self):
+    def test_should_parse_state_format_v1(self):
         state = CsvState.from_dict({
             OBJECT_PATTERN_1: TIMESTAMP_STRING_1
+        })
+        assert state.state_dict == {
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_timestamp=TIMESTAMP_1
+            )
+        }
+
+    def test_should_parse_state_format_v2(self):
+        state = CsvState.from_dict({
+            OBJECT_PATTERN_1: {
+                'last_modified_timestamp': TIMESTAMP_STRING_1
+            }
         })
         assert state.state_dict == {
             OBJECT_PATTERN_1: ObjectPatternCsvState(
