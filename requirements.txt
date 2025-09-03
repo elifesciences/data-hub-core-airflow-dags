@@ -17,7 +17,7 @@ redis==6.4.0
 regex==2025.8.29
 fsspec==2025.2.0
 lxml>=4.8.0, <6.1.0
-google-api-python-client==2.179.0
+google-api-python-client==2.181.0
 google-cloud-bigquery>=1.27.2, !=2.4.0.a, <3.36.1
 google-oauth==1.0.1
 jinjasql==0.1.8
