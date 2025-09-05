@@ -294,7 +294,8 @@ def etl_new_csv_files(data_config: S3BaseCsvConfig):
             object_pattern: object_pattern_csv_state.last_modified_timestamp
             for object_pattern, object_pattern_csv_state in csv_state.state_dict.items()
         },
-        s3_bucket_name=data_config.s3_bucket_name
+        s3_bucket_name=data_config.s3_bucket_name,
+        is_latest_file_only=not data_config.table_write_append_enabled
     ))
     if not new_s3_files:
         LOGGER.info('No new file found and skipped the task.')

@@ -146,7 +146,8 @@ class FileMetadataWithObjectPattern:
 
 def iter_sorted_new_s3_files_to_process(
     obj_pattern_with_latest_dates: Mapping[str, datetime],
-    s3_bucket_name: str
+    s3_bucket_name: str,
+    is_latest_file_only: bool = False
 ) -> Iterable[FileMetadataWithObjectPattern]:
 
     s3_client = boto3.client("s3")
@@ -176,6 +177,8 @@ def iter_sorted_new_s3_files_to_process(
             files_list,
             key=lambda x: x.last_modified
         )
+        if is_latest_file_only:
+            sorted_files = [sorted_files[-1]]
 
         for object_index, file_metadata in enumerate(sorted_files):
             object_key = file_metadata.name
