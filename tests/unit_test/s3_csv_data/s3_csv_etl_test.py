@@ -732,11 +732,37 @@ class TestEtlNewCsvFiles:
                 **CSV_CONFIG_DICT_1,
                 'bucketName': S3_BUCKET_NAME_1,
                 'objectKeyPattern': [OBJECT_PATTERN_1],
+                'tableWriteAppend': True
             })
         )
         iter_sorted_new_s3_files_to_process_mock.assert_called_with(
             obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
-            s3_bucket_name=S3_BUCKET_NAME_1
+            s3_bucket_name=S3_BUCKET_NAME_1,
+            is_latest_file_only=False
+        )
+
+    def test_should_call_reqquest_latest_file_only_if_not_appending(
+        self,
+        iter_sorted_new_s3_files_to_process_mock: MagicMock,
+        get_stored_state_mock: MagicMock
+    ):
+        get_stored_state_mock.return_value = CsvState(state_dict={
+            OBJECT_PATTERN_1: ObjectPatternCsvState(
+                last_modified_timestamp=TIMESTAMP_1
+            )
+        })
+        etl_new_csv_files(
+            data_config=get_s3_csv_config({
+                **CSV_CONFIG_DICT_1,
+                'bucketName': S3_BUCKET_NAME_1,
+                'objectKeyPattern': [OBJECT_PATTERN_1],
+                'tableWriteAppend': False
+            })
+        )
+        iter_sorted_new_s3_files_to_process_mock.assert_called_with(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1,
+            is_latest_file_only=True
         )
 
     def test_should_call_transform_load_data(

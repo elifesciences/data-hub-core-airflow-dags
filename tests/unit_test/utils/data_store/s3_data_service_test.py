@@ -209,3 +209,22 @@ class TestIterSortedNewS3FilesToProcess:
                 object_key_pattern=OBJECT_PATTERN_1
             )
         ]
+
+    def test_should_return_latest_file_metadata_only_if_requested(
+        self,
+        mock_list_objects_with_pattern_and_timestamp: MagicMock
+    ):
+        mock_list_objects_with_pattern_and_timestamp.return_value = [
+            FILE_METADATA_2,
+            FILE_METADATA_1
+        ]
+        assert list(iter_sorted_new_s3_files_to_process(
+            obj_pattern_with_latest_dates={OBJECT_PATTERN_1: TIMESTAMP_1},
+            s3_bucket_name=S3_BUCKET_NAME_1,
+            is_latest_file_only=True
+        )) == [
+            FileMetadataWithObjectPattern(
+                file_metadata=FILE_METADATA_2,
+                object_key_pattern=OBJECT_PATTERN_1
+            )
+        ]
