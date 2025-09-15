@@ -63,8 +63,9 @@ def get_project_dataset_table():
         multi_data_config.spreadsheets_config.values()
     )[0]
 
-    multi_sheet_config_0 = MultiCsvSheet(
-        multi_sheet_config_dict_0, dep_env
+    multi_sheet_config_0 = MultiCsvSheet.from_dict(
+        multi_sheet_config_dict_0,
+        dep_env
     )
     csv_config_0 = list(
         multi_sheet_config_0.sheets_config.values()

@@ -448,8 +448,9 @@ class TestProcessData:
     def test_should_call_process_csv_sheet_function_n_times(
             self, mock_process_csv_sheet
     ):
-        multi_csv_config = MultiCsvSheet(
-            TestProcessData.multi_csv_config_dict, "dep_env"
+        multi_csv_config = MultiCsvSheet.from_dict(
+            TestProcessData.multi_csv_config_dict,
+            "dep_env"
         )
         spreadsheets_count = len(
             multi_csv_config.sheets_config.values()
@@ -467,8 +468,9 @@ class TestProcessData:
         mock_current_timestamp_as_string.return_value = (
             current_timestamp_as_string
         )
-        multi_csv_config = MultiCsvSheet(
-            TestProcessData.multi_csv_config_dict, "dep_env"
+        multi_csv_config = MultiCsvSheet.from_dict(
+            TestProcessData.multi_csv_config_dict,
+            "dep_env"
         )
         full_temp_file_location = "file_path"
         mock_path.return_value = full_temp_file_location

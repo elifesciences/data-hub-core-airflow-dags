@@ -73,7 +73,7 @@ class TestMain:
                 MULTI_PIPELINE_CONFIG_DICT_1['importedTimestampFieldName']
             )
         }
-        expected_config = MultiCsvSheet(
+        expected_config = MultiCsvSheet.from_dict(
             expected_config_dict,
             deployment_env=get_deployment_env()
         )

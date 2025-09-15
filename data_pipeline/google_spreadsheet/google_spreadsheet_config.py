@@ -69,6 +69,13 @@ class MultiCsvSheet:
             for sheet in multi_sheet_config["sheets"]
         }
 
+    @staticmethod
+    def from_dict(
+        multi_sheet_config: GoogleSpreadsheetConfigDict,
+        deployment_env: str
+    ) -> "MultiCsvSheet":
+        return MultiCsvSheet(multi_sheet_config, deployment_env)
+
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
