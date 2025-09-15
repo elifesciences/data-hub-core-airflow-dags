@@ -117,6 +117,12 @@ dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-google-spreadsheet-pipeline:  .require-DATA_PIPELINE_ID
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.spreadsheet_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
 dev-run-scheduled-queries-pipeline:
 	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
