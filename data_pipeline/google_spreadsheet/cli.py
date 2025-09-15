@@ -28,7 +28,7 @@ class GoogleSpreadsheetEnvironmentVariables:
 def get_multi_google_spreadsheet_config() -> MultiSpreadsheetConfig:
     return get_pipeline_config_for_env_name_and_config_parser(
         GoogleSpreadsheetEnvironmentVariables.CONFIG_FILE_PATH,
-        MultiSpreadsheetConfig
+        MultiSpreadsheetConfig.from_dict
     )
 
 

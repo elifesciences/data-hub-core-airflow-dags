@@ -29,6 +29,12 @@ class MultiSpreadsheetConfig:
             for index, spreadsheet in enumerate(multi_spreadsheet_config["spreadsheets"])
         }
 
+    @staticmethod
+    def from_dict(
+        multi_spreadsheet_config: MultiGoogleSpreadsheetConfigDict
+    ) -> "MultiSpreadsheetConfig":
+        return MultiSpreadsheetConfig(multi_spreadsheet_config)
+
 
 def extend_spreadsheet_config_dict(
         spreadsheet_config_dict,

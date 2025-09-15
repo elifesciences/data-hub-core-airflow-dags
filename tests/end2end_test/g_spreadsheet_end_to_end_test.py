@@ -58,7 +58,7 @@ def get_project_dataset_table():
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    multi_data_config = MultiSpreadsheetConfig(data_config_dict,)
+    multi_data_config = MultiSpreadsheetConfig.from_dict(data_config_dict)
     multi_sheet_config_dict_0 = list(
         multi_data_config.spreadsheets_config.values()
     )[0]

@@ -30,7 +30,7 @@ def trigger_spreadsheet_data_pipeline_dag(**kwargs):
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
 
-    data_config = MultiSpreadsheetConfig(data_config_dict,)
+    data_config = MultiSpreadsheetConfig.from_dict(data_config_dict)
     for spreadsheet_config in data_config.spreadsheets_config.values():
         trigger_data_pipeline_dag(
             dag_id=TARGET_DAG_ID,
