@@ -5,6 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    BaseGoogleSpreadsheetConfigDict,
+    GoogleSpreadsheetConfigDict,
+    MultiGoogleSpreadsheetConfigDict
+)
+
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheet
 from data_pipeline.utils.pipeline_config import get_deployment_env
 
@@ -17,19 +23,20 @@ from data_pipeline.google_spreadsheet.cli import (
 
 PIPELINE_ID_1 = 'spreadsheet_1'
 
-PIPELINE_CONFIG_DICT_1 = {
+PIPELINE_CONFIG_DICT_1: BaseGoogleSpreadsheetConfigDict = {
     'spreadsheetId': PIPELINE_ID_1,
     'sheets': [
         {
             'sheetName': 'Sheet1',
             'tableName': 'table_1',
+            'datasetName': 'dataset_1',
             'sheetRange': 'A1:C10'
         }
     ]
 }
 
 
-MULTI_PIPELINE_CONFIG_DICT_1 = {
+MULTI_PIPELINE_CONFIG_DICT_1: MultiGoogleSpreadsheetConfigDict = {
     'gcpProjectName': 'test_project',
     'importedTimestampFieldName': 'imported_timestamp',
     'spreadsheets': [PIPELINE_CONFIG_DICT_1]
@@ -57,7 +64,7 @@ class TestMain:
             json.dumps(MULTI_PIPELINE_CONFIG_DICT_1),
             encoding='utf-8'
         )
-        expected_config_dict = {
+        expected_config_dict: GoogleSpreadsheetConfigDict = {
             **PIPELINE_CONFIG_DICT_1,
             'gcpProjectName': MULTI_PIPELINE_CONFIG_DICT_1['gcpProjectName'],
             'importedTimestampFieldName': (

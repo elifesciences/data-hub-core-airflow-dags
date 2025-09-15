@@ -1,10 +1,13 @@
 import argparse
 import logging
-from typing import Optional, Sequence
+from typing import Optional, Sequence, cast
 
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet,
     MultiSpreadsheetConfig
+)
+from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    GoogleSpreadsheetConfigDict
 )
 from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     etl_google_spreadsheet
@@ -33,7 +36,13 @@ def google_spreadsheet_etl(data_pipeline_id: str):
     multi_google_spreadsheet_config = get_multi_google_spreadsheet_config()
     data_config_dict = multi_google_spreadsheet_config.spreadsheets_config[data_pipeline_id]
     deployment_env = get_deployment_env()
-    data_config = MultiCsvSheet(data_config_dict, deployment_env=deployment_env)
+    data_config = MultiCsvSheet(
+        cast(
+            GoogleSpreadsheetConfigDict,
+            data_config_dict
+        ),
+        deployment_env=deployment_env
+    )
     etl_google_spreadsheet(data_config)
 
 

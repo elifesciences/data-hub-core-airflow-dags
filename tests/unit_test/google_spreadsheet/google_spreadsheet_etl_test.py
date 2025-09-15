@@ -1,6 +1,11 @@
-from typing import Optional
+from typing import Optional, cast
 from unittest.mock import patch, call
+
 import pytest
+
+from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    GoogleSpreadsheetSheetConfigDict
+)
 
 from data_pipeline.google_spreadsheet import google_spreadsheet_etl
 from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
@@ -132,8 +137,12 @@ class TestRecordMetadata:
         gcp_project = ""
         deployment_env = ""
         return BaseCsvSheetConfig(
-            csv_config_dict,
-            "spreadsheet_id", gcp_project,
+            cast(
+                GoogleSpreadsheetSheetConfigDict,
+                csv_config_dict
+            ),
+            "spreadsheet_id",
+            gcp_project,
             "imported_timestamp_field_name",
             deployment_env
         )
@@ -275,10 +284,14 @@ class TestCsvHeader:
         {
             "sheetName": "sheet name-0",
             "headerLineIndex": 0,
+            "tableName": "table_name_1",
             "datasetName": "{ENV}-dataset",
-            "tableWriteAppend": "true",
-        }, "spreadsheet_id", "",
-        "imported_timestamp_field_name", ""
+            "tableWriteAppend": True
+        },
+        "spreadsheet_id",
+        "",
+        "imported_timestamp_field_name",
+        ""
     )
 
     def test_should_be_standardized(self):
@@ -329,8 +342,12 @@ class TestTransformAndLoadData:
         gcp_project = ""
         deployment_env = ""
         return BaseCsvSheetConfig(
-            config_dict,
-            "spreadsheet_id", gcp_project,
+            cast(
+                GoogleSpreadsheetSheetConfigDict,
+                config_dict
+            ),
+            "spreadsheet_id",
+            gcp_project,
             "imported_timestamp_field_name",
             deployment_env
         )
@@ -405,8 +422,9 @@ class TestProcessData:
         {
             "sheetName": "sheet name-0",
             "headerLineIndex": 0,
+            "tableName": "table_name_1",
             "datasetName": "{ENV}-dataset",
-            "tableWriteAppend": "true",
+            "tableWriteAppend": True,
         }, "spreadsheet_id", "",
         "imported_timestamp_field_name", ""
     )
