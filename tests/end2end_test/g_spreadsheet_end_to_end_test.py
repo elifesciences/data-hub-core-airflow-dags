@@ -1,88 +1,53 @@
-import os
 import logging
 
-from dags.google_spreadsheet_pipeline_controller import (
-    DAG_ID,
-    TARGET_DAG_ID,
-    SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME,
+from data_pipeline.google_spreadsheet.cli import (
+    get_multi_google_spreadsheet_config,
+    main
 )
-from dags.google_spreadsheet_import_pipeline import (
-    DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheet
+from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    GoogleSpreadsheetConfigDict
 )
-from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
-from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
-    MultiSpreadsheetConfig, MultiCsvSheet
-)
-from tests.end2end_test import enable_and_trigger_dag_and_wait_for_success
-from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI, simple_query
+
+from data_pipeline.utils.pipeline_config import get_deployment_env
+
+from tests.end2end_test.cli_end2end_test_helper import (
+    DataPipelineCloudResource,
+    check_after_test,
+    clean_before_test
 )
 
 LOGGER = logging.getLogger(__name__)
 
-AIRFLW_API = AirflowAPI()
+
+def get_test_pipeline_config_dict() -> GoogleSpreadsheetConfigDict:
+    multi_data_config = get_multi_google_spreadsheet_config()
+    return list(multi_data_config.spreadsheets_config.values())[0]
 
 
-# pylint: disable=broad-except
-def test_dag_runs_data_imported():
-    project, dataset, table = get_project_dataset_table()
-    try:
-        simple_query(
-            query=TestQueryTemplate.CLEAN_TABLE_QUERY,
-            project=project,
-            dataset=dataset,
-            table=table,
-        )
-    except Exception:
-        LOGGER.info("table not cleaned, maybe it does not exist")
-    enable_and_trigger_dag_and_wait_for_success(
-        airflow_api=AIRFLW_API,
-        dag_id=DAG_ID,
-        target_dag=TARGET_DAG_ID
+def get_data_pipeline_cloud_resource(
+    single_pipeline_config_dict: GoogleSpreadsheetConfigDict
+) -> DataPipelineCloudResource:
+    single_pipeline_config = MultiCsvSheet.from_dict(
+        single_pipeline_config_dict,
+        deployment_env=get_deployment_env()
     )
-    query_response = simple_query(
-        query=TestQueryTemplate.READ_COUNT_TABLE_QUERY,
-        project=project,
-        dataset=dataset,
-        table=table,
-    )
+    sheet_config = list(single_pipeline_config.sheets_config.values())[0]
 
-    assert query_response[0].get("count") > 0
-
-
-def get_project_dataset_table():
-    conf_file_path = os.getenv(
-        SPREADSHEET_CONFIG_FILE_PATH_ENV_NAME
-    )
-    data_config_dict = get_yaml_file_as_dict(conf_file_path)
-    dep_env = os.getenv(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
-    )
-    multi_data_config = MultiSpreadsheetConfig.from_dict(data_config_dict)
-    multi_sheet_config_dict_0 = list(
-        multi_data_config.spreadsheets_config.values()
-    )[0]
-
-    multi_sheet_config_0 = MultiCsvSheet.from_dict(
-        multi_sheet_config_dict_0,
-        dep_env
-    )
-    csv_config_0 = list(
-        multi_sheet_config_0.sheets_config.values()
-    )[0]
-
-    return (
-        csv_config_0.gcp_project,
-        csv_config_0.dataset_name,
-        csv_config_0.table_name
+    return DataPipelineCloudResource(
+        project_name=single_pipeline_config.gcp_project,
+        dataset_name=sheet_config.dataset_name,
+        table_name=sheet_config.table_name,
+        state_file_bucket_name=None,
+        state_file_object_name=None
     )
 
 
-# pylint: disable=too-few-public-methods, missing-class-docstring
-class TestQueryTemplate:
-    CLEAN_TABLE_QUERY = """
-    Delete from `{project}.{dataset}.{table}` where true
-    """
-    READ_COUNT_TABLE_QUERY = """
-    Select Count(*) AS count from `{project}.{dataset}.{table}`
-    """
+def test_pipeline_cli():
+    single_pipeline_config_dict = get_test_pipeline_config_dict()
+    data_pipeline_cloud_resource = get_data_pipeline_cloud_resource(
+        single_pipeline_config_dict
+    )
+    clean_before_test(data_pipeline_cloud_resource)
+    main(['--data-pipeline-id', single_pipeline_config_dict['dataPipelineId']])
+    check_after_test(data_pipeline_cloud_resource)
