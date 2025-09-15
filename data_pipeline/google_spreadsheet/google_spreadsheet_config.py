@@ -1,40 +1,14 @@
-from typing import Sequence, cast
+from typing import cast
 
 from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
-    BaseGoogleSpreadsheetConfigDict,
     GoogleSpreadsheetConfigDict,
     GoogleSpreadsheetSheetConfigDict,
     MultiGoogleSpreadsheetConfigDict
 )
-from data_pipeline.utils.pipeline_config import ConfigKeys
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
-
-
-def get_sheet_config_table_names(
-    config_props: BaseGoogleSpreadsheetConfigDict
-) -> Sequence[str]:
-    return [
-        sheet['tableName']
-        for sheet in config_props.get('sheets', [])
-        if sheet.get('tableName')
-    ]
-
-
-def get_sheet_config_id(
-    config_props: BaseGoogleSpreadsheetConfigDict,
-    index: int
-) -> str:
-    config_id = config_props.get('dataPipelineId')
-    if not config_id:
-        table_names = get_sheet_config_table_names(config_props)
-        if table_names:
-            config_id = '_'.join(table_names) + '_' + str(index)
-        else:
-            config_id = str(index)
-    return config_id
 
 
 class MultiSpreadsheetConfig:
@@ -47,9 +21,8 @@ class MultiSpreadsheetConfig:
             "importedTimestampFieldName"
         )
         self.spreadsheets_config = {
-            spreadsheet.get("spreadsheetId"): {
+            spreadsheet.get("dataPipelineId"): {
                 **spreadsheet,
-                ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_sheet_config_id(spreadsheet, index=index),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }

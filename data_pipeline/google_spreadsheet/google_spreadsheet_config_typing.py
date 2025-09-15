@@ -14,7 +14,7 @@ class GoogleSpreadsheetSheetConfigDict(TypedDict):
 class BaseGoogleSpreadsheetConfigDict(TypedDict):
     spreadsheetId: str
     sheets: Sequence[GoogleSpreadsheetSheetConfigDict]
-    dataPipelineId: NotRequired[str]
+    dataPipelineId: str
 
 
 class InheritedGoogleSpreadsheetConfigDict(TypedDict):

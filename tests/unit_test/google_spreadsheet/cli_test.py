@@ -21,10 +21,12 @@ from data_pipeline.google_spreadsheet.cli import (
 )
 
 
-PIPELINE_ID_1 = 'spreadsheet_1'
+PIPELINE_ID_1 = 'pipeline_1'
+SPREADSHEET_ID_1 = 'spreadsheet_1'
 
 PIPELINE_CONFIG_DICT_1: BaseGoogleSpreadsheetConfigDict = {
-    'spreadsheetId': PIPELINE_ID_1,
+    'dataPipelineId': PIPELINE_ID_1,
+    'spreadsheetId': SPREADSHEET_ID_1,
     'sheets': [
         {
             'sheetName': 'Sheet1',
