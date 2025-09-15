@@ -148,6 +148,12 @@ dev-end-to-end-monitoring:
 		tests/end2end_test/data_hub_pipeline_health_check_test.py
 
 
+dev-end-to-end-google-spreadsheet:
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/g_spreadsheet_end_to_end_test.py
+
+
 build:
 	$(DOCKER_COMPOSE) build data-hub-dags
 

@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Mapping, cast
 
 from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
     GoogleSpreadsheetConfigDict,
@@ -16,12 +16,12 @@ class MultiSpreadsheetConfig:
         self,
         multi_spreadsheet_config: MultiGoogleSpreadsheetConfigDict
     ):
-        self.gcp_project = multi_spreadsheet_config.get("gcpProjectName")
-        self.import_timestamp_field_name = multi_spreadsheet_config.get(
+        self.gcp_project = multi_spreadsheet_config["gcpProjectName"]
+        self.import_timestamp_field_name = multi_spreadsheet_config[
             "importedTimestampFieldName"
-        )
-        self.spreadsheets_config = {
-            spreadsheet.get("dataPipelineId"): {
+        ]
+        self.spreadsheets_config: Mapping[str, GoogleSpreadsheetConfigDict] = {
+            spreadsheet["dataPipelineId"]: {
                 **spreadsheet,
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
