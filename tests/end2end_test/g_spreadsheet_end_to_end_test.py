@@ -10,7 +10,7 @@ from dags.google_spreadsheet_import_pipeline import (
     DEFAULT_DEPLOYMENT_ENV_VALUE, DEPLOYMENT_ENV_ENV_NAME
 )
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiSpreadsheetConfig, MultiCsvSheet
 )
 from tests.end2end_test import enable_and_trigger_dag_and_wait_for_success
@@ -58,13 +58,14 @@ def get_project_dataset_table():
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    multi_data_config = MultiSpreadsheetConfig(data_config_dict,)
+    multi_data_config = MultiSpreadsheetConfig.from_dict(data_config_dict)
     multi_sheet_config_dict_0 = list(
         multi_data_config.spreadsheets_config.values()
     )[0]
 
-    multi_sheet_config_0 = MultiCsvSheet(
-        multi_sheet_config_dict_0, dep_env
+    multi_sheet_config_0 = MultiCsvSheet.from_dict(
+        multi_sheet_config_dict_0,
+        dep_env
     )
     csv_config_0 = list(
         multi_sheet_config_0.sheets_config.values()

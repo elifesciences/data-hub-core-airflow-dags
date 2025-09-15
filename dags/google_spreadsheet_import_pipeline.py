@@ -8,10 +8,10 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task,
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     etl_google_spreadsheet
 )
 
@@ -34,7 +34,7 @@ def google_spreadsheet_data_etl(**kwargs):
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV_VALUE
     )
-    data_config = MultiCsvSheet(data_config_dict, dep_env)
+    data_config = MultiCsvSheet.from_dict(data_config_dict, dep_env)
     etl_google_spreadsheet(data_config)
 
 

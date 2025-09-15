@@ -107,9 +107,19 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-clear-state-csv-pipeline:
+	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
+
+
 dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
 	S3_CSV_CONFIG_FILE_PATH=sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml \
 		$(PYTHON) -m data_pipeline.s3_csv_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
+dev-run-google-spreadsheet-pipeline:  .require-DATA_PIPELINE_ID
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.google_spreadsheet.cli \
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 

@@ -1,48 +1,39 @@
-from typing import List
+from typing import cast
 
-from data_pipeline.utils.pipeline_config import ConfigKeys
+from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    GoogleSpreadsheetConfigDict,
+    GoogleSpreadsheetSheetConfigDict,
+    MultiGoogleSpreadsheetConfigDict
+)
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
     update_deployment_env_placeholder
 )
 
 
-def get_sheet_config_table_names(config_props: dict) -> List[str]:
-    return [
-        sheet.get('tableName')
-        for sheet in config_props.get('sheets', [])
-        if sheet.get('tableName')
-    ]
-
-
-def get_sheet_config_id(config_props: dict, index: int) -> str:
-    config_id = config_props.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
-    if not config_id:
-        table_names = get_sheet_config_table_names(config_props)
-        if table_names:
-            config_id = '_'.join(table_names) + '_' + str(index)
-        else:
-            config_id = str(index)
-    return config_id
-
-
 class MultiSpreadsheetConfig:
-    def __init__(self,
-                 multi_spreadsheet_config: dict,
-                 ):
+    def __init__(
+        self,
+        multi_spreadsheet_config: MultiGoogleSpreadsheetConfigDict
+    ):
         self.gcp_project = multi_spreadsheet_config.get("gcpProjectName")
         self.import_timestamp_field_name = multi_spreadsheet_config.get(
             "importedTimestampFieldName"
         )
         self.spreadsheets_config = {
-            spreadsheet.get("spreadsheetId"): {
+            spreadsheet.get("dataPipelineId"): {
                 **spreadsheet,
-                ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_sheet_config_id(spreadsheet, index=index),
                 "gcpProjectName": self.gcp_project,
                 "importedTimestampFieldName": self.import_timestamp_field_name
             }
             for index, spreadsheet in enumerate(multi_spreadsheet_config["spreadsheets"])
         }
+
+    @staticmethod
+    def from_dict(
+        multi_spreadsheet_config: MultiGoogleSpreadsheetConfigDict
+    ) -> "MultiSpreadsheetConfig":
+        return MultiSpreadsheetConfig(multi_spreadsheet_config)
 
 
 def extend_spreadsheet_config_dict(
@@ -59,9 +50,11 @@ def extend_spreadsheet_config_dict(
 
 
 class MultiCsvSheet:
-    def __init__(self, multi_sheet_config: dict,
-                 deployment_env: str,
-                 ):
+    def __init__(
+        self,
+        multi_sheet_config: GoogleSpreadsheetConfigDict,
+        deployment_env: str
+    ):
         self.spreadsheet_id = multi_sheet_config["spreadsheetId"]
         self.import_timestamp_field_name = multi_sheet_config["importedTimestampFieldName"]
         self.gcp_project = multi_sheet_config["gcpProjectName"]
@@ -76,21 +69,28 @@ class MultiCsvSheet:
             for sheet in multi_sheet_config["sheets"]
         }
 
+    @staticmethod
+    def from_dict(
+        multi_sheet_config: GoogleSpreadsheetConfigDict,
+        deployment_env: str
+    ) -> "MultiCsvSheet":
+        return MultiCsvSheet(multi_sheet_config, deployment_env)
+
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
 class BaseCsvSheetConfig(BaseCsvConfig):
     def __init__(
-            self,
-            csv_sheet_config: dict,
-            spreadsheet_id: str,
-            gcp_project: str,
-            imported_timestamp_field_name: str,
-            deployment_env: str,
-            environment_placeholder: str = "{ENV}"
+        self,
+        csv_sheet_config: GoogleSpreadsheetSheetConfigDict,
+        spreadsheet_id: str,
+        gcp_project: str,
+        imported_timestamp_field_name: str,
+        deployment_env: str,
+        environment_placeholder: str = "{ENV}"
     ):
         updated_csv_sheet_config = update_deployment_env_placeholder(
-            csv_sheet_config,
+            cast(dict, csv_sheet_config),
             deployment_env,
             environment_placeholder
         )

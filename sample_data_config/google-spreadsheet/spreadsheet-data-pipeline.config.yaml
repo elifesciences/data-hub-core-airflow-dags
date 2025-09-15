@@ -3,7 +3,8 @@ importedTimestampFieldName: "imported_timestamp"
 spreadsheets:
   # sample spreadsheet:
   # https://docs.google.com/spreadsheets/d/1UbM9eExvJligr1bzq22xdK3cL8KIW6oqyJnu8R3uSrU/edit#gid=0
-  - spreadsheetId: '1UbM9eExvJligr1bzq22xdK3cL8KIW6oqyJnu8R3uSrU'
+  - dataPipelineId: test_google_spreadsheet_pipeline_1
+    spreadsheetId: '1UbM9eExvJligr1bzq22xdK3cL8KIW6oqyJnu8R3uSrU'
     sheets:
       - sheetName: 'Sheet1' # Name of spreadsheet sheet
         sheetRange: 'A:D'
