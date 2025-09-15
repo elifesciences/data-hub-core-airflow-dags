@@ -119,7 +119,7 @@ dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
 
 dev-run-google-spreadsheet-pipeline:  .require-DATA_PIPELINE_ID
 	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
-		$(PYTHON) -m data_pipeline.spreadsheet_data.cli \
+		$(PYTHON) -m data_pipeline.google_spreadsheet.cli \
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
