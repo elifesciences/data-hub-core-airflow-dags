@@ -8,10 +8,10 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
     create_python_task,
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     etl_google_spreadsheet
 )
 

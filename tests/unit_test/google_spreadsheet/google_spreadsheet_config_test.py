@@ -1,5 +1,5 @@
 from data_pipeline.utils.pipeline_config import ConfigKeys
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     get_sheet_config_id,
     MultiSpreadsheetConfig
 )

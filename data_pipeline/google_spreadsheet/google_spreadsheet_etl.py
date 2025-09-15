@@ -4,7 +4,7 @@ from pathlib import Path
 
 from google.cloud.bigquery import WriteDisposition
 
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet,
     BaseCsvSheetConfig,
 )

@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import MultiCsvSheet
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheet
 from data_pipeline.utils.pipeline_config import get_deployment_env
 
-import data_pipeline.spreadsheet_data.cli as cli_module
-from data_pipeline.spreadsheet_data.cli import (
+import data_pipeline.google_spreadsheet.cli as cli_module
+from data_pipeline.google_spreadsheet.cli import (
     GoogleSpreadsheetEnvironmentVariables,
     main
 )

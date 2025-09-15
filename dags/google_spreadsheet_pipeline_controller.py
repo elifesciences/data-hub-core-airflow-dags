@@ -2,7 +2,7 @@
 
 import os
 
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiSpreadsheetConfig,
 )
 from data_pipeline.utils.pipeline_file_io import get_yaml_file_as_dict

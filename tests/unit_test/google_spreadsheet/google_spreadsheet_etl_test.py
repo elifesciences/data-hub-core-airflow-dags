@@ -2,8 +2,8 @@ from typing import Optional
 from unittest.mock import patch, call
 import pytest
 
-from data_pipeline.spreadsheet_data import google_spreadsheet_etl
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+from data_pipeline.google_spreadsheet import google_spreadsheet_etl
+from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     process_record_list,
     etl_google_spreadsheet,
     update_metadata_with_provenance,
@@ -13,7 +13,7 @@ from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
     get_standardized_csv_header,
     get_sheet_range_from_config
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet, BaseCsvSheetConfig
 )
 

@@ -2,11 +2,11 @@ import argparse
 import logging
 from typing import Optional, Sequence
 
-from data_pipeline.spreadsheet_data.google_spreadsheet_config import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet,
     MultiSpreadsheetConfig
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     etl_google_spreadsheet
 )
 from data_pipeline.utils.pipeline_config import (

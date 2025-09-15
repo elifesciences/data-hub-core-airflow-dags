@@ -19,7 +19,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     load_file_into_bq,
     create_or_extend_table_schema
 )
-from data_pipeline.spreadsheet_data.google_spreadsheet_etl import (
+from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     standardize_field_name,
     get_write_disposition
 )
