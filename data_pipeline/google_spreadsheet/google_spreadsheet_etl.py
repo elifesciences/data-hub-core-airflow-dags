@@ -1,3 +1,4 @@
+import logging
 import re
 from tempfile import TemporaryDirectory
 from pathlib import Path
@@ -23,6 +24,9 @@ from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
@@ -134,6 +138,12 @@ def transform_load_data(
     csv_header = record_list[csv_sheet_config.header_line_index]
     standardized_csv_header = get_standardized_csv_header(
         csv_header
+    )
+
+    LOGGER.info(
+        "Loading data into BigQuery table: %s.%s",
+        csv_sheet_config.dataset_name,
+        csv_sheet_config.table_name
     )
 
     auto_detect_schema = True

@@ -25,6 +25,10 @@ def download_google_spreadsheet_single_sheet(
         "sheets", "v4", credentials=credentials, cache=MemoryCache()
     )
 
+    LOGGER.info(
+        "Downloading spreadsheet id: %s, range: %s",
+        spreadsheet_id, sheet_range
+    )
     try:
         response = (
             service.spreadsheets()
