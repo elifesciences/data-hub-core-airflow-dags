@@ -33,12 +33,6 @@ TEST_DOWNLOADED_SHEET = [
 ]
 
 
-@pytest.fixture(name='mock_get_table_schema_field_names')
-def _get_table_schema_field_names():
-    with patch.object(google_spreadsheet_etl, 'get_table_schema_field_names') as mock:
-        yield mock
-
-
 @pytest.fixture(name='mock_current_timestamp_as_string')
 def _current_timestamp_as_string():
     with patch.object(google_spreadsheet_etl, 'get_current_timestamp_as_string') as mock:
