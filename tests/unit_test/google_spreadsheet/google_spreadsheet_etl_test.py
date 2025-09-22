@@ -90,8 +90,8 @@ def _write_jsonl_to_file_mock():
 @pytest.fixture(name='extend_nested_table_schema_if_new_fields_exist_mock', autouse=True)
 def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
-            google_spreadsheet_etl,
-            'extend_nested_table_schema_if_new_fields_exist'
+        google_spreadsheet_etl,
+        'extend_nested_table_schema_if_new_fields_exist'
     ) as mock:
         yield mock
 
