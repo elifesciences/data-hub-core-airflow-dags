@@ -69,13 +69,13 @@ def _get_standardized_csv_header():
         yield mock
 
 
-@pytest.fixture(name='mock_load_file_into_bq', autouse=True)
+@pytest.fixture(name='load_file_into_bq_mock', autouse=True)
 def _load_file_into_bq():
     with patch.object(google_spreadsheet_etl, 'load_file_into_bq') as mock:
         yield mock
 
 
-@pytest.fixture(name='mock_does_bigquery_table_exist', autouse=True)
+@pytest.fixture(name='does_bigquery_table_exist_mock', autouse=True)
 def _does_bigquery_table_exist():
     with patch.object(google_spreadsheet_etl, 'does_bigquery_table_exist') as mock:
         yield mock
@@ -94,7 +94,7 @@ def _download_google_spreadsheet_single_sheet():
         yield mock
 
 
-@pytest.fixture(name='mock_extend_nested_table_schema_if_new_fields_exist', autouse=True)
+@pytest.fixture(name='extend_nested_table_schema_if_new_fields_exist_mock', autouse=True)
 def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
             google_spreadsheet_etl,
@@ -284,7 +284,7 @@ class TestCsvHeader:
 
     def test_should_extract_from_line_specified_in_config(
         self,
-        mock_does_bigquery_table_exist,
+        does_bigquery_table_exist_mock,
         get_standardized_csv_header_mock
     ):
         record_import_timestamp_as_string = ''
@@ -295,7 +295,7 @@ class TestCsvHeader:
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
+        does_bigquery_table_exist_mock.assert_called()
         get_standardized_csv_header_mock.assert_called_with(
             TEST_DOWNLOADED_SHEET[TestCsvHeader.sheet_config.header_line_index]
         )
@@ -333,8 +333,8 @@ class TestTransformAndLoadData:
 
     def test_should_transform_write_and_load_to_bq(
         self,
-        mock_load_file_into_bq,
-        mock_does_bigquery_table_exist,
+        load_file_into_bq_mock,
+        does_bigquery_table_exist_mock,
         process_record_list_mock,
         mock_write_to_file,
     ):
@@ -346,36 +346,36 @@ class TestTransformAndLoadData:
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
+        does_bigquery_table_exist_mock.assert_called()
         process_record_list_mock.assert_called()
         mock_write_to_file.assert_called()
-        mock_load_file_into_bq.assert_called()
+        load_file_into_bq_mock.assert_called()
 
     def test_should_try_extend_table_if_table_does_exist(  # pylint: disable=too-many-arguments
         self,
-        mock_load_file_into_bq,
-        mock_does_bigquery_table_exist,
+        load_file_into_bq_mock,
+        does_bigquery_table_exist_mock,
         process_record_list_mock,
         mock_write_to_file,
-        mock_extend_nested_table_schema_if_new_fields_exist
+        extend_nested_table_schema_if_new_fields_exist_mock
     ):
         record_import_timestamp_as_string = ''
         full_temp_file_location = ''
-        mock_does_bigquery_table_exist.return_value = True
+        does_bigquery_table_exist_mock.return_value = True
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
+        does_bigquery_table_exist_mock.assert_called()
         (
-            mock_extend_nested_table_schema_if_new_fields_exist.
+            extend_nested_table_schema_if_new_fields_exist_mock.
             assert_called()
         )
         process_record_list_mock.assert_called()
         mock_write_to_file.assert_called()
-        mock_load_file_into_bq.assert_called()
+        load_file_into_bq_mock.assert_called()
 
 
 class TestProcessData:
