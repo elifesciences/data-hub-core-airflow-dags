@@ -64,6 +64,10 @@ def get_record_metadata(
     return record_metadata
 
 
+def standardize_field_name(field_name: str):
+    return re.sub(r"\W", "_", field_name.strip().strip('"').strip("'"))
+
+
 def get_standardized_csv_header(csv_header):
     return [
         standardize_field_name(field.lower())
@@ -177,10 +181,6 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
                 full_temp_file_location,
                 current_timestamp_as_str
             )
-
-
-def standardize_field_name(field_name: str):
-    return re.sub(r"\W", "_", field_name.strip().strip('"').strip("'"))
 
 
 def process_record(record: list,
