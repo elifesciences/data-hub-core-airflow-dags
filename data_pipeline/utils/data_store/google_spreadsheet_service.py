@@ -14,8 +14,8 @@ SHEET_DATA_KEY = "values"
 
 # pylint: disable=no-member
 def download_google_spreadsheet_single_sheet(
-        spreadsheet_id: str,
-        sheet_range: str
+    spreadsheet_id: str,
+    sheet_range: str
 ):
     credentials = get_credentials(
         SCOPES
