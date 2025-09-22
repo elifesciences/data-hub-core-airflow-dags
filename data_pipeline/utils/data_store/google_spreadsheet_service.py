@@ -12,6 +12,32 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SHEET_DATA_KEY = 'values'
 
 
+READ_MODIFIED_TIME_SCOPES = [
+    'https://www.googleapis.com/auth/drive.metadata.readonly'
+]
+
+
+def get_spreadsheet_modified_timestamp(
+    spreadsheet_id: str
+) -> str:
+    credentials = get_credentials(READ_MODIFIED_TIME_SCOPES)
+
+    drive_service = discovery.build(
+        'drive',
+        'v3',
+        credentials=credentials
+    )
+    file = (
+        drive_service.files()  # pylint: disable=no-member
+        .get(
+            fileId=spreadsheet_id,
+            fields='modifiedTime'
+        )
+        .execute()
+    )
+    return file.get('modifiedTime')
+
+
 def download_google_spreadsheet_single_sheet(
     spreadsheet_id: str,
     sheet_range: str
