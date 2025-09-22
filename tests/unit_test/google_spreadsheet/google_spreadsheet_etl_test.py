@@ -33,7 +33,7 @@ TEST_DOWNLOADED_SHEET = [
 ]
 
 
-@pytest.fixture(name='mock_current_timestamp_as_string')
+@pytest.fixture(name='current_timestamp_as_string_mock')
 def _current_timestamp_as_string():
     with patch.object(google_spreadsheet_etl, 'get_current_timestamp_as_string') as mock:
         yield mock
@@ -446,11 +446,11 @@ class TestProcessData:
     def test_should_be_called_with_identical_timestamp(
         self,
         mock_process_csv_sheet,
-        mock_current_timestamp_as_string,
+        current_timestamp_as_string_mock,
         mock_path
     ):
         current_timestamp_as_string = '2010-11-11T 10:10:10Z'
-        mock_current_timestamp_as_string.return_value = (
+        current_timestamp_as_string_mock.return_value = (
             current_timestamp_as_string
         )
         multi_csv_config = MultiCsvSheet.from_dict(
