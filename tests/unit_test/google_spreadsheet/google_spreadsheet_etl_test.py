@@ -87,13 +87,6 @@ def _write_to_file():
         yield mock
 
 
-@pytest.fixture(name='mock_download_google_spreadsheet_single_sheet', autouse=True)
-def _download_google_spreadsheet_single_sheet():
-    with patch.object(google_spreadsheet_etl, 'download_google_spreadsheet_single_sheet') as mock:
-        mock.return_value = TEST_DOWNLOADED_SHEET
-        yield mock
-
-
 @pytest.fixture(name='extend_nested_table_schema_if_new_fields_exist_mock', autouse=True)
 def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
