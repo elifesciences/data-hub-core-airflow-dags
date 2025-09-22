@@ -30,9 +30,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 class NamedLiterals:
-    PROVENANCE_FIELD_NAME = "provenance"
-    PROVENANCE_SHEET_NAME = "sheet_name"
-    PROVENANCE_SPREADSHEET_ID = "spreadsheet_id"
+    PROVENANCE_FIELD_NAME = 'provenance'
+    PROVENANCE_SHEET_NAME = 'sheet_name'
+    PROVENANCE_SPREADSHEET_ID = 'spreadsheet_id'
 
 
 def update_metadata_with_provenance(
@@ -47,7 +47,7 @@ def update_metadata_with_provenance(
     }
     return {
         **record_metadata,
-        "provenance": provenance
+        'provenance': provenance
     }
 
 
@@ -57,7 +57,7 @@ def get_record_metadata(
     record_import_timestamp_as_string: str
 ):
     record_metadata = {
-        metadata_col_name: ",".join(record_list[line_index_in_data])
+        metadata_col_name: ','.join(record_list[line_index_in_data])
         for metadata_col_name, line_index_in_data
         in csv_sheet_config.in_sheet_record_metadata.items()
     }
@@ -72,7 +72,7 @@ def get_record_metadata(
 
 
 def standardize_field_name(field_name: str):
-    return re.sub(r"\W", "_", field_name.strip().strip('"').strip("'"))
+    return re.sub(r'\W', '_', field_name.strip().strip('"').strip("'"))
 
 
 def get_standardized_csv_header(csv_header):
@@ -118,18 +118,18 @@ def process_record_list(
 
 def google_spreadsheet_csv_provenance_schema():
     prov_dict = {
-        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
-        "type": "RECORD",
-        "fields": [
+        'name': NamedLiterals.PROVENANCE_FIELD_NAME,
+        'type': 'RECORD',
+        'fields': [
             {
-                "name":
+                'name':
                     NamedLiterals.PROVENANCE_SHEET_NAME,
-                "type": "STRING"
+                'type': 'STRING'
             },
             {
-                "name":
+                'name':
                     NamedLiterals.PROVENANCE_SPREADSHEET_ID,
-                "type": "STRING"
+                'type': 'STRING'
             },
         ]
     }
@@ -156,7 +156,7 @@ def transform_load_data(
     )
 
     LOGGER.info(
-        "Loading data into BigQuery table: %s.%s",
+        'Loading data into BigQuery table: %s.%s',
         csv_sheet_config.dataset_name,
         csv_sheet_config.table_name
     )
@@ -198,7 +198,7 @@ def get_sheet_range_from_config(
     csv_sheet_config: BaseCsvSheetConfig
 ):
     sheet_with_range = (
-        csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
+        csv_sheet_config.sheet_name + '!' + csv_sheet_config.sheet_range
         if csv_sheet_config.sheet_range
         else csv_sheet_config.sheet_name
     )
@@ -228,7 +228,7 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:
             full_temp_file_location = str(
-                Path(tmp_dir, "downloaded_jsonl_data")
+                Path(tmp_dir, 'downloaded_jsonl_data')
             )
             process_csv_sheet(
                 csv_sheet_config,

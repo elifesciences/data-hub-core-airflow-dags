@@ -33,78 +33,65 @@ TEST_DOWNLOADED_SHEET = [
 ]
 
 
-@pytest.fixture(name="mock_get_table_schema_field_names")
-def _get_table_schema_field_names():
-    with patch.object(google_spreadsheet_etl, "get_table_schema_field_names") as mock:
-        yield mock
-
-
-@pytest.fixture(name="mock_current_timestamp_as_string")
+@pytest.fixture(name='current_timestamp_as_string_mock')
 def _current_timestamp_as_string():
-    with patch.object(google_spreadsheet_etl, "get_current_timestamp_as_string") as mock:
+    with patch.object(google_spreadsheet_etl, 'get_current_timestamp_as_string') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_path")
-def _path():
-    with patch.object(google_spreadsheet_etl, "Path") as mock:
+@pytest.fixture(name='path_class_mock')
+def _path_class():
+    with patch.object(google_spreadsheet_etl, 'Path') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_process_record")
+@pytest.fixture(name='process_record_mock')
 def _process_record():
-    with patch.object(google_spreadsheet_etl, "process_record") as mock:
+    with patch.object(google_spreadsheet_etl, 'process_record') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_process_record_list", autouse=True)
+@pytest.fixture(name='process_record_list_mock', autouse=True)
 def _process_record_list():
-    with patch.object(google_spreadsheet_etl, "process_record_list") as mock:
+    with patch.object(google_spreadsheet_etl, 'process_record_list') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_process_csv_sheet", autouse=True)
+@pytest.fixture(name='process_csv_sheet_mock', autouse=True)
 def _process_csv_sheet():
-    with patch.object(google_spreadsheet_etl, "process_csv_sheet") as mock:
+    with patch.object(google_spreadsheet_etl, 'process_csv_sheet') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_get_standardized_csv_header", autouse=True)
+@pytest.fixture(name='get_standardized_csv_header_mock', autouse=True)
 def _get_standardized_csv_header():
-    with patch.object(google_spreadsheet_etl, "get_standardized_csv_header") as mock:
+    with patch.object(google_spreadsheet_etl, 'get_standardized_csv_header') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_load_file_into_bq", autouse=True)
+@pytest.fixture(name='load_file_into_bq_mock', autouse=True)
 def _load_file_into_bq():
-    with patch.object(google_spreadsheet_etl, "load_file_into_bq") as mock:
+    with patch.object(google_spreadsheet_etl, 'load_file_into_bq') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_does_bigquery_table_exist", autouse=True)
+@pytest.fixture(name='does_bigquery_table_exist_mock', autouse=True)
 def _does_bigquery_table_exist():
-    with patch.object(google_spreadsheet_etl, "does_bigquery_table_exist") as mock:
+    with patch.object(google_spreadsheet_etl, 'does_bigquery_table_exist') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_write_to_file", autouse=True)
-def _write_to_file():
-    with patch.object(google_spreadsheet_etl, "write_jsonl_to_file") as mock:
+@pytest.fixture(name='write_jsonl_to_file_mock', autouse=True)
+def _write_jsonl_to_file_mock():
+    with patch.object(google_spreadsheet_etl, 'write_jsonl_to_file') as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_download_google_spreadsheet_single_sheet", autouse=True)
-def _download_google_spreadsheet_single_sheet():
-    with patch.object(google_spreadsheet_etl, "download_google_spreadsheet_single_sheet") as mock:
-        mock.return_value = TEST_DOWNLOADED_SHEET
-        yield mock
-
-
-@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist", autouse=True)
+@pytest.fixture(name='extend_nested_table_schema_if_new_fields_exist_mock', autouse=True)
 def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
-            google_spreadsheet_etl,
-            "extend_nested_table_schema_if_new_fields_exist"
+        google_spreadsheet_etl,
+        'extend_nested_table_schema_if_new_fields_exist'
     ) as mock:
         yield mock
 
@@ -119,26 +106,26 @@ class TestRecordMetadata:
         } if update_dict else {
             **TestRecordMetadata.csv_config_dict,
         }
-        gcp_project = ""
-        deployment_env = ""
+        gcp_project = ''
+        deployment_env = ''
         return BaseCsvSheetConfig(
             cast(
                 GoogleSpreadsheetSheetConfigDict,
                 csv_config_dict
             ),
-            "spreadsheet_id",
+            'spreadsheet_id',
             gcp_project,
-            "imported_timestamp_field_name",
+            'imported_timestamp_field_name',
             deployment_env
         )
 
     csv_config_dict = {
-        "sheetName": "sheet name-0",
-        "datasetName": "{ENV}-dataset",
-        "tableWriteAppend": "true"
+        'sheetName': 'sheet name-0',
+        'datasetName': '{ENV}-dataset',
+        'tableWriteAppend': 'true'
     }
 
-    test_timestamp_str = "2020-10-01T10:15:13Z"
+    test_timestamp_str = '2020-10-01T10:15:13Z'
 
     def test_contain_only_provenance_and_timestamp(self):
 
@@ -159,15 +146,15 @@ class TestRecordMetadata:
 
     def test_should_merge_all_values_in_a_list_element_on_a_line(self):
         in_sheet_metadata = {
-            "inSheetRecordMetadata":
+            'inSheetRecordMetadata':
                 [
                     {
-                        "metadataSchemaFieldName": "metadata_example_01",
-                        "metadataLineIndex": 0
+                        'metadataSchemaFieldName': 'metadata_example_01',
+                        'metadataLineIndex': 0
                     },
                     {
-                        "metadataSchemaFieldName": "metadata_example_02",
-                        "metadataLineIndex": 1
+                        'metadataSchemaFieldName': 'metadata_example_02',
+                        'metadataLineIndex': 1
                     }
                 ]
         }
@@ -195,11 +182,11 @@ class TestRecordMetadata:
 
     def test_should_contain_static_values_from_config(self):
         fixed_metadata = {
-            "fixedSheetRecordMetadata":
+            'fixedSheetRecordMetadata':
                 [
                     {
-                        "metadataSchemaFieldName": "fixed_sheet_field_name",
-                        "fixedSheetValue": "fixed_sheet_value"
+                        'metadataSchemaFieldName': 'fixed_sheet_field_name',
+                        'fixedSheetValue': 'fixed_sheet_value'
                     }
                 ]
         }
@@ -227,18 +214,18 @@ class TestRecordMetadata:
         self
     ):
         sheet_metadata = {
-            "inSheetRecordMetadata":
+            'inSheetRecordMetadata':
                 [
                     {
-                        "metadataSchemaFieldName": "metadata_example_1",
-                        "metadataLineIndex": 1
+                        'metadataSchemaFieldName': 'metadata_example_1',
+                        'metadataLineIndex': 1
                     }
                 ],
-            "fixedSheetRecordMetadata":
+            'fixedSheetRecordMetadata':
                 [
                     {
-                        "metadataSchemaFieldName": "fixed_sheet_field_name",
-                        "fixedSheetValue": "fixed_sheet_value"
+                        'metadataSchemaFieldName': 'fixed_sheet_field_name',
+                        'fixedSheetValue': 'fixed_sheet_value'
                     }
                 ]
         }
@@ -267,16 +254,16 @@ class TestRecordMetadata:
 class TestCsvHeader:
     sheet_config = BaseCsvSheetConfig(
         {
-            "sheetName": "sheet name-0",
-            "headerLineIndex": 0,
-            "tableName": "table_name_1",
-            "datasetName": "{ENV}-dataset",
-            "tableWriteAppend": True
+            'sheetName': 'sheet name-0',
+            'headerLineIndex': 0,
+            'tableName': 'table_name_1',
+            'datasetName': '{ENV}-dataset',
+            'tableWriteAppend': True
         },
-        "spreadsheet_id",
-        "",
-        "imported_timestamp_field_name",
-        ""
+        'spreadsheet_id',
+        '',
+        'imported_timestamp_field_name',
+        ''
     )
 
     def test_should_be_standardized(self):
@@ -290,19 +277,19 @@ class TestCsvHeader:
 
     def test_should_extract_from_line_specified_in_config(
         self,
-        mock_does_bigquery_table_exist,
-        mock_get_standardized_csv_header
+        does_bigquery_table_exist_mock,
+        get_standardized_csv_header_mock
     ):
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
+        record_import_timestamp_as_string = ''
+        full_temp_file_location = ''
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestCsvHeader.sheet_config,
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
-        mock_get_standardized_csv_header.assert_called_with(
+        does_bigquery_table_exist_mock.assert_called()
+        get_standardized_csv_header_mock.assert_called_with(
             TEST_DOWNLOADED_SHEET[TestCsvHeader.sheet_config.header_line_index]
         )
 
@@ -313,118 +300,118 @@ class TestTransformAndLoadData:
         if update_dict is None:
             update_dict = {}
         config_dict = {
-            "sheetName": "sheet name-0",
-            "headerLineIndex": 0,
-            "dataValuesStartLineIndex": 1,
-            "datasetName": "{ENV}-dataset",
-            "tableName": "table_name_1",
-            "tableWriteAppend": "true",
+            'sheetName': 'sheet name-0',
+            'headerLineIndex': 0,
+            'dataValuesStartLineIndex': 1,
+            'datasetName': '{ENV}-dataset',
+            'tableName': 'table_name_1',
+            'tableWriteAppend': 'true',
         }
         if update_dict:
             config_dict.update(
                 update_dict
             )
-        gcp_project = ""
-        deployment_env = ""
+        gcp_project = ''
+        deployment_env = ''
         return BaseCsvSheetConfig(
             cast(
                 GoogleSpreadsheetSheetConfigDict,
                 config_dict
             ),
-            "spreadsheet_id",
+            'spreadsheet_id',
             gcp_project,
-            "imported_timestamp_field_name",
+            'imported_timestamp_field_name',
             deployment_env
         )
 
     def test_should_transform_write_and_load_to_bq(
         self,
-        mock_load_file_into_bq,
-        mock_does_bigquery_table_exist,
-        mock_process_record_list,
-        mock_write_to_file,
+        load_file_into_bq_mock,
+        does_bigquery_table_exist_mock,
+        process_record_list_mock,
+        write_jsonl_to_file_mock,
     ):
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
+        record_import_timestamp_as_string = ''
+        full_temp_file_location = ''
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
-        mock_process_record_list.assert_called()
-        mock_write_to_file.assert_called()
-        mock_load_file_into_bq.assert_called()
+        does_bigquery_table_exist_mock.assert_called()
+        process_record_list_mock.assert_called()
+        write_jsonl_to_file_mock.assert_called()
+        load_file_into_bq_mock.assert_called()
 
     def test_should_try_extend_table_if_table_does_exist(  # pylint: disable=too-many-arguments
         self,
-        mock_load_file_into_bq,
-        mock_does_bigquery_table_exist,
-        mock_process_record_list,
-        mock_write_to_file,
-        mock_extend_nested_table_schema_if_new_fields_exist
+        load_file_into_bq_mock,
+        does_bigquery_table_exist_mock,
+        process_record_list_mock,
+        write_jsonl_to_file_mock,
+        extend_nested_table_schema_if_new_fields_exist_mock
     ):
-        record_import_timestamp_as_string = ""
-        full_temp_file_location = ""
-        mock_does_bigquery_table_exist.return_value = True
+        record_import_timestamp_as_string = ''
+        full_temp_file_location = ''
+        does_bigquery_table_exist_mock.return_value = True
         transform_load_data(
             TEST_DOWNLOADED_SHEET,
             TestTransformAndLoadData.get_csv_config(),
             record_import_timestamp_as_string,
             full_temp_file_location
         )
-        mock_does_bigquery_table_exist.assert_called()
+        does_bigquery_table_exist_mock.assert_called()
         (
-            mock_extend_nested_table_schema_if_new_fields_exist.
+            extend_nested_table_schema_if_new_fields_exist_mock.
             assert_called()
         )
-        mock_process_record_list.assert_called()
-        mock_write_to_file.assert_called()
-        mock_load_file_into_bq.assert_called()
+        process_record_list_mock.assert_called()
+        write_jsonl_to_file_mock.assert_called()
+        load_file_into_bq_mock.assert_called()
 
 
 class TestProcessData:
     multi_csv_config_dict = {
-        "gcpProjectName": "gcpProjectName_1",
-        "importedTimestampFieldName": "imported_timestamp_1",
-        "spreadsheetId": "spreadsheet_id",
-        "sheets": [
+        'gcpProjectName': 'gcpProjectName_1',
+        'importedTimestampFieldName': 'imported_timestamp_1',
+        'spreadsheetId': 'spreadsheet_id',
+        'sheets': [
             {
-                "sheetName": "sheet name-0",
-                "datasetName": "{ENV}-dataset",
-                "tableName": "table_name_1",
-                "tableWriteAppend": "true",
+                'sheetName': 'sheet name-0',
+                'datasetName': '{ENV}-dataset',
+                'tableName': 'table_name_1',
+                'tableWriteAppend': 'true',
             },
             {
-                "sheetName": "sheet name-1",
-                "datasetName": "{ENV}-dataset",
-                "headerLineIndex": 0,
-                "dataValuesStartLineIndex": 2,
-                "tableName": "table_name_2",
-                "tableWriteAppend": "false"
+                'sheetName': 'sheet name-1',
+                'datasetName': '{ENV}-dataset',
+                'headerLineIndex': 0,
+                'dataValuesStartLineIndex': 2,
+                'tableName': 'table_name_2',
+                'tableWriteAppend': 'false'
             }
         ]
     }
 
     sheet_config = BaseCsvSheetConfig(
         {
-            "sheetName": "sheet name-0",
-            "headerLineIndex": 0,
-            "tableName": "table_name_1",
-            "datasetName": "{ENV}-dataset",
-            "tableWriteAppend": True,
-        }, "spreadsheet_id", "",
-        "imported_timestamp_field_name", ""
+            'sheetName': 'sheet name-0',
+            'headerLineIndex': 0,
+            'tableName': 'table_name_1',
+            'datasetName': '{ENV}-dataset',
+            'tableWriteAppend': True,
+        }, 'spreadsheet_id', '',
+        'imported_timestamp_field_name', ''
     )
 
     def test_should_call_process_record_function_n_times(
         self,
-        mock_process_record
+        process_record_mock
     ):
-        records_to_process = [["record_1"], ["record_2"]]
+        records_to_process = [['record_1'], ['record_2']]
         records_length = len(records_to_process)
-        records_header = ["header"]
+        records_header = ['header']
         record_metadata = {}
         list(
             process_record_list(
@@ -433,38 +420,38 @@ class TestProcessData:
                 records_header
             )
         )
-        assert mock_process_record.call_count == records_length
+        assert process_record_mock.call_count == records_length
 
     def test_should_call_process_csv_sheet_function_n_times(
         self,
-        mock_process_csv_sheet
+        process_csv_sheet_mock
     ):
         multi_csv_config = MultiCsvSheet.from_dict(
             TestProcessData.multi_csv_config_dict,
-            "dep_env"
+            'dep_env'
         )
         spreadsheets_count = len(
             multi_csv_config.sheets_config.values()
         )
         etl_google_spreadsheet(multi_csv_config)
-        assert mock_process_csv_sheet.call_count == spreadsheets_count
+        assert process_csv_sheet_mock.call_count == spreadsheets_count
 
     def test_should_be_called_with_identical_timestamp(
         self,
-        mock_process_csv_sheet,
-        mock_current_timestamp_as_string,
-        mock_path
+        process_csv_sheet_mock,
+        current_timestamp_as_string_mock,
+        path_class_mock
     ):
-        current_timestamp_as_string = "2010-11-11T 10:10:10Z"
-        mock_current_timestamp_as_string.return_value = (
+        current_timestamp_as_string = '2010-11-11T 10:10:10Z'
+        current_timestamp_as_string_mock.return_value = (
             current_timestamp_as_string
         )
         multi_csv_config = MultiCsvSheet.from_dict(
             TestProcessData.multi_csv_config_dict,
-            "dep_env"
+            'dep_env'
         )
-        full_temp_file_location = "file_path"
-        mock_path.return_value = full_temp_file_location
+        full_temp_file_location = 'file_path'
+        path_class_mock.return_value = full_temp_file_location
         expected_calls = []
         for csv_sheet_config in multi_csv_config.sheets_config.values():
             process_call = call(
@@ -475,7 +462,7 @@ class TestProcessData:
             expected_calls.append(process_call)
 
         etl_google_spreadsheet(multi_csv_config)
-        mock_process_csv_sheet.assert_has_calls(
+        process_csv_sheet_mock.assert_has_calls(
             expected_calls
         )
 
@@ -486,14 +473,14 @@ class TestRecord:
     def test_should_generated_json_from_record_extend_with_record_metadata(
         self
     ):
-        record = ["record_val_1", "record_val_2",
-                  "record_val_3", "record_val_4"]
+        record = ['record_val_1', 'record_val_2',
+                  'record_val_3', 'record_val_4']
         record_metadata = {
-            "record_metadata_1": "_meta_1",
-            "record_metadata_2": {}
+            'record_metadata_1': '_meta_1',
+            'record_metadata_2': {}
         }
         standardized_csv_header = [
-            "col_1", "col_2", "col_3", "col_4"
+            'col_1', 'col_2', 'col_3', 'col_4'
         ]
         expected_return = {
             'col_1': 'record_val_1',
@@ -514,12 +501,12 @@ class TestRecord:
     def test_should_update_record_metadata_with_provenance(self):
         test_config = BaseCsvSheetConfig(
             {
-                "sheetName": "sheet name-0",
-                "datasetName": "{ENV}-dataset",
-                "tableName": "table_name_1",
-                "tableWriteAppend": "true",
-            }, "spreadsheet_id", "",
-            "imported_timestamp_field_name", ""
+                'sheetName': 'sheet name-0',
+                'datasetName': '{ENV}-dataset',
+                'tableName': 'table_name_1',
+                'tableWriteAppend': 'true',
+            }, 'spreadsheet_id', '',
+            'imported_timestamp_field_name', ''
         )
         expected_return = {
             'import_timestamp': '2019-01-01',
@@ -541,19 +528,19 @@ class TestSpreadSheetSheetWithRange:
     def test_should_have_no_range(self):
         sheet_config = BaseCsvSheetConfig(
             {
-                "sheetName": "sheet name-0",
-                "headerLineIndex": 0,
-                "datasetName": "{ENV}-dataset",
-                "tableWriteAppend": "true",
+                'sheetName': 'sheet name-0',
+                'headerLineIndex': 0,
+                'datasetName': '{ENV}-dataset',
+                'tableWriteAppend': 'true',
             },
-            "spreadsheet_id", "s_id",
-            "imported_timestamp_field_name", ""
+            'spreadsheet_id', 's_id',
+            'imported_timestamp_field_name', ''
         )
 
         sheet_with_range = get_sheet_range_from_config(
             sheet_config
         )
-        expected_sheet_with_range = "sheet name-0"
+        expected_sheet_with_range = 'sheet name-0'
         assert sheet_with_range == (
             expected_sheet_with_range
         )
@@ -561,20 +548,20 @@ class TestSpreadSheetSheetWithRange:
     def test_should_have_range(self):
         sheet_config = BaseCsvSheetConfig(
             {
-                "sheetName": "sheet name-0",
-                "sheetRange": "A:B",
-                "headerLineIndex": 0,
-                "datasetName": "{ENV}-dataset",
-                "tableWriteAppend": "true",
+                'sheetName': 'sheet name-0',
+                'sheetRange': 'A:B',
+                'headerLineIndex': 0,
+                'datasetName': '{ENV}-dataset',
+                'tableWriteAppend': 'true',
             },
-            "spreadsheet_id", "s_id",
-            "imported_timestamp_field_name", ""
+            'spreadsheet_id', 's_id',
+            'imported_timestamp_field_name', ''
         )
 
         sheet_with_range = get_sheet_range_from_config(
             sheet_config
         )
-        expected_sheet_with_range = "sheet name-0!A:B"
+        expected_sheet_with_range = 'sheet name-0!A:B'
         assert sheet_with_range == (
             expected_sheet_with_range
         )
