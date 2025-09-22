@@ -36,7 +36,8 @@ class NamedLiterals:
 
 
 def update_metadata_with_provenance(
-        record_metadata, csv_sheet_config: BaseCsvSheetConfig
+    record_metadata,
+    csv_sheet_config: BaseCsvSheetConfig
 ):
     provenance = {
         NamedLiterals.PROVENANCE_SPREADSHEET_ID:
@@ -51,9 +52,9 @@ def update_metadata_with_provenance(
 
 
 def get_record_metadata(
-        record_list,
-        csv_sheet_config: BaseCsvSheetConfig,
-        record_import_timestamp_as_string: str,
+    record_list,
+    csv_sheet_config: BaseCsvSheetConfig,
+    record_import_timestamp_as_string: str
 ):
     record_metadata = {
         metadata_col_name: ",".join(record_list[line_index_in_data])
@@ -90,10 +91,11 @@ def get_write_disposition(csv_sheet_config):
     return write_disposition
 
 
-def process_record(record: list,
-                   record_metadata: dict,
-                   standardized_csv_header: list
-                   ):
+def process_record(
+    record: list,
+    record_metadata: dict,
+    standardized_csv_header: list
+):
     return {
         **record_metadata,
         **dict(zip(standardized_csv_header, record))
@@ -101,9 +103,9 @@ def process_record(record: list,
 
 
 def process_record_list(
-        record_list: list,
-        record_metadata: dict,
-        standardized_csv_header: list
+    record_list: list,
+    record_metadata: dict,
+    standardized_csv_header: list
 ):
     for record in record_list:
         n_record = process_record(
@@ -136,10 +138,10 @@ def google_spreadsheet_csv_provenance_schema():
 
 
 def transform_load_data(
-        record_list,
-        csv_sheet_config: BaseCsvSheetConfig,
-        record_import_timestamp_as_string: str,
-        full_temp_file_location: str,
+    record_list,
+    csv_sheet_config: BaseCsvSheetConfig,
+    record_import_timestamp_as_string: str,
+    full_temp_file_location: str,
 ):
 
     record_metadata = get_record_metadata(
@@ -193,7 +195,7 @@ def transform_load_data(
 
 
 def get_sheet_range_from_config(
-        csv_sheet_config: BaseCsvSheetConfig
+    csv_sheet_config: BaseCsvSheetConfig
 ):
     sheet_with_range = (
         csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
@@ -204,8 +206,9 @@ def get_sheet_range_from_config(
 
 
 def process_csv_sheet(
-        csv_sheet_config: BaseCsvSheetConfig, temp_file: str,
-        timestamp_as_string: str
+    csv_sheet_config: BaseCsvSheetConfig,
+    temp_file: str,
+    timestamp_as_string: str
 ):
     sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
