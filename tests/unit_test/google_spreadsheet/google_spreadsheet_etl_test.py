@@ -63,7 +63,7 @@ def _process_csv_sheet():
         yield mock
 
 
-@pytest.fixture(name='mock_get_standardized_csv_header', autouse=True)
+@pytest.fixture(name='get_standardized_csv_header_mock', autouse=True)
 def _get_standardized_csv_header():
     with patch.object(google_spreadsheet_etl, 'get_standardized_csv_header') as mock:
         yield mock
@@ -285,7 +285,7 @@ class TestCsvHeader:
     def test_should_extract_from_line_specified_in_config(
         self,
         mock_does_bigquery_table_exist,
-        mock_get_standardized_csv_header
+        get_standardized_csv_header_mock
     ):
         record_import_timestamp_as_string = ''
         full_temp_file_location = ''
@@ -296,7 +296,7 @@ class TestCsvHeader:
             full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
-        mock_get_standardized_csv_header.assert_called_with(
+        get_standardized_csv_header_mock.assert_called_with(
             TEST_DOWNLOADED_SHEET[TestCsvHeader.sheet_config.header_line_index]
         )
 
