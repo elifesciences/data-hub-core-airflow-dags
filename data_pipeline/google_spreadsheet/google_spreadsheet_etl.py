@@ -108,6 +108,27 @@ def process_record_list(
         yield n_record
 
 
+def google_spreadsheet_csv_provenance_schema():
+    prov_dict = {
+        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
+        "type": "RECORD",
+        "fields": [
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_SHEET_NAME,
+                "type": "STRING"
+            },
+            {
+                "name":
+                    NamedLiterals.PROVENANCE_SPREADSHEET_ID,
+                "type": "STRING"
+            },
+        ]
+    }
+    prov_schema_list = [prov_dict]
+    return prov_schema_list
+
+
 def transform_load_data(
         record_list,
         csv_sheet_config: BaseCsvSheetConfig,
@@ -205,27 +226,6 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
                 full_temp_file_location,
                 current_timestamp_as_str
             )
-
-
-def google_spreadsheet_csv_provenance_schema():
-    prov_dict = {
-        "name": NamedLiterals.PROVENANCE_FIELD_NAME,
-        "type": "RECORD",
-        "fields": [
-            {
-                "name":
-                    NamedLiterals.PROVENANCE_SHEET_NAME,
-                "type": "STRING"
-            },
-            {
-                "name":
-                    NamedLiterals.PROVENANCE_SPREADSHEET_ID,
-                "type": "STRING"
-            },
-        ]
-    }
-    prov_schema_list = [prov_dict]
-    return prov_schema_list
 
 
 class NamedLiterals:
