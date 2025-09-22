@@ -29,48 +29,6 @@ from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 LOGGER = logging.getLogger(__name__)
 
 
-def get_sheet_range_from_config(
-        csv_sheet_config: BaseCsvSheetConfig
-):
-    sheet_with_range = (
-        csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
-        if csv_sheet_config.sheet_range
-        else csv_sheet_config.sheet_name
-    )
-    return sheet_with_range
-
-
-def process_csv_sheet(
-        csv_sheet_config: BaseCsvSheetConfig, temp_file: str,
-        timestamp_as_string: str
-):
-    sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
-    downloaded_data = download_google_spreadsheet_single_sheet(
-        csv_sheet_config.spreadsheet_id, sheet_with_range
-    )
-    record_import_timestamp_as_string = timestamp_as_string
-    transform_load_data(
-        record_list=downloaded_data,
-        csv_sheet_config=csv_sheet_config,
-        record_import_timestamp_as_string=record_import_timestamp_as_string,
-        full_temp_file_location=temp_file,
-    )
-
-
-def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
-    current_timestamp_as_str = get_current_timestamp_as_string()
-    for csv_sheet_config in spreadsheet_config.sheets_config.values():
-        with TemporaryDirectory() as tmp_dir:
-            full_temp_file_location = str(
-                Path(tmp_dir, "downloaded_jsonl_data")
-            )
-            process_csv_sheet(
-                csv_sheet_config,
-                full_temp_file_location,
-                current_timestamp_as_str
-            )
-
-
 def update_metadata_with_provenance(
         record_metadata, csv_sheet_config: BaseCsvSheetConfig
 ):
@@ -177,6 +135,48 @@ def transform_load_data(
         write_mode=write_disposition,
         project_name=csv_sheet_config.gcp_project,
     )
+
+
+def get_sheet_range_from_config(
+        csv_sheet_config: BaseCsvSheetConfig
+):
+    sheet_with_range = (
+        csv_sheet_config.sheet_name + "!" + csv_sheet_config.sheet_range
+        if csv_sheet_config.sheet_range
+        else csv_sheet_config.sheet_name
+    )
+    return sheet_with_range
+
+
+def process_csv_sheet(
+        csv_sheet_config: BaseCsvSheetConfig, temp_file: str,
+        timestamp_as_string: str
+):
+    sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
+    downloaded_data = download_google_spreadsheet_single_sheet(
+        csv_sheet_config.spreadsheet_id, sheet_with_range
+    )
+    record_import_timestamp_as_string = timestamp_as_string
+    transform_load_data(
+        record_list=downloaded_data,
+        csv_sheet_config=csv_sheet_config,
+        record_import_timestamp_as_string=record_import_timestamp_as_string,
+        full_temp_file_location=temp_file,
+    )
+
+
+def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
+    current_timestamp_as_str = get_current_timestamp_as_string()
+    for csv_sheet_config in spreadsheet_config.sheets_config.values():
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
+            )
+            process_csv_sheet(
+                csv_sheet_config,
+                full_temp_file_location,
+                current_timestamp_as_str
+            )
 
 
 def standardize_field_name(field_name: str):
