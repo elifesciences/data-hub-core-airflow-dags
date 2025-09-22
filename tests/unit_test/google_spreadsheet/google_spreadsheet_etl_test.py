@@ -45,7 +45,7 @@ def _path_class():
         yield mock
 
 
-@pytest.fixture(name='mock_process_record')
+@pytest.fixture(name='process_record_mock')
 def _process_record():
     with patch.object(google_spreadsheet_etl, 'process_record') as mock:
         yield mock
@@ -414,7 +414,7 @@ class TestProcessData:
 
     def test_should_call_process_record_function_n_times(
         self,
-        mock_process_record
+        process_record_mock
     ):
         records_to_process = [['record_1'], ['record_2']]
         records_length = len(records_to_process)
@@ -427,7 +427,7 @@ class TestProcessData:
                 records_header
             )
         )
-        assert mock_process_record.call_count == records_length
+        assert process_record_mock.call_count == records_length
 
     def test_should_call_process_csv_sheet_function_n_times(
         self,
