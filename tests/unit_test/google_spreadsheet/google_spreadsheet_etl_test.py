@@ -22,8 +22,6 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet, BaseCsvSheetConfig
 )
 
-# pylint: disable=unused-argument,too-many-arguments
-
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
     ['Michael', 'Bonbi', '7',
@@ -370,7 +368,7 @@ class TestTransformAndLoadData:
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
 
-    def test_should_try_extend_table_if_table_does_exist(
+    def test_should_try_extend_table_if_table_does_exist(  # pylint: disable=too-many-arguments
             self,
             mock_load_file_into_bq, mock_does_bigquery_table_exist,
             mock_process_record_list, mock_write_to_file,
