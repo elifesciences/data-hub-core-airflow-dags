@@ -36,19 +36,6 @@ class MultiSpreadsheetConfig:
         return MultiSpreadsheetConfig(multi_spreadsheet_config)
 
 
-def extend_spreadsheet_config_dict(
-        spreadsheet_config_dict,
-        gcp_project: str,
-        imported_timestamp_field_name: str,
-):
-    spreadsheet_config_dict["gcpProjectName"] = gcp_project
-    spreadsheet_config_dict[
-        "importedTimestampFieldName"
-    ] = imported_timestamp_field_name
-
-    return spreadsheet_config_dict
-
-
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
 class BaseCsvSheetConfig(BaseCsvConfig):
