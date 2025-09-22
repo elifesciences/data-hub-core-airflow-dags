@@ -29,6 +29,12 @@ from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 LOGGER = logging.getLogger(__name__)
 
 
+class NamedLiterals:
+    PROVENANCE_FIELD_NAME = "provenance"
+    PROVENANCE_SHEET_NAME = "sheet_name"
+    PROVENANCE_SPREADSHEET_ID = "spreadsheet_id"
+
+
 def update_metadata_with_provenance(
         record_metadata, csv_sheet_config: BaseCsvSheetConfig
 ):
@@ -226,9 +232,3 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
                 full_temp_file_location,
                 current_timestamp_as_str
             )
-
-
-class NamedLiterals:
-    PROVENANCE_FIELD_NAME = "provenance"
-    PROVENANCE_SHEET_NAME = "sheet_name"
-    PROVENANCE_SPREADSHEET_ID = "spreadsheet_id"
