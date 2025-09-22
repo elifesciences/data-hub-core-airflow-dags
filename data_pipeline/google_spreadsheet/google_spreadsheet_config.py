@@ -49,34 +49,6 @@ def extend_spreadsheet_config_dict(
     return spreadsheet_config_dict
 
 
-class MultiCsvSheet:
-    def __init__(
-        self,
-        multi_sheet_config: GoogleSpreadsheetConfigDict,
-        deployment_env: str
-    ):
-        self.spreadsheet_id = multi_sheet_config["spreadsheetId"]
-        self.import_timestamp_field_name = multi_sheet_config["importedTimestampFieldName"]
-        self.gcp_project = multi_sheet_config["gcpProjectName"]
-        self.sheets_config = {
-            sheet["sheetName"]: BaseCsvSheetConfig(
-                sheet,
-                self.spreadsheet_id,
-                self.gcp_project,
-                self.import_timestamp_field_name,
-                deployment_env,
-            )
-            for sheet in multi_sheet_config["sheets"]
-        }
-
-    @staticmethod
-    def from_dict(
-        multi_sheet_config: GoogleSpreadsheetConfigDict,
-        deployment_env: str
-    ) -> "MultiCsvSheet":
-        return MultiCsvSheet(multi_sheet_config, deployment_env)
-
-
 # pylint: disable=too-many-instance-attributes,too-many-arguments,
 # pylint: disable=simplifiable-if-expression
 class BaseCsvSheetConfig(BaseCsvConfig):
@@ -103,3 +75,31 @@ class BaseCsvSheetConfig(BaseCsvConfig):
 
         self.sheet_name = csv_sheet_config["sheetName"]
         self.sheet_range = csv_sheet_config.get("sheetRange", '')
+
+
+class MultiCsvSheet:
+    def __init__(
+        self,
+        multi_sheet_config: GoogleSpreadsheetConfigDict,
+        deployment_env: str
+    ):
+        self.spreadsheet_id = multi_sheet_config["spreadsheetId"]
+        self.import_timestamp_field_name = multi_sheet_config["importedTimestampFieldName"]
+        self.gcp_project = multi_sheet_config["gcpProjectName"]
+        self.sheets_config = {
+            sheet["sheetName"]: BaseCsvSheetConfig(
+                sheet,
+                self.spreadsheet_id,
+                self.gcp_project,
+                self.import_timestamp_field_name,
+                deployment_env,
+            )
+            for sheet in multi_sheet_config["sheets"]
+        }
+
+    @staticmethod
+    def from_dict(
+        multi_sheet_config: GoogleSpreadsheetConfigDict,
+        deployment_env: str
+    ) -> "MultiCsvSheet":
+        return MultiCsvSheet(multi_sheet_config, deployment_env)
