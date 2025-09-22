@@ -22,8 +22,6 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheet, BaseCsvSheetConfig
 )
 
-# pylint: disable=unused-argument,too-many-arguments
-
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
     ['Michael', 'Bonbi', '7',
@@ -37,85 +35,72 @@ TEST_DOWNLOADED_SHEET = [
 
 @pytest.fixture(name="mock_get_table_schema_field_names")
 def _get_table_schema_field_names():
-    with patch.object(google_spreadsheet_etl,
-                      "get_table_schema_field_names") as mock:
+    with patch.object(google_spreadsheet_etl, "get_table_schema_field_names") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_current_timestamp_as_string")
 def _current_timestamp_as_string():
-    with patch.object(google_spreadsheet_etl,
-                      "get_current_timestamp_as_string") as mock:
+    with patch.object(google_spreadsheet_etl, "get_current_timestamp_as_string") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_path")
 def _path():
-    with patch.object(google_spreadsheet_etl,
-                      "Path") as mock:
+    with patch.object(google_spreadsheet_etl, "Path") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_process_record")
 def _process_record():
-    with patch.object(google_spreadsheet_etl,
-                      "process_record") as mock:
+    with patch.object(google_spreadsheet_etl, "process_record") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_process_record_list", autouse=True)
 def _process_record_list():
-    with patch.object(google_spreadsheet_etl,
-                      "process_record_list") as mock:
+    with patch.object(google_spreadsheet_etl, "process_record_list") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_process_csv_sheet", autouse=True)
 def _process_csv_sheet():
-    with patch.object(google_spreadsheet_etl,
-                      "process_csv_sheet") as mock:
+    with patch.object(google_spreadsheet_etl, "process_csv_sheet") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_get_standardized_csv_header", autouse=True)
 def _get_standardized_csv_header():
-    with patch.object(google_spreadsheet_etl,
-                      "get_standardized_csv_header") as mock:
+    with patch.object(google_spreadsheet_etl, "get_standardized_csv_header") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_load_file_into_bq", autouse=True)
 def _load_file_into_bq():
-    with patch.object(google_spreadsheet_etl,
-                      "load_file_into_bq") as mock:
+    with patch.object(google_spreadsheet_etl, "load_file_into_bq") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_does_bigquery_table_exist", autouse=True)
 def _does_bigquery_table_exist():
-    with patch.object(google_spreadsheet_etl,
-                      "does_bigquery_table_exist") as mock:
+    with patch.object(google_spreadsheet_etl, "does_bigquery_table_exist") as mock:
         yield mock
 
 
 @pytest.fixture(name="mock_write_to_file", autouse=True)
 def _write_to_file():
-    with patch.object(google_spreadsheet_etl,
-                      "write_jsonl_to_file") as mock:
+    with patch.object(google_spreadsheet_etl, "write_jsonl_to_file") as mock:
         yield mock
 
 
-@pytest.fixture(name="mock_download_google_spreadsheet_single_sheet",
-                autouse=True)
+@pytest.fixture(name="mock_download_google_spreadsheet_single_sheet", autouse=True)
 def _download_google_spreadsheet_single_sheet():
-    with patch.object(google_spreadsheet_etl,
-                      "download_google_spreadsheet_single_sheet") as mock:
+    with patch.object(google_spreadsheet_etl, "download_google_spreadsheet_single_sheet") as mock:
         mock.return_value = TEST_DOWNLOADED_SHEET
         yield mock
 
 
-@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist",
-                autouse=True)
+@pytest.fixture(name="mock_extend_nested_table_schema_if_new_fields_exist", autouse=True)
 def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
             google_spreadsheet_etl,
@@ -239,7 +224,7 @@ class TestRecordMetadata:
         assert expected_record_metadata == returned_metadata
 
     def test_should_contain_static_values_in_metadata_and_values_in_csv_data(
-            self
+        self
     ):
         sheet_metadata = {
             "inSheetRecordMetadata":
@@ -304,9 +289,9 @@ class TestCsvHeader:
         assert standardized_header_result == expected_result
 
     def test_should_extract_from_line_specified_in_config(
-            self,
-            mock_does_bigquery_table_exist,
-            mock_get_standardized_csv_header
+        self,
+        mock_does_bigquery_table_exist,
+        mock_get_standardized_csv_header
     ):
         record_import_timestamp_as_string = ""
         full_temp_file_location = ""
@@ -353,9 +338,11 @@ class TestTransformAndLoadData:
         )
 
     def test_should_transform_write_and_load_to_bq(
-            self,
-            mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_process_record_list, mock_write_to_file,
+        self,
+        mock_load_file_into_bq,
+        mock_does_bigquery_table_exist,
+        mock_process_record_list,
+        mock_write_to_file,
     ):
         record_import_timestamp_as_string = ""
         full_temp_file_location = ""
@@ -370,11 +357,13 @@ class TestTransformAndLoadData:
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
 
-    def test_should_try_extend_table_if_table_does_exist(
-            self,
-            mock_load_file_into_bq, mock_does_bigquery_table_exist,
-            mock_process_record_list, mock_write_to_file,
-            mock_extend_nested_table_schema_if_new_fields_exist
+    def test_should_try_extend_table_if_table_does_exist(  # pylint: disable=too-many-arguments
+        self,
+        mock_load_file_into_bq,
+        mock_does_bigquery_table_exist,
+        mock_process_record_list,
+        mock_write_to_file,
+        mock_extend_nested_table_schema_if_new_fields_exist
     ):
         record_import_timestamp_as_string = ""
         full_temp_file_location = ""
@@ -430,7 +419,8 @@ class TestProcessData:
     )
 
     def test_should_call_process_record_function_n_times(
-            self, mock_process_record
+        self,
+        mock_process_record
     ):
         records_to_process = [["record_1"], ["record_2"]]
         records_length = len(records_to_process)
@@ -446,7 +436,8 @@ class TestProcessData:
         assert mock_process_record.call_count == records_length
 
     def test_should_call_process_csv_sheet_function_n_times(
-            self, mock_process_csv_sheet
+        self,
+        mock_process_csv_sheet
     ):
         multi_csv_config = MultiCsvSheet.from_dict(
             TestProcessData.multi_csv_config_dict,
@@ -459,10 +450,10 @@ class TestProcessData:
         assert mock_process_csv_sheet.call_count == spreadsheets_count
 
     def test_should_be_called_with_identical_timestamp(
-            self,
-            mock_process_csv_sheet,
-            mock_current_timestamp_as_string,
-            mock_path
+        self,
+        mock_process_csv_sheet,
+        mock_current_timestamp_as_string,
+        mock_path
     ):
         current_timestamp_as_string = "2010-11-11T 10:10:10Z"
         mock_current_timestamp_as_string.return_value = (
@@ -493,7 +484,7 @@ class TestProcessData:
 
 class TestRecord:
     def test_should_generated_json_from_record_extend_with_record_metadata(
-            self
+        self
     ):
         record = ["record_val_1", "record_val_2",
                   "record_val_3", "record_val_4"]
