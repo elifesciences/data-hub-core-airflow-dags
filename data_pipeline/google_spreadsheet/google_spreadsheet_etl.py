@@ -29,20 +29,6 @@ from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 LOGGER = logging.getLogger(__name__)
 
 
-def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
-    current_timestamp_as_str = get_current_timestamp_as_string()
-    for csv_sheet_config in spreadsheet_config.sheets_config.values():
-        with TemporaryDirectory() as tmp_dir:
-            full_temp_file_location = str(
-                Path(tmp_dir, "downloaded_jsonl_data")
-            )
-            process_csv_sheet(
-                csv_sheet_config,
-                full_temp_file_location,
-                current_timestamp_as_str
-            )
-
-
 def get_sheet_range_from_config(
         csv_sheet_config: BaseCsvSheetConfig
 ):
@@ -69,6 +55,20 @@ def process_csv_sheet(
         record_import_timestamp_as_string=record_import_timestamp_as_string,
         full_temp_file_location=temp_file,
     )
+
+
+def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
+    current_timestamp_as_str = get_current_timestamp_as_string()
+    for csv_sheet_config in spreadsheet_config.sheets_config.values():
+        with TemporaryDirectory() as tmp_dir:
+            full_temp_file_location = str(
+                Path(tmp_dir, "downloaded_jsonl_data")
+            )
+            process_csv_sheet(
+                csv_sheet_config,
+                full_temp_file_location,
+                current_timestamp_as_str
+            )
 
 
 def update_metadata_with_provenance(
