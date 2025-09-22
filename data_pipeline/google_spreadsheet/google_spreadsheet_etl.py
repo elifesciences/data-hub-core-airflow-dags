@@ -15,6 +15,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
     download_google_spreadsheet_single_sheet,
+    get_spreadsheet_modified_timestamp,
 )
 
 from data_pipeline.utils.csv.metadata_schema import (
@@ -210,9 +211,19 @@ def process_csv_sheet(
     temp_file: str,
     timestamp_as_string: str
 ):
+    spreadsheet_id = csv_sheet_config.spreadsheet_id
+    spreadsheet_modified_timestamp = get_spreadsheet_modified_timestamp(
+        spreadsheet_id
+    )
+    LOGGER.info(
+        'Spreadsheet ID: %r, modified time: %r',
+        spreadsheet_id,
+        spreadsheet_modified_timestamp
+    )
     sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
-        csv_sheet_config.spreadsheet_id, sheet_with_range
+        spreadsheet_id,
+        sheet_with_range
     )
     record_import_timestamp_as_string = timestamp_as_string
     transform_load_data(
