@@ -51,7 +51,7 @@ def _process_record():
         yield mock
 
 
-@pytest.fixture(name='mock_process_record_list', autouse=True)
+@pytest.fixture(name='process_record_list_mock', autouse=True)
 def _process_record_list():
     with patch.object(google_spreadsheet_etl, 'process_record_list') as mock:
         yield mock
@@ -335,7 +335,7 @@ class TestTransformAndLoadData:
         self,
         mock_load_file_into_bq,
         mock_does_bigquery_table_exist,
-        mock_process_record_list,
+        process_record_list_mock,
         mock_write_to_file,
     ):
         record_import_timestamp_as_string = ''
@@ -347,7 +347,7 @@ class TestTransformAndLoadData:
             full_temp_file_location
         )
         mock_does_bigquery_table_exist.assert_called()
-        mock_process_record_list.assert_called()
+        process_record_list_mock.assert_called()
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
 
@@ -355,7 +355,7 @@ class TestTransformAndLoadData:
         self,
         mock_load_file_into_bq,
         mock_does_bigquery_table_exist,
-        mock_process_record_list,
+        process_record_list_mock,
         mock_write_to_file,
         mock_extend_nested_table_schema_if_new_fields_exist
     ):
@@ -373,7 +373,7 @@ class TestTransformAndLoadData:
             mock_extend_nested_table_schema_if_new_fields_exist.
             assert_called()
         )
-        mock_process_record_list.assert_called()
+        process_record_list_mock.assert_called()
         mock_write_to_file.assert_called()
         mock_load_file_into_bq.assert_called()
 
