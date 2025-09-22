@@ -8,8 +8,8 @@ from data_pipeline.utils.data_store.google_service_client import (
 
 
 LOGGER = logging.getLogger(__name__)
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SHEET_DATA_KEY = "values"
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SHEET_DATA_KEY = 'values'
 
 
 def download_google_spreadsheet_single_sheet(
@@ -21,11 +21,11 @@ def download_google_spreadsheet_single_sheet(
     )
 
     service = discovery.build(
-        "sheets", "v4", credentials=credentials, cache=MemoryCache()
+        'sheets', 'v4', credentials=credentials, cache=MemoryCache()
     )
 
     LOGGER.info(
-        "Downloading spreadsheet id: %s, range: %s",
+        'Downloading spreadsheet id: %s, range: %s',
         spreadsheet_id, sheet_range
     )
     try:
@@ -38,5 +38,5 @@ def download_google_spreadsheet_single_sheet(
         sheets_data = response.get(SHEET_DATA_KEY)
         return sheets_data
     except HttpError as err:
-        LOGGER.error("Spreadsheet not downloaded: %s", err.content)
+        LOGGER.error('Spreadsheet not downloaded: %s', err.content)
         raise
