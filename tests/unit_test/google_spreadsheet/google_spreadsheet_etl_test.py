@@ -57,7 +57,7 @@ def _process_record_list():
         yield mock
 
 
-@pytest.fixture(name='mock_process_csv_sheet', autouse=True)
+@pytest.fixture(name='process_csv_sheet_mock', autouse=True)
 def _process_csv_sheet():
     with patch.object(google_spreadsheet_etl, 'process_csv_sheet') as mock:
         yield mock
@@ -431,7 +431,7 @@ class TestProcessData:
 
     def test_should_call_process_csv_sheet_function_n_times(
         self,
-        mock_process_csv_sheet
+        process_csv_sheet_mock
     ):
         multi_csv_config = MultiCsvSheet.from_dict(
             TestProcessData.multi_csv_config_dict,
@@ -441,11 +441,11 @@ class TestProcessData:
             multi_csv_config.sheets_config.values()
         )
         etl_google_spreadsheet(multi_csv_config)
-        assert mock_process_csv_sheet.call_count == spreadsheets_count
+        assert process_csv_sheet_mock.call_count == spreadsheets_count
 
     def test_should_be_called_with_identical_timestamp(
         self,
-        mock_process_csv_sheet,
+        process_csv_sheet_mock,
         current_timestamp_as_string_mock,
         path_class_mock
     ):
@@ -469,7 +469,7 @@ class TestProcessData:
             expected_calls.append(process_call)
 
         etl_google_spreadsheet(multi_csv_config)
-        mock_process_csv_sheet.assert_has_calls(
+        process_csv_sheet_mock.assert_has_calls(
             expected_calls
         )
 
