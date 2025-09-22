@@ -36,10 +36,8 @@ class MultiSpreadsheetConfig:
         return MultiSpreadsheetConfig(multi_spreadsheet_config)
 
 
-# pylint: disable=too-many-instance-attributes,too-many-arguments,
-# pylint: disable=simplifiable-if-expression
 class BaseCsvSheetConfig(BaseCsvConfig):
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         csv_sheet_config: GoogleSpreadsheetSheetConfigDict,
         spreadsheet_id: str,
