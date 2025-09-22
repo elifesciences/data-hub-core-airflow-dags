@@ -84,6 +84,30 @@ def get_write_disposition(csv_sheet_config):
     return write_disposition
 
 
+def process_record(record: list,
+                   record_metadata: dict,
+                   standardized_csv_header: list
+                   ):
+    return {
+        **record_metadata,
+        **dict(zip(standardized_csv_header, record))
+    }
+
+
+def process_record_list(
+        record_list: list,
+        record_metadata: dict,
+        standardized_csv_header: list
+):
+    for record in record_list:
+        n_record = process_record(
+            record=record,
+            record_metadata=record_metadata,
+            standardized_csv_header=standardized_csv_header,
+        )
+        yield n_record
+
+
 def transform_load_data(
         record_list,
         csv_sheet_config: BaseCsvSheetConfig,
@@ -181,30 +205,6 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
                 full_temp_file_location,
                 current_timestamp_as_str
             )
-
-
-def process_record(record: list,
-                   record_metadata: dict,
-                   standardized_csv_header: list
-                   ):
-    return {
-        **record_metadata,
-        **dict(zip(standardized_csv_header, record))
-    }
-
-
-def process_record_list(
-        record_list: list,
-        record_metadata: dict,
-        standardized_csv_header: list
-):
-    for record in record_list:
-        n_record = process_record(
-            record=record,
-            record_metadata=record_metadata,
-            standardized_csv_header=standardized_csv_header,
-        )
-        yield n_record
 
 
 def google_spreadsheet_csv_provenance_schema():
