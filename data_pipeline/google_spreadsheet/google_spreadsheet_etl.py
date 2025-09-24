@@ -6,7 +6,7 @@ from pathlib import Path
 from google.cloud.bigquery import WriteDisposition
 
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
-    MultiCsvSheet,
+    MultiCsvSheetConfig,
     BaseCsvSheetConfig,
 )
 from data_pipeline.utils.data_store.bq_data_service import (
@@ -234,7 +234,7 @@ def process_csv_sheet(
     )
 
 
-def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheet):
+def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:

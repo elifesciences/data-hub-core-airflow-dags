@@ -1,6 +1,8 @@
 from typing import Sequence
 from typing_extensions import NotRequired, TypedDict
 
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
+
 
 class GoogleSpreadsheetSheetConfigDict(TypedDict):
     sheetName: str
@@ -15,6 +17,7 @@ class BaseGoogleSpreadsheetConfigDict(TypedDict):
     spreadsheetId: str
     sheets: Sequence[GoogleSpreadsheetSheetConfigDict]
     dataPipelineId: str
+    stateFile: NotRequired[StateFileConfigDict]
 
 
 class InheritedGoogleSpreadsheetConfigDict(TypedDict):

@@ -62,7 +62,7 @@ class BaseCsvSheetConfig(BaseCsvConfig):
         self.sheet_range = csv_sheet_config.get('sheetRange', '')
 
 
-class MultiCsvSheet:
+class MultiCsvSheetConfig:
     def __init__(
         self,
         multi_sheet_config: GoogleSpreadsheetConfigDict,
@@ -86,5 +86,5 @@ class MultiCsvSheet:
     def from_dict(
         multi_sheet_config: GoogleSpreadsheetConfigDict,
         deployment_env: str
-    ) -> 'MultiCsvSheet':
-        return MultiCsvSheet(multi_sheet_config, deployment_env)
+    ) -> 'MultiCsvSheetConfig':
+        return MultiCsvSheetConfig(multi_sheet_config, deployment_env)

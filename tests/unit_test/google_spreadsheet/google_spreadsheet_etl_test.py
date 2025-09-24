@@ -19,7 +19,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     get_sheet_range_from_config
 )
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
-    MultiCsvSheet, BaseCsvSheetConfig
+    MultiCsvSheetConfig, BaseCsvSheetConfig
 )
 
 TEST_DOWNLOADED_SHEET = [
@@ -426,7 +426,7 @@ class TestProcessData:
         self,
         process_csv_sheet_mock
     ):
-        multi_csv_config = MultiCsvSheet.from_dict(
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
             TestProcessData.multi_csv_config_dict,
             'dep_env'
         )
@@ -446,7 +446,7 @@ class TestProcessData:
         current_timestamp_as_string_mock.return_value = (
             current_timestamp_as_string
         )
-        multi_csv_config = MultiCsvSheet.from_dict(
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
             TestProcessData.multi_csv_config_dict,
             'dep_env'
         )
