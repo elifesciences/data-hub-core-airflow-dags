@@ -1,5 +1,5 @@
 numpy>=1.22.0,<3.0.0
-pandas==2.3.2
+pandas==2.3.3
 pandas-gbq==0.29.2
 pyarrow>=6.0.1, <22.0.0
 tqdm==4.67.1
