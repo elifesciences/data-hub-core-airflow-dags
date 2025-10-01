@@ -36,7 +36,7 @@ def google_spreadsheet_etl(data_pipeline_id: str):
     multi_google_spreadsheet_config = get_multi_google_spreadsheet_config()
     data_config_dict = multi_google_spreadsheet_config.spreadsheets_config[data_pipeline_id]
     deployment_env = get_deployment_env()
-    data_config = MultiCsvSheetConfig(
+    data_config = MultiCsvSheetConfig.from_dict(
         cast(
             GoogleSpreadsheetConfigDict,
             data_config_dict
