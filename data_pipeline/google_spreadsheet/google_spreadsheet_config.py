@@ -7,6 +7,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
 )
 from data_pipeline.utils.csv.config import BaseCsvConfig
 from data_pipeline.utils.pipeline_config import (
+    StateFileConfig,
     update_deployment_env_placeholder
 )
 
@@ -81,6 +82,9 @@ class MultiCsvSheetConfig:
             )
             for sheet in multi_sheet_config['sheets']
         }
+        self.state_file = StateFileConfig.from_optional_dict(
+            multi_sheet_config.get('stateFile')
+        )
 
     @staticmethod
     def from_dict(
