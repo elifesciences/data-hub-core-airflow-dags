@@ -235,6 +235,7 @@ def process_csv_sheet(
 
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
+    LOGGER.info('spreadsheet_config: %r', spreadsheet_config)
     current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:
