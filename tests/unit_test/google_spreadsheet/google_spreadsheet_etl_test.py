@@ -419,17 +419,6 @@ class TestEtlGoogleSpreadsheet:
         ]
     }
 
-    sheet_config = BaseCsvSheetConfig(
-        {
-            'sheetName': 'sheet name-0',
-            'headerLineIndex': 0,
-            'tableName': 'table_name_1',
-            'datasetName': '{ENV}-dataset',
-            'tableWriteAppend': True,
-        }, 'spreadsheet_id', '',
-        'imported_timestamp_field_name', ''
-    )
-
     def test_should_call_process_csv_sheet_function_n_times(
         self,
         process_csv_sheet_mock
