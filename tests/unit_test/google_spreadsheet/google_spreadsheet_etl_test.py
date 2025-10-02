@@ -24,7 +24,8 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 )
 from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
-MULTI_CSV_CONFIG_DICT_1 = {
+MULTI_CSV_CONFIG_DICT_1: GoogleSpreadsheetConfigDict = {
+    'dataPipelineId': 'data_pipeline_1',
     'gcpProjectName': 'gcpProjectName_1',
     'importedTimestampFieldName': 'imported_timestamp_1',
     'spreadsheetId': 'spreadsheet_id',
@@ -33,15 +34,14 @@ MULTI_CSV_CONFIG_DICT_1 = {
             'sheetName': 'sheet name-0',
             'datasetName': '{ENV}-dataset',
             'tableName': 'table_name_1',
-            'tableWriteAppend': 'true',
+            'tableWriteAppend': True
         },
         {
             'sheetName': 'sheet name-1',
             'datasetName': '{ENV}-dataset',
             'headerLineIndex': 0,
-            'dataValuesStartLineIndex': 2,
             'tableName': 'table_name_2',
-            'tableWriteAppend': 'false'
+            'tableWriteAppend': False
         }
     ]
 }
