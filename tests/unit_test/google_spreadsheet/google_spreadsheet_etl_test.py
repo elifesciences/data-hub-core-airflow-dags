@@ -482,13 +482,10 @@ class TestEtlGoogleSpreadsheet:
         get_spreadsheet_modified_timestamp_as_string_mock.return_value = modified_timestamp_str
 
         multi_csv_config = MultiCsvSheetConfig.from_dict(
-            cast(
-                GoogleSpreadsheetConfigDict,
-                {
-                    **MULTI_CSV_CONFIG_DICT_1,
-                    'stateFile': STATE_FILE_CONFIG_DICT_1
-                }
-            ),
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
             'dep_env'
         )
 
