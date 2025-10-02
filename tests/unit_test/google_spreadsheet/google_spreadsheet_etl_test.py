@@ -51,6 +51,12 @@ def _process_record():
         yield mock
 
 
+@pytest.fixture(name='get_spreadsheet_modified_timestamp_mock', autouse=True)
+def _get_spreadsheet_modified_timestamp_mock():
+    with patch.object(google_spreadsheet_etl, 'get_spreadsheet_modified_timestamp') as mock:
+        yield mock
+
+
 @pytest.fixture(name='process_record_list_mock', autouse=True)
 def _process_record_list():
     with patch.object(google_spreadsheet_etl, 'process_record_list') as mock:
@@ -371,7 +377,26 @@ class TestTransformAndLoadData:
         load_file_into_bq_mock.assert_called()
 
 
-class TestProcessData:
+class TestProcessRecordList:
+    def test_should_call_process_record_function_n_times(
+        self,
+        process_record_mock
+    ):
+        records_to_process = [['record_1'], ['record_2']]
+        records_length = len(records_to_process)
+        records_header = ['header']
+        record_metadata = {}
+        list(
+            process_record_list(
+                records_to_process,
+                record_metadata,
+                records_header
+            )
+        )
+        assert process_record_mock.call_count == records_length
+
+
+class TestEtlGoogleSpreadsheet:
     multi_csv_config_dict = {
         'gcpProjectName': 'gcpProjectName_1',
         'importedTimestampFieldName': 'imported_timestamp_1',
@@ -405,29 +430,12 @@ class TestProcessData:
         'imported_timestamp_field_name', ''
     )
 
-    def test_should_call_process_record_function_n_times(
-        self,
-        process_record_mock
-    ):
-        records_to_process = [['record_1'], ['record_2']]
-        records_length = len(records_to_process)
-        records_header = ['header']
-        record_metadata = {}
-        list(
-            process_record_list(
-                records_to_process,
-                record_metadata,
-                records_header
-            )
-        )
-        assert process_record_mock.call_count == records_length
-
     def test_should_call_process_csv_sheet_function_n_times(
         self,
         process_csv_sheet_mock
     ):
         multi_csv_config = MultiCsvSheetConfig.from_dict(
-            TestProcessData.multi_csv_config_dict,
+            TestEtlGoogleSpreadsheet.multi_csv_config_dict,
             'dep_env'
         )
         spreadsheets_count = len(
@@ -447,7 +455,7 @@ class TestProcessData:
             current_timestamp_as_string
         )
         multi_csv_config = MultiCsvSheetConfig.from_dict(
-            TestProcessData.multi_csv_config_dict,
+            TestEtlGoogleSpreadsheet.multi_csv_config_dict,
             'dep_env'
         )
         full_temp_file_location = 'file_path'
