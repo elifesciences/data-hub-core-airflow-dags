@@ -22,6 +22,29 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheetConfig, BaseCsvSheetConfig
 )
 
+MULTI_CSV_CONFIG_DICT_1 = {
+    'gcpProjectName': 'gcpProjectName_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
+    'spreadsheetId': 'spreadsheet_id',
+    'sheets': [
+        {
+            'sheetName': 'sheet name-0',
+            'datasetName': '{ENV}-dataset',
+            'tableName': 'table_name_1',
+            'tableWriteAppend': 'true',
+        },
+        {
+            'sheetName': 'sheet name-1',
+            'datasetName': '{ENV}-dataset',
+            'headerLineIndex': 0,
+            'dataValuesStartLineIndex': 2,
+            'tableName': 'table_name_2',
+            'tableWriteAppend': 'false'
+        }
+    ]
+}
+
+
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
     ['Michael', 'Bonbi', '7',
@@ -397,34 +420,12 @@ class TestProcessRecordList:
 
 
 class TestEtlGoogleSpreadsheet:
-    multi_csv_config_dict = {
-        'gcpProjectName': 'gcpProjectName_1',
-        'importedTimestampFieldName': 'imported_timestamp_1',
-        'spreadsheetId': 'spreadsheet_id',
-        'sheets': [
-            {
-                'sheetName': 'sheet name-0',
-                'datasetName': '{ENV}-dataset',
-                'tableName': 'table_name_1',
-                'tableWriteAppend': 'true',
-            },
-            {
-                'sheetName': 'sheet name-1',
-                'datasetName': '{ENV}-dataset',
-                'headerLineIndex': 0,
-                'dataValuesStartLineIndex': 2,
-                'tableName': 'table_name_2',
-                'tableWriteAppend': 'false'
-            }
-        ]
-    }
-
     def test_should_call_process_csv_sheet_function_n_times(
         self,
         process_csv_sheet_mock
     ):
         multi_csv_config = MultiCsvSheetConfig.from_dict(
-            TestEtlGoogleSpreadsheet.multi_csv_config_dict,
+            MULTI_CSV_CONFIG_DICT_1,
             'dep_env'
         )
         spreadsheets_count = len(
@@ -444,7 +445,7 @@ class TestEtlGoogleSpreadsheet:
             current_timestamp_as_string
         )
         multi_csv_config = MultiCsvSheetConfig.from_dict(
-            TestEtlGoogleSpreadsheet.multi_csv_config_dict,
+            MULTI_CSV_CONFIG_DICT_1,
             'dep_env'
         )
         full_temp_file_location = 'file_path'
