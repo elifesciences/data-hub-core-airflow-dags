@@ -47,9 +47,7 @@ MULTI_CSV_CONFIG_DICT_1 = {
 
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
-    ['Michael', 'Bonbi', '7',
-     'University of California', 'United States'
-     ],
+    ['Michael', 'Bonbi', '7', 'University of California', 'United States'],
     ['Robert', 'Alfonso', '', 'Univ of Cambridge', 'France'],
     ['Michael', 'Shayne', '', '', 'England'],
     ['Fred', 'Fredrick', '21', '', 'China']
@@ -193,10 +191,8 @@ class TestRecordMetadata:
         )
         expected_record_metadata = {
             'metadata_example_01': 'First Name,Last_Name,Age,Univ,Country',
-            'metadata_example_02':
-                'Michael,Bonbi,7,University of California,United States',
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
+            'metadata_example_02': 'Michael,Bonbi,7,University of California,United States',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
                 'sheet_name': 'sheet name-0'
@@ -223,10 +219,8 @@ class TestRecordMetadata:
             fixed_metadata
         )
         expected_record_metadata = {
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
-            'fixed_sheet_field_name':
-                'fixed_sheet_value',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
+            'fixed_sheet_field_name': 'fixed_sheet_value',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
                 'sheet_name': 'sheet name-0'
@@ -262,10 +256,8 @@ class TestRecordMetadata:
             sheet_metadata
         )
         expected_record_metadata = {
-            'metadata_example_1':
-                'Michael,Bonbi,7,University of California,United States',
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
+            'metadata_example_1': 'Michael,Bonbi,7,University of California,United States',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
             'fixed_sheet_field_name': 'fixed_sheet_value',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
@@ -337,9 +329,7 @@ class TestTransformAndLoadData:
             'tableWriteAppend': 'true',
         }
         if update_dict:
-            config_dict.update(
-                update_dict
-            )
+            config_dict.update(update_dict)
         gcp_project = ''
         deployment_env = ''
         return BaseCsvSheetConfig(
@@ -471,8 +461,7 @@ class TestRecord:
     def test_should_generated_json_from_record_extend_with_record_metadata(
         self
     ):
-        record = ['record_val_1', 'record_val_2',
-                  'record_val_3', 'record_val_4']
+        record = ['record_val_1', 'record_val_2', 'record_val_3', 'record_val_4']
         record_metadata = {
             'record_metadata_1': '_meta_1',
             'record_metadata_2': {}
@@ -503,8 +492,11 @@ class TestRecord:
                 'datasetName': '{ENV}-dataset',
                 'tableName': 'table_name_1',
                 'tableWriteAppend': 'true',
-            }, 'spreadsheet_id', '',
-            'imported_timestamp_field_name', ''
+            },
+            'spreadsheet_id',
+            '',
+            'imported_timestamp_field_name',
+            ''
         )
         expected_return = {
             'import_timestamp': '2019-01-01',
@@ -531,8 +523,10 @@ class TestSpreadSheetSheetWithRange:
                 'datasetName': '{ENV}-dataset',
                 'tableWriteAppend': 'true',
             },
-            'spreadsheet_id', 's_id',
-            'imported_timestamp_field_name', ''
+            'spreadsheet_id',
+            's_id',
+            'imported_timestamp_field_name',
+            ''
         )
 
         sheet_with_range = get_sheet_range_from_config(
@@ -552,8 +546,10 @@ class TestSpreadSheetSheetWithRange:
                 'datasetName': '{ENV}-dataset',
                 'tableWriteAppend': 'true',
             },
-            'spreadsheet_id', 's_id',
-            'imported_timestamp_field_name', ''
+            'spreadsheet_id',
+            's_id',
+            'imported_timestamp_field_name',
+            ''
         )
 
         sheet_with_range = get_sheet_range_from_config(
