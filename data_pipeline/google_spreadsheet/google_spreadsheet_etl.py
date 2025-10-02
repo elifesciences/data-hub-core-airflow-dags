@@ -15,7 +15,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
     download_google_spreadsheet_single_sheet,
-    get_spreadsheet_modified_timestamp,
+    get_spreadsheet_modified_timestamp_as_string,
 )
 
 from data_pipeline.utils.csv.metadata_schema import (
@@ -24,6 +24,7 @@ from data_pipeline.utils.csv.metadata_schema import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
+from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
@@ -229,13 +230,13 @@ def process_csv_sheet(
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     LOGGER.info('spreadsheet_config: %r', spreadsheet_config)
     spreadsheet_id = spreadsheet_config.spreadsheet_id
-    spreadsheet_modified_timestamp = get_spreadsheet_modified_timestamp(
+    spreadsheet_modified_timestamp_str = get_spreadsheet_modified_timestamp_as_string(
         spreadsheet_id
     )
     LOGGER.info(
         'Spreadsheet ID: %r, modified time: %r',
         spreadsheet_id,
-        spreadsheet_modified_timestamp
+        spreadsheet_modified_timestamp_str
     )
     current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
@@ -248,3 +249,8 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 full_temp_file_location,
                 current_timestamp_as_str
             )
+    upload_s3_object(
+        bucket=spreadsheet_config.state_file.bucket_name,
+        object_key=spreadsheet_config.state_file.object_name,
+        data_object=spreadsheet_modified_timestamp_str
+    )

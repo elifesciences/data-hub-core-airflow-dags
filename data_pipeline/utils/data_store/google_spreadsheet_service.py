@@ -17,7 +17,7 @@ READ_MODIFIED_TIME_SCOPES = [
 ]
 
 
-def get_spreadsheet_modified_timestamp(
+def get_spreadsheet_modified_timestamp_as_string(
     spreadsheet_id: str
 ) -> str:
     credentials = get_credentials(READ_MODIFIED_TIME_SCOPES)

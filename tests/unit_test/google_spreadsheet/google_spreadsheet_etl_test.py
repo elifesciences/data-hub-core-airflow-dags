@@ -1,5 +1,5 @@
 from typing import Optional, cast
-from unittest.mock import patch, call
+from unittest.mock import MagicMock, patch, call
 
 import pytest
 
@@ -21,6 +21,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheetConfig, BaseCsvSheetConfig
 )
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
 MULTI_CSV_CONFIG_DICT_1 = {
     'gcpProjectName': 'gcpProjectName_1',
@@ -42,6 +43,12 @@ MULTI_CSV_CONFIG_DICT_1 = {
             'tableWriteAppend': 'false'
         }
     ]
+}
+
+
+STATE_FILE_CONFIG_DICT_1: StateFileConfigDict = {
+    'bucketName': 'bucket_name_1',
+    'objectName': 'object_name_1'
 }
 
 
@@ -72,9 +79,18 @@ def _process_record():
         yield mock
 
 
-@pytest.fixture(name='get_spreadsheet_modified_timestamp_mock', autouse=True)
-def _get_spreadsheet_modified_timestamp_mock():
-    with patch.object(google_spreadsheet_etl, 'get_spreadsheet_modified_timestamp') as mock:
+@pytest.fixture(name='get_spreadsheet_modified_timestamp_as_string_mock', autouse=True)
+def _get_spreadsheet_modified_timestamp_as_string_mock():
+    with patch.object(
+        google_spreadsheet_etl,
+        'get_spreadsheet_modified_timestamp_as_string'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='upload_s3_object_mock', autouse=True)
+def _upload_s3_object_mock():
+    with patch.object(google_spreadsheet_etl, 'upload_s3_object') as mock:
         yield mock
 
 
@@ -455,6 +471,30 @@ class TestEtlGoogleSpreadsheet:
         )
 
         assert True
+
+    def test_should_save_the_last_modified_timestamp_as_state(
+        self,
+        get_spreadsheet_modified_timestamp_as_string_mock: MagicMock,
+        upload_s3_object_mock: MagicMock
+    ):
+        modified_timestamp_str = '2025-10-02T12:00:00Z'
+        get_spreadsheet_modified_timestamp_as_string_mock.return_value = modified_timestamp_str
+
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
+            'dep_env'
+        )
+
+        etl_google_spreadsheet(multi_csv_config)
+
+        upload_s3_object_mock.assert_called_with(
+            bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
+            object_key=STATE_FILE_CONFIG_DICT_1['objectName'],
+            data_object=modified_timestamp_str
+        )
 
 
 class TestRecord:

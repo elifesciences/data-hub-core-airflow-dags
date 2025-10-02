@@ -7,7 +7,7 @@ from data_pipeline.utils.data_store import (
     google_spreadsheet_service as google_spreadsheet_service_module
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
-    get_spreadsheet_modified_timestamp
+    get_spreadsheet_modified_timestamp_as_string
 )
 
 
@@ -30,7 +30,7 @@ class TestGetSpreadsheetModifiedTimestamp:
         self,
         get_credentials_mock: MagicMock
     ):
-        get_spreadsheet_modified_timestamp(SPREADSHEET_ID)
+        get_spreadsheet_modified_timestamp_as_string(SPREADSHEET_ID)
         get_credentials_mock.assert_called_once_with(
             google_spreadsheet_service_module.READ_MODIFIED_TIME_SCOPES
         )
@@ -40,7 +40,7 @@ class TestGetSpreadsheetModifiedTimestamp:
         discovery_build_mock: MagicMock,
         credentials_mock: MagicMock
     ):
-        get_spreadsheet_modified_timestamp(SPREADSHEET_ID)
+        get_spreadsheet_modified_timestamp_as_string(SPREADSHEET_ID)
         discovery_build_mock.assert_called_once_with(
             'drive',
             'v3',
@@ -51,7 +51,7 @@ class TestGetSpreadsheetModifiedTimestamp:
         self,
         discovery_build_mock: MagicMock
     ):
-        get_spreadsheet_modified_timestamp(SPREADSHEET_ID)
+        get_spreadsheet_modified_timestamp_as_string(SPREADSHEET_ID)
         discovery_build_mock.return_value.files().get.assert_called_once_with(
             fileId=SPREADSHEET_ID,
             fields='modifiedTime'
@@ -64,4 +64,6 @@ class TestGetSpreadsheetModifiedTimestamp:
         discovery_build_mock.return_value.files().get.return_value.execute.return_value = {
             'modifiedTime': '2001-02-03T04:05:06.123Z'
         }
-        assert get_spreadsheet_modified_timestamp(SPREADSHEET_ID) == '2001-02-03T04:05:06.123Z'
+        assert get_spreadsheet_modified_timestamp_as_string(SPREADSHEET_ID) == (
+            '2001-02-03T04:05:06.123Z'
+        )
