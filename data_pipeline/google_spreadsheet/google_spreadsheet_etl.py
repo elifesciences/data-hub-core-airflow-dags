@@ -250,6 +250,12 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 current_timestamp_as_str
             )
     if spreadsheet_config.state_file:
+        LOGGER.info(
+            'Updating state file s3://%s/%s with timestamp: %s',
+            spreadsheet_config.state_file.bucket_name,
+            spreadsheet_config.state_file.object_name,
+            spreadsheet_modified_timestamp_str
+        )
         upload_s3_object(
             bucket=spreadsheet_config.state_file.bucket_name,
             object_key=spreadsheet_config.state_file.object_name,
