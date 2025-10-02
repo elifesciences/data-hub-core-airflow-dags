@@ -212,14 +212,6 @@ def process_csv_sheet(
     timestamp_as_string: str
 ):
     spreadsheet_id = csv_sheet_config.spreadsheet_id
-    spreadsheet_modified_timestamp = get_spreadsheet_modified_timestamp(
-        spreadsheet_id
-    )
-    LOGGER.info(
-        'Spreadsheet ID: %r, modified time: %r',
-        spreadsheet_id,
-        spreadsheet_modified_timestamp
-    )
     sheet_with_range = get_sheet_range_from_config(csv_sheet_config)
     downloaded_data = download_google_spreadsheet_single_sheet(
         spreadsheet_id,
@@ -236,6 +228,15 @@ def process_csv_sheet(
 
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     LOGGER.info('spreadsheet_config: %r', spreadsheet_config)
+    spreadsheet_id = spreadsheet_config.spreadsheet_id
+    spreadsheet_modified_timestamp = get_spreadsheet_modified_timestamp(
+        spreadsheet_id
+    )
+    LOGGER.info(
+        'Spreadsheet ID: %r, modified time: %r',
+        spreadsheet_id,
+        spreadsheet_modified_timestamp
+    )
     current_timestamp_as_str = get_current_timestamp_as_string()
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:
