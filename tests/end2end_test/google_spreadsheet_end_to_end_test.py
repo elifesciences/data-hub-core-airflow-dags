@@ -33,13 +33,14 @@ def get_data_pipeline_cloud_resource(
         deployment_env=get_deployment_env()
     )
     sheet_config = list(single_pipeline_config.sheets_config.values())[0]
-
+    state_file_config = single_pipeline_config.state_file
+    assert state_file_config is not None
     return DataPipelineCloudResource(
         project_name=single_pipeline_config.gcp_project,
         dataset_name=sheet_config.dataset_name,
         table_name=sheet_config.table_name,
-        state_file_bucket_name=single_pipeline_config.state_file.bucket_name,
-        state_file_object_name=single_pipeline_config.state_file.object_name
+        state_file_bucket_name=state_file_config.bucket_name,
+        state_file_object_name=state_file_config.object_name
     )
 
 
