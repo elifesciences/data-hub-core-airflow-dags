@@ -95,6 +95,15 @@ def _upload_s3_object_mock():
         yield mock
 
 
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock', autouse=True)
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        google_spreadsheet_etl,
+        'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
+        yield mock
+
+
 @pytest.fixture(name='process_record_list_mock', autouse=True)
 def _process_record_list():
     with patch.object(google_spreadsheet_etl, 'process_record_list') as mock:
@@ -495,6 +504,26 @@ class TestEtlGoogleSpreadsheet:
             bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
             object_key=STATE_FILE_CONFIG_DICT_1['objectName'],
             data_object=modified_timestamp_str
+        )
+
+    def test_should_read_state_file_but_not_fail_if_it_does_not_exist(
+        self,
+        process_csv_sheet_mock: MagicMock,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
+            'dep_env'
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError
+        etl_google_spreadsheet(multi_csv_config)
+        process_csv_sheet_mock.assert_called()
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
+            object_key=STATE_FILE_CONFIG_DICT_1['objectName']
         )
 
 

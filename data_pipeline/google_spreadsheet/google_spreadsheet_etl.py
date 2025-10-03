@@ -24,7 +24,10 @@ from data_pipeline.utils.csv.metadata_schema import (
 from data_pipeline.utils.data_pipeline_timestamp import (
     get_current_timestamp_as_string
 )
-from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string_or_file_not_found_error,
+    upload_s3_object
+)
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
@@ -239,6 +242,18 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
         spreadsheet_modified_timestamp_str
     )
     current_timestamp_as_str = get_current_timestamp_as_string()
+    if spreadsheet_config.state_file:
+        try:
+            download_s3_object_as_string_or_file_not_found_error(
+                bucket=spreadsheet_config.state_file.bucket_name,
+                object_key=spreadsheet_config.state_file.object_name
+            )
+        except FileNotFoundError:
+            LOGGER.warning(
+                'State file s3://%s/%s not found. Continuing without state.',
+                spreadsheet_config.state_file.bucket_name,
+                spreadsheet_config.state_file.object_name
+            )
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:
             full_temp_file_location = str(
