@@ -1,9 +1,10 @@
 from typing import Optional, cast
-from unittest.mock import patch, call
+from unittest.mock import MagicMock, patch, call
 
 import pytest
 
 from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
+    GoogleSpreadsheetConfigDict,
     GoogleSpreadsheetSheetConfigDict
 )
 
@@ -19,14 +20,42 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
     get_sheet_range_from_config
 )
 from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
-    MultiCsvSheet, BaseCsvSheetConfig
+    MultiCsvSheetConfig, BaseCsvSheetConfig
 )
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
+
+MULTI_CSV_CONFIG_DICT_1: GoogleSpreadsheetConfigDict = {
+    'dataPipelineId': 'data_pipeline_1',
+    'gcpProjectName': 'gcpProjectName_1',
+    'importedTimestampFieldName': 'imported_timestamp_1',
+    'spreadsheetId': 'spreadsheet_id',
+    'sheets': [
+        {
+            'sheetName': 'sheet name-0',
+            'datasetName': '{ENV}-dataset',
+            'tableName': 'table_name_1',
+            'tableWriteAppend': True
+        },
+        {
+            'sheetName': 'sheet name-1',
+            'datasetName': '{ENV}-dataset',
+            'headerLineIndex': 0,
+            'tableName': 'table_name_2',
+            'tableWriteAppend': False
+        }
+    ]
+}
+
+
+STATE_FILE_CONFIG_DICT_1: StateFileConfigDict = {
+    'bucketName': 'bucket_name_1',
+    'objectName': 'object_name_1'
+}
+
 
 TEST_DOWNLOADED_SHEET = [
     ['First Name', 'Last_Name', 'Age', 'Univ', 'Country'],
-    ['Michael', 'Bonbi', '7',
-     'University of California', 'United States'
-     ],
+    ['Michael', 'Bonbi', '7', 'University of California', 'United States'],
     ['Robert', 'Alfonso', '', 'Univ of Cambridge', 'France'],
     ['Michael', 'Shayne', '', '', 'England'],
     ['Fred', 'Fredrick', '21', '', 'China']
@@ -48,6 +77,21 @@ def _path_class():
 @pytest.fixture(name='process_record_mock')
 def _process_record():
     with patch.object(google_spreadsheet_etl, 'process_record') as mock:
+        yield mock
+
+
+@pytest.fixture(name='get_spreadsheet_modified_timestamp_as_string_mock', autouse=True)
+def _get_spreadsheet_modified_timestamp_as_string_mock():
+    with patch.object(
+        google_spreadsheet_etl,
+        'get_spreadsheet_modified_timestamp_as_string'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='upload_s3_object_mock', autouse=True)
+def _upload_s3_object_mock():
+    with patch.object(google_spreadsheet_etl, 'upload_s3_object') as mock:
         yield mock
 
 
@@ -164,10 +208,8 @@ class TestRecordMetadata:
         )
         expected_record_metadata = {
             'metadata_example_01': 'First Name,Last_Name,Age,Univ,Country',
-            'metadata_example_02':
-                'Michael,Bonbi,7,University of California,United States',
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
+            'metadata_example_02': 'Michael,Bonbi,7,University of California,United States',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
                 'sheet_name': 'sheet name-0'
@@ -194,10 +236,8 @@ class TestRecordMetadata:
             fixed_metadata
         )
         expected_record_metadata = {
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
-            'fixed_sheet_field_name':
-                'fixed_sheet_value',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
+            'fixed_sheet_field_name': 'fixed_sheet_value',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
                 'sheet_name': 'sheet name-0'
@@ -233,10 +273,8 @@ class TestRecordMetadata:
             sheet_metadata
         )
         expected_record_metadata = {
-            'metadata_example_1':
-                'Michael,Bonbi,7,University of California,United States',
-            'imported_timestamp_field_name':
-                '2020-10-01T10:15:13Z',
+            'metadata_example_1': 'Michael,Bonbi,7,University of California,United States',
+            'imported_timestamp_field_name': '2020-10-01T10:15:13Z',
             'fixed_sheet_field_name': 'fixed_sheet_value',
             'provenance': {
                 'spreadsheet_id': 'spreadsheet_id',
@@ -308,9 +346,7 @@ class TestTransformAndLoadData:
             'tableWriteAppend': 'true',
         }
         if update_dict:
-            config_dict.update(
-                update_dict
-            )
+            config_dict.update(update_dict)
         gcp_project = ''
         deployment_env = ''
         return BaseCsvSheetConfig(
@@ -371,40 +407,7 @@ class TestTransformAndLoadData:
         load_file_into_bq_mock.assert_called()
 
 
-class TestProcessData:
-    multi_csv_config_dict = {
-        'gcpProjectName': 'gcpProjectName_1',
-        'importedTimestampFieldName': 'imported_timestamp_1',
-        'spreadsheetId': 'spreadsheet_id',
-        'sheets': [
-            {
-                'sheetName': 'sheet name-0',
-                'datasetName': '{ENV}-dataset',
-                'tableName': 'table_name_1',
-                'tableWriteAppend': 'true',
-            },
-            {
-                'sheetName': 'sheet name-1',
-                'datasetName': '{ENV}-dataset',
-                'headerLineIndex': 0,
-                'dataValuesStartLineIndex': 2,
-                'tableName': 'table_name_2',
-                'tableWriteAppend': 'false'
-            }
-        ]
-    }
-
-    sheet_config = BaseCsvSheetConfig(
-        {
-            'sheetName': 'sheet name-0',
-            'headerLineIndex': 0,
-            'tableName': 'table_name_1',
-            'datasetName': '{ENV}-dataset',
-            'tableWriteAppend': True,
-        }, 'spreadsheet_id', '',
-        'imported_timestamp_field_name', ''
-    )
-
+class TestProcessRecordList:
     def test_should_call_process_record_function_n_times(
         self,
         process_record_mock
@@ -422,12 +425,14 @@ class TestProcessData:
         )
         assert process_record_mock.call_count == records_length
 
+
+class TestEtlGoogleSpreadsheet:
     def test_should_call_process_csv_sheet_function_n_times(
         self,
         process_csv_sheet_mock
     ):
-        multi_csv_config = MultiCsvSheet.from_dict(
-            TestProcessData.multi_csv_config_dict,
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            MULTI_CSV_CONFIG_DICT_1,
             'dep_env'
         )
         spreadsheets_count = len(
@@ -446,8 +451,8 @@ class TestProcessData:
         current_timestamp_as_string_mock.return_value = (
             current_timestamp_as_string
         )
-        multi_csv_config = MultiCsvSheet.from_dict(
-            TestProcessData.multi_csv_config_dict,
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            MULTI_CSV_CONFIG_DICT_1,
             'dep_env'
         )
         full_temp_file_location = 'file_path'
@@ -468,13 +473,36 @@ class TestProcessData:
 
         assert True
 
+    def test_should_save_the_last_modified_timestamp_as_state(
+        self,
+        get_spreadsheet_modified_timestamp_as_string_mock: MagicMock,
+        upload_s3_object_mock: MagicMock
+    ):
+        modified_timestamp_str = '2025-10-02T12:00:00Z'
+        get_spreadsheet_modified_timestamp_as_string_mock.return_value = modified_timestamp_str
+
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
+            'dep_env'
+        )
+
+        etl_google_spreadsheet(multi_csv_config)
+
+        upload_s3_object_mock.assert_called_with(
+            bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
+            object_key=STATE_FILE_CONFIG_DICT_1['objectName'],
+            data_object=modified_timestamp_str
+        )
+
 
 class TestRecord:
     def test_should_generated_json_from_record_extend_with_record_metadata(
         self
     ):
-        record = ['record_val_1', 'record_val_2',
-                  'record_val_3', 'record_val_4']
+        record = ['record_val_1', 'record_val_2', 'record_val_3', 'record_val_4']
         record_metadata = {
             'record_metadata_1': '_meta_1',
             'record_metadata_2': {}
@@ -505,8 +533,11 @@ class TestRecord:
                 'datasetName': '{ENV}-dataset',
                 'tableName': 'table_name_1',
                 'tableWriteAppend': 'true',
-            }, 'spreadsheet_id', '',
-            'imported_timestamp_field_name', ''
+            },
+            'spreadsheet_id',
+            '',
+            'imported_timestamp_field_name',
+            ''
         )
         expected_return = {
             'import_timestamp': '2019-01-01',
@@ -533,8 +564,10 @@ class TestSpreadSheetSheetWithRange:
                 'datasetName': '{ENV}-dataset',
                 'tableWriteAppend': 'true',
             },
-            'spreadsheet_id', 's_id',
-            'imported_timestamp_field_name', ''
+            'spreadsheet_id',
+            's_id',
+            'imported_timestamp_field_name',
+            ''
         )
 
         sheet_with_range = get_sheet_range_from_config(
@@ -554,8 +587,10 @@ class TestSpreadSheetSheetWithRange:
                 'datasetName': '{ENV}-dataset',
                 'tableWriteAppend': 'true',
             },
-            'spreadsheet_id', 's_id',
-            'imported_timestamp_field_name', ''
+            'spreadsheet_id',
+            's_id',
+            'imported_timestamp_field_name',
+            ''
         )
 
         sheet_with_range = get_sheet_range_from_config(

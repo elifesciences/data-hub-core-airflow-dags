@@ -4,7 +4,7 @@ from data_pipeline.google_spreadsheet.cli import (
     get_multi_google_spreadsheet_config,
     main
 )
-from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheet
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheetConfig
 from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
     GoogleSpreadsheetConfigDict
 )
@@ -28,7 +28,7 @@ def get_test_pipeline_config_dict() -> GoogleSpreadsheetConfigDict:
 def get_data_pipeline_cloud_resource(
     single_pipeline_config_dict: GoogleSpreadsheetConfigDict
 ) -> DataPipelineCloudResource:
-    single_pipeline_config = MultiCsvSheet.from_dict(
+    single_pipeline_config = MultiCsvSheetConfig.from_dict(
         single_pipeline_config_dict,
         deployment_env=get_deployment_env()
     )

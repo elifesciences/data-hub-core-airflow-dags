@@ -11,7 +11,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
     MultiGoogleSpreadsheetConfigDict
 )
 
-from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheet
+from data_pipeline.google_spreadsheet.google_spreadsheet_config import MultiCsvSheetConfig
 from data_pipeline.utils.pipeline_config import get_deployment_env
 
 import data_pipeline.google_spreadsheet.cli as cli_module
@@ -73,7 +73,7 @@ class TestMain:
                 MULTI_PIPELINE_CONFIG_DICT_1['importedTimestampFieldName']
             )
         }
-        expected_config = MultiCsvSheet.from_dict(
+        expected_config = MultiCsvSheetConfig.from_dict(
             expected_config_dict,
             deployment_env=get_deployment_env()
         )
