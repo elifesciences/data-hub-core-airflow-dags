@@ -234,13 +234,15 @@ def process_csv_sheet(
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     LOGGER.info('spreadsheet_config: %r', spreadsheet_config)
     spreadsheet_id = spreadsheet_config.spreadsheet_id
-    spreadsheet_modified_timestamp_str = get_spreadsheet_modified_timestamp_as_string(
-        spreadsheet_id
+    spreadsheet_modified_timestamp = parse_timestamp(
+        get_spreadsheet_modified_timestamp_as_string(
+            spreadsheet_id
+        )
     )
     LOGGER.info(
         'Spreadsheet ID: %r, modified time: %r',
         spreadsheet_id,
-        spreadsheet_modified_timestamp_str
+        spreadsheet_modified_timestamp.isoformat()
     )
     current_timestamp_as_str = get_current_timestamp_as_string()
     if spreadsheet_config.state_file:
@@ -278,10 +280,10 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
             'Updating state file s3://%s/%s with timestamp: %s',
             spreadsheet_config.state_file.bucket_name,
             spreadsheet_config.state_file.object_name,
-            spreadsheet_modified_timestamp_str
+            spreadsheet_modified_timestamp
         )
         upload_s3_object(
             bucket=spreadsheet_config.state_file.bucket_name,
             object_key=spreadsheet_config.state_file.object_name,
-            data_object=spreadsheet_modified_timestamp_str
+            data_object=spreadsheet_modified_timestamp.isoformat()
         )

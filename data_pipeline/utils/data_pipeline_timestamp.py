@@ -14,6 +14,7 @@ def get_current_timestamp() -> datetime:
 
 
 def parse_timestamp(timestamp_as_str: str) -> datetime:
+    print('timestamp_as_str:', timestamp_as_str)
     if timestamp_as_str.endswith('Z'):
         timestamp_as_str = timestamp_as_str[:-1] + '+00:00'
     timestamp = datetime.fromisoformat(timestamp_as_str)
