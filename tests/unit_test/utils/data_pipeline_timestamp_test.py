@@ -9,3 +9,9 @@ class TestParseTimestamp:
         expected_datetime = datetime(2023, 10, 1, 12, 30, 45, tzinfo=timezone.utc)
         parsed_datetime = parse_timestamp(timestamp_str)
         assert parsed_datetime == expected_datetime
+
+    def test_should_parse_timestamp_with_z(self):
+        timestamp_str = '2023-10-01T12:30:45Z'
+        expected_datetime = datetime(2023, 10, 1, 12, 30, 45, tzinfo=timezone.utc)
+        parsed_datetime = parse_timestamp(timestamp_str)
+        assert parsed_datetime == expected_datetime
