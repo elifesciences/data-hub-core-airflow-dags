@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp
 
 
@@ -15,3 +17,8 @@ class TestParseTimestamp:
         expected_datetime = datetime(2023, 10, 1, 12, 30, 45, tzinfo=timezone.utc)
         parsed_datetime = parse_timestamp(timestamp_str)
         assert parsed_datetime == expected_datetime
+
+    def test_should_reject_timestamp_without_timezone(self):
+        timestamp_str = '2023-10-01T12:30:45'
+        with pytest.raises(ValueError):
+            parse_timestamp(timestamp_str)
