@@ -22,7 +22,8 @@ from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
-    get_current_timestamp_as_string
+    get_current_timestamp_as_string,
+    parse_timestamp
 )
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
@@ -244,15 +245,17 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     current_timestamp_as_str = get_current_timestamp_as_string()
     if spreadsheet_config.state_file:
         try:
-            state_timestamp_str = download_s3_object_as_string_or_file_not_found_error(
-                bucket=spreadsheet_config.state_file.bucket_name,
-                object_key=spreadsheet_config.state_file.object_name
+            state_timestamp = parse_timestamp(
+                download_s3_object_as_string_or_file_not_found_error(
+                    bucket=spreadsheet_config.state_file.bucket_name,
+                    object_key=spreadsheet_config.state_file.object_name
+                )
             )
             LOGGER.info(
                 'State file s3://%s/%s has timestamp: %s',
                 spreadsheet_config.state_file.bucket_name,
                 spreadsheet_config.state_file.object_name,
-                state_timestamp_str
+                state_timestamp.isoformat()
             )
         except FileNotFoundError:
             LOGGER.warning(
