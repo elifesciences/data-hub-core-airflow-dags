@@ -38,8 +38,8 @@ def get_data_pipeline_cloud_resource(
         project_name=single_pipeline_config.gcp_project,
         dataset_name=sheet_config.dataset_name,
         table_name=sheet_config.table_name,
-        state_file_bucket_name=None,
-        state_file_object_name=None
+        state_file_bucket_name=single_pipeline_config.state_file.bucket_name,
+        state_file_object_name=single_pipeline_config.state_file.object_name
     )
 
 
