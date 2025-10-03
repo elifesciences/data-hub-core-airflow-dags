@@ -259,6 +259,11 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 spreadsheet_config.state_file.object_name,
                 state_timestamp.isoformat()
             )
+            if spreadsheet_modified_timestamp <= state_timestamp:
+                LOGGER.info(
+                    'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
+                )
+                return
         except FileNotFoundError:
             LOGGER.warning(
                 'State file s3://%s/%s not found. Continuing without state.',
