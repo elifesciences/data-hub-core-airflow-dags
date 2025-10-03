@@ -151,7 +151,7 @@ dev-end-to-end-monitoring:
 dev-end-to-end-google-spreadsheet:
 	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
 		$(PYTHON) -m pytest -s \
-		tests/end2end_test/g_spreadsheet_end_to_end_test.py
+		tests/end2end_test/google_spreadsheet_end_to_end_test.py
 
 
 build:
