@@ -13,6 +13,10 @@ def get_current_timestamp() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def parse_timestamp(timestamp_as_str: str) -> datetime:
+    return datetime.fromisoformat(timestamp_as_str)
+
+
 def get_current_timestamp_as_string(
         time_format: str = "%Y-%m-%dT%H:%M:%SZ"
 ):
