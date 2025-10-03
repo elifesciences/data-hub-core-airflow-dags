@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch, call
 
 import pytest
 
+from data_pipeline.utils.data_pipeline_timestamp import parse_timestamp
+
 from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
     GoogleSpreadsheetConfigDict,
     GoogleSpreadsheetSheetConfigDict
@@ -23,6 +25,8 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
     MultiCsvSheetConfig, BaseCsvSheetConfig
 )
 from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
+
+TIMESTAMP_STR_1 = '2020-10-01T10:15:13Z'
 
 MULTI_CSV_CONFIG_DICT_1: GoogleSpreadsheetConfigDict = {
     'dataPipelineId': 'data_pipeline_1',
@@ -86,12 +90,22 @@ def _get_spreadsheet_modified_timestamp_as_string_mock():
         google_spreadsheet_etl,
         'get_spreadsheet_modified_timestamp_as_string'
     ) as mock:
+        mock.return_value = TIMESTAMP_STR_1
         yield mock
 
 
 @pytest.fixture(name='upload_s3_object_mock', autouse=True)
 def _upload_s3_object_mock():
     with patch.object(google_spreadsheet_etl, 'upload_s3_object') as mock:
+        yield mock
+
+
+@pytest.fixture(name='download_s3_object_as_string_or_file_not_found_error_mock', autouse=True)
+def _download_s3_object_as_string_or_file_not_found_error_mock():
+    with patch.object(
+        google_spreadsheet_etl,
+        'download_s3_object_as_string_or_file_not_found_error'
+    ) as mock:
         yield mock
 
 
@@ -476,6 +490,7 @@ class TestEtlGoogleSpreadsheet:
     def test_should_save_the_last_modified_timestamp_as_state(
         self,
         get_spreadsheet_modified_timestamp_as_string_mock: MagicMock,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
         upload_s3_object_mock: MagicMock
     ):
         modified_timestamp_str = '2025-10-02T12:00:00Z'
@@ -488,14 +503,53 @@ class TestEtlGoogleSpreadsheet:
             },
             'dep_env'
         )
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError
 
         etl_google_spreadsheet(multi_csv_config)
 
         upload_s3_object_mock.assert_called_with(
             bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
             object_key=STATE_FILE_CONFIG_DICT_1['objectName'],
-            data_object=modified_timestamp_str
+            data_object=parse_timestamp(modified_timestamp_str).isoformat()
         )
+
+    def test_should_read_state_file_but_not_fail_if_it_does_not_exist(
+        self,
+        process_csv_sheet_mock: MagicMock,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
+    ):
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
+            'dep_env'
+        )
+        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError
+        etl_google_spreadsheet(multi_csv_config)
+        process_csv_sheet_mock.assert_called()
+        download_s3_object_as_string_or_file_not_found_error_mock.assert_called_with(
+            bucket=STATE_FILE_CONFIG_DICT_1['bucketName'],
+            object_key=STATE_FILE_CONFIG_DICT_1['objectName']
+        )
+
+    def test_should_skip_etl_if_up_to_date(
+        self,
+        process_csv_sheet_mock: MagicMock,
+        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
+        get_spreadsheet_modified_timestamp_as_string_mock: MagicMock
+    ):
+        multi_csv_config = MultiCsvSheetConfig.from_dict(
+            {
+                **MULTI_CSV_CONFIG_DICT_1,
+                'stateFile': STATE_FILE_CONFIG_DICT_1
+            },
+            'dep_env'
+        )
+        get_spreadsheet_modified_timestamp_as_string_mock.return_value = TIMESTAMP_STR_1
+        download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STR_1
+        etl_google_spreadsheet(multi_csv_config)
+        process_csv_sheet_mock.assert_not_called()
 
 
 class TestRecord:

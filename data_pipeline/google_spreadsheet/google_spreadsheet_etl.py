@@ -22,9 +22,13 @@ from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
-    get_current_timestamp_as_string
+    get_current_timestamp_as_string,
+    parse_timestamp
 )
-from data_pipeline.utils.data_store.s3_data_service import upload_s3_object
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string_or_file_not_found_error,
+    upload_s3_object
+)
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
@@ -230,15 +234,42 @@ def process_csv_sheet(
 def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     LOGGER.info('spreadsheet_config: %r', spreadsheet_config)
     spreadsheet_id = spreadsheet_config.spreadsheet_id
-    spreadsheet_modified_timestamp_str = get_spreadsheet_modified_timestamp_as_string(
-        spreadsheet_id
+    spreadsheet_modified_timestamp = parse_timestamp(
+        get_spreadsheet_modified_timestamp_as_string(
+            spreadsheet_id
+        )
     )
     LOGGER.info(
         'Spreadsheet ID: %r, modified time: %r',
         spreadsheet_id,
-        spreadsheet_modified_timestamp_str
+        spreadsheet_modified_timestamp.isoformat()
     )
     current_timestamp_as_str = get_current_timestamp_as_string()
+    if spreadsheet_config.state_file:
+        try:
+            state_timestamp = parse_timestamp(
+                download_s3_object_as_string_or_file_not_found_error(
+                    bucket=spreadsheet_config.state_file.bucket_name,
+                    object_key=spreadsheet_config.state_file.object_name
+                )
+            )
+            LOGGER.info(
+                'State file s3://%s/%s has timestamp: %s',
+                spreadsheet_config.state_file.bucket_name,
+                spreadsheet_config.state_file.object_name,
+                state_timestamp.isoformat()
+            )
+            if spreadsheet_modified_timestamp <= state_timestamp:
+                LOGGER.info(
+                    'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
+                )
+                return
+        except FileNotFoundError:
+            LOGGER.warning(
+                'State file s3://%s/%s not found. Continuing without state.',
+                spreadsheet_config.state_file.bucket_name,
+                spreadsheet_config.state_file.object_name
+            )
     for csv_sheet_config in spreadsheet_config.sheets_config.values():
         with TemporaryDirectory() as tmp_dir:
             full_temp_file_location = str(
@@ -254,10 +285,10 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
             'Updating state file s3://%s/%s with timestamp: %s',
             spreadsheet_config.state_file.bucket_name,
             spreadsheet_config.state_file.object_name,
-            spreadsheet_modified_timestamp_str
+            spreadsheet_modified_timestamp
         )
         upload_s3_object(
             bucket=spreadsheet_config.state_file.bucket_name,
             object_key=spreadsheet_config.state_file.object_name,
-            data_object=spreadsheet_modified_timestamp_str
+            data_object=spreadsheet_modified_timestamp.isoformat()
         )
