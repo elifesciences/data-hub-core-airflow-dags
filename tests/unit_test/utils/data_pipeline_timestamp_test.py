@@ -22,3 +22,8 @@ class TestParseTimestamp:
         timestamp_str = '2023-10-01T12:30:45'
         with pytest.raises(ValueError):
             parse_timestamp(timestamp_str)
+
+    def test_should_reject_invalid_timestamp(self):
+        timestamp_str = '2023-10-01xx12:30:45Z'
+        with pytest.raises(ValueError):
+            parse_timestamp(timestamp_str)
