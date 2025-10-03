@@ -244,9 +244,15 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
     current_timestamp_as_str = get_current_timestamp_as_string()
     if spreadsheet_config.state_file:
         try:
-            download_s3_object_as_string_or_file_not_found_error(
+            state_timestamp_str = download_s3_object_as_string_or_file_not_found_error(
                 bucket=spreadsheet_config.state_file.bucket_name,
                 object_key=spreadsheet_config.state_file.object_name
+            )
+            LOGGER.info(
+                'State file s3://%s/%s has timestamp: %s',
+                spreadsheet_config.state_file.bucket_name,
+                spreadsheet_config.state_file.object_name,
+                state_timestamp_str
             )
         except FileNotFoundError:
             LOGGER.warning(
