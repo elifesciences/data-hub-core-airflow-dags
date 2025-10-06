@@ -11,6 +11,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
+    get_bq_client,
     load_file_into_bq,
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
@@ -163,6 +164,34 @@ def should_autodetect_schema(
     return auto_detect_schema
 
 
+def update_last_checked_timestamp_for_all_rows(
+    csv_sheet_config: BaseCsvSheetConfig,
+    last_checked_timestamp: str,
+):
+    client = get_bq_client(csv_sheet_config.gcp_project)
+
+    provenance_schema = google_spreadsheet_csv_provenance_schema()
+    extend_nested_table_schema_if_new_fields_exist(
+        ['last_checked_timestamp'],
+        csv_sheet_config,
+        provenance_schema,
+    )
+
+    table_ref = (
+        f'{csv_sheet_config.gcp_project}.'
+        f'{csv_sheet_config.dataset_name}.'
+        f'{csv_sheet_config.table_name}'
+    )
+
+    sql = f"""
+        UPDATE `{table_ref}`
+        SET last_checked_timestamp = '{last_checked_timestamp}'
+        WHERE 1=1
+    """
+
+    client.query(sql).result()
+
+
 def transform_load_data(
     record_list,
     csv_sheet_config: BaseCsvSheetConfig,
@@ -268,6 +297,12 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
             if spreadsheet_modified_timestamp <= state_timestamp:
                 LOGGER.info(
                     'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
+                )
+                update_last_checked_timestamp_for_all_rows(
+                    csv_sheet_config=spreadsheet_config.sheets_config[
+                        list(spreadsheet_config.sheets_config.keys())[0]
+                    ],
+                    last_checked_timestamp=current_timestamp_as_str,
                 )
                 return
         except FileNotFoundError:
