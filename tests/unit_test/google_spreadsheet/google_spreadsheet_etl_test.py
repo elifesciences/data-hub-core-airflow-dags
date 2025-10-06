@@ -12,6 +12,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
 
 from data_pipeline.google_spreadsheet import google_spreadsheet_etl
 from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
+    should_autodetect_schema,
     process_record_list,
     etl_google_spreadsheet,
     update_metadata_with_provenance,
@@ -150,6 +151,15 @@ def _extend_nested_table_schema_if_new_fields_exist():
     with patch.object(
         google_spreadsheet_etl,
         'extend_nested_table_schema_if_new_fields_exist'
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture(name='update_last_checked_timestamp_for_all_rows_mock', autouse=True)
+def _update_last_checked_timestamp_for_all_rows_mock():
+    with patch.object(
+        google_spreadsheet_etl,
+        'update_last_checked_timestamp_for_all_rows'
     ) as mock:
         yield mock
 
@@ -346,6 +356,36 @@ class TestCsvHeader:
         )
 
 
+class TestShouldAutodetectSchema:
+    def test_should_return_true_if_table_does_not_exist(
+        self,
+        does_bigquery_table_exist_mock
+    ):
+        does_bigquery_table_exist_mock.return_value = False
+        auto_detect_schema = should_autodetect_schema(
+            TestCsvHeader.sheet_config,
+            ['header_1', 'header_2']
+        )
+        assert auto_detect_schema
+
+    def test_returns_false_and_calls_extend_when_table_exists(
+        self,
+        does_bigquery_table_exist_mock,
+        extend_nested_table_schema_if_new_fields_exist_mock
+    ):
+        does_bigquery_table_exist_mock.return_value = True
+        auto_detect_schema = should_autodetect_schema(
+            TestCsvHeader.sheet_config,
+            ['header_1', 'header_2']
+        )
+        assert not auto_detect_schema
+        extend_nested_table_schema_if_new_fields_exist_mock.assert_called_with(
+            ['header_1', 'header_2'],
+            TestCsvHeader.sheet_config,
+            google_spreadsheet_etl.google_spreadsheet_csv_provenance_schema()
+        )
+
+
 class TestTransformAndLoadData:
     @staticmethod
     def get_csv_config(update_dict: Optional[dict] = None):
@@ -412,10 +452,7 @@ class TestTransformAndLoadData:
             full_temp_file_location
         )
         does_bigquery_table_exist_mock.assert_called()
-        (
-            extend_nested_table_schema_if_new_fields_exist_mock.
-            assert_called()
-        )
+        extend_nested_table_schema_if_new_fields_exist_mock.assert_called()
         process_record_list_mock.assert_called()
         write_jsonl_to_file_mock.assert_called()
         load_file_into_bq_mock.assert_called()

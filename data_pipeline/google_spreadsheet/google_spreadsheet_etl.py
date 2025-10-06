@@ -11,6 +11,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
+    get_bq_client,
     load_file_into_bq,
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
@@ -46,10 +47,8 @@ def update_metadata_with_provenance(
     csv_sheet_config: BaseCsvSheetConfig
 ):
     provenance = {
-        NamedLiterals.PROVENANCE_SPREADSHEET_ID:
-            csv_sheet_config.spreadsheet_id,
-        NamedLiterals.PROVENANCE_SHEET_NAME:
-            csv_sheet_config.sheet_name,
+        NamedLiterals.PROVENANCE_SPREADSHEET_ID: csv_sheet_config.spreadsheet_id,
+        NamedLiterals.PROVENANCE_SHEET_NAME: csv_sheet_config.sheet_name,
     }
     return {
         **record_metadata,
@@ -128,13 +127,11 @@ def google_spreadsheet_csv_provenance_schema():
         'type': 'RECORD',
         'fields': [
             {
-                'name':
-                    NamedLiterals.PROVENANCE_SHEET_NAME,
+                'name': NamedLiterals.PROVENANCE_SHEET_NAME,
                 'type': 'STRING'
             },
             {
-                'name':
-                    NamedLiterals.PROVENANCE_SPREADSHEET_ID,
+                'name': NamedLiterals.PROVENANCE_SPREADSHEET_ID,
                 'type': 'STRING'
             },
         ]
@@ -143,13 +140,59 @@ def google_spreadsheet_csv_provenance_schema():
     return prov_schema_list
 
 
+def should_autodetect_schema(
+    csv_sheet_config: BaseCsvSheetConfig,
+    standardized_csv_header: list
+):
+    auto_detect_schema = True
+    if does_bigquery_table_exist(
+        csv_sheet_config.gcp_project,
+        csv_sheet_config.dataset_name,
+        csv_sheet_config.table_name,
+    ):
+        provenance_schema = google_spreadsheet_csv_provenance_schema()
+        extend_nested_table_schema_if_new_fields_exist(
+            standardized_csv_header,
+            csv_sheet_config,
+            provenance_schema
+        )
+        auto_detect_schema = False
+    return auto_detect_schema
+
+
+def update_last_checked_timestamp_for_all_rows(
+    csv_sheet_config: BaseCsvSheetConfig,
+    last_checked_timestamp: str,
+):
+    client = get_bq_client(csv_sheet_config.gcp_project)
+
+    if should_autodetect_schema(
+        csv_sheet_config,
+        standardized_csv_header=['last_checked_timestamp'],
+    ):
+        return
+
+    table_ref = (
+        f'{csv_sheet_config.gcp_project}.'
+        f'{csv_sheet_config.dataset_name}.'
+        f'{csv_sheet_config.table_name}'
+    )
+
+    sql = f"""
+        UPDATE `{table_ref}`
+        SET last_checked_timestamp = '{last_checked_timestamp}'
+        WHERE 1=1
+    """
+
+    client.query(sql).result()
+
+
 def transform_load_data(
     record_list,
     csv_sheet_config: BaseCsvSheetConfig,
     record_import_timestamp_as_string: str,
     full_temp_file_location: str,
 ):
-
     record_metadata = get_record_metadata(
         record_list,
         csv_sheet_config,
@@ -157,9 +200,7 @@ def transform_load_data(
     )
 
     csv_header = record_list[csv_sheet_config.header_line_index]
-    standardized_csv_header = get_standardized_csv_header(
-        csv_header
-    )
+    standardized_csv_header = get_standardized_csv_header(csv_header)
 
     LOGGER.info(
         'Loading data into BigQuery table: %s.%s',
@@ -167,21 +208,10 @@ def transform_load_data(
         csv_sheet_config.table_name
     )
 
-    auto_detect_schema = True
-    if does_bigquery_table_exist(
-            csv_sheet_config.gcp_project,
-            csv_sheet_config.dataset_name,
-            csv_sheet_config.table_name,
-    ):
-        provenance_schema = (
-            google_spreadsheet_csv_provenance_schema()
-        )
-        extend_nested_table_schema_if_new_fields_exist(
-            standardized_csv_header,
-            csv_sheet_config,
-            provenance_schema
-        )
-        auto_detect_schema = False
+    auto_detect_schema = should_autodetect_schema(
+        csv_sheet_config,
+        standardized_csv_header
+    )
 
     processed_record = process_record_list(
         record_list[csv_sheet_config.data_values_start_line_index:],
@@ -262,6 +292,12 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
             if spreadsheet_modified_timestamp <= state_timestamp:
                 LOGGER.info(
                     'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
+                )
+                update_last_checked_timestamp_for_all_rows(
+                    csv_sheet_config=spreadsheet_config.sheets_config[
+                        list(spreadsheet_config.sheets_config.keys())[0]
+                    ],
+                    last_checked_timestamp=current_timestamp_as_str,
                 )
                 return
         except FileNotFoundError:
