@@ -12,7 +12,7 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config_typing import (
 
 from data_pipeline.google_spreadsheet import google_spreadsheet_etl
 from data_pipeline.google_spreadsheet.google_spreadsheet_etl import (
-    prepare_table_schema_before_load,
+    should_autodetect_schema,
     process_record_list,
     etl_google_spreadsheet,
     update_metadata_with_provenance,
@@ -347,13 +347,13 @@ class TestCsvHeader:
         )
 
 
-class TestPrepareTableSchemaBeforeLoad:
+class TestShouldAutodetectSchema:
     def test_should_return_true_if_table_does_not_exist(
         self,
         does_bigquery_table_exist_mock
     ):
         does_bigquery_table_exist_mock.return_value = False
-        auto_detect_schema = prepare_table_schema_before_load(
+        auto_detect_schema = should_autodetect_schema(
             TestCsvHeader.sheet_config,
             ['header_1', 'header_2']
         )
@@ -365,7 +365,7 @@ class TestPrepareTableSchemaBeforeLoad:
         extend_nested_table_schema_if_new_fields_exist_mock
     ):
         does_bigquery_table_exist_mock.return_value = True
-        auto_detect_schema = prepare_table_schema_before_load(
+        auto_detect_schema = should_autodetect_schema(
             TestCsvHeader.sheet_config,
             ['header_1', 'header_2']
         )

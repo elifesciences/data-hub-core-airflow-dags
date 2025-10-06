@@ -143,7 +143,7 @@ def google_spreadsheet_csv_provenance_schema():
     return prov_schema_list
 
 
-def prepare_table_schema_before_load(
+def should_autodetect_schema(
     csv_sheet_config: BaseCsvSheetConfig,
     standardized_csv_header: list
 ):
@@ -184,7 +184,7 @@ def transform_load_data(
         csv_sheet_config.table_name
     )
 
-    auto_detect_schema = prepare_table_schema_before_load(
+    auto_detect_schema = should_autodetect_schema(
         csv_sheet_config,
         standardized_csv_header
     )
