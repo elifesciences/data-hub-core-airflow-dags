@@ -47,10 +47,8 @@ def update_metadata_with_provenance(
     csv_sheet_config: BaseCsvSheetConfig
 ):
     provenance = {
-        NamedLiterals.PROVENANCE_SPREADSHEET_ID:
-            csv_sheet_config.spreadsheet_id,
-        NamedLiterals.PROVENANCE_SHEET_NAME:
-            csv_sheet_config.sheet_name,
+        NamedLiterals.PROVENANCE_SPREADSHEET_ID: csv_sheet_config.spreadsheet_id,
+        NamedLiterals.PROVENANCE_SHEET_NAME: csv_sheet_config.sheet_name,
     }
     return {
         **record_metadata,
@@ -129,13 +127,11 @@ def google_spreadsheet_csv_provenance_schema():
         'type': 'RECORD',
         'fields': [
             {
-                'name':
-                    NamedLiterals.PROVENANCE_SHEET_NAME,
+                'name': NamedLiterals.PROVENANCE_SHEET_NAME,
                 'type': 'STRING'
             },
             {
-                'name':
-                    NamedLiterals.PROVENANCE_SPREADSHEET_ID,
+                'name': NamedLiterals.PROVENANCE_SPREADSHEET_ID,
                 'type': 'STRING'
             },
         ]
@@ -150,9 +146,9 @@ def should_autodetect_schema(
 ):
     auto_detect_schema = True
     if does_bigquery_table_exist(
-            csv_sheet_config.gcp_project,
-            csv_sheet_config.dataset_name,
-            csv_sheet_config.table_name,
+        csv_sheet_config.gcp_project,
+        csv_sheet_config.dataset_name,
+        csv_sheet_config.table_name,
     ):
         provenance_schema = google_spreadsheet_csv_provenance_schema()
         extend_nested_table_schema_if_new_fields_exist(
@@ -170,12 +166,11 @@ def update_last_checked_timestamp_for_all_rows(
 ):
     client = get_bq_client(csv_sheet_config.gcp_project)
 
-    provenance_schema = google_spreadsheet_csv_provenance_schema()
-    extend_nested_table_schema_if_new_fields_exist(
-        ['last_checked_timestamp'],
+    if should_autodetect_schema(
         csv_sheet_config,
-        provenance_schema,
-    )
+        standardized_csv_header=['last_checked_timestamp'],
+    ):
+        return
 
     table_ref = (
         f'{csv_sheet_config.gcp_project}.'
