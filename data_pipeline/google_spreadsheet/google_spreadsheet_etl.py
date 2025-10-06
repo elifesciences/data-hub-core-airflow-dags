@@ -143,13 +143,32 @@ def google_spreadsheet_csv_provenance_schema():
     return prov_schema_list
 
 
+def prepare_table_schema_before_load(
+    csv_sheet_config: BaseCsvSheetConfig,
+    standardized_csv_header: list
+):
+    auto_detect_schema = True
+    if does_bigquery_table_exist(
+            csv_sheet_config.gcp_project,
+            csv_sheet_config.dataset_name,
+            csv_sheet_config.table_name,
+    ):
+        provenance_schema = google_spreadsheet_csv_provenance_schema()
+        extend_nested_table_schema_if_new_fields_exist(
+            standardized_csv_header,
+            csv_sheet_config,
+            provenance_schema
+        )
+        auto_detect_schema = False
+    return auto_detect_schema
+
+
 def transform_load_data(
     record_list,
     csv_sheet_config: BaseCsvSheetConfig,
     record_import_timestamp_as_string: str,
     full_temp_file_location: str,
 ):
-
     record_metadata = get_record_metadata(
         record_list,
         csv_sheet_config,
@@ -157,9 +176,7 @@ def transform_load_data(
     )
 
     csv_header = record_list[csv_sheet_config.header_line_index]
-    standardized_csv_header = get_standardized_csv_header(
-        csv_header
-    )
+    standardized_csv_header = get_standardized_csv_header(csv_header)
 
     LOGGER.info(
         'Loading data into BigQuery table: %s.%s',
@@ -167,21 +184,10 @@ def transform_load_data(
         csv_sheet_config.table_name
     )
 
-    auto_detect_schema = True
-    if does_bigquery_table_exist(
-            csv_sheet_config.gcp_project,
-            csv_sheet_config.dataset_name,
-            csv_sheet_config.table_name,
-    ):
-        provenance_schema = (
-            google_spreadsheet_csv_provenance_schema()
-        )
-        extend_nested_table_schema_if_new_fields_exist(
-            standardized_csv_header,
-            csv_sheet_config,
-            provenance_schema
-        )
-        auto_detect_schema = False
+    auto_detect_schema = prepare_table_schema_before_load(
+        csv_sheet_config,
+        standardized_csv_header
+    )
 
     processed_record = process_record_list(
         record_list[csv_sheet_config.data_values_start_line_index:],
