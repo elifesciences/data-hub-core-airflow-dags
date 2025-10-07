@@ -164,6 +164,12 @@ def update_last_checked_timestamp_for_all_rows(
     csv_sheet_config: BaseCsvSheetConfig,
     last_checked_timestamp_str: str,
 ):
+    LOGGER.info(
+        'Starting update of last_checked_timestamp_str for table %s.%s.%s',
+        csv_sheet_config.gcp_project,
+        csv_sheet_config.dataset_name,
+        csv_sheet_config.table_name,
+    )
     client = get_bq_client(csv_sheet_config.gcp_project)
 
     if should_autodetect_schema(
@@ -183,8 +189,16 @@ def update_last_checked_timestamp_for_all_rows(
         SET last_checked_timestamp_str = '{last_checked_timestamp_str}'
         WHERE 1=1
     """
+    LOGGER.debug("Generated SQL query: %s", sql.strip())
 
     client.query(sql).result()
+    LOGGER.info(
+        'Successfully updated all rows in %s.%s.%s with last_checked_timestamp_str = %s',
+        csv_sheet_config.gcp_project,
+        csv_sheet_config.dataset_name,
+        csv_sheet_config.table_name,
+        last_checked_timestamp_str,
+    )
 
 
 def transform_load_data(
