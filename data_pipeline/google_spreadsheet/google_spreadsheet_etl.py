@@ -162,13 +162,13 @@ def should_autodetect_schema(
 
 def update_last_checked_timestamp_for_all_rows(
     csv_sheet_config: BaseCsvSheetConfig,
-    last_checked_timestamp: str,
+    last_checked_timestamp_str: str,
 ):
     client = get_bq_client(csv_sheet_config.gcp_project)
 
     if should_autodetect_schema(
         csv_sheet_config,
-        standardized_csv_header=['last_checked_timestamp'],
+        standardized_csv_header=['last_checked_timestamp_str'],
     ):
         return
 
@@ -180,7 +180,7 @@ def update_last_checked_timestamp_for_all_rows(
 
     sql = f"""
         UPDATE `{table_ref}`
-        SET last_checked_timestamp = '{last_checked_timestamp}'
+        SET last_checked_timestamp_str = '{last_checked_timestamp_str}'
         WHERE 1=1
     """
 
@@ -297,7 +297,7 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                     csv_sheet_config=spreadsheet_config.sheets_config[
                         list(spreadsheet_config.sheets_config.keys())[0]
                     ],
-                    last_checked_timestamp=current_timestamp_as_str,
+                    last_checked_timestamp_str=current_timestamp_as_str,
                 )
                 return
         except FileNotFoundError:
