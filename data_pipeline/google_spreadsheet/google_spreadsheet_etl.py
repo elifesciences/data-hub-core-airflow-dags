@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 import re
 from tempfile import TemporaryDirectory
@@ -24,7 +23,6 @@ from data_pipeline.utils.csv.metadata_schema import (
     extend_nested_table_schema_if_new_fields_exist,
 )
 from data_pipeline.utils.data_pipeline_timestamp import (
-    get_current_timestamp,
     get_current_timestamp_as_string,
     parse_timestamp
 )
