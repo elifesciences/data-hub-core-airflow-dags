@@ -307,12 +307,12 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 LOGGER.info(
                     'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
                 )
-                update_last_checked_timestamp_for_all_rows(
-                    csv_sheet_config=spreadsheet_config.sheets_config[
-                        list(spreadsheet_config.sheets_config.keys())[0]
-                    ],
-                    last_checked_timestamp_str=current_timestamp_as_str,
-                )
+                for sheet_name, sheet_config in spreadsheet_config.sheets_config.items():
+                    LOGGER.info('Updating last_checked_timestamp_str for sheet: %s', sheet_name)
+                    update_last_checked_timestamp_for_all_rows(
+                        csv_sheet_config=sheet_config,
+                        last_checked_timestamp_str=current_timestamp_as_str,
+                    )
                 return
         except FileNotFoundError:
             LOGGER.warning(
