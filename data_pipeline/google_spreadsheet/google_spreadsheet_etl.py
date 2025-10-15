@@ -2,6 +2,8 @@ import logging
 import re
 from tempfile import TemporaryDirectory
 from pathlib import Path
+from typing import Iterable
+from typing_extensions import TypedDict, NotRequired
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -13,6 +15,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
     get_bq_client,
     load_file_into_bq,
+    load_given_json_list_data_from_tempdir_to_bq,
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
     download_google_spreadsheet_single_sheet,
@@ -30,6 +33,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
+from data_pipeline.utils.pipeline_config import get_deployment_env
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
@@ -168,7 +172,7 @@ def update_last_checked_timestamp_for_all_rows(
         'Starting update of last_checked_timestamp_str for table %s.%s.%s',
         csv_sheet_config.gcp_project,
         csv_sheet_config.dataset_name,
-        csv_sheet_config.table_name,
+        'data_hub_pipeline_monitoring',
     )
     client = get_bq_client(csv_sheet_config.gcp_project)
 
@@ -198,6 +202,34 @@ def update_last_checked_timestamp_for_all_rows(
         csv_sheet_config.dataset_name,
         csv_sheet_config.table_name,
         last_checked_timestamp_str,
+    )
+
+
+class DataHubPipelineMonitoringTableRowDict(TypedDict):
+    pipeline_type: NotRequired[str]
+    data_pipeline_id: str
+    table_name: str
+    run_timestamp: str
+    status: str
+    error_message: NotRequired[str]
+
+
+def append_to_data_hub_pipeline_monitoring_table(
+    json_list: Iterable[DataHubPipelineMonitoringTableRowDict],
+    project_name: str
+):
+    deployment_env = get_deployment_env()
+    LOGGER.info(
+        'Appending to data_hub_pipeline_monitoring table in %s.%s.data_hub_pipeline_monitoring',
+        project_name,
+        deployment_env
+    )
+
+    load_given_json_list_data_from_tempdir_to_bq(
+        json_list=json_list,
+        project_name=project_name,
+        dataset_name=deployment_env,
+        table_name='data_hub_pipeline_monitoring'
     )
 
 
