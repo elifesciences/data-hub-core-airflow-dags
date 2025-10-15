@@ -41,6 +41,7 @@ class TestMultiCsvSheetConfig:
             GOOGLE_SPREADSHEET_CONFIG_DICT_1['importedTimestampFieldName']
         )
         assert config.gcp_project == GOOGLE_SPREADSHEET_CONFIG_DICT_1['gcpProjectName']
+        assert config.data_pipeline_id == GOOGLE_SPREADSHEET_CONFIG_DICT_1['dataPipelineId']
 
     def test_should_load_sheets_config(self):
         config = MultiCsvSheetConfig.from_dict(

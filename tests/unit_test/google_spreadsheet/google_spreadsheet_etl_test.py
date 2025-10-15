@@ -610,6 +610,7 @@ class TestEtlGoogleSpreadsheet:
         append_to_data_hub_pipeline_monitoring_table_mock.assert_called_with(
             [{
                 'pipeline_type': 'google_spreadsheet',
+                'data_pipeline_id': MULTI_CSV_CONFIG_DICT_1['dataPipelineId'],
                 'table_name': GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_1['tableName'],
                 'run_timestamp': TIMESTAMP_STR_2,
                 'status': 'skipped'
