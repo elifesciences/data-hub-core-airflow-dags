@@ -207,7 +207,7 @@ def update_last_checked_timestamp_for_all_rows(
 
 class DataHubPipelineMonitoringTableRowDict(TypedDict):
     pipeline_type: NotRequired[str]
-    data_pipeline_id: str
+    data_pipeline_id: NotRequired[str]
     table_name: str
     run_timestamp: str
     status: Literal['success', 'failure', 'skipped']
@@ -338,6 +338,17 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
             if spreadsheet_modified_timestamp <= state_timestamp:
                 LOGGER.info(
                     'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
+                )
+                append_to_data_hub_pipeline_monitoring_table(
+                    [
+                        {
+                            'table_name': sheet_config.table_name,
+                            'run_timestamp': current_timestamp_as_str,
+                            'status': 'skipped'
+                        }
+                        for _, sheet_config in spreadsheet_config.sheets_config.items()
+                    ],
+                    project_name=spreadsheet_config.gcp_project
                 )
                 for sheet_name, sheet_config in spreadsheet_config.sheets_config.items():
                     LOGGER.info('Updating last_checked_timestamp_str for sheet: %s', sheet_name)
