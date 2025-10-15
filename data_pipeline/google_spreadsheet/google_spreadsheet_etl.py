@@ -206,7 +206,7 @@ def update_last_checked_timestamp_for_all_rows(
 
 
 class DataHubPipelineMonitoringTableRowDict(TypedDict):
-    pipeline_type: NotRequired[str]
+    pipeline_type: str
     data_pipeline_id: NotRequired[str]
     table_name: str
     run_timestamp: str
@@ -342,6 +342,7 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 append_to_data_hub_pipeline_monitoring_table(
                     [
                         {
+                            'pipeline_type': 'google_spreadsheet',
                             'table_name': sheet_config.table_name,
                             'run_timestamp': current_timestamp_as_str,
                             'status': 'skipped'
