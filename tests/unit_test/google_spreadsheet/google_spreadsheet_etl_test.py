@@ -160,15 +160,6 @@ def _extend_nested_table_schema_if_new_fields_exist():
         yield mock
 
 
-@pytest.fixture(name='update_last_checked_timestamp_for_all_rows_mock', autouse=True)
-def _update_last_checked_timestamp_for_all_rows_mock():
-    with patch.object(
-        google_spreadsheet_etl,
-        'update_last_checked_timestamp_for_all_rows'
-    ) as mock:
-        yield mock
-
-
 @pytest.fixture(name='append_to_data_hub_pipeline_monitoring_table_mock', autouse=True)
 def _append_to_data_hub_pipeline_monitoring_table_mock():
     with patch.object(

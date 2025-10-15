@@ -13,7 +13,6 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
-    get_bq_client,
     load_file_into_bq,
     load_given_json_list_data_from_tempdir_to_bq,
 )
@@ -164,47 +163,6 @@ def should_autodetect_schema(
     return auto_detect_schema
 
 
-def update_last_checked_timestamp_for_all_rows(
-    csv_sheet_config: BaseCsvSheetConfig,
-    last_checked_timestamp_str: str,
-):
-    LOGGER.info(
-        'Starting update of last_checked_timestamp_str for table %s.%s.%s',
-        csv_sheet_config.gcp_project,
-        csv_sheet_config.dataset_name,
-        'data_hub_pipeline_monitoring',
-    )
-    client = get_bq_client(csv_sheet_config.gcp_project)
-
-    if should_autodetect_schema(
-        csv_sheet_config,
-        standardized_csv_header=['last_checked_timestamp_str'],
-    ):
-        return
-
-    table_ref = (
-        f'{csv_sheet_config.gcp_project}.'
-        f'{csv_sheet_config.dataset_name}.'
-        f'{csv_sheet_config.table_name}'
-    )
-
-    sql = f"""
-        UPDATE `{table_ref}`
-        SET last_checked_timestamp_str = '{last_checked_timestamp_str}'
-        WHERE 1=1
-    """
-    LOGGER.debug("Generated SQL query: %s", sql.strip())
-
-    client.query(sql).result()
-    LOGGER.info(
-        'Successfully updated all rows in %s.%s.%s with last_checked_timestamp_str = %s',
-        csv_sheet_config.gcp_project,
-        csv_sheet_config.dataset_name,
-        csv_sheet_config.table_name,
-        last_checked_timestamp_str,
-    )
-
-
 class DataHubPipelineMonitoringTableRowDict(TypedDict):
     pipeline_type: str
     data_pipeline_id: str
@@ -352,12 +310,6 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                     ],
                     project_name=spreadsheet_config.gcp_project
                 )
-                for sheet_name, sheet_config in spreadsheet_config.sheets_config.items():
-                    LOGGER.info('Updating last_checked_timestamp_str for sheet: %s', sheet_name)
-                    update_last_checked_timestamp_for_all_rows(
-                        csv_sheet_config=sheet_config,
-                        last_checked_timestamp_str=current_timestamp_as_str,
-                    )
                 return
         except FileNotFoundError:
             LOGGER.warning(
