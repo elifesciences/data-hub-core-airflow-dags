@@ -2,7 +2,7 @@ import logging
 import re
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Literal
 from typing_extensions import TypedDict, NotRequired
 
 from google.cloud.bigquery import WriteDisposition
@@ -210,7 +210,7 @@ class DataHubPipelineMonitoringTableRowDict(TypedDict):
     data_pipeline_id: str
     table_name: str
     run_timestamp: str
-    status: str
+    status: Literal['success', 'failure', 'skipped']
     error_message: NotRequired[str]
 
 
