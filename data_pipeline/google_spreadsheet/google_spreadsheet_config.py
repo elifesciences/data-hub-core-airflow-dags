@@ -69,6 +69,7 @@ class MultiCsvSheetConfig:
     spreadsheet_id: str
     import_timestamp_field_name: str
     gcp_project: str
+    data_pipeline_id: str
     sheets_config: Mapping[str, BaseCsvSheetConfig]
     state_file: Optional[StateFileConfig] = None
 
@@ -80,10 +81,12 @@ class MultiCsvSheetConfig:
         spreadsheet_id = multi_sheet_config['spreadsheetId']
         import_timestamp_field_name = multi_sheet_config['importedTimestampFieldName']
         gcp_project = multi_sheet_config['gcpProjectName']
+        data_pipeline_id = multi_sheet_config['dataPipelineId']
         return MultiCsvSheetConfig(
             spreadsheet_id=spreadsheet_id,
             import_timestamp_field_name=import_timestamp_field_name,
             gcp_project=gcp_project,
+            data_pipeline_id=data_pipeline_id,
             sheets_config={
                 sheet['sheetName']: BaseCsvSheetConfig(
                     csv_sheet_config=sheet,

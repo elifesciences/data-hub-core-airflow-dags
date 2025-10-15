@@ -2,6 +2,8 @@ import logging
 import re
 from tempfile import TemporaryDirectory
 from pathlib import Path
+from typing import Iterable, Literal
+from typing_extensions import TypedDict, NotRequired
 
 from google.cloud.bigquery import WriteDisposition
 
@@ -11,8 +13,8 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     does_bigquery_table_exist,
-    get_bq_client,
     load_file_into_bq,
+    load_given_json_list_data_from_tempdir_to_bq,
 )
 from data_pipeline.utils.data_store.google_spreadsheet_service import (
     download_google_spreadsheet_single_sheet,
@@ -30,6 +32,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error,
     upload_s3_object
 )
+from data_pipeline.utils.pipeline_config import get_deployment_env
 from data_pipeline.utils.pipeline_file_io import write_jsonl_to_file
 
 
@@ -160,44 +163,31 @@ def should_autodetect_schema(
     return auto_detect_schema
 
 
-def update_last_checked_timestamp_for_all_rows(
-    csv_sheet_config: BaseCsvSheetConfig,
-    last_checked_timestamp_str: str,
+class DataHubPipelineMonitoringTableRowDict(TypedDict):
+    pipeline_type: str
+    data_pipeline_id: str
+    table_name: str
+    run_timestamp: str
+    status: Literal['success', 'failure', 'skipped']
+    error_message: NotRequired[str]
+
+
+def append_to_data_hub_pipeline_monitoring_table(
+    json_list: Iterable[DataHubPipelineMonitoringTableRowDict],
+    project_name: str
 ):
+    deployment_env = get_deployment_env()
     LOGGER.info(
-        'Starting update of last_checked_timestamp_str for table %s.%s.%s',
-        csv_sheet_config.gcp_project,
-        csv_sheet_config.dataset_name,
-        csv_sheet_config.table_name,
-    )
-    client = get_bq_client(csv_sheet_config.gcp_project)
-
-    if should_autodetect_schema(
-        csv_sheet_config,
-        standardized_csv_header=['last_checked_timestamp_str'],
-    ):
-        return
-
-    table_ref = (
-        f'{csv_sheet_config.gcp_project}.'
-        f'{csv_sheet_config.dataset_name}.'
-        f'{csv_sheet_config.table_name}'
+        'Appending to data_hub_pipeline_monitoring table in %s.%s.data_hub_pipeline_monitoring',
+        project_name,
+        deployment_env
     )
 
-    sql = f"""
-        UPDATE `{table_ref}`
-        SET last_checked_timestamp_str = '{last_checked_timestamp_str}'
-        WHERE 1=1
-    """
-    LOGGER.debug("Generated SQL query: %s", sql.strip())
-
-    client.query(sql).result()
-    LOGGER.info(
-        'Successfully updated all rows in %s.%s.%s with last_checked_timestamp_str = %s',
-        csv_sheet_config.gcp_project,
-        csv_sheet_config.dataset_name,
-        csv_sheet_config.table_name,
-        last_checked_timestamp_str,
+    load_given_json_list_data_from_tempdir_to_bq(
+        json_list=json_list,
+        project_name=project_name,
+        dataset_name=deployment_env,
+        table_name='data_hub_pipeline_monitoring'
     )
 
 
@@ -307,12 +297,19 @@ def etl_google_spreadsheet(spreadsheet_config: MultiCsvSheetConfig):
                 LOGGER.info(
                     'No changes detected in spreadsheet since last ETL run. Exiting ETL process.'
                 )
-                for sheet_name, sheet_config in spreadsheet_config.sheets_config.items():
-                    LOGGER.info('Updating last_checked_timestamp_str for sheet: %s', sheet_name)
-                    update_last_checked_timestamp_for_all_rows(
-                        csv_sheet_config=sheet_config,
-                        last_checked_timestamp_str=current_timestamp_as_str,
-                    )
+                append_to_data_hub_pipeline_monitoring_table(
+                    [
+                        {
+                            'pipeline_type': 'google_spreadsheet',
+                            'data_pipeline_id': spreadsheet_config.data_pipeline_id,
+                            'table_name': sheet_config.table_name,
+                            'run_timestamp': current_timestamp_as_str,
+                            'status': 'skipped'
+                        }
+                        for _, sheet_config in spreadsheet_config.sheets_config.items()
+                    ],
+                    project_name=spreadsheet_config.gcp_project
+                )
                 return
         except FileNotFoundError:
             LOGGER.warning(

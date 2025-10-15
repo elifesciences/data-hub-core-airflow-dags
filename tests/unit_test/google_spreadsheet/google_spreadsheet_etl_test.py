@@ -28,6 +28,22 @@ from data_pipeline.google_spreadsheet.google_spreadsheet_config import (
 from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
 TIMESTAMP_STR_1 = '2020-10-01T10:15:13Z'
+TIMESTAMP_STR_2 = '2020-10-02T10:15:13Z'
+
+GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_1: GoogleSpreadsheetSheetConfigDict = {
+    'sheetName': 'sheet name-0',
+    'datasetName': '{ENV}-dataset',
+    'tableName': 'table_name_1',
+    'tableWriteAppend': True
+}
+
+GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_2: GoogleSpreadsheetSheetConfigDict = {
+    'sheetName': 'sheet name-1',
+    'datasetName': '{ENV}-dataset',
+    'headerLineIndex': 0,
+    'tableName': 'table_name_2',
+    'tableWriteAppend': False
+}
 
 MULTI_CSV_CONFIG_DICT_1: GoogleSpreadsheetConfigDict = {
     'dataPipelineId': 'data_pipeline_1',
@@ -35,19 +51,8 @@ MULTI_CSV_CONFIG_DICT_1: GoogleSpreadsheetConfigDict = {
     'importedTimestampFieldName': 'imported_timestamp_1',
     'spreadsheetId': 'spreadsheet_id',
     'sheets': [
-        {
-            'sheetName': 'sheet name-0',
-            'datasetName': '{ENV}-dataset',
-            'tableName': 'table_name_1',
-            'tableWriteAppend': True
-        },
-        {
-            'sheetName': 'sheet name-1',
-            'datasetName': '{ENV}-dataset',
-            'headerLineIndex': 0,
-            'tableName': 'table_name_2',
-            'tableWriteAppend': False
-        }
+        GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_1,
+        GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_2
     ]
 }
 
@@ -155,11 +160,11 @@ def _extend_nested_table_schema_if_new_fields_exist():
         yield mock
 
 
-@pytest.fixture(name='update_last_checked_timestamp_for_all_rows_mock', autouse=True)
-def _update_last_checked_timestamp_for_all_rows_mock():
+@pytest.fixture(name='append_to_data_hub_pipeline_monitoring_table_mock', autouse=True)
+def _append_to_data_hub_pipeline_monitoring_table_mock():
     with patch.object(
         google_spreadsheet_etl,
-        'update_last_checked_timestamp_for_all_rows'
+        'append_to_data_hub_pipeline_monitoring_table'
     ) as mock:
         yield mock
 
@@ -570,23 +575,39 @@ class TestEtlGoogleSpreadsheet:
             object_key=STATE_FILE_CONFIG_DICT_1['objectName']
         )
 
-    def test_should_skip_etl_if_up_to_date(
+    def test_should_skip_etl_if_up_to_date_and_update_monitoring(
         self,
         process_csv_sheet_mock: MagicMock,
         download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
-        get_spreadsheet_modified_timestamp_as_string_mock: MagicMock
+        get_spreadsheet_modified_timestamp_as_string_mock: MagicMock,
+        append_to_data_hub_pipeline_monitoring_table_mock: MagicMock,
+        current_timestamp_as_string_mock: MagicMock
     ):
         multi_csv_config = MultiCsvSheetConfig.from_dict(
             {
                 **MULTI_CSV_CONFIG_DICT_1,
-                'stateFile': STATE_FILE_CONFIG_DICT_1
+                'stateFile': STATE_FILE_CONFIG_DICT_1,
+                'sheets': [
+                    GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_1
+                ]
             },
             'dep_env'
         )
+        current_timestamp_as_string_mock.return_value = TIMESTAMP_STR_2
         get_spreadsheet_modified_timestamp_as_string_mock.return_value = TIMESTAMP_STR_1
         download_s3_object_as_string_or_file_not_found_error_mock.return_value = TIMESTAMP_STR_1
         etl_google_spreadsheet(multi_csv_config)
         process_csv_sheet_mock.assert_not_called()
+        append_to_data_hub_pipeline_monitoring_table_mock.assert_called_with(
+            [{
+                'pipeline_type': 'google_spreadsheet',
+                'data_pipeline_id': MULTI_CSV_CONFIG_DICT_1['dataPipelineId'],
+                'table_name': GOOGLE_SPREADSHEET_SHEET_CONFIG_DICT_1['tableName'],
+                'run_timestamp': TIMESTAMP_STR_2,
+                'status': 'skipped'
+            }],
+            project_name=multi_csv_config.gcp_project
+        )
 
 
 class TestRecord:
