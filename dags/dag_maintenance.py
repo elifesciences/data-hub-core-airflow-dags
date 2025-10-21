@@ -9,7 +9,12 @@ airflow trigger_dag --conf '{"maxDataAgeInDays":30}' airflow-log-cleanup
 import os
 import logging
 from datetime import timedelta
+
 import dateutil.parser
+
+from sqlalchemy import func, and_
+from sqlalchemy.orm import load_only
+
 import airflow
 from airflow.models import (
     DagRun, TaskInstance, Log, XCom, SlaMiss,
@@ -19,8 +24,6 @@ from airflow.utils import timezone
 from airflow.jobs.job import Job
 from airflow import settings
 from airflow.operators.python import PythonOperator
-from sqlalchemy import func, and_
-from sqlalchemy.orm import load_only
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
 

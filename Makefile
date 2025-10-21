@@ -86,10 +86,19 @@ dev-watch:
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
+dev-run-bigquery-views-materialize-views:
+	MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=elife-data-pipeline \
+	MATERIALIZE_BIGQUERY_VIEWS_DATASET=development \
+	MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=s3://ci-elife-data-pipeline/airflow-config/bigquery-views \
+		$(PYTHON) -m data_pipeline.bigquery_views.cli
+
 dev-run-elife-articles-xml:
 	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
 		$(PYTHON) -m data_pipeline.elife_article_xml.cli
 
+dev-run-finance-data:
+	FINANCE_DATA_CONFIG_FILE_PATH=sample_data_config/finance_data/finance-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.finance_data.cli
 
 dev-run-web-api:  .require-DATA_PIPELINE_ID
 	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
@@ -98,10 +107,51 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-clear-state-csv-pipeline:
+	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
+
+
+dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
+	S3_CSV_CONFIG_FILE_PATH=sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.s3_csv_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
+dev-run-google-spreadsheet-pipeline:  .require-DATA_PIPELINE_ID
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.google_spreadsheet.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
+dev-run-scheduled-queries-pipeline:
+	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
+		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
+
+dev-run-scheduled-queries-pipeline-ga4-metrics-event-counts-by-date:
+	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/ga4_metrics_event_counts_by_date.config.yaml \
+		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
+
+
+dev-run-bigquery-to-opensearch-pipeline:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
+dev-run-bigquery-to-opensearch-pipeline-ecr:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch-ecr.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
 dev-end-to-end-monitoring:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m pytest \
 		tests/end2end_test/data_hub_pipeline_health_check_test.py
+
+
+dev-end-to-end-google-spreadsheet:
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/google_spreadsheet_end_to_end_test.py
 
 
 build:
@@ -218,6 +268,10 @@ data-hub-pipelines-shell:
 data-hub-pipelines-run-elife-articles-xml:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
 		python -m data_pipeline.elife_article_xml.cli
+
+data-hub-pipelines-run-finance-data:
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+		python -m data_pipeline.finance_data.cli
 
 
 data-hub-pipelines-run-web-api:  .require-DATA_PIPELINE_ID

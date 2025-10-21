@@ -8,26 +8,55 @@ from data_pipeline.utils.data_store.google_service_client import (
 
 
 LOGGER = logging.getLogger(__name__)
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-SHEET_DATA_KEY = "values"
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SHEET_DATA_KEY = 'values'
 
 
-# pylint: disable=no-member
+READ_MODIFIED_TIME_SCOPES = [
+    'https://www.googleapis.com/auth/drive.metadata.readonly'
+]
+
+
+def get_spreadsheet_modified_timestamp_as_string(
+    spreadsheet_id: str
+) -> str:
+    credentials = get_credentials(READ_MODIFIED_TIME_SCOPES)
+
+    drive_service = discovery.build(
+        'drive',
+        'v3',
+        credentials=credentials
+    )
+    file = (
+        drive_service.files()  # pylint: disable=no-member
+        .get(
+            fileId=spreadsheet_id,
+            fields='modifiedTime'
+        )
+        .execute()
+    )
+    return file.get('modifiedTime')
+
+
 def download_google_spreadsheet_single_sheet(
-        spreadsheet_id: str,
-        sheet_range: str
+    spreadsheet_id: str,
+    sheet_range: str
 ):
     credentials = get_credentials(
         SCOPES
     )
 
     service = discovery.build(
-        "sheets", "v4", credentials=credentials, cache=MemoryCache()
+        'sheets', 'v4', credentials=credentials, cache=MemoryCache()
     )
 
+    LOGGER.info(
+        'Downloading spreadsheet id: %s, range: %s',
+        spreadsheet_id, sheet_range
+    )
     try:
         response = (
-            service.spreadsheets()
+            service.spreadsheets()  # pylint: disable=no-member
             .values()
             .get(spreadsheetId=spreadsheet_id, range=sheet_range)
             .execute()
@@ -35,5 +64,5 @@ def download_google_spreadsheet_single_sheet(
         sheets_data = response.get(SHEET_DATA_KEY)
         return sheets_data
     except HttpError as err:
-        LOGGER.error("Spreadsheet not downloaded: %s", err.content)
+        LOGGER.error('Spreadsheet not downloaded: %s', err.content)
         raise
