@@ -141,6 +141,36 @@ class TestGetDistinctValuesFromBq:
             '''
         ).strip()
 
+    def test_should_generate_query_with_array_table_name_param(
+        self,
+        bq_client_mock: MagicMock
+    ):
+        get_distinct_values_from_bq(
+            project_name="project_1",
+            dataset_name="dataset_1",
+            column_name="column_name_1",
+            table_name_source="table_name_1",
+            table_name_for_exclusion="table_name_for_exclusion_1",
+            array_table_name="array_table_name_1",
+            array_column_for_exclusion="array_column_for_exclusion_1"
+        )
+        query_mock: MagicMock = bq_client_mock.query
+        args, _kwargs = query_mock.call_args
+        assert textwrap.dedent(args[0]).strip() == textwrap.dedent(
+            '''
+            SELECT DISTINCT column_name_1 AS column
+            FROM  `project_1.dataset_1.table_name_1`
+            WHERE column_name_1 IS NOT NULL
+
+            AND array_column_for_exclusion_1 NOT IN
+                (
+                    SELECT t_array.array_column_for_exclusion_1
+                    FROM `project_1.dataset_1.table_name_for_exclusion_1`
+                    LEFT JOIN UNNEST(array_table_name_1) AS t_array
+                )
+            '''
+        ).strip()
+
 
 def test_should_load_file_into_bq(
         mock_load_job_config,
