@@ -10,6 +10,7 @@ import data_pipeline.utils.data_store.bq_data_service \
     as bq_data_service_module
 from data_pipeline.utils.data_store.bq_data_service import (
     get_distinct_values_from_bq,
+    get_max_value_from_bq_table,
     get_query_with_exclusion,
     iter_dict_from_bq_query,
     load_file_into_bq,
@@ -168,6 +169,32 @@ class TestGetDistinctValuesFromBq:
                     FROM `project_1.dataset_1.table_name_for_exclusion_1`
                     LEFT JOIN UNNEST(array_table_name_1) AS t_array
                 )
+            '''
+        ).strip()
+
+
+class TestGetMaxValueFromBqTable:
+    def test_should_generate_query_for_max_value(
+        self,
+        bq_client_mock: MagicMock
+    ):
+        query_mock: MagicMock = bq_client_mock.query
+        query_job_mock = query_mock.return_value
+        query_job_mock.result.return_value = [
+            Row(["max_value_1"], {"max_value": 0})
+        ]
+        get_max_value_from_bq_table(
+            project_name="project_1",
+            dataset_name="dataset_1",
+            column_name="column_name_1",
+            table_name="table_name_1"
+        )
+        args, _kwargs = query_mock.call_args
+        assert textwrap.dedent(args[0]).strip() == textwrap.dedent(
+            '''
+            SELECT
+            MAX(column_name_1) AS max_value
+            FROM `project_1.dataset_1.table_name_1`
             '''
         ).strip()
 
