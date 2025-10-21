@@ -10,3 +10,7 @@ updates:
       patterns:
         - "boto3"
         - "botocore"
+    fs-group:
+      patterns:
+        - "fsspec"
+        - "s3fs"
