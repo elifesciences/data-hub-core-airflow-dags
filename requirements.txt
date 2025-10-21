@@ -9,7 +9,7 @@ aiobotocore==2.12.4
 cattrs==25.3.0
 cloudpickle==3.1.1
 dateparser==1.2.2
-kubernetes==34.1.0
+kubernetes
 apache-airflow-providers-cncf-kubernetes==10.8.2
 objsize==0.7.1
 pendulum==3.1.0
