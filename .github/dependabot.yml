@@ -14,3 +14,7 @@ updates:
       patterns:
         - "apache-airflow-providers-cncf-kubernetes"
         - "kubernetes"
+    fs-group:
+      patterns:
+        - "fsspec"
+        - "s3fs"
