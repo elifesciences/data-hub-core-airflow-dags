@@ -1,4 +1,5 @@
-from typing_extensions import TypedDict, NotRequired, Sequence
+from typing import Sequence
+from typing_extensions import TypedDict, NotRequired
 
 from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
