@@ -10,3 +10,7 @@ updates:
       patterns:
         - "boto3"
         - "botocore"
+    k8s-group:
+      patterns:
+        - "apache-airflow-providers-cncf-kubernetes"
+        - "kubernetes"
