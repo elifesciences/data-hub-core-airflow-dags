@@ -1,4 +1,5 @@
 from math import ceil
+import textwrap
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,6 +9,7 @@ from google.cloud.bigquery.table import Row
 import data_pipeline.utils.data_store.bq_data_service \
     as bq_data_service_module
 from data_pipeline.utils.data_store.bq_data_service import (
+    get_distinct_values_from_bq,
     get_query_with_exclusion,
     iter_dict_from_bq_query,
     load_file_into_bq,
@@ -23,9 +25,14 @@ def _bigquery():
 
 
 @pytest.fixture(name="bq_client_class_mock")
-def _bq_client():
+def _bq_client_class_mock():
     with patch.object(bq_data_service_module, "Client") as mock:
         yield mock
+
+
+@pytest.fixture(name="bq_client_mock")
+def _bq_client_mock(bq_client_class_mock: MagicMock):
+    yield bq_client_class_mock.return_value
 
 
 @pytest.fixture(name="mock_load_job_config")
@@ -84,6 +91,28 @@ class TestIterDictFromBqQuery:
             "key1": "value1",
             "key2": "value2"
         }]
+
+
+class TestGetDistinctValuesFromBq:
+    def test_should_generate_query_for_minimal_parameters(
+        self,
+        bq_client_mock: MagicMock
+    ):
+        get_distinct_values_from_bq(
+            project_name="project_1",
+            dataset_name="dataset_1",
+            column_name="column_name_1",
+            table_name_source="table_name_1"
+        )
+        query_mock: MagicMock = bq_client_mock.query
+        args, _kwargs = query_mock.call_args
+        assert textwrap.dedent(args[0]).strip() == textwrap.dedent(
+            '''
+            SELECT DISTINCT column_name_1 AS column
+            FROM  `project_1.dataset_1.table_name_1`
+            WHERE column_name_1 IS NOT NULL
+            '''
+        ).strip()
 
 
 def test_should_load_file_into_bq(
