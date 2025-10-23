@@ -13,7 +13,7 @@ kubernetes
 apache-airflow-providers-cncf-kubernetes==10.8.2
 objsize==0.7.1
 pendulum==3.1.0
-redis==6.4.0
+redis==7.0.0
 regex==2025.10.23
 fsspec==2025.9.0
 lxml>=4.8.0, <6.1.0
