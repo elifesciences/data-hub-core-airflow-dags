@@ -104,7 +104,7 @@ services:
         environment: *airflow-env
         image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         entrypoint: /entrypoint
-        command: webserver
+        command: api-server
         volumes: *airflow-volumes
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8080"]
