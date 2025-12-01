@@ -1,2 +1,3 @@
 importFilesFrom:
   - kubernetes-pipeline-other.config.yaml
+  - kubernetes-pipeline-simple.config.yaml
