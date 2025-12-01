@@ -61,6 +61,10 @@ We can also use kubectl locally by specifying the configuration file. Assuming `
     $ kubectl --kubeconfig=k3s-config/kubeconfig.yaml get pods -A
     ...
 
+You should then be able to run the `Simple_Airflow_Kubernetes` pipeline.
+
+It would require additional config to make config volumes, secrets and local images available to the cluster.
+
 ## Running Pipelines via Virtual Environment
 
 The environment (and BigQuery dataset) can be selected by setting the `DEPLOYMENT_ENV` environment variable:
