@@ -53,12 +53,12 @@ The `k3s-config/kubeconfig.yaml` file will be created automatically on localhost
 
 When you then start or re-start Airflow, this should copy and update the `k3s-config/kubeconfig_corrected.yaml` config file pointing to `k3s-server` (instead of `127.0.0.1`), making it accessible to Airflow. The config update will be done by `fix-k3s-config` (a dependency of the `worker`).
 
-We can also use kubectl locally by specifying the configuration file. To do this, we need to use `kubeconfig.yaml` with the localhost settings. Simply obtain a copy of the configuration with the localhost IP (`server: https://127.0.0.1:6443`) and save it as `kubeconfig_localhost.yaml`.
+We can also use kubectl locally by specifying the configuration file. Assuming `k3s-config/kubeconfig.yaml` still points to `127.0.0.1` you could run:
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get nodes
+    $ kubectl --kubeconfig=k3s-config/kubeconfig.yaml get nodes
     ...
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get pods -A
+    $ kubectl --kubeconfig=k3s-config/kubeconfig.yaml get pods -A
     ...
 
 ## Running Pipelines via Virtual Environment
