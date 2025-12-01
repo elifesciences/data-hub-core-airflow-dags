@@ -47,13 +47,13 @@ To set up the development environment (virtual environment):
 
 ### Run k3s locally
 
-  The `kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
+The `kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
 
     make k3s-start
 
-  We need to update the server IP in the `kubeconfig.yaml` file to connect with Airflow. To obtain the relevant IP address, use the commands provided below. Once you have the IP, replace the `server` entry in the file with `server: https://<YOUR_IP>:6443`.
+We need to update the server IP in the `kubeconfig.yaml` file to connect with Airflow. To obtain the relevant IP address, use the commands provided below. Once you have the IP, replace the `server` entry in the file with `server: https://<YOUR_IP>:6443`.
 
-  To do this:
+To do this:
 
     # get network ids
     $ docker network ls
@@ -72,7 +72,7 @@ To set up the development environment (virtual environment):
       "IPv6Address": ""
     }
 
-  We can also use kubectl locally by specifying the configuration file. To do this, we need to use `kubeconfig.yaml` with the localhost settings. Simply obtain a copy of the configuration with the localhost IP (`server: https://127.0.0.1:6443`) and save it as `kubeconfig_localhost.yaml`.
+We can also use kubectl locally by specifying the configuration file. To do this, we need to use `kubeconfig.yaml` with the localhost settings. Simply obtain a copy of the configuration with the localhost IP (`server: https://127.0.0.1:6443`) and save it as `kubeconfig_localhost.yaml`.
 
     $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get nodes
     ...
