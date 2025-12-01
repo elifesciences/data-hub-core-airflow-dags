@@ -28,38 +28,52 @@ Following are the credentials that you may need to provide
 
 To run the application locally:
 
-    make build-dev airflow-initdb airflow-start
+```shell
+make build-dev airflow-initdb airflow-start
+```
 
 To run the whole test on the application:
 
-    make end2end-test
+```shell
+make end2end-test
+```
 
 To run tests excluding the end to end tests:
 
-    make test-exclude-e2e
+```shell
+make test-exclude-e2e
+```
 
 To set up the development environment (virtual environment):
 
-    # initial setup
-    make dev-venv
-    # update dependencies
-    make dev-install
+```shell
+# initial setup
+make dev-venv
+# update dependencies
+make dev-install
+```
 
 ### Run k3s locally
 
 The `k3s-config/kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
 
-    make k3s-start
+```shell
+make k3s-start
+```
 
 When you then start or re-start Airflow, this should copy and update the `k3s-config/kubeconfig_corrected.yaml` config file pointing to `k3s-server` (instead of `127.0.0.1`), making it accessible to Airflow. The config update will be done by `fix-k3s-config` (a dependency of the `worker`).
 
 We can also use kubectl locally by specifying the configuration file. Assuming `k3s-config/kubeconfig.yaml` still points to `127.0.0.1` you could run:
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig.yaml get nodes
-    ...
+```shell
+kubectl --kubeconfig=k3s-config/kubeconfig.yaml get nodes
+```
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig.yaml get pods -A
-    ...
+Or:
+
+```shell
+kubectl --kubeconfig=k3s-config/kubeconfig.yaml get pods -A
+```
 
 You should then be able to run the `Simple_Airflow_Kubernetes` pipeline.
 
@@ -69,29 +83,41 @@ It would require additional config to make config volumes, secrets and local ima
 
 The environment (and BigQuery dataset) can be selected by setting the `DEPLOYMENT_ENV` environment variable:
 
-    DEPLOYMENT_ENV=my_dev
+```shell
+DEPLOYMENT_ENV=my_dev
+```
 
 ### eLife Articles Xml via Virtual Environment
 
-    make dev-run-elife-articles-xml
+```shell
+make dev-run-elife-articles-xml
+```
 
 ### Running Web API via Virtual Environment
 
-    make dev-run-web-api DATA_PIPELINE_ID=people_api
+```shell
+make dev-run-web-api DATA_PIPELINE_ID=people_api
+```
 
 ## Running Pipelines via Docker
 
 The environment (and BigQuery dataset) can be selected by setting the `DATA_HUB_DEPLOYMENT_ENV` environment variable:
 
-    DATA_HUB_DEPLOYMENT_ENV=my_dev
+```shell
+DATA_HUB_DEPLOYMENT_ENV=my_dev
+```
 
 ### eLife Articles Xml via Docker
 
-    make data-hub-pipelines-run-elife-articles-xml
+```shell
+make data-hub-pipelines-run-elife-articles-xml
+```
 
 ### Running Web API via Docker
 
-    make data-hub-pipelines-run-web-api DATA_PIPELINE_ID=people_api
+```shell
+make data-hub-pipelines-run-web-api DATA_PIPELINE_ID=people_api
+```
 
 ## Project Folder/Package Organisation
 
