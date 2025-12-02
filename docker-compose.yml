@@ -127,6 +127,15 @@ services:
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
+  
+    dag-processor:
+        depends_on:
+            - postgres
+        volumes: *airflow-volumes
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
+        environment: *airflow-env
+        entrypoint: /entrypoint
+        command: dag-processor
 
     worker:
         environment: *airflow-env
@@ -134,6 +143,7 @@ services:
           - smtp-server
           - redis
           - scheduler
+          - dag-processor
           - fix-k3s-config
         volumes: *airflow-volumes
         image: ${IMAGE_REPO}-dev:${IMAGE_TAG}
