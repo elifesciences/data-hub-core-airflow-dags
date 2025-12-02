@@ -15,10 +15,15 @@ import dateutil.parser
 from sqlalchemy import func, and_
 from sqlalchemy.orm import load_only
 
+from airflow.utils.types import DagRunType
 from airflow.models import (
-    DagRun, TaskInstance, Log, XCom,
+    DagRun,
+    TaskInstance,
+    Log,
+    XCom,
     # SlaMiss,
-    DagModel, Variable
+    DagModel,
+    Variable
 )
 from airflow.jobs.job import Job
 from airflow import settings
@@ -43,7 +48,7 @@ DATABASE_OBJECTS = [
         "airflow_db_model": DagRun,
         "age_check_column": DagRun.logical_date,
         "keep_last": True,
-        "keep_last_filters": [DagRun.external_trigger is False],
+        "keep_last_filters": [DagRun.run_type == DagRunType.SCHEDULED],
         "keep_last_group_by": DagRun.dag_id
     },
     {
