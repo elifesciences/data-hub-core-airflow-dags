@@ -23,7 +23,7 @@ from airflow.models import (
 from airflow.utils import timezone
 from airflow.jobs.job import Job
 from airflow import settings
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
 

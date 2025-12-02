@@ -4,7 +4,7 @@ from datetime import timedelta
 from typing import Optional
 
 import airflow
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.utils import timezone
 

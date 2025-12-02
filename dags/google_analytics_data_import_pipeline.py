@@ -5,7 +5,7 @@ from datetime import timedelta
 from typing import Sequence
 
 import airflow
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 from data_pipeline.utils.pipeline_config import (
     get_pipeline_config_for_env_name_and_config_parser
