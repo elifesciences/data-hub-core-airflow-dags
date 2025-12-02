@@ -20,6 +20,10 @@ x-airflow-env:
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
     - AIRFLOW__API__SECRET_KEY='WmZHRmJwd1dCUEp6Xl4zVA=='
+    - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+    # username:role pairs; passwords are generated
+    # `make airflow-show-user-passwords` to see generated passwords
+    - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin,viewer:viewer
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
@@ -74,6 +78,7 @@ x-airflow-volumes:
     - ./k3s-config:/home/airflow/k3s-config
     # only needed for webserver:
     - ./config/webserver_config.py:/opt/airflow/webserver_config.py
+    - ./config/simple-auth-users.yaml:/home/airflow/config/simple-auth-users.yaml
 
 services:
     data-hub-dags:
