@@ -15,7 +15,6 @@ import dateutil.parser
 from sqlalchemy import func, and_
 from sqlalchemy.orm import load_only
 
-import airflow
 from airflow.models import (
     DagRun, TaskInstance, Log, XCom, SlaMiss,
     DagModel, Variable
@@ -25,11 +24,12 @@ from airflow.jobs.job import Job
 from airflow import settings
 from airflow.providers.standard.operators.python import PythonOperator
 
+from data_pipeline.utils.airflow_compat import days_ago
 from data_pipeline.utils.dags.data_pipeline_dag_utils import create_dag
 
 
 DAG_ID = "Airflow_DB_Maintenance"
-START_DATE = airflow.utils.dates.days_ago(1)
+START_DATE = days_ago(days=1)
 DB_MAINTENANCE_SCHEDULE_INTERVAL_ENV_NAME = (
     "DB_MAINTENANCE_SCHEDULE_INTERVAL"
 )
