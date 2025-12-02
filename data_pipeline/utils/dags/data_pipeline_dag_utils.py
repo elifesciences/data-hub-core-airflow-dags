@@ -1,12 +1,11 @@
 import logging
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import airflow
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.api.common.experimental.trigger_dag import trigger_dag
-from airflow.utils import timezone
 
 from data_pipeline.utils.airflow_compat import days_ago
 from data_pipeline.utils.pipeline_config import ConfigKeys
@@ -71,7 +70,7 @@ def get_task_run_instance_fullname(task_context):
 def simple_trigger_dag(dag_id, conf: dict, suffix=''):
     run_id = _get_full_run_id(
         conf=conf,
-        default_run_id=f'trig__{timezone.utcnow().isoformat()}{suffix}'
+        default_run_id=f'trig__{datetime.now(timezone.utc).isoformat()}{suffix}'
     )
     trigger_dag(
         dag_id=dag_id,

@@ -8,7 +8,7 @@ airflow trigger_dag --conf '{"maxDataAgeInDays":30}' airflow-log-cleanup
 """
 import os
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 import dateutil.parser
 
@@ -19,7 +19,6 @@ from airflow.models import (
     DagRun, TaskInstance, Log, XCom, SlaMiss,
     DagModel, Variable
 )
-from airflow.utils import timezone
 from airflow.jobs.job import Job
 from airflow import settings
 from airflow.providers.standard.operators.python import PythonOperator
@@ -125,7 +124,7 @@ def get_max_data_cleanup_configuration_function(**context):
             )
         )
     )
-    max_date = timezone.utcnow() + timedelta(-max_data_age_in_days)
+    max_date = datetime.now(timezone.utc) + timedelta(-max_data_age_in_days)
     context["ti"].xcom_push(key="max_date", value=max_date.isoformat())
 
 
