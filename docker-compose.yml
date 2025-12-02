@@ -21,6 +21,7 @@ x-airflow-env:
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
     - AIRFLOW__API__SECRET_KEY=WmZHRmJwd1dCUEp6Xl4zVA==
+    - AIRFLOW__API_AUTH__JWT_SECRET=Z2h0dXJzRXhhbXBsZVNlY3JldEtleQ==
     - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
     # username:role pairs; passwords are generated
     # `make airflow-show-user-passwords` to see generated passwords
