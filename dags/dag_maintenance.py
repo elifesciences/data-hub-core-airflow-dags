@@ -16,7 +16,8 @@ from sqlalchemy import func, and_
 from sqlalchemy.orm import load_only
 
 from airflow.models import (
-    DagRun, TaskInstance, Log, XCom, SlaMiss,
+    DagRun, TaskInstance, Log, XCom,
+    # SlaMiss,
     DagModel, Variable
 )
 from airflow.jobs.job import Job
@@ -72,13 +73,13 @@ DATABASE_OBJECTS = [
         "keep_last_filters": None,
         "keep_last_group_by": None
     },
-    {
-        "airflow_db_model": SlaMiss,
-        "age_check_column": SlaMiss.execution_date,
-        "keep_last": False,
-        "keep_last_filters": None,
-        "keep_last_group_by": None
-    },
+    # {
+    #     "airflow_db_model": SlaMiss,
+    #     "age_check_column": SlaMiss.execution_date,
+    #     "keep_last": False,
+    #     "keep_last_filters": None,
+    #     "keep_last_group_by": None
+    # },
     {
         "airflow_db_model": DagModel,
         "age_check_column": DagModel.last_parsed_time,
