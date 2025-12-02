@@ -29,7 +29,7 @@ Following are the credentials that you may need to provide
 To run the application locally:
 
 ```shell
-make build-dev airflow-initdb airflow-start
+make build-dev airflow-db-migrate airflow-start
 ```
 
 To run the whole test on the application:
