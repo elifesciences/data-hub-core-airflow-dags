@@ -78,7 +78,6 @@ x-airflow-volumes:
     - ./k3s-config:/home/airflow/k3s-config
     # only needed for webserver:
     - ./config/webserver_config.py:/opt/airflow/webserver_config.py
-    - ./config/simple-auth-users.yaml:/home/airflow/config/simple-auth-users.yaml
 
 services:
     data-hub-dags:
