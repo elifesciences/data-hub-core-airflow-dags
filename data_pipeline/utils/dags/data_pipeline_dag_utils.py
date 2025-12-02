@@ -1,11 +1,11 @@
 import logging
-import json
-from datetime import datetime, timedelta, timezone
+# import json
+from datetime import timedelta
 from typing import Optional
 
 import airflow
 from airflow.providers.standard.operators.python import PythonOperator
-from airflow.api.common.experimental.trigger_dag import trigger_dag
+# from airflow.api.common.experimental.trigger_dag import trigger_dag
 
 from data_pipeline.utils.airflow_compat import days_ago
 from data_pipeline.utils.pipeline_config import ConfigKeys
@@ -68,17 +68,18 @@ def get_task_run_instance_fullname(task_context):
 
 
 def simple_trigger_dag(dag_id, conf: dict, suffix=''):
-    run_id = _get_full_run_id(
-        conf=conf,
-        default_run_id=f'trig__{datetime.now(timezone.utc).isoformat()}{suffix}'
-    )
-    trigger_dag(
-        dag_id=dag_id,
-        run_id=run_id,
-        conf=json.dumps(conf),
-        execution_date=None,
-        replace_microseconds=False
-    )
+    raise NotImplementedError("simple_trigger_dag is not implemented for Airflow 3.x")
+    # run_id = _get_full_run_id(
+    #     conf=conf,
+    #     default_run_id=f'trig__{datetime.now(timezone.utc).isoformat()}{suffix}'
+    # )
+    # trigger_dag(
+    #     dag_id=dag_id,
+    #     run_id=run_id,
+    #     conf=json.dumps(conf),
+    #     execution_date=None,
+    #     replace_microseconds=False
+    # )
 
 
 def get_suffix_for_config(config: dict) -> str:
