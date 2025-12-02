@@ -41,13 +41,13 @@ ENABLE_DELETE = True
 DATABASE_OBJECTS = [
     {
         "airflow_db_model": DagRun,
-        "age_check_column": DagRun.execution_date,
+        "age_check_column": DagRun.logical_date,
         "keep_last": True,
         "keep_last_filters": [DagRun.external_trigger is False],
         "keep_last_group_by": DagRun.dag_id},
     {
         "airflow_db_model": TaskInstance,
-        "age_check_column": TaskInstance.execution_date,
+        "age_check_column": TaskInstance.logical_date,
         "keep_last": False,
         "keep_last_filters": None,
         "keep_last_group_by": None
@@ -61,7 +61,7 @@ DATABASE_OBJECTS = [
     },
     {
         "airflow_db_model": XCom,
-        "age_check_column": XCom.execution_date,
+        "age_check_column": XCom.logical_date,
         "keep_last": False,
         "keep_last_filters": None,
         "keep_last_group_by": None
@@ -75,7 +75,7 @@ DATABASE_OBJECTS = [
     },
     # {
     #     "airflow_db_model": SlaMiss,
-    #     "age_check_column": SlaMiss.execution_date,
+    #     "age_check_column": SlaMiss.logical_date,
     #     "keep_last": False,
     #     "keep_last_filters": None,
     #     "keep_last_group_by": None
@@ -138,7 +138,7 @@ get_configuration = PythonOperator(
 
 def cleanup_function(**context):
 
-    logging.info("Retrieving max_execution_date from XCom")
+    logging.info("Retrieving max_logical_date from XCom")
     max_date = context["ti"].xcom_pull(
         task_ids=get_configuration.task_id, key="max_date"
     )
@@ -155,7 +155,7 @@ def cleanup_function(**context):
         load_only(age_check_column)
     )
     if keep_last:
-        subquery = session.query(func.max(DagRun.execution_date))
+        subquery = session.query(func.max(DagRun.logical_date))
         if keep_last_filters is not None:
             for entry in keep_last_filters:
                 subquery = subquery.filter(entry)
