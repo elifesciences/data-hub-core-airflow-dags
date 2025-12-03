@@ -2,7 +2,7 @@ import json
 import logging
 import os
 import re
-from typing import List
+from typing import List, Optional
 from urllib.parse import urljoin
 
 import requests
@@ -20,14 +20,20 @@ class AirflowAPI:
         self.airflow_url = f'http://{airflow_host}:{airflow_port}'
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
-    def send_request(self, url, method='GET', json_param=None):
+    def send_request(
+        self,
+        url: str,
+        method: str = 'GET',
+        json_param: Optional[dict] = None,
+        timeout: int = 60
+    ):
         LOGGER.info('Sending %s request to url=%s', method, url)
         resp = requests.request(
             method=method.lower(),
             url=url,
             json=json_param,
             headers=self.headers,
-            timeout=60
+            timeout=timeout
         )
         if not resp.ok:
             # It is justified here because there might be many resp types.
@@ -40,8 +46,8 @@ class AirflowAPI:
         return resp.json()
 
     def unpause_dag(self, dag_id):
-        return requests.get(
-            f'{self.airflow_url}/api/experimental/dags/{dag_id}/paused/false',
+        self.send_request(
+            url=f'{self.airflow_url}/api/experimental/dags/{dag_id}/paused/false',
             timeout=10
         )
 
