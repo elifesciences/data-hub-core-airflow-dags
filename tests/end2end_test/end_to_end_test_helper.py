@@ -51,12 +51,6 @@ class AirflowAPI:
             timeout=10
         )
 
-    def pause_dag(self, dag_id):
-        return requests.get(
-            f'{self.airflow_url}/api/experimental/dags/{dag_id}/paused/true',
-            timeout=10
-        )
-
     def unpause_and_trigger_dag_and_return_execution_date(
         self, dag_id, conf=None
     ):
