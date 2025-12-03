@@ -80,7 +80,7 @@ def enable_and_trigger_dag_and_wait_for_success(
     )
     LOGGER.info('dag_run_id is %s', dag_run_id)
     assert dag_run_id is not None
-    wait_untill_all_dag_run_ends_with_success(
+    wait_until_all_dag_run_ends_with_success(
         airflow_api,
         dag_run_id=dag_run_id,
         dag_id=dag_id,
@@ -123,7 +123,7 @@ def trigger_run_test_pipeline(
     assert loaded_table_row_count > 0
 
 
-def wait_untill_dag_run_is_successful(
+def wait_until_dag_run_is_successful(
     airflow_api: AirflowAPI,
     dag_id: str,
     dag_run_id: str
@@ -138,13 +138,13 @@ def wait_untill_dag_run_is_successful(
     assert dag_status == 'success'
 
 
-def wait_untill_all_dag_run_ends_with_success(
+def wait_until_all_dag_run_ends_with_success(
     airflow_api: AirflowAPI,
     dag_run_id: str,
     dag_id: str,
     triggered_dag_id: Optional[str] = None
 ):
-    wait_untill_dag_run_is_successful(
+    wait_until_dag_run_is_successful(
         airflow_api=airflow_api,
         dag_id=dag_id,
         dag_run_id=dag_run_id
