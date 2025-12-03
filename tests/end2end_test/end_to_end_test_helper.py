@@ -51,7 +51,7 @@ class AirflowAPI:
         method: str = 'GET',
         json_param: Optional[dict] = None,
         timeout: int = 60
-    ):
+    ) -> dict:
         LOGGER.info('Sending %s request to url=%s', method, url)
         resp = requests.request(
             method=method.lower(),
@@ -73,9 +73,9 @@ class AirflowAPI:
             )
         return resp.json()
 
-    def unpause_dag(self, dag_id):
+    def unpause_dag(self, dag_id: str) -> None:
         url = f'{self.airflow_url}/api/v2/dags/{dag_id}'
-        return self.send_request(url, method='PATCH', json_param={'is_paused': False})
+        self.send_request(url, method='PATCH', json_param={'is_paused': False})
 
     def unpause_and_trigger_dag_and_return_dag_run_id(
         self,
@@ -96,11 +96,11 @@ class AirflowAPI:
             raise ValueError(f'No dag_run_id in response: {data}')
         return dag_run_id
 
-    def dag_state(self, dag_id: str, dag_run_id: str):
+    def dag_state(self, dag_id: str, dag_run_id: str) -> dict:
         url = f'{self.airflow_url}/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}'
         return self.send_request(url, method='GET')
 
-    def is_any_dag_run_queued_or_running(self, dag_id):
+    def is_any_dag_run_queued_or_running(self, dag_id: str) -> bool:
         response = requests.get(
             f'{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs',
             timeout=10
@@ -113,7 +113,7 @@ class AirflowAPI:
         ]
         return any(states)
 
-    def do_all_dag_runs_end_with_success(self, dag_id):
+    def do_all_dag_runs_end_with_success(self, dag_id: str) -> bool:
         response = requests.get(
             f'{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs',
             timeout=10
@@ -126,10 +126,12 @@ class AirflowAPI:
         ]
         return all(states)
 
-    def get_dag_status(self, dag_id: str, dag_run_id):
+    def get_dag_status(self, dag_id: str, dag_run_id) -> str:
         json_response = self.dag_state(dag_id=dag_id, dag_run_id=dag_run_id)
         LOGGER.info('json_response: %s', json_response)
-        return json_response.get('state').lower()
+        state = json_response.get('state')
+        assert state is not None
+        return state.lower()
 
 
 def simple_query(project: str, dataset: str, table: str, query: str) \
