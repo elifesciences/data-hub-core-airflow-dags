@@ -34,7 +34,7 @@ def truncate_table(
             table=table_name,
         )
     except Exception:
-        LOGGER.info("table not cleaned, maybe it does not exist")
+        LOGGER.info('table not cleaned, maybe it does not exist')
 
 
 def delete_statefile_if_exist(
@@ -47,7 +47,7 @@ def delete_statefile_if_exist(
                          state_file_object_name
                          )
     except Exception:
-        LOGGER.info("s3 object not deleted, may not exist")
+        LOGGER.info('s3 object not deleted, may not exist')
 
 
 def get_table_row_count(
@@ -61,7 +61,7 @@ def get_table_row_count(
         dataset=dataset_name,
         table=table_name,
     )
-    return query_response[0].get("count")
+    return query_response[0].get('count')
 
 
 def enable_and_trigger_dag_and_wait_for_success(
@@ -72,16 +72,16 @@ def enable_and_trigger_dag_and_wait_for_success(
 ):
     if target_dag:
         airflow_api.unpause_dag(target_dag)
-        LOGGER.info("unpause target_dag is %s", target_dag)
-    LOGGER.info("main dag is %s", dag_id)
+        LOGGER.info('unpause target_dag is %s', target_dag)
+    LOGGER.info('main dag is %s', dag_id)
     dag_run_id = airflow_api.unpause_and_trigger_dag_and_return_dag_run_id(
         dag_id=dag_id,
         conf=dag_trigger_conf
     )
-    LOGGER.info("dag_run_id is %s", dag_run_id)
+    LOGGER.info('dag_run_id is %s', dag_run_id)
     assert dag_run_id is not None
     raise NotImplementedError(
-        "enable_and_trigger_dag_and_wait_for_success is not implemented for Airflow 3.x"
+        'enable_and_trigger_dag_and_wait_for_success is not implemented for Airflow 3.x'
     )
     # execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
     #     dag_id=dag_id, conf=dag_trigger_conf
@@ -134,11 +134,11 @@ def wait_untill_dag_run_is_successful(
     dag_status: str
     while True:
         dag_status = airflow_api.get_dag_status(dag_id, execution_date)
-        if dag_status not in {"running", "queued"}:
+        if dag_status not in {'running', 'queued'}:
             break
         time.sleep(5)
-        LOGGER.info("etl in progress (status: %r)", dag_status)
-    assert dag_status == "success"
+        LOGGER.info('etl in progress (status: %r)', dag_status)
+    assert dag_status == 'success'
 
 
 def wait_untill_all_dag_run_ends_with_success(
@@ -150,11 +150,11 @@ def wait_untill_all_dag_run_ends_with_success(
         dag_id=dag_id,
         execution_date=execution_date
     )
-    LOGGER.info("triggered_dag_id is %s", triggered_dag_id)
+    LOGGER.info('triggered_dag_id is %s', triggered_dag_id)
     if triggered_dag_id:
         while airflow_api.is_any_dag_run_queued_or_running(triggered_dag_id):
             LOGGER.info(
-                "waiting for the DAG triggered by the controller. Dag id is %s",
+                'waiting for the DAG triggered by the controller. Dag id is %s',
                 triggered_dag_id
             )
             time.sleep(5)
@@ -162,9 +162,9 @@ def wait_untill_all_dag_run_ends_with_success(
 
 
 class TestQueryTemplate:
-    CLEAN_TABLE_QUERY = """
+    CLEAN_TABLE_QUERY = '''
     Delete from `{project}.{dataset}.{table}` where true
-    """
-    READ_COUNT_TABLE_QUERY = """
+    '''
+    READ_COUNT_TABLE_QUERY = '''
     Select Count(*) AS count from `{project}.{dataset}.{table}`
-    """
+    '''
