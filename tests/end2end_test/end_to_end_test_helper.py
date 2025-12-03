@@ -20,14 +20,13 @@ class AirflowAPI:
         self.airflow_url = f"http://{airflow_host}:{airflow_port}"
 
     def send_request(self, url, method="GET", json_param=None):
-        params = {
-            "url": url,
-        }
-        if json_param is not None:
-            params["json"] = json_param
         LOGGER.info("Sending %s request to url=%s", method, url)
-        # pylint: disable=not-callable
-        resp = getattr(requests, method.lower())(**params)
+        resp = requests.request(
+            method=method.lower(),
+            url=url,
+            json=json_param,
+            timeout=60
+        )
         if not resp.ok:
             # It is justified here because there might be many resp types.
             # noinspection PyBroadException
