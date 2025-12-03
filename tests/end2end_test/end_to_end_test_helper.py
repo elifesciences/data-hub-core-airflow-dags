@@ -63,8 +63,6 @@ class AirflowAPI:
             timeout=timeout
         )
         if not resp.ok:
-            # It is justified here because there might be many resp types.
-            # noinspection PyBroadException
             raise OSError(
                 f'Failed to request url={url}'
                 f', method={method}, status={resp.status_code}'
