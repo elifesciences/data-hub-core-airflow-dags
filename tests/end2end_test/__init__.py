@@ -135,7 +135,9 @@ def wait_until_dag_run_is_successful(
             break
         time.sleep(5)
         LOGGER.info('etl in progress (status: %r)', dag_status)
-    assert dag_status == 'success'
+    LOGGER.info('etl ended with status: %r', dag_status)
+    if dag_status != 'success':
+        raise AssertionError(f'DAG run ended with non-success status: {dag_status}')
 
 
 def wait_until_all_dag_run_ends_with_success(
