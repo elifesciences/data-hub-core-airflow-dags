@@ -1,6 +1,7 @@
 import time
 import logging
 from typing import NamedTuple, Optional
+
 from tests.end2end_test.end_to_end_test_helper import (
     AirflowAPI,
     simple_query
@@ -73,12 +74,21 @@ def enable_and_trigger_dag_and_wait_for_success(
         airflow_api.unpause_dag(target_dag)
         LOGGER.info("unpause target_dag is %s", target_dag)
     LOGGER.info("main dag is %s", dag_id)
-    execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
-        dag_id=dag_id, conf=dag_trigger_conf
+    dag_run_id = airflow_api.unpause_and_trigger_dag_and_return_dag_run_id(
+        dag_id=dag_id,
+        conf=dag_trigger_conf
     )
-    wait_untill_all_dag_run_ends_with_success(
-        airflow_api, execution_date, dag_id, target_dag,
+    LOGGER.info("dag_run_id is %s", dag_run_id)
+    assert dag_run_id is not None
+    raise NotImplementedError(
+        "enable_and_trigger_dag_and_wait_for_success is not implemented for Airflow 3.x"
     )
+    # execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
+    #     dag_id=dag_id, conf=dag_trigger_conf
+    # )
+    # wait_untill_all_dag_run_ends_with_success(
+    #     airflow_api, execution_date, dag_id, target_dag,
+    # )
 
 
 # pylint: disable=too-many-arguments

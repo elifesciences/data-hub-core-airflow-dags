@@ -78,6 +78,25 @@ class AirflowAPI:
         url = f'{self.airflow_url}/api/v2/dags/{dag_id}'
         return self.send_request(url, method='PATCH', json_param={'is_paused': False})
 
+    def unpause_and_trigger_dag_and_return_dag_run_id(
+        self,
+        dag_id: str,
+        conf: Optional[dict] = None
+    ) -> str:
+        self.unpause_dag(dag_id)
+
+        endpoint = f'/api/v2/dags/{dag_id}/dagRuns'
+        url = urljoin(self.airflow_url + '/', endpoint)
+        payload = {
+            'logical_date': None,
+            'conf': conf or {},
+        }
+        data = self.send_request(url, method='POST', json_param=payload)
+        dag_run_id = data.get('dag_run_id')
+        if not dag_run_id:
+            raise ValueError(f'No dag_run_id in response: {data}')
+        return dag_run_id
+
     def unpause_and_trigger_dag_and_return_execution_date(
         self, dag_id, conf=None
     ):
