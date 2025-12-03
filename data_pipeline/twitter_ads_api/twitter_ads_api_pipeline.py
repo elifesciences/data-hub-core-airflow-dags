@@ -65,7 +65,7 @@ def get_bq_compatible_json_response_from_resource_with_provenance(
 ) -> Any:
     resource = replace_placeholders(source_config.resource, placeholders=placeholders)
     LOGGER.info("Getting data for resource: %s", resource)
-    LOGGER.info('params_dict: %r', params_dict)
+    LOGGER.info('params_dict: %s', repr(params_dict))
     req = Request(
         client=get_client_from_twitter_ads_api(source_config=source_config),
         method="GET",
