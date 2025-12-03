@@ -18,6 +18,7 @@ class AirflowAPI:
         airflow_host = os.getenv('AIRFLOW_HOST')
         airflow_port = os.getenv('AIRFLOW_PORT', '8080')
         self.airflow_url = f'http://{airflow_host}:{airflow_port}'
+        self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
     def send_request(self, url, method='GET', json_param=None):
         LOGGER.info('Sending %s request to url=%s', method, url)
@@ -25,6 +26,7 @@ class AirflowAPI:
             method=method.lower(),
             url=url,
             json=json_param,
+            headers=self.headers,
             timeout=60
         )
         if not resp.ok:
