@@ -26,6 +26,7 @@ x-airflow-env:
     # username:role pairs; passwords are generated
     # `make airflow-show-user-passwords` to see generated passwords
     - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin,viewer:viewer
+    - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=true
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
