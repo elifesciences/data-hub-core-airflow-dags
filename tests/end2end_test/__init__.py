@@ -2,6 +2,7 @@ import time
 import logging
 from typing import NamedTuple, Optional
 from tests.end2end_test.end_to_end_test_helper import (
+    AirflowAPI,
     simple_query
 )
 from data_pipeline.utils.data_store.s3_data_service import delete_s3_object
@@ -63,7 +64,7 @@ def get_table_row_count(
 
 
 def enable_and_trigger_dag_and_wait_for_success(
-    airflow_api,
+    airflow_api: AirflowAPI,
     dag_id: str,
     target_dag: Optional[str] = None,
     dag_trigger_conf: Optional[dict] = None
@@ -82,7 +83,7 @@ def enable_and_trigger_dag_and_wait_for_success(
 
 # pylint: disable=too-many-arguments
 def trigger_run_test_pipeline(
-        airflow_api,
+        airflow_api: AirflowAPI,
         pipeline_cloud_resource: DataPipelineCloudResource,
         dag_id, target_dag=None,
         dag_trigger_conf: Optional[dict] = None
@@ -116,7 +117,7 @@ def trigger_run_test_pipeline(
 
 
 def wait_untill_dag_run_is_successful(
-    airflow_api,
+    airflow_api: AirflowAPI,
     dag_id: str,
     execution_date: str
 ) -> None:
@@ -131,7 +132,7 @@ def wait_untill_dag_run_is_successful(
 
 
 def wait_untill_all_dag_run_ends_with_success(
-        airflow_api, execution_date,
+        airflow_api: AirflowAPI, execution_date,
         dag_id, triggered_dag_id=None
 ):
     wait_untill_dag_run_is_successful(
