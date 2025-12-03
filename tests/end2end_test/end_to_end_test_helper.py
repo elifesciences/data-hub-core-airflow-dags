@@ -7,7 +7,6 @@ from urllib.parse import urljoin
 import requests
 from google.cloud import bigquery
 
-# pylint: disable=no-else-return
 LOGGER = logging.getLogger(__name__)
 
 
