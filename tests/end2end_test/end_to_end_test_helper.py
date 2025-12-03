@@ -25,21 +25,17 @@ class AirflowAPI:
         }
         if json_param is not None:
             params["json"] = json_param
+        LOGGER.info("Sending %s request to url=%s", method, url)
         # pylint: disable=not-callable
         resp = getattr(requests, method.lower())(**params)
         if not resp.ok:
             # It is justified here because there might be many resp types.
             # noinspection PyBroadException
-            try:
-                data = resp.json()
-            except Exception:  # pylint: disable=broad-except
-                data = {
-                    "error": f'failed to request url={url}, \
-                        method={method}, status={resp.status_code}, \
-                        response: {resp.text}'
-                }
-            raise OSError(data.get("error", "Server error"))
-
+            raise OSError(
+                f'Failed to request url={url}'
+                f', method={method}, status={resp.status_code}'
+                f', response: {resp.text}'
+            )
         return resp.json()
 
     def unpause_dag(self, dag_id):
