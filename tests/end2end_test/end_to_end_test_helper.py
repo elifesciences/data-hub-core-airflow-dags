@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import re
 from typing import List, Optional
 from urllib.parse import urljoin
 
@@ -96,18 +95,6 @@ class AirflowAPI:
         if not dag_run_id:
             raise ValueError(f'No dag_run_id in response: {data}')
         return dag_run_id
-
-    def unpause_and_trigger_dag_and_return_execution_date(
-        self, dag_id, conf=None
-    ):
-        self.unpause_dag(dag_id)
-        endpoint = f'/api/experimental/dags/{dag_id}/dag_runs'
-        url = urljoin(self.airflow_url, endpoint)
-        data = self.send_request(url, method='POST',
-                                 json_param={'conf': conf or {}, })
-
-        pattern = r'\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d'
-        return re.findall(pattern, data['message'])[0]
 
     def dag_state(self, dag_id: str, dag_run_id: str):
         url = f'{self.airflow_url}/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}'
