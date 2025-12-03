@@ -80,15 +80,12 @@ def enable_and_trigger_dag_and_wait_for_success(
     )
     LOGGER.info('dag_run_id is %s', dag_run_id)
     assert dag_run_id is not None
-    raise NotImplementedError(
-        'enable_and_trigger_dag_and_wait_for_success is not implemented for Airflow 3.x'
+    wait_untill_all_dag_run_ends_with_success(
+        airflow_api,
+        dag_run_id=dag_run_id,
+        dag_id=dag_id,
+        triggered_dag_id=target_dag
     )
-    # execution_date = airflow_api.unpause_and_trigger_dag_and_return_execution_date(
-    #     dag_id=dag_id, conf=dag_trigger_conf
-    # )
-    # wait_untill_all_dag_run_ends_with_success(
-    #     airflow_api, execution_date, dag_id, target_dag,
-    # )
 
 
 # pylint: disable=too-many-arguments
@@ -129,11 +126,11 @@ def trigger_run_test_pipeline(
 def wait_untill_dag_run_is_successful(
     airflow_api: AirflowAPI,
     dag_id: str,
-    execution_date: str
+    dag_run_id: str
 ) -> None:
     dag_status: str
     while True:
-        dag_status = airflow_api.get_dag_status(dag_id, execution_date)
+        dag_status = airflow_api.get_dag_status(dag_id=dag_id, dag_run_id=dag_run_id)
         if dag_status not in {'running', 'queued'}:
             break
         time.sleep(5)
@@ -142,13 +139,15 @@ def wait_untill_dag_run_is_successful(
 
 
 def wait_untill_all_dag_run_ends_with_success(
-        airflow_api: AirflowAPI, execution_date,
-        dag_id, triggered_dag_id=None
+    airflow_api: AirflowAPI,
+    dag_run_id: str,
+    dag_id: str,
+    triggered_dag_id: Optional[str] = None
 ):
     wait_untill_dag_run_is_successful(
         airflow_api=airflow_api,
         dag_id=dag_id,
-        execution_date=execution_date
+        dag_run_id=dag_run_id
     )
     LOGGER.info('triggered_dag_id is %s', triggered_dag_id)
     if triggered_dag_id:

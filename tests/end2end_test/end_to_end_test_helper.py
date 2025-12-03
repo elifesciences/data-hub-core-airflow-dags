@@ -109,11 +109,9 @@ class AirflowAPI:
         pattern = r'\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d'
         return re.findall(pattern, data['message'])[0]
 
-    def dag_state(self, dag_id, execution_date):
-        return requests.get(
-            f'{self.airflow_url}/api/experimental/dags/{dag_id}/dag_runs/{execution_date}',
-            timeout=10
-        )
+    def dag_state(self, dag_id: str, dag_run_id: str):
+        url = f'{self.airflow_url}/api/v2/dags/{dag_id}/dagRuns/{dag_run_id}'
+        return self.send_request(url, method='GET')
 
     def is_any_dag_run_queued_or_running(self, dag_id):
         response = requests.get(
@@ -141,14 +139,13 @@ class AirflowAPI:
         ]
         return all(states)
 
-    def is_dag_running(self, dag_id, execution_date):
-        if not (execution_date and dag_id):
+    def is_dag_running(self, dag_id, dag_run_id: str):
+        if not (dag_run_id and dag_id):
             return False
-        return self.get_dag_status(dag_id, execution_date) == 'running'
+        return self.get_dag_status(dag_id=dag_id, dag_run_id=dag_run_id) == 'running'
 
-    def get_dag_status(self, dag_id, execution_date):
-        response = self.dag_state(dag_id, execution_date)
-        json_response = json.loads(response.text)
+    def get_dag_status(self, dag_id: str, dag_run_id):
+        json_response = self.dag_state(dag_id=dag_id, dag_run_id=dag_run_id)
         LOGGER.info('json_response: %s', json_response)
         return json_response.get('state').lower()
 
