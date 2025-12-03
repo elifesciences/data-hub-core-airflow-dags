@@ -126,11 +126,6 @@ class AirflowAPI:
         ]
         return all(states)
 
-    def is_dag_running(self, dag_id, dag_run_id: str):
-        if not (dag_run_id and dag_id):
-            return False
-        return self.get_dag_status(dag_id=dag_id, dag_run_id=dag_run_id) == 'running'
-
     def get_dag_status(self, dag_id: str, dag_run_id):
         json_response = self.dag_state(dag_id=dag_id, dag_run_id=dag_run_id)
         LOGGER.info('json_response: %s', json_response)
