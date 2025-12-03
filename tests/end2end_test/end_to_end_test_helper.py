@@ -19,6 +19,32 @@ class AirflowAPI:
         airflow_port = os.getenv('AIRFLOW_PORT', '8080')
         self.airflow_url = f'http://{airflow_host}:{airflow_port}'
         self.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        self._jwt_token: Optional[str] = None
+
+    def get_new_jwt_token(self) -> str:
+        '''
+        Fetch JWT token from /auth/token endpoint.
+        No credentials needed if SIMPLE_AUTH_MANAGER_ALL_ADMINS=True
+        '''
+        url = f'{self.airflow_url}/auth/token'
+        LOGGER.info('Fetching JWT token from %s', url)
+        response = requests.get(url, timeout=30)
+        if not response.ok:
+            raise OSError(
+                f'Failed to request JWT token url={url}'
+                f', status={response.status_code}'
+                f', response: {response.text}'
+            )
+        data = response.json()
+        token = data.get('access_token')
+        if not token:
+            raise ValueError(f'No access_token in response: {data}')
+        return token
+
+    def get_jwt_token(self) -> str:
+        if not self._jwt_token:
+            self._jwt_token = self.get_new_jwt_token()
+        return self._jwt_token
 
     def send_request(
         self,
@@ -32,7 +58,10 @@ class AirflowAPI:
             method=method.lower(),
             url=url,
             json=json_param,
-            headers=self.headers,
+            headers={
+                **self.headers,
+                'Authorization': f'Bearer {self.get_jwt_token()}'
+            },
             timeout=timeout
         )
         if not resp.ok:
@@ -46,10 +75,8 @@ class AirflowAPI:
         return resp.json()
 
     def unpause_dag(self, dag_id):
-        self.send_request(
-            url=f'{self.airflow_url}/api/experimental/dags/{dag_id}/paused/false',
-            timeout=10
-        )
+        url = f'{self.airflow_url}/api/v2/dags/{dag_id}'
+        return self.send_request(url, method='PATCH', json_param={'is_paused': False})
 
     def unpause_and_trigger_dag_and_return_execution_date(
         self, dag_id, conf=None
