@@ -20,6 +20,7 @@ x-airflow-volumes:
     - ./dags:/opt/airflow/dags
     - ./data_pipeline:/opt/airflow/data_pipeline
     - ./tests:/opt/airflow/tests
+    - ./run_test.sh:/opt/airflow/run_test.sh
 
 x-airflow-defaults:
   &x-airflow-defaults
