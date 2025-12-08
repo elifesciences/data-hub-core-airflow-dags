@@ -161,6 +161,13 @@ dev-end-to-end-google-spreadsheet:
 		tests/end2end_test/google_spreadsheet_end_to_end_test.py
 
 
+dev-end-to-end-gmail-data-pipeline:
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/gmail_data_end_to_end_test.py
+
+
 build:
 	$(DOCKER_COMPOSE) build data-hub-dags
 

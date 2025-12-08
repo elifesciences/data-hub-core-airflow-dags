@@ -1,5 +1,6 @@
 import argparse
 import logging
+from typing import Optional, Sequence
 
 from data_pipeline.gmail_data.get_gmail_data_config import GmailDataConfig
 from data_pipeline.gmail_data.gmail_data_pipeline import (
@@ -48,10 +49,10 @@ def gmail_data_etl(data_pipeline_id: str):
     delete_temp_table_thread_ids(data_config)
 
 
-def main():
+def main(argv: Optional[Sequence[str]] = None):
     parser = argparse.ArgumentParser(description="Run ETL for a specific Web API pipeline")
     parser.add_argument('--data-pipeline-id', required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     data_pipeline_id = args.data_pipeline_id
     LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
     gmail_data_etl(data_pipeline_id)
