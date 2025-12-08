@@ -16,5 +16,5 @@ class GmailPipelineEnvironmentVariables:
 def get_multi_gmail_data_config() -> MultiGmailDataConfig:
     return get_pipeline_config_for_env_name_and_config_parser(
         GmailPipelineEnvironmentVariables.CONFIG_FILE_PATH,
-        MultiGmailDataConfig
+        MultiGmailDataConfig.from_dict
     )

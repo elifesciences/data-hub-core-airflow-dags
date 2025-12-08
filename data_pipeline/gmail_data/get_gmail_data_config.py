@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import logging
 from typing import Any, Optional
 from data_pipeline.utils.pipeline_config import (
@@ -14,28 +15,32 @@ def get_gmail_config_id(gmail_config_props: dict) -> Optional[Any]:
 
 # pylint: disable=too-many-instance-attributes,too-many-arguments
 # pylint: disable=too-many-locals, too-few-public-methods
+@dataclass(frozen=True)
 class MultiGmailDataConfig:
-    def __init__(
-        self,
-        multi_gmail_data_config: dict,
-    ):
-        self.project_name = multi_gmail_data_config['projectName']
-        self.dataset_name = multi_gmail_data_config['datasetName']
-        self.gmail_data_config = {
+    project_name: str
+    dataset_name: str
+    gmail_data_config: dict
+
+    @staticmethod
+    def from_dict(multi_gmail_data_config: dict) -> 'MultiGmailDataConfig':
+        project_name = multi_gmail_data_config['projectName']
+        dataset_name = multi_gmail_data_config['datasetName']
+        gmail_data_config = {
             ind: {
                 **gmail,
                 ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_gmail_config_id(gmail),
-                'projectName': self.project_name,
-                'datasetName': self.dataset_name
+                'projectName': project_name,
+                'datasetName': dataset_name
             }
             for ind, gmail in enumerate(
                 multi_gmail_data_config['gmailData']
             )
         }
-
-    @staticmethod
-    def from_dict(multi_gmail_data_config: dict) -> 'MultiGmailDataConfig':
-        return MultiGmailDataConfig(multi_gmail_data_config)
+        return MultiGmailDataConfig(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            gmail_data_config=gmail_data_config
+        )
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
