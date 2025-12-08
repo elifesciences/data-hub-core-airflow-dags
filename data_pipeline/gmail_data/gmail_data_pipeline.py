@@ -11,7 +11,8 @@ from data_pipeline.gmail_data.get_gmail_data import (
     get_gmail_service_via_refresh_token,
     get_label_list,
     refresh_gmail_token,
-    write_dataframe_to_jsonl_file
+    write_dataframe_to_jsonl_file,
+    get_link_message_thread_ids
 )
 from data_pipeline.gmail_data.get_gmail_data_config import (
     GmailDataConfig,
@@ -160,3 +161,17 @@ def load_from_temp_table_to_label_list(data_config: GmailDataConfig):
             target_dataset_name=dataset_name,
             target_table_name=table_name
         )
+
+
+def gmail_thread_ids_list_to_temp_table_etl(data_config: GmailDataConfig):
+    user_id = get_gmail_user_id(data_config)
+
+    load_bq_table_from_df(
+        project_name=data_config.project_name,
+        dataset_name=data_config.dataset_name,
+        table_name=data_config.temp_table_name_thread_ids,
+        df_data_to_write=get_link_message_thread_ids(
+            get_gmail_service(data_config),
+            user_id
+        )
+    )

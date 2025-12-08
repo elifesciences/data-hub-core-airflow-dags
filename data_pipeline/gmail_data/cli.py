@@ -6,6 +6,7 @@ from data_pipeline.gmail_data.gmail_data_pipeline import (
     delete_temp_table_labels,
     get_multi_gmail_data_config,
     gmail_label_data_to_temp_table_etl,
+    gmail_thread_ids_list_to_temp_table_etl,
     load_from_temp_table_to_label_list
 )
 from data_pipeline.utils.pipeline_config import get_deployment_env
@@ -26,6 +27,8 @@ def gmail_data_etl(data_pipeline_id: str):
     gmail_label_data_to_temp_table_etl(data_config)
     load_from_temp_table_to_label_list(data_config)
     delete_temp_table_labels(data_config)
+
+    gmail_thread_ids_list_to_temp_table_etl(data_config)
 
 
 def main():
