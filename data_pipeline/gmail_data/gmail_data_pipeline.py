@@ -339,3 +339,18 @@ def gmail_thread_details_from_temp_history_details_etl(data_config: GmailDataCon
                 table_name=table_name,
                 df_data_to_write=df_thread_details
             )
+
+
+def load_from_temp_table_to_thread_ids_list(data_config: GmailDataConfig):
+    dataset_name = data_config.dataset_name
+    project_name = data_config.project_name
+    table_name = data_config.table_name_thread_ids
+    temp_table_name = data_config.temp_table_name_thread_ids
+
+    load_from_temp_table_to_actual_table(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name,
+        temp_table_name=temp_table_name,
+        column_name=data_config.unique_id_column_thread_ids
+    )
