@@ -64,7 +64,7 @@ def get_data_config(context):
     deployment_env = get_env_var_or_use_default(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
     LOGGER.info("deployment_env: %s", deployment_env)
-    data_config = GmailDataConfig(
+    data_config = GmailDataConfig.from_dict(
         data_config=data_config_dict,
         deployment_env=deployment_env
     )
