@@ -83,48 +83,24 @@ class GmailDataConfig:
         data_pipeline_id = gmail_data_config['dataPipelineId']
 
         # label list
-        table_name_labels = (
-            gmail_data_config['gmailLabelData'].get('table')
-        )
-        temp_table_name_labels = (
-            gmail_data_config['gmailLabelData'].get('tempTable')
-        )
-        unique_id_column_labels = (
-            gmail_data_config['gmailLabelData'].get('uniqueIdColumn')
-        )
+        table_name_labels = gmail_data_config['gmailLabelData']['table']
+        temp_table_name_labels = gmail_data_config['gmailLabelData']['tempTable']
+        unique_id_column_labels = gmail_data_config['gmailLabelData']['uniqueIdColumn']
 
         # message-thread ids list
-        table_name_thread_ids = (
-            gmail_data_config['gmailLinkIdsData'].get('table')
-        )
-        temp_table_name_thread_ids = (
-            gmail_data_config['gmailLinkIdsData'].get('tempTable')
-        )
-        unique_id_column_thread_ids = (
-            gmail_data_config['gmailLinkIdsData'].get('uniqueIdColumn')
-        )
+        table_name_thread_ids = gmail_data_config['gmailLinkIdsData']['table']
+        temp_table_name_thread_ids = gmail_data_config['gmailLinkIdsData']['tempTable']
+        unique_id_column_thread_ids = gmail_data_config['gmailLinkIdsData']['uniqueIdColumn']
 
         # history details
-        temp_table_name_history_details = (
-            gmail_data_config['gmailHistoryData'].get('tempTable')
-        )
+        temp_table_name_history_details = gmail_data_config['gmailHistoryData']['tempTable']
 
         # thread details
-        table_name_thread_details = (
-            gmail_data_config['gmailThreadData'].get('table')
-        )
-        column_name_input = (
-            gmail_data_config['gmailThreadData'].get('inputColumn')
-        )
-        column_name_history_check = (
-            gmail_data_config['gmailThreadData'].get('historyCheckColumn')
-        )
-        array_name_in_thread_details = (
-            gmail_data_config['gmailThreadData'].get('array_name_in_table')
-        )
-        array_column_name = (
-            gmail_data_config['gmailThreadData'].get('array_column_name')
-        )
+        table_name_thread_details = gmail_data_config['gmailThreadData']['table']
+        column_name_input = gmail_data_config['gmailThreadData']['inputColumn']
+        column_name_history_check = gmail_data_config['gmailThreadData']['historyCheckColumn']
+        array_name_in_thread_details = gmail_data_config['gmailThreadData']['array_name_in_table']
+        array_column_name = gmail_data_config['gmailThreadData']['array_column_name']
 
         # secret
         gmail_secret_file_env_name = gmail_data_config['gmailSecretFileEnvName']
