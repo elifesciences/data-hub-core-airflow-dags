@@ -5,11 +5,14 @@ from tempfile import TemporaryDirectory
 import pandas as pd
 
 from googleapiclient.discovery import Resource
+from googleapiclient import errors
 
 from data_pipeline.gmail_data.get_gmail_data import (
     GmailCredentials,
     dataframe_chunk,
+    get_gmail_history_details,
     get_gmail_service_via_refresh_token,
+    get_gmail_user_profile,
     get_label_list,
     get_one_thread,
     refresh_gmail_token,
@@ -26,6 +29,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     delete_table_from_bq,
     does_bigquery_table_exist,
     get_distinct_values_from_bq,
+    get_max_value_from_bq_table,
     load_file_into_bq,
     load_from_temp_table_to_actual_table
 )
@@ -234,4 +238,49 @@ def gmail_thread_details_from_temp_thread_ids_etl(data_config: GmailDataConfig):
             dataset_name=dataset_name,
             table_name=table_name,
             df_data_to_write=df_thread_details
+        )
+
+
+def gmail_history_details_to_temp_table_etl(data_config: GmailDataConfig):
+    user_id = get_gmail_user_id(data_config)
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+
+    try:
+        start_id = get_max_value_from_bq_table(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            column_name=data_config.column_name_history_check,
+            table_name=data_config.table_name_thread_details
+        )
+
+        LOGGER.info('Get history start_id from BigQuery: %s', start_id)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(data_config),
+                user_id,
+                str(start_id)
+            )
+        )
+    except errors.HttpError:
+        start_id = get_gmail_user_profile(
+            get_gmail_service(data_config),
+            get_gmail_user_id(data_config)
+        )["historyId"]
+
+        LOGGER.info('Get history start_id from user profile: %s', start_id)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=data_config.temp_table_name_history_details,
+            df_data_to_write=get_gmail_history_details(
+                get_gmail_service(data_config),
+                user_id,
+                str(start_id)
+            )
         )
