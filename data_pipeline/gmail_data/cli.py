@@ -11,10 +11,8 @@ def gmail_data_etl(data_pipeline_id: str):
     multi_config = get_multi_gmail_data_config()
     LOGGER.debug('multi_config: %s', multi_config)
     data_config_dict = multi_config.gmail_data_config[data_pipeline_id]
-    data_config = GmailDataConfig(
+    data_config = GmailDataConfig.from_dict(
         data_config=data_config_dict,
-        project_name=multi_config.project_name,
-        dataset_name=multi_config.dataset_name,
         deployment_env=get_deployment_env()
     )
     LOGGER.info('Gmail Data Config: %s', data_config)

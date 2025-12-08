@@ -47,7 +47,7 @@ def get_data_pipeline_cloud_resource():
     single_gmail_config_dict = list(
         multi_data_config.gmail_data_config.values()
     )[0]
-    single_gmail_config = GmailDataConfig(
+    single_gmail_config = GmailDataConfig.from_dict(
         data_config=single_gmail_config_dict,
         deployment_env=dep_env
     )

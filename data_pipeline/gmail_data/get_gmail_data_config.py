@@ -42,15 +42,31 @@ class MultiGmailDataConfig:
 
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
+@dataclass(frozen=True)
 class GmailDataConfig:
-    def __init__(
-        self,
+    project_name: str
+    dataset_name: str
+    data_pipeline_id: str
+    table_name_labels: str
+    temp_table_name_labels: str
+    unique_id_column_labels: str
+    table_name_thread_ids: str
+    temp_table_name_thread_ids: str
+    unique_id_column_thread_ids: str
+    temp_table_name_history_details: str
+    table_name_thread_details: str
+    column_name_input: str
+    column_name_history_check: str
+    array_name_in_thread_details: str
+    array_column_name: str
+    gmail_secret_file_env_name: str
+
+    @staticmethod
+    def from_dict(
         data_config: dict,
-        project_name: Optional[str] = None,
-        dataset_name: Optional[str] = None,
         deployment_env: Optional[str] = None,
         env_placeholder: str = '{ENV}'
-    ):
+    ) -> 'GmailDataConfig':
         LOGGER.info('deployment_env: %s', deployment_env)
         LOGGER.info('env_placeholder: %s', env_placeholder)
         gmail_data_config = update_deployment_env_placeholder(
@@ -61,59 +77,73 @@ class GmailDataConfig:
 
         LOGGER.debug('gmail_data_config: %s', gmail_data_config)
 
-        self.project_name = gmail_data_config.get('projectName', project_name)
-        self.dataset_name = gmail_data_config.get('datasetName', dataset_name)
+        project_name = gmail_data_config['projectName']
+        dataset_name = gmail_data_config['datasetName']
 
-        self.data_pipeline_id = gmail_data_config.get('dataPipelineId')
+        data_pipeline_id = gmail_data_config['dataPipelineId']
 
         # label list
-        self.table_name_labels = (
+        table_name_labels = (
             gmail_data_config['gmailLabelData'].get('table')
         )
-        self.temp_table_name_labels = (
+        temp_table_name_labels = (
             gmail_data_config['gmailLabelData'].get('tempTable')
         )
-        self.unique_id_column_labels = (
+        unique_id_column_labels = (
             gmail_data_config['gmailLabelData'].get('uniqueIdColumn')
         )
 
         # message-thread ids list
-        self.table_name_thread_ids = (
+        table_name_thread_ids = (
             gmail_data_config['gmailLinkIdsData'].get('table')
         )
-        self.temp_table_name_thread_ids = (
+        temp_table_name_thread_ids = (
             gmail_data_config['gmailLinkIdsData'].get('tempTable')
         )
-        self.unique_id_column_thread_ids = (
+        unique_id_column_thread_ids = (
             gmail_data_config['gmailLinkIdsData'].get('uniqueIdColumn')
         )
 
         # history details
-        self.temp_table_name_history_details = (
+        temp_table_name_history_details = (
             gmail_data_config['gmailHistoryData'].get('tempTable')
         )
 
         # thread details
-        self.table_name_thread_details = (
+        table_name_thread_details = (
             gmail_data_config['gmailThreadData'].get('table')
         )
-        self.column_name_input = (
+        column_name_input = (
             gmail_data_config['gmailThreadData'].get('inputColumn')
         )
-        self.column_name_history_check = (
+        column_name_history_check = (
             gmail_data_config['gmailThreadData'].get('historyCheckColumn')
         )
-        self.array_name_in_thread_details = (
+        array_name_in_thread_details = (
             gmail_data_config['gmailThreadData'].get('array_name_in_table')
         )
-        self.array_column_name = (
+        array_column_name = (
             gmail_data_config['gmailThreadData'].get('array_column_name')
         )
 
         # secret
-        self.gmail_secret_file_env_name = (
-            gmail_data_config.get('gmailSecretFileEnvName')
-        )
+        gmail_secret_file_env_name = gmail_data_config['gmailSecretFileEnvName']
 
-    def __repr__(self):
-        return repr(vars(self))
+        return GmailDataConfig(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            data_pipeline_id=data_pipeline_id,
+            table_name_labels=table_name_labels,
+            temp_table_name_labels=temp_table_name_labels,
+            unique_id_column_labels=unique_id_column_labels,
+            table_name_thread_ids=table_name_thread_ids,
+            temp_table_name_thread_ids=temp_table_name_thread_ids,
+            unique_id_column_thread_ids=unique_id_column_thread_ids,
+            temp_table_name_history_details=temp_table_name_history_details,
+            table_name_thread_details=table_name_thread_details,
+            column_name_input=column_name_input,
+            column_name_history_check=column_name_history_check,
+            array_name_in_thread_details=array_name_in_thread_details,
+            array_column_name=array_column_name,
+            gmail_secret_file_env_name=gmail_secret_file_env_name
+        )
