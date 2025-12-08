@@ -43,7 +43,7 @@ def get_data_pipeline_cloud_resource():
     dep_env = os.getenv(
         DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV
     )
-    multi_data_config = MultiGmailDataConfig(data_config_dict)
+    multi_data_config = MultiGmailDataConfig.from_dict(data_config_dict)
     single_gmail_config_dict = list(
         multi_data_config.gmail_data_config.values()
     )[0]

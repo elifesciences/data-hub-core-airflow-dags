@@ -33,6 +33,10 @@ class MultiGmailDataConfig:
             )
         }
 
+    @staticmethod
+    def from_dict(multi_gmail_data_config: dict) -> 'MultiGmailDataConfig':
+        return MultiGmailDataConfig(multi_gmail_data_config)
+
 
 # pylint: disable=too-few-public-methods, too-many-instance-attributes
 class GmailDataConfig:
