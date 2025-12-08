@@ -18,9 +18,12 @@ from data_pipeline.gmail_data.get_gmail_data_config import (
     MultiGmailDataConfig
 )
 from data_pipeline.utils.data_store.bq_data_service import (
+    copy_bq_table,
     create_or_extend_table_schema,
     delete_table_from_bq,
-    load_file_into_bq
+    does_bigquery_table_exist,
+    load_file_into_bq,
+    load_from_temp_table_to_actual_table
 )
 from data_pipeline.utils.pipeline_config import (
     get_env_var_or_use_default,
@@ -128,3 +131,32 @@ def gmail_label_data_to_temp_table_etl(data_config: GmailDataConfig):
         table_name=data_config.temp_table_name_labels,
         df_data_to_write=get_label_list(get_gmail_service(data_config),  user_id)
     )
+
+
+def load_from_temp_table_to_label_list(data_config: GmailDataConfig):
+    dataset_name = data_config.dataset_name
+    project_name = data_config.project_name
+    table_name = data_config.table_name_labels
+    temp_table_name = data_config.temp_table_name_labels
+
+    if does_bigquery_table_exist(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name
+    ):
+        load_from_temp_table_to_actual_table(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            temp_table_name=temp_table_name,
+            column_name=data_config.unique_id_column_labels
+        )
+    else:
+        copy_bq_table(
+            source_project_name=project_name,
+            source_dataset_name=dataset_name,
+            source_table_name=temp_table_name,
+            target_project_name=project_name,
+            target_dataset_name=dataset_name,
+            target_table_name=table_name
+        )
