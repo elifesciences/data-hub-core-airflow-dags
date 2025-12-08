@@ -3,6 +3,7 @@ import logging
 
 from data_pipeline.gmail_data.get_gmail_data_config import GmailDataConfig
 from data_pipeline.gmail_data.gmail_data_pipeline import (
+    delete_temp_table_labels,
     get_multi_gmail_data_config,
     gmail_label_data_to_temp_table_etl
 )
@@ -20,7 +21,9 @@ def gmail_data_etl(data_pipeline_id: str):
         deployment_env=get_deployment_env()
     )
     LOGGER.info('Gmail Data Config: %s', data_config)
+    delete_temp_table_labels(data_config)
     gmail_label_data_to_temp_table_etl(data_config)
+    delete_temp_table_labels(data_config)
 
 
 def main():

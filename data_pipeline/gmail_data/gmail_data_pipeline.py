@@ -19,6 +19,7 @@ from data_pipeline.gmail_data.get_gmail_data_config import (
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     create_or_extend_table_schema,
+    delete_table_from_bq,
     load_file_into_bq
 )
 from data_pipeline.utils.pipeline_config import (
@@ -104,6 +105,18 @@ def load_bq_table_from_df(
             LOGGER.info('Loaded table: %s', table_name)
         else:
             LOGGER.info('No updates found for the table: %s', table_name)
+
+
+def delete_temp_table_labels(data_config: GmailDataConfig):
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_labels
+
+    delete_table_from_bq(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name
+    )
 
 
 def gmail_label_data_to_temp_table_etl(data_config: GmailDataConfig):
