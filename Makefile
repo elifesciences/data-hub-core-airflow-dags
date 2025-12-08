@@ -107,6 +107,12 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.gmail_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
