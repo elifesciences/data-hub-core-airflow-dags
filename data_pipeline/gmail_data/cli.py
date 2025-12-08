@@ -6,6 +6,7 @@ from data_pipeline.gmail_data.gmail_data_pipeline import (
     delete_temp_table_labels,
     get_multi_gmail_data_config,
     gmail_label_data_to_temp_table_etl,
+    gmail_thread_details_from_temp_thread_ids_etl,
     gmail_thread_ids_list_to_temp_table_etl,
     load_from_temp_table_to_label_list
 )
@@ -29,6 +30,7 @@ def gmail_data_etl(data_pipeline_id: str):
     delete_temp_table_labels(data_config)
 
     gmail_thread_ids_list_to_temp_table_etl(data_config)
+    gmail_thread_details_from_temp_thread_ids_etl(data_config)
 
 
 def main():

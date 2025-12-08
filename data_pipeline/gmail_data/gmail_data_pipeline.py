@@ -8,8 +8,10 @@ from googleapiclient.discovery import Resource
 
 from data_pipeline.gmail_data.get_gmail_data import (
     GmailCredentials,
+    dataframe_chunk,
     get_gmail_service_via_refresh_token,
     get_label_list,
+    get_one_thread,
     refresh_gmail_token,
     write_dataframe_to_jsonl_file,
     get_link_message_thread_ids
@@ -23,6 +25,7 @@ from data_pipeline.utils.data_store.bq_data_service import (
     create_or_extend_table_schema,
     delete_table_from_bq,
     does_bigquery_table_exist,
+    get_distinct_values_from_bq,
     load_file_into_bq,
     load_from_temp_table_to_actual_table
 )
@@ -40,6 +43,10 @@ GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
 
 class GmailPipelineEnvironmentVariables:
     CONFIG_FILE_PATH = 'GMAIL_DATA_CONFIG_FILE_PATH'
+    GMAIL_THREAD_DETAILS_CHUNK_SIZE = "GMAIL_THREAD_DETAILS_CHUNK_SIZE"
+
+
+DEFAULT_GMAIL_THREAD_DETAILS_CHUNK_SIZE = "100"
 
 
 def get_multi_gmail_data_config() -> MultiGmailDataConfig:
@@ -175,3 +182,56 @@ def gmail_thread_ids_list_to_temp_table_etl(data_config: GmailDataConfig):
             user_id
         )
     )
+
+
+def get_gmail_thread_details_chunk_size() -> int:
+    chunk_size = int(get_env_var_or_use_default(
+        GmailPipelineEnvironmentVariables.GMAIL_THREAD_DETAILS_CHUNK_SIZE,
+        DEFAULT_GMAIL_THREAD_DETAILS_CHUNK_SIZE
+    ))
+    LOGGER.info("Thread details chunk size is :%s", chunk_size)
+    return chunk_size
+
+
+def gmail_thread_details_from_temp_thread_ids_etl(data_config: GmailDataConfig):
+    user_id = get_gmail_user_id(data_config)
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.table_name_thread_details
+
+    if does_bigquery_table_exist(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name
+    ):
+        df_thread_id_list = get_distinct_values_from_bq(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            column_name=data_config.column_name_input,
+            table_name_source=data_config.temp_table_name_thread_ids,
+            table_name_for_exclusion=table_name,
+            array_table_name=data_config.array_name_in_thread_details,
+            array_column_for_exclusion=data_config.array_column_name,
+        )
+    else:
+        df_thread_id_list = get_distinct_values_from_bq(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            column_name=data_config.column_name_input,
+            table_name_source=data_config.temp_table_name_thread_ids
+        )
+
+    # because of big amount of data created chunks of dataframe to load data
+    for df_ids_part in dataframe_chunk(df_thread_id_list, get_gmail_thread_details_chunk_size()):
+        LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
+        df_thread_details = pd.concat([
+            get_one_thread(get_gmail_service(data_config), user_id, id)
+            for id in df_ids_part[0]
+        ], ignore_index=True)
+
+        load_bq_table_from_df(
+            project_name=project_name,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            df_data_to_write=df_thread_details
+        )
