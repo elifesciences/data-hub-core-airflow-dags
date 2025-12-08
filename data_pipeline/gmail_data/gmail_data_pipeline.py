@@ -241,6 +241,18 @@ def gmail_thread_details_from_temp_thread_ids_etl(data_config: GmailDataConfig):
         )
 
 
+def delete_temp_table_history_details(data_config: GmailDataConfig):
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.temp_table_name_history_details
+
+    delete_table_from_bq(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=table_name
+    )
+
+
 def gmail_history_details_to_temp_table_etl(data_config: GmailDataConfig):
     user_id = get_gmail_user_id(data_config)
     project_name = data_config.project_name
