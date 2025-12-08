@@ -26,15 +26,13 @@ class MultiGmailDataConfig:
         project_name = multi_gmail_data_config['projectName']
         dataset_name = multi_gmail_data_config['datasetName']
         gmail_data_config = {
-            ind: {
+            get_gmail_config_id(gmail): {
                 **gmail,
                 ConfigKeys.DATA_PIPELINE_CONFIG_ID: get_gmail_config_id(gmail),
                 'projectName': project_name,
                 'datasetName': dataset_name
             }
-            for ind, gmail in enumerate(
-                multi_gmail_data_config['gmailData']
-            )
+            for gmail in multi_gmail_data_config['gmailData']
         }
         return MultiGmailDataConfig(
             project_name=project_name,
@@ -61,7 +59,7 @@ class GmailDataConfig:
             env_placeholder
         ) if deployment_env else data_config
 
-        LOGGER.info('gmail_data_config: %s', gmail_data_config)
+        LOGGER.debug('gmail_data_config: %s', gmail_data_config)
 
         self.project_name = gmail_data_config.get('projectName', project_name)
         self.dataset_name = gmail_data_config.get('datasetName', dataset_name)

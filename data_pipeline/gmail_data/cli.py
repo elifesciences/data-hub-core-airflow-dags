@@ -1,13 +1,23 @@
 import argparse
 import logging
+from data_pipeline.gmail_data.get_gmail_data_config import GmailDataConfig
 from data_pipeline.gmail_data.gmail_data_pipeline import get_multi_gmail_data_config
+from data_pipeline.utils.pipeline_config import get_deployment_env
 
 LOGGER = logging.getLogger(__name__)
 
 
 def gmail_data_etl(data_pipeline_id: str):
-    config = get_multi_gmail_data_config()
-    LOGGER.info('Completed ETL for pipeline %s with config: %s', data_pipeline_id, config)
+    multi_config = get_multi_gmail_data_config()
+    LOGGER.debug('multi_config: %s', multi_config)
+    data_config_dict = multi_config.gmail_data_config[data_pipeline_id]
+    data_config = GmailDataConfig(
+        data_config=data_config_dict,
+        project_name=multi_config.project_name,
+        dataset_name=multi_config.dataset_name,
+        deployment_env=get_deployment_env()
+    )
+    LOGGER.info('Gmail Data Config: %s', data_config)
 
 
 def main():
