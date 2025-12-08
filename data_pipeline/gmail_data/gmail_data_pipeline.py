@@ -284,3 +284,46 @@ def gmail_history_details_to_temp_table_etl(data_config: GmailDataConfig):
                 str(start_id)
             )
         )
+
+
+def gmail_thread_details_from_temp_history_details_etl(data_config: GmailDataConfig):
+    user_id = get_gmail_user_id(data_config)
+    project_name = data_config.project_name
+    dataset_name = data_config.dataset_name
+    table_name = data_config.table_name_thread_details
+
+    if does_bigquery_table_exist(
+        project_name=project_name,
+        dataset_name=dataset_name,
+        table_name=data_config.temp_table_name_history_details
+    ):
+        df_thread_id_list = get_distinct_values_from_bq(
+            project_name=data_config.project_name,
+            dataset_name=dataset_name,
+            column_name=data_config.column_name_input,
+            table_name_source=data_config.temp_table_name_history_details,
+            table_name_for_exclusion=data_config.temp_table_name_thread_ids
+        )
+
+        # because of big amount of data created chunks of dataframe to load data
+        for df_ids_part in dataframe_chunk(
+            df_thread_id_list,
+            get_gmail_thread_details_chunk_size()
+        ):
+            LOGGER.info('Last record of the df chunk: %s', df_ids_part.tail(1))
+            df_thread_details = pd.concat(
+                [
+                    get_one_thread(
+                        get_gmail_service(data_config),
+                        user_id, id
+                    )
+                    for id in df_ids_part[0]
+                ],
+                ignore_index=True
+            )
+            load_bq_table_from_df(
+                project_name=project_name,
+                dataset_name=dataset_name,
+                table_name=table_name,
+                df_data_to_write=df_thread_details
+            )
