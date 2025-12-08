@@ -109,6 +109,7 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 
 dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
 	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
 		$(PYTHON) -m data_pipeline.gmail_data.cli \
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
