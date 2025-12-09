@@ -18,9 +18,12 @@ elifePipeline {
         stage 'Check variables', {
             sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
             sh "echo branch: ${branch}"
+            if (env.BRANCH_NAME == 'PR-1845') {
+                sh "We are in Airflow 3 branch"
+            }
         }
 
-        if (env.BRANCH_NAME == 'airflow-3-upgrade') {
+        if (env.BRANCH_NAME == 'PR-1845') {
             stage 'Using env.BRANCH_NAME', {
                 sh "echo test"
             }
