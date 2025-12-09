@@ -15,6 +15,11 @@ elifePipeline {
             timestamp = sh(script: 'date --utc +%Y%m%d.%H%M', returnStdout: true).trim()
         }
 
+        stage 'Check variables', {
+            sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
+            sh "echo branch: ${branch}"
+        }
+
         if (env.BRANCH_NAME == 'airflow-3-upgrade') {
             stage 'Using env.BRANCH_NAME', {
                 sh "echo test"
