@@ -19,7 +19,7 @@ elifePipeline {
             sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
             sh "echo branch: ${branch}"
             if (env.BRANCH_NAME == 'PR-1845') {
-                sh "We are in Airflow 3 branch"
+                sh "echo 'We are in Airflow 3 branch'"
             }
         }
 
