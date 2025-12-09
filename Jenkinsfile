@@ -15,27 +15,6 @@ elifePipeline {
             timestamp = sh(script: 'date --utc +%Y%m%d.%H%M', returnStdout: true).trim()
         }
 
-        stage 'Check variables', {
-            sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
-            sh "echo branch: ${branch}"
-            if (env.BRANCH_NAME == 'PR-1845') {
-                sh "echo 'We are in Airflow 3 branch'"
-            }
-        }
-
-        if (env.BRANCH_NAME == 'PR-1845') {
-            stage 'Using env.BRANCH_NAME', {
-                sh "echo test"
-            }
-        }
-
-        if ("${branch}"== 'airflow-3-upgrade') {
-            stage 'Using branch', {
-                sh "echo test"
-            }
-        }
-
-
         stage 'Build and run tests', {
             lock('data-hub-core-airflow-dags--ci') {
                 withDataPipelineCredentialsFromVault{
@@ -59,8 +38,12 @@ elifePipeline {
             sh "make IMAGE_REPO=${image_repo} IMAGE_TAG=${commit} ci-build-main-image"
         }
 
-        if (env.BRANCH_NAME == 'airflow-3-upgrade') {
-            stage 'Push image (Airflow 3)', {
+        stage 'Push image if in Airflow 3 branch', {
+            def dev_image_repo = image_repo + '_unstable'
+
+            sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
+            if (env.BRANCH_NAME == 'PR-1845') {
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=airflow3-${commitShort}-${timestamp} IMAGE_REPO=${dev_image_repo} retag-push-image"
             }
         }
 
