@@ -15,6 +15,19 @@ elifePipeline {
             timestamp = sh(script: 'date --utc +%Y%m%d.%H%M', returnStdout: true).trim()
         }
 
+        if (env.BRANCH_NAME == 'airflow-3-upgrade') {
+            stage 'Using env.BRANCH_NAME', {
+                sh "echo test"
+            }
+        }
+
+        if ("${branch}"== 'airflow-3-upgrade') {
+            stage 'Using branch', {
+                sh "echo test"
+            }
+        }
+
+
         stage 'Build and run tests', {
             lock('data-hub-core-airflow-dags--ci') {
                 withDataPipelineCredentialsFromVault{
