@@ -31,7 +31,7 @@ def trigger_gmail_data_import_pipeline_dag(**context):
     )
     data_config_dict = get_yaml_file_as_dict(conf_file_path)
     LOGGER.info("data_config_dict: %s", data_config_dict)
-    data_config = MultiGmailDataConfig(data_config_dict)
+    data_config = MultiGmailDataConfig.from_dict(data_config_dict)
     LOGGER.info("data_config: %s", data_config)
     for gmail_data_config in data_config.gmail_data_config.values():
         trigger_data_pipeline_dag(

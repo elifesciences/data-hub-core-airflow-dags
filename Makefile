@@ -108,6 +108,13 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
+		$(PYTHON) -m data_pipeline.gmail_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
@@ -153,6 +160,13 @@ dev-end-to-end-google-spreadsheet:
 	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
 		$(PYTHON) -m pytest -s \
 		tests/end2end_test/google_spreadsheet_end_to_end_test.py
+
+
+dev-end-to-end-gmail-data-pipeline:
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/gmail_data_end_to_end_test.py
 
 
 build:
