@@ -4,11 +4,11 @@ import logging
 
 from datetime import timedelta
 
-from data_pipeline.utils.pipeline_file_io import (
-    get_yaml_file_as_dict
-)
+from data_pipeline.monitoring.cli import get_monitoring_config
 
-from data_pipeline.utils.pipeline_config import get_env_var_or_use_default
+from data_pipeline.utils.pipeline_config import (
+    get_pipeline_config_for_env_name_and_config_parser
+)
 
 from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_dag,
@@ -51,34 +51,21 @@ def data_config_from_xcom(context):
         key="data_config_dict", task_ids="get_data_config"
     )
     LOGGER.info('data_config_dict: %s', data_config_dict)
-    deployment_env_var = get_env_var_or_use_default(
-        DEPLOYMENT_ENV_ENV_NAME, DEFAULT_DEPLOYMENT_ENV)
-    data_config = MonitoringConfig(
-        data_config_dict, deployment_env_var)
+    data_config = get_pipeline_config_for_env_name_and_config_parser(
+        MONITORING_CONFIG_FILE_PATH_ENV_NAME,
+        MonitoringConfig.from_dict
+    )
     LOGGER.info('data_config: %r', data_config)
     return data_config
-
-
-def get_data_config(**kwargs):
-    conf_file = get_env_var_or_use_default(
-        MONITORING_CONFIG_FILE_PATH_ENV_NAME, ""
-    )
-    LOGGER.info('conf_file_path: %s', conf_file)
-    data_config_dict = get_yaml_file_as_dict(conf_file)
-    LOGGER.info('data_config_dict: %s', data_config_dict)
-    kwargs["ti"].xcom_push(
-        key="data_config_dict",
-        value=data_config_dict
-    )
 
 
 def ping_health_checks_io(**__):
     ping()
 
 
-def check_data_hub_tables_status(**kwargs):
+def check_data_hub_tables_status(**_kwargs):
     logging.basicConfig(level='INFO')
-    data_config = data_config_from_xcom(kwargs)
+    data_config = get_monitoring_config()
 
     run_data_hub_pipeline_health_check(
         project=data_config.project_name,
@@ -86,13 +73,6 @@ def check_data_hub_tables_status(**kwargs):
         table=data_config.table_name
     )
 
-
-get_data_config_task = create_python_task(
-    MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG,
-    "get_data_config",
-    get_data_config,
-    retries=5
-)
 
 monitor_airflow_health_task = create_python_task(
     MONITOR_DATA_HUB_PIPELINE_HEALTH_DAG,
@@ -110,5 +90,4 @@ check_data_hub_tables_status_task = create_python_task(
 
 # pylint: disable=superfluous-parens
 # defined dependencies between tasks in the DAG
-_ = (get_data_config_task >> check_data_hub_tables_status_task)
 _ = (check_data_hub_tables_status_task >> monitor_airflow_health_task)
