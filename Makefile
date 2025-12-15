@@ -189,6 +189,12 @@ dev-end-to-end-semantic-scholar-pipeline:
 		tests/end2end_test/semantic_scholar_data_import_end_to_end_test.py
 
 
+dev-end-to-end-semantic-scholar-recommendation-pipeline:
+	SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/semantic_scholar_recommendation_data_import_end_to_end_test.py
+
+
 build:
 	$(DOCKER_COMPOSE) build data-hub-dags
 
