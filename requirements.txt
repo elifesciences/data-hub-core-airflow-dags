@@ -10,7 +10,7 @@ cattrs==25.3.0
 cloudpickle==3.1.2
 dateparser==1.2.2
 kubernetes
-apache-airflow-providers-cncf-kubernetes==10.11.0
+apache-airflow-providers-cncf-kubernetes==10.11.1
 objsize==0.7.1
 pendulum==3.1.0
 redis==7.1.0
