@@ -1,14 +1,12 @@
-from dags.semantic_scholar_data_import_pipeline import (
-    DAG_ID,
-    get_pipeline_config
+from data_pipeline.semantic_scholar.cli_semantic_scholar import (
+    get_pipeline_config,
+    main
 )
 
-from tests.end2end_test import (
-    trigger_run_test_pipeline,
-    DataPipelineCloudResource
-)
-from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI
+from tests.end2end_test.cli_end2end_test_helper import (
+    DataPipelineCloudResource,
+    check_after_test,
+    clean_before_test
 )
 
 
@@ -22,11 +20,8 @@ def get_data_pipeline_cloud_resource():
     )
 
 
-def test_dag_runs_data_imported():
-    airflow_api = AirflowAPI()
+def test_cli_semantic_scholar():
     data_pipeline_cloud_resource = get_data_pipeline_cloud_resource()
-    trigger_run_test_pipeline(
-        airflow_api=airflow_api,
-        dag_id=DAG_ID,
-        pipeline_cloud_resource=data_pipeline_cloud_resource
-    )
+    clean_before_test(data_pipeline_cloud_resource)
+    main([])
+    check_after_test(data_pipeline_cloud_resource)

@@ -119,6 +119,11 @@ dev-run-monitoring-pipeline:
 		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
 
 
+dev-run-semantic-scholar-pipeline:
+	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
+		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
@@ -171,6 +176,12 @@ dev-end-to-end-gmail-data-pipeline:
 		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
 		$(PYTHON) -m pytest -s \
 		tests/end2end_test/gmail_data_end_to_end_test.py
+
+
+dev-end-to-end-semantic-scholar-pipeline:
+	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/semantic_scholar_data_import_end_to_end_test.py
 
 
 build:
