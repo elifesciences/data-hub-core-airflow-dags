@@ -119,6 +119,11 @@ dev-run-monitoring-pipeline:
 		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
 
 
+dev-run-semantic-scholar-pipeline:
+	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
+		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
