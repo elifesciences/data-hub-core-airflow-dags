@@ -124,6 +124,11 @@ dev-run-semantic-scholar-pipeline:
 		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar $(ARGS)
 
 
+dev-run-semantic-scholar-recommendation-pipeline:
+	SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml \
+		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar_recommendation $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
@@ -182,6 +187,12 @@ dev-end-to-end-semantic-scholar-pipeline:
 	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
 		$(PYTHON) -m pytest -s \
 		tests/end2end_test/semantic_scholar_data_import_end_to_end_test.py
+
+
+dev-end-to-end-semantic-scholar-recommendation-pipeline:
+	SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/semantic_scholar_recommendation_data_import_end_to_end_test.py
 
 
 build:
