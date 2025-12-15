@@ -114,6 +114,11 @@ dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-monitoring-pipeline:
+	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
+		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
@@ -152,7 +157,7 @@ dev-run-bigquery-to-opensearch-pipeline-ecr:
 dev-end-to-end-monitoring:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m pytest \
-		tests/end2end_test/data_hub_pipeline_health_check_test.py
+		tests/end2end_test/monitoring_end_to_end_test.py
 
 
 dev-end-to-end-google-spreadsheet:
