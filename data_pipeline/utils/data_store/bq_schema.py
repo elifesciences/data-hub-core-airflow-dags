@@ -131,24 +131,6 @@ def get_crossref_data_single_page(
     return resp[message_key][EtlModuleConstant.MESSAGE_NEXT_CURSOR_KEY], resp
 
 
-def get_latest_json_record_list_timestamp(
-        json_list, previous_latest_timestamp
-):
-    latest_collected_record_timestamp_list = [
-        parse_datetime_from_str(
-            record.get(
-                EtlModuleConstant.CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY
-            ),
-            EtlModuleConstant.CROSSREF_TIMESTAMP_FORMAT,
-        )
-        for record in json_list
-        if record.get(EtlModuleConstant.CROSSREF_DATA_COLLECTED_TIMESTAMP_KEY)
-    ]
-    latest_collected_record_timestamp_list.append(previous_latest_timestamp)
-
-    return max(latest_collected_record_timestamp_list)
-
-
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
