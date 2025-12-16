@@ -23,7 +23,6 @@ x-airflow-env:
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
-    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml
     - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/gmail-data/gmail-data-pipeline.config.yaml
     - GMAIL_DATA_USER_ID=gmail-end2end-data-test@elifesciences.org
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
