@@ -8,10 +8,6 @@ import logging
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error
 )
-from data_pipeline.utils.pipeline_file_io import (
-    iter_write_jsonl_to_file
-)
-
 
 # pylint: disable=too-few-public-methods
 from data_pipeline.utils.web_api import requests_retry_session
@@ -227,40 +223,3 @@ def transform_record(
     new_record = semi_clean_crossref_record(record, schema)
     new_record[imported_timestamp_key] = imported_timestamp
     return new_record
-
-
-# pylint: disable=too-many-arguments,too-many-locals
-def per_doi_download_page_etl(
-        base_crossref_url: str,
-        from_date_collected_as_string: str,
-        journal_doi_prefix: str,
-        message_key: str,
-        event_key: str,
-        imported_timestamp_key: str,
-        imported_timestamp: datetime.datetime,
-        full_temp_file_location: str,
-        schema: list,
-        journal_previous_timestamp: datetime.datetime,
-        until_collected_date_as_string: Optional[str] = None,
-        cursor: Optional[str] = None
-):
-    cursor, downloaded_data = get_crossref_data_single_page(
-        base_crossref_url=base_crossref_url,
-        cursor=cursor,
-        from_date_collected_as_string=from_date_collected_as_string,
-        journal_doi_prefix=journal_doi_prefix,
-        message_key=message_key,
-        until_collected_date_as_string=until_collected_date_as_string,
-    )
-    results = downloaded_data.get(message_key, {}).get(event_key, [])
-    n_results = preprocess_json_record(
-        results, imported_timestamp_key, imported_timestamp, schema
-    )
-    written_json_record = iter_write_jsonl_to_file(
-        n_results, full_temp_file_location
-    )
-
-    latest_collected_record_timestamp = get_latest_json_record_list_timestamp(
-        written_json_record, journal_previous_timestamp
-    )
-    return latest_collected_record_timestamp, cursor
