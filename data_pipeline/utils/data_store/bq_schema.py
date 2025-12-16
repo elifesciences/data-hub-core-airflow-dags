@@ -17,8 +17,7 @@ def convert_bq_schema_field_list_to_dict(
     json_list: Sequence[BigQueryFieldSchema]
 ) -> dict:
     return {
-        bq_schema_field.get('name'):
-            bq_schema_field
+        bq_schema_field['name']: bq_schema_field
         for bq_schema_field in json_list
     }
 
