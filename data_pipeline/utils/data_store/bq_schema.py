@@ -14,11 +14,11 @@ class BigQueryFieldSchema(TypedDict):
 
 
 def convert_bq_schema_field_list_to_dict(
-    json_list: Sequence[BigQueryFieldSchema]
+    bq_schema_field_list: Sequence[BigQueryFieldSchema]
 ) -> Mapping[str, BigQueryFieldSchema]:
     return {
         bq_schema_field['name']: bq_schema_field
-        for bq_schema_field in json_list
+        for bq_schema_field in bq_schema_field_list
     }
 
 
