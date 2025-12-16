@@ -8,7 +8,8 @@ from data_pipeline.surveymonkey.get_surveymonkey_data_config import SurveyMonkey
 from data_pipeline.surveymonkey.surveymonkey_etl import (
     get_bq_json_for_survey_questions_response_json,
     get_survey_list,
-    get_survey_question_details
+    get_survey_question_details,
+    iter_formated_survey_user_answers
 )
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
@@ -77,6 +78,27 @@ def surveymonkey_survey_questions_etl(
         )
 
 
+def surveymonkey_survey_answers_etl(
+    data_config: SurveyMonkeyDataConfig,
+    surveymonkey_access_token: str
+):
+    LOGGER.info('Retrieving Survey Answers..')
+    for survey_id in data_config.survey_id_list:
+        survey_id = str(survey_id)
+        LOGGER.info('answers for survey_id: %s', survey_id)
+        iterable_of_answers_of_one_survey = iter_formated_survey_user_answers(
+            access_token=surveymonkey_access_token,
+            survey_id=survey_id
+        )
+
+        load_given_json_list_data_from_tempdir_to_bq(
+            project_name=data_config.project_name,
+            dataset_name=data_config.dataset_name,
+            table_name=data_config.survey_answers_table_name,
+            json_list=iterable_of_answers_of_one_survey
+        )
+
+
 def main(argv: Optional[Sequence[str]] = None):
     # Name CLI and declare no arguments
     parser = argparse.ArgumentParser(description='Run ETL for a Survey Monkey pipeline')
@@ -93,6 +115,10 @@ def main(argv: Optional[Sequence[str]] = None):
         surveymonkey_access_token=surveymonkey_access_token
     )
     surveymonkey_survey_questions_etl(
+        data_config=pipeline_config,
+        surveymonkey_access_token=surveymonkey_access_token
+    )
+    surveymonkey_survey_answers_etl(
         data_config=pipeline_config,
         surveymonkey_access_token=surveymonkey_access_token
     )
