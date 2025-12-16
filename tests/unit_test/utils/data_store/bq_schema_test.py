@@ -8,7 +8,6 @@ import data_pipeline.utils.data_store.bq_schema \
 from data_pipeline.utils.data_store.bq_schema import (
     get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
-    semi_clean_crossref_record,
     convert_datetime_to_date_string,
 )
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
@@ -93,50 +92,6 @@ def test_should_convert_bq_schema_field_list_to_dict():
     returned_data = convert_bq_schema_field_list_to_dict(source_data)
 
     assert returned_data == expected_converted_data
-
-
-def test_extracted_data_when_schema_and_source_data_fields_are_similar():
-    test_data = UnitTestData()
-    assert (
-        test_data.test_data_all_field_present_result ==
-        semi_clean_crossref_record(
-            test_data.test_data_all_field_present,
-            test_data.source_data_schema
-        )
-    )
-
-
-def test_extracted_data_when_source_data_has_more_fields_than_schema():
-    test_data = UnitTestData()
-    assert (
-        test_data.test_data_more_field_present_result ==
-        semi_clean_crossref_record(
-            test_data.test_data_more_field_present,
-            test_data.source_data_schema
-        )
-    )
-
-
-def test_extracted_data_when_source_data_has_no_parseable_timestamp_string():
-    test_data = UnitTestData()
-    assert (
-        test_data.test_data_non_parseable_timestamp_present_result
-        == semi_clean_crossref_record(
-            test_data.test_data_non_parseable_timestamp_present,
-            test_data.source_data_schema,
-        )
-    )
-
-
-def test_extracted_data_when_source_data_has_less_fields_than_schema():
-    test_data = UnitTestData()
-    assert (
-        test_data.test_data_some_field_present_result ==
-        semi_clean_crossref_record(
-            test_data.test_data_some_field_present,
-            test_data.source_data_schema
-        )
-    )
 
 
 # pylint: disable=too-many-instance-attributes
