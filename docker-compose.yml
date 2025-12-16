@@ -57,7 +57,6 @@ x-airflow-env:
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/sample_data_config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
-    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml
     - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt
