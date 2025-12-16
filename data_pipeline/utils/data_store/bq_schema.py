@@ -45,16 +45,6 @@ def parse_datetime_from_str(
     return datetime.datetime.strptime(date_as_string.strip(), time_format)
 
 
-# pylint: disable=broad-except,no-else-return
-def get_new_journal_download_start_date_as_str(
-        date_as_string, number_of_previous_day_to_process=0
-) -> str:
-    dtobj = parse_datetime_from_str(date_as_string) - timedelta(
-        number_of_previous_day_to_process
-    )
-    return convert_datetime_to_date_string(dtobj)
-
-
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
