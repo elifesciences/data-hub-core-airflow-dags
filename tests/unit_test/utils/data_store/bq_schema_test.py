@@ -9,12 +9,7 @@ from data_pipeline.utils.data_store.bq_schema import (
     get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
     semi_clean_crossref_record,
-    preprocess_json_record,
-    get_latest_json_record_list_timestamp,
     convert_datetime_to_date_string,
-)
-from data_pipeline.utils.pipeline_file_io import (
-    iter_write_jsonl_to_file
 )
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
@@ -46,52 +41,6 @@ def _get_crossref_data_single_page():
         test_data = UnitTestData()
         mock.return_value = (None, test_data.get_downloaded_crossref_data())
         yield mock
-
-
-def test_should_get_latest_timestamp_after_data_processing():
-    test_data = UnitTestData()
-    max_timestamp = test_data.get_max_timestamp()
-    results = (
-        preprocess_json_record(
-            test_data.get_data(),
-            test_data.data_imported_timestamp_key,
-            test_data.data_imported_timestamp,
-            test_data.source_data_schema)
-    )
-    latest_collected_record_timestamp = (
-        get_latest_json_record_list_timestamp(
-            results,
-            datetime.datetime.strptime(
-                "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
-            )
-        )
-    )
-
-    assert max_timestamp == latest_collected_record_timestamp
-
-
-def test_should_write_result_to_file(mock_open_file):
-    test_data = UnitTestData()
-    results = (
-        preprocess_json_record(
-            test_data.get_data(),
-            test_data.data_imported_timestamp_key,
-            test_data.data_imported_timestamp,
-            test_data.source_data_schema)
-    )
-    written_json = iter_write_jsonl_to_file(
-        results,
-        "tempfileloc"
-    )
-    (
-        get_latest_json_record_list_timestamp(
-            written_json,
-            datetime.datetime.strptime(
-                "2000-01-01T00:00:00Z", "%Y-%m-%dT%H:%M:%SZ"
-            )
-        )
-    )
-    mock_open_file.assert_called_with("tempfileloc", "a", encoding='UTF-8')
 
 
 class TestGetNewDataDownloadStartDateFromCloudStorage:

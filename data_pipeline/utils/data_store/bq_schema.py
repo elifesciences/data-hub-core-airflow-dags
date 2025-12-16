@@ -2,7 +2,7 @@ import re
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Iterable, Optional, Tuple, cast
+from typing import Optional, Tuple, cast
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
@@ -129,22 +129,6 @@ def get_crossref_data_single_page(
             )
             raise
     return resp[message_key][EtlModuleConstant.MESSAGE_NEXT_CURSOR_KEY], resp
-
-
-def preprocess_json_record(
-        json_list,
-        data_hub_imported_timestamp_key,
-        data_hub_imported_timestamp, schema
-) -> Iterable[dict]:
-    return (
-        transform_record(
-            record,
-            data_hub_imported_timestamp_key,
-            data_hub_imported_timestamp,
-            schema=schema,
-        )
-        for record in json_list
-    )
 
 
 def get_latest_json_record_list_timestamp(
