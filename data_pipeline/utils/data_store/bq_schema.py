@@ -1,7 +1,4 @@
 import re
-import datetime
-from datetime import timezone
-from datetime import timedelta
 import logging
 
 LOGGER = logging.getLogger(__name__)
@@ -19,14 +16,6 @@ class EtlModuleConstant:
     BQ_SCHEMA_FIELD_TYPE_KEY = "type"
     # date format used for y application for maintaining download state
     STATE_FILE_DATE_FORMAT = "%Y-%m-%d"
-
-
-def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
-    dtobj = (
-        datetime.datetime.now(timezone.utc) -
-        timedelta(number_of_days_before)
-    )
-    return dtobj.strftime(EtlModuleConstant.STATE_FILE_DATE_FORMAT)
 
 
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
