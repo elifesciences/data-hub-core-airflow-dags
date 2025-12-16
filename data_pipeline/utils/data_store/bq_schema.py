@@ -1,18 +1,23 @@
 import re
 import logging
+from typing import Sequence
+
+from typing_extensions import NotRequired, TypedDict
 
 LOGGER = logging.getLogger(__name__)
 
 
-class EtlModuleConstant:
-    BQ_SCHEMA_FIELD_NAME_KEY = "name"
-    BQ_SCHEMA_SUBFIELD_KEY = "fields"
-    BQ_SCHEMA_FIELD_TYPE_KEY = "type"
+class BigQueryFieldSchema(TypedDict):
+    name: str
+    type: str
+    fields: NotRequired[Sequence['BigQueryFieldSchema']]
 
 
-def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
+def convert_bq_schema_field_list_to_dict(
+    json_list: Sequence[BigQueryFieldSchema]
+) -> dict:
     return {
-        bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
+        bq_schema_field.get('name'):
             bq_schema_field
         for bq_schema_field in json_list
     }
