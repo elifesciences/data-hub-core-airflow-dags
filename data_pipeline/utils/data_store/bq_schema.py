@@ -349,19 +349,3 @@ def etl_crossref_data_return_latest_timestamp(
     return json.dumps(
         journal_latest_timestamp, ensure_ascii=False, indent=4
     )
-
-
-def add_data_hub_timestamp_field_to_bigquery_schema(
-        schema_json, imported_timestamp_field_name
-) -> list:
-    new_schema = [
-        x for x in schema_json if imported_timestamp_field_name not in x.keys()
-    ]
-    new_schema.append(
-        {
-            "mode": "NULLABLE",
-            "name": imported_timestamp_field_name,
-            "type": "TIMESTAMP",
-        }
-    )
-    return new_schema
