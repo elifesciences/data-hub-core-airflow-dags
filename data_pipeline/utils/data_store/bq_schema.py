@@ -23,4 +23,4 @@ def convert_bq_schema_field_list_to_dict(
 
 
 def standardize_field_name(field_name):
-    return re.sub(r"\W", "_", field_name)
+    return re.sub(r'\W', '_', field_name)
