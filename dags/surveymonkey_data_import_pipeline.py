@@ -17,6 +17,7 @@ from data_pipeline.utils.dags.data_pipeline_dag_utils import (
     create_python_task
 )
 
+from data_pipeline.utils.pipeline_config import update_deployment_env_placeholder
 from data_pipeline.utils.pipeline_file_io import (
     get_yaml_file_as_dict
 )
@@ -68,8 +69,11 @@ def data_config_from_xcom(context):
         DEPLOYMENT_ENV_ENV_NAME,
         DEFAULT_DEPLOYMENT_ENV
     )
-    data_conf = SurveyMonkeyDataConfig(
-        data_config_dict, deployment_env)
+    data_config_dict = update_deployment_env_placeholder(
+        data_config_dict,
+        deployment_env=deployment_env
+    )
+    data_conf = SurveyMonkeyDataConfig(data_config_dict)
     LOGGER.info('data_config: %r', data_conf)
     return data_conf
 
