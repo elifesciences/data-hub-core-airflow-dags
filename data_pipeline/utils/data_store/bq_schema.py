@@ -199,11 +199,3 @@ def semi_clean_crossref_record(record, schema):
             if elem is not None:
                 new_list.append(elem)
         return new_list
-
-
-def transform_record(
-        record, imported_timestamp_key, imported_timestamp, schema
-) -> dict:
-    new_record = semi_clean_crossref_record(record, schema)
-    new_record[imported_timestamp_key] = imported_timestamp
-    return new_record
