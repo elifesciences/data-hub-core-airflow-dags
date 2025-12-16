@@ -114,6 +114,11 @@ dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-europepmc-pipeline:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc
+
+
 dev-run-monitoring-pipeline:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
