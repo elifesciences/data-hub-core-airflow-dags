@@ -6,8 +6,7 @@ import pytest
 import data_pipeline.utils.data_store.bq_schema \
     as etl_crossref_event_data_util_module
 from data_pipeline.utils.data_store.bq_schema import (
-    convert_bq_schema_field_list_to_dict,
-    convert_datetime_to_date_string,
+    convert_bq_schema_field_list_to_dict
 )
 from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
 
@@ -215,28 +214,6 @@ class UnitTestData:
             except Exception:
                 continue
         return max(all_timestamp)
-
-    # pylint: disable=broad-except
-    def get_publisher_max_timestamp(self, publisher_id):
-        """
-        :param publisher_id:
-        :return:
-        """
-        all_string_timestamp = [time.get("timestamp")
-                                for time in self.get_data()]
-        all_timestamp = []
-        for string_timestamp in all_string_timestamp:
-            try:
-                all_timestamp.append(
-                    datetime.datetime.strptime(
-                        string_timestamp,
-                        "%Y-%m-%dT%H:%M:%SZ"))
-            except Exception:
-                continue
-        return {
-            publisher_id:
-            convert_datetime_to_date_string(max(all_timestamp))
-        }
 
     def get_expected_processed_crossref_test_data(self):
         data = [

@@ -29,14 +29,6 @@ def get_date_of_days_before_as_string(number_of_days_before: int) -> str:
     return dtobj.strftime(EtlModuleConstant.STATE_FILE_DATE_FORMAT)
 
 
-def convert_datetime_to_date_string(
-        datetime_obj: datetime.datetime,
-        time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT
-) -> str:
-
-    return datetime_obj.strftime(time_format)
-
-
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
