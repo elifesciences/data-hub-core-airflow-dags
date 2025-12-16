@@ -28,10 +28,7 @@ def test_should_convert_bq_schema_field_list_to_dict():
             'name': 'affiliation',
             'type': 'RECORD',
         },
-        'familyName': {
-            'mode': 'NULLABLE', 'name': 'familyName',
-            'type': 'STRING'
-        }
+        'familyName': {'mode': 'NULLABLE', 'name': 'familyName', 'type': 'STRING'}
     }
 
     returned_data = convert_bq_schema_field_list_to_dict(source_data)
