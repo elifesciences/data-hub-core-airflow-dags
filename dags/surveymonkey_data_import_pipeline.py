@@ -73,7 +73,7 @@ def data_config_from_xcom(context):
         data_config_dict,
         deployment_env=deployment_env
     )
-    data_conf = SurveyMonkeyDataConfig(data_config_dict)
+    data_conf = SurveyMonkeyDataConfig.from_dict(data_config_dict)
     LOGGER.info('data_config: %r', data_conf)
     return data_conf
 

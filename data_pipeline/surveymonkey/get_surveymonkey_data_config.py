@@ -26,3 +26,7 @@ class SurveyMonkeyDataConfig:
 
     def __repr__(self):
         return repr(vars(self))
+
+    @staticmethod
+    def from_dict(data_config: dict) -> 'SurveyMonkeyDataConfig':
+        return SurveyMonkeyDataConfig(data_config)
