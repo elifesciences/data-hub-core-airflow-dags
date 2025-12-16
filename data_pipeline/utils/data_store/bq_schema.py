@@ -2,12 +2,7 @@ import re
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import cast
 import logging
-# pylint: disable=import-error
-from data_pipeline.utils.data_store.s3_data_service import (
-    download_s3_object_as_string_or_file_not_found_error
-)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -48,37 +43,6 @@ def parse_datetime_from_str(
 ):
 
     return datetime.datetime.strptime(date_as_string.strip(), time_format)
-
-
-# pylint: disable=broad-except,no-else-return
-def get_new_data_download_start_date_from_cloud_storage(
-        bucket: str,
-        object_key: str,
-        no_of_prior_days_to_last_data_collected_date: int = 0
-) -> dict:
-    try:
-        journal_last_record_date = cast(
-            # Temporarily casting to avoid linting error
-            # This currently can't work properly because the function returns a string
-            dict,
-            download_s3_object_as_string_or_file_not_found_error(
-                bucket, object_key
-            )
-        )
-    except FileNotFoundError:
-        LOGGER.info(
-            'state file not found, starting with initial state: s3:%s/%s',
-            bucket, object_key
-        )
-        journal_last_record_date = {}
-    for journal in journal_last_record_date:
-        journal_last_record_date[journal] = (
-            get_new_journal_download_start_date_as_str(
-                journal_last_record_date.get(journal),
-                no_of_prior_days_to_last_data_collected_date,
-            )
-        )
-    return journal_last_record_date
 
 
 # pylint: disable=broad-except,no-else-return

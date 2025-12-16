@@ -1,12 +1,11 @@
 import datetime
-from unittest.mock import patch,  MagicMock
+from unittest.mock import patch
 
 import pytest
 
 import data_pipeline.utils.data_store.bq_schema \
     as etl_crossref_event_data_util_module
 from data_pipeline.utils.data_store.bq_schema import (
-    get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
     convert_datetime_to_date_string,
 )
@@ -29,47 +28,6 @@ def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
 def _open():
     with patch.object(pipeline_file_io_module, "open") as mock:
         yield mock
-
-
-class TestGetNewDataDownloadStartDateFromCloudStorage:
-    @pytest.mark.parametrize(
-        "publisher_latest_date_dict, number_of_prv_days, "
-        "data_download_start_date_dict",
-        [
-            ({"A": "2019-10-23"}, 1, {"A": "2019-10-22"}),
-            ({"A": "2016-09-23"}, 7, {"A": "2016-09-16"})
-        ],
-    )
-    def test_should_get_last_data_collection_date_from_cloud_storage(
-        self,
-        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock,
-        number_of_prv_days: int,
-        data_download_start_date_dict: dict,
-    ):
-        from_date = get_new_data_download_start_date_from_cloud_storage(
-            "bucket", "object_key", number_of_prv_days
-        )
-        (
-            download_s3_object_as_string_or_file_not_found_error_mock
-            .assert_called_with("bucket", "object_key")
-        )
-        assert from_date == data_download_start_date_dict
-
-    # parameter required because
-    # download_s3_object_as_string_or_file_not_found_error_mock depends on it
-    @pytest.mark.parametrize(
-        "publisher_latest_date_dict",
-        [{"A": "2019-10-23"}],
-    )
-    def test_should_return_empty_dict_if_state_file_not_found(
-        self,
-        download_s3_object_as_string_or_file_not_found_error_mock: MagicMock
-    ):
-        download_s3_object_as_string_or_file_not_found_error_mock.side_effect = FileNotFoundError()
-        from_date = get_new_data_download_start_date_from_cloud_storage(
-            "bucket", "object_key", 1
-        )
-        assert from_date == {}
 
 
 def test_should_convert_bq_schema_field_list_to_dict():
