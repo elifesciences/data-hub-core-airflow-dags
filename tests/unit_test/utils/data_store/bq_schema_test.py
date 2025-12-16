@@ -1,26 +1,8 @@
 import datetime
-from unittest.mock import patch
 
-import pytest
-
-import data_pipeline.utils.data_store.bq_schema \
-    as etl_crossref_event_data_util_module
 from data_pipeline.utils.data_store.bq_schema import (
     convert_bq_schema_field_list_to_dict
 )
-from data_pipeline.utils import pipeline_file_io as pipeline_file_io_module
-
-
-@pytest.fixture(name="download_s3_object_as_string_or_file_not_found_error_mock")
-def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
-    publisher_latest_date_dict: dict
-):
-    with patch.object(
-        etl_crossref_event_data_util_module,
-        "download_s3_object_as_string_or_file_not_found_error"
-    ) as mock:
-        mock.return_value = publisher_latest_date_dict
-        yield mock
 
 
 def test_should_convert_bq_schema_field_list_to_dict():
