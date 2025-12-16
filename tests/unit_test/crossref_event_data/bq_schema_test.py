@@ -4,9 +4,9 @@ from unittest.mock import patch,  MagicMock
 
 import pytest
 
-import data_pipeline.crossref_event_data.etl_crossref_event_data_util \
+import data_pipeline.crossref_event_data.bq_schema \
     as etl_crossref_event_data_util_module
-from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
+from data_pipeline.crossref_event_data.bq_schema import (
     get_new_data_download_start_date_from_cloud_storage,
     convert_bq_schema_field_list_to_dict,
     semi_clean_crossref_record,

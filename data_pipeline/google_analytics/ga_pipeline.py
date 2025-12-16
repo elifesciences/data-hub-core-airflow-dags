@@ -6,7 +6,7 @@ from data_pipeline.google_analytics.ga_config import GoogleAnalyticsConfig
 from data_pipeline.utils.data_store.bq_data_service import (
     load_given_json_list_data_from_tempdir_to_bq
 )
-from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
+from data_pipeline.crossref_event_data.bq_schema import (
     standardize_field_name
 )
 from data_pipeline.utils.data_pipeline_timestamp import (

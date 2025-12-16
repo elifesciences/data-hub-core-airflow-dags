@@ -9,7 +9,7 @@ from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_json_object,
 )
 
-from data_pipeline.crossref_event_data.etl_crossref_event_data_util import (
+from data_pipeline.crossref_event_data.bq_schema import (
     convert_bq_schema_field_list_to_dict,
     standardize_field_name,
 )
