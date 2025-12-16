@@ -1,40 +1,41 @@
-from data_pipeline.utils.pipeline_config import (
-    update_deployment_env_placeholder
-)
+from dataclasses import dataclass
+from typing import Sequence
 
 
-# pylint: disable=too-few-public-methods, too-many-instance-attributes
+@dataclass(frozen=True)
 class SurveyMonkeyDataConfig:
+    project_name: str
+    dataset_name: str
 
-    def __init__(self, data_config: dict,
-                 deployment_env: str,
-                 env_placeholder: str = "{ENV}"
-                 ):
-        self.data_config = update_deployment_env_placeholder(
-            data_config,
-            deployment_env,
-            env_placeholder
-        )
-        self.project_name = self.data_config.get("projectName")
-        self.dataset_name = self.data_config.get("datasetName")
+    # survey list
+    survey_list_table_name: str
 
-        # survey list
-        self.survey_list_table_name = (
-            self.data_config.get("surveyMonkeySurveyList").get("table")
-        )
-        self.survey_id_column_name = (
-            self.data_config.get("surveyMonkeySurveyList").get("survey_id_column_name")
-        )
-        # survey ids to request
-        self.survey_id_list = self.data_config.get("surveyIdListToRequest")
+    # survey ids to request
+    survey_id_list: Sequence[str]
 
-        # survey details
-        self.survey_questions_table_name = (
-            self.data_config.get("surveyMonkeySurveyQuestions").get("table")
-        )
-        self.survey_answers_table_name = (
-            self.data_config.get("surveyMonkeySurveyAnswers").get("table")
-        )
+    # survey details
+    survey_questions_table_name: str
+    survey_answers_table_name: str
 
-    def __repr__(self):
-        return repr(vars(self))
+    @staticmethod
+    def from_dict(data_config: dict) -> 'SurveyMonkeyDataConfig':
+        return SurveyMonkeyDataConfig(
+            project_name=data_config['projectName'],
+            dataset_name=data_config['datasetName'],
+
+            # survey list
+            survey_list_table_name=(
+                data_config['surveyMonkeySurveyList']['table']
+            ),
+
+            # survey ids to request
+            survey_id_list=data_config['surveyIdListToRequest'],
+
+            # survey details
+            survey_questions_table_name=(
+                data_config['surveyMonkeySurveyQuestions']['table']
+            ),
+            survey_answers_table_name=(
+                data_config['surveyMonkeySurveyAnswers']['table']
+            )
+        )

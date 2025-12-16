@@ -129,6 +129,12 @@ dev-run-semantic-scholar-recommendation-pipeline:
 		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar_recommendation $(ARGS)
 
 
+dev-run-surveymonkey-pipeline:
+	SURVEYMONKEY_DATA_CONFIG_FILE_PATH=sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml \
+		SURVEYMONKEY_SECRET_FILE=.secrets/surveymonkey.json \
+		$(PYTHON) -m data_pipeline.surveymonkey.cli $(ARGS)
+
+
 dev-clear-state-csv-pipeline:
 	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
 
