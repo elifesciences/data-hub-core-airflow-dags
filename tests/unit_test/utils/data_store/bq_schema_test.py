@@ -1,5 +1,4 @@
 import datetime
-import json
 from unittest.mock import patch,  MagicMock
 
 import pytest
@@ -12,7 +11,6 @@ from data_pipeline.utils.data_store.bq_schema import (
     semi_clean_crossref_record,
     preprocess_json_record,
     get_latest_json_record_list_timestamp,
-    etl_crossref_data_return_latest_timestamp,
     convert_datetime_to_date_string,
 )
 from data_pipeline.utils.pipeline_file_io import (
@@ -94,34 +92,6 @@ def test_should_write_result_to_file(mock_open_file):
         )
     )
     mock_open_file.assert_called_with("tempfileloc", "a", encoding='UTF-8')
-
-
-def test_should_download_crossref_event_data(
-        mock_download_crossref, mock_open_file
-):
-    test_data = UnitTestData()
-    publisher_id = "pub_id"
-    result = etl_crossref_data_return_latest_timestamp(
-        base_crossref_url="base_crossref_url",
-        latest_journal_download_date={publisher_id:
-                                      "2000-01-01"},
-        journal_doi_prefixes=[publisher_id],
-        message_key=test_data.data_downloaded_message_key,
-        event_key=test_data.data_downloaded_event_key,
-        imported_timestamp_key=test_data.data_imported_timestamp_key,
-        imported_timestamp=test_data.data_imported_timestamp,
-        full_temp_file_location="temp_file_loc",
-        schema=test_data.source_data_schema,
-    )
-    result = json.loads(result)
-    mock_open_file.assert_called_with("temp_file_loc", "a", encoding='UTF-8')
-    assert result == test_data.get_publisher_max_timestamp(publisher_id)
-    assert mock_download_crossref.called_with(
-        base_crossref_url="base_crossref_url",
-        from_date_collected_as_string="from_date_collected_as_string",
-        publisher_id=publisher_id,
-        message_key="message_key",
-    )
 
 
 class TestGetNewDataDownloadStartDateFromCloudStorage:

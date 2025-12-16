@@ -1,5 +1,4 @@
 import re
-import json
 import datetime
 from datetime import timezone
 from datetime import timedelta
@@ -303,49 +302,3 @@ def etl_crossref_data_single_journal_return_latest_timestamp(
         if not cursor:
             break
     return journal_latest_timestamp
-
-
-# pylint: disable=too-many-arguments,too-many-locals
-def etl_crossref_data_return_latest_timestamp(
-        base_crossref_url: str,
-        latest_journal_download_date: dict,
-        journal_doi_prefixes: list,
-        message_key: str,
-        event_key: str,
-        imported_timestamp_key: str,
-        imported_timestamp,
-        full_temp_file_location: str,
-        schema: list,
-        until_date_as_string: Optional[str] = None,
-) -> str:
-
-    journal_latest_timestamp = {}
-    for journal_doi_prefix in journal_doi_prefixes:
-        from_date_as_string = latest_journal_download_date.get(
-            journal_doi_prefix,
-            EtlModuleConstant.DEFAULT_DATA_COLLECTION_START_DATE
-        )
-        latest_timestamp = (
-            etl_crossref_data_single_journal_return_latest_timestamp(
-                base_crossref_url,
-                from_date_as_string,
-                journal_doi_prefix,
-                message_key,
-                event_key,
-                imported_timestamp_key,
-                imported_timestamp,
-                full_temp_file_location,
-                schema,
-                until_date_as_string,
-            )
-        )
-
-        journal_latest_timestamp[journal_doi_prefix] = (
-            convert_datetime_to_date_string(
-                latest_timestamp
-            )
-        )
-
-    return json.dumps(
-        journal_latest_timestamp, ensure_ascii=False, indent=4
-    )
