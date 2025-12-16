@@ -23,12 +23,6 @@ def _download_s3_object_as_string_or_file_not_found_error_mock_mock(
         yield mock
 
 
-@pytest.fixture(name="mock_open_file")
-def _open():
-    with patch.object(pipeline_file_io_module, "open") as mock:
-        yield mock
-
-
 def test_should_convert_bq_schema_field_list_to_dict():
     test_data = UnitTestData()
     source_data = test_data.data_bq_schema_field_list_to_convert_to_dict
