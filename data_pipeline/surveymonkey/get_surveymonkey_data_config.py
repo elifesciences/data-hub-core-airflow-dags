@@ -9,7 +9,6 @@ class SurveyMonkeyDataConfig:
 
     # survey list
     survey_list_table_name: str
-    survey_id_column_name: str
 
     # survey ids to request
     survey_id_list: Sequence[str]
@@ -27,9 +26,6 @@ class SurveyMonkeyDataConfig:
             # survey list
             survey_list_table_name=(
                 data_config['surveyMonkeySurveyList']['table']
-            ),
-            survey_id_column_name=(
-                data_config['surveyMonkeySurveyList']['survey_id_column_name']
             ),
 
             # survey ids to request
