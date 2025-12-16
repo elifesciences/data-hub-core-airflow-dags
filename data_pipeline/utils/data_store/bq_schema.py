@@ -37,14 +37,6 @@ def convert_datetime_to_date_string(
     return datetime_obj.strftime(time_format)
 
 
-def parse_datetime_from_str(
-        date_as_string: str,
-        time_format: str = EtlModuleConstant.STATE_FILE_DATE_FORMAT
-):
-
-    return datetime.datetime.strptime(date_as_string.strip(), time_format)
-
-
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
     return {
         bq_schema_field.get(EtlModuleConstant.BQ_SCHEMA_FIELD_NAME_KEY):
