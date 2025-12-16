@@ -1,6 +1,6 @@
 import re
 import logging
-from typing import Sequence
+from typing import Mapping, Sequence
 
 from typing_extensions import NotRequired, TypedDict
 
@@ -15,7 +15,7 @@ class BigQueryFieldSchema(TypedDict):
 
 def convert_bq_schema_field_list_to_dict(
     json_list: Sequence[BigQueryFieldSchema]
-) -> dict:
+) -> Mapping[str, BigQueryFieldSchema]:
     return {
         bq_schema_field['name']: bq_schema_field
         for bq_schema_field in json_list
