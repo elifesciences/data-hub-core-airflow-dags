@@ -170,6 +170,12 @@ dev-run-bigquery-to-opensearch-pipeline-ecr:
 		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
 
 
+dev-end-to-end-europepmc:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/europepmc_end_to_end_test.py
+
+
 dev-end-to-end-monitoring:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m pytest \
