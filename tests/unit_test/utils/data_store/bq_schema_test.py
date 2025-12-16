@@ -31,17 +31,6 @@ def _open():
         yield mock
 
 
-@pytest.fixture(name="mock_download_crossref")
-def _get_crossref_data_single_page():
-    with patch.object(
-            etl_crossref_event_data_util_module,
-            "get_crossref_data_single_page"
-    ) as mock:
-        test_data = UnitTestData()
-        mock.return_value = (None, test_data.get_downloaded_crossref_data())
-        yield mock
-
-
 class TestGetNewDataDownloadStartDateFromCloudStorage:
     @pytest.mark.parametrize(
         "publisher_latest_date_dict, number_of_prv_days, "

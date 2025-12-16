@@ -2,15 +2,12 @@ import re
 import datetime
 from datetime import timezone
 from datetime import timedelta
-from typing import Optional, Tuple, cast
+from typing import cast
 import logging
 # pylint: disable=import-error
 from data_pipeline.utils.data_store.s3_data_service import (
     download_s3_object_as_string_or_file_not_found_error
 )
-
-# pylint: disable=too-few-public-methods
-from data_pipeline.utils.web_api import requests_retry_session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,43 +89,6 @@ def get_new_journal_download_start_date_as_str(
         number_of_previous_day_to_process
     )
     return convert_datetime_to_date_string(dtobj)
-
-
-# pylint: disable=fixme,too-many-arguments
-def get_crossref_data_single_page(
-        base_crossref_url: str,
-        journal_doi_prefix: str,
-        from_date_collected_as_string: str,
-        until_collected_date_as_string: Optional[str] = None,
-        cursor=None,
-        message_key: str = "message",
-) -> Tuple[str, dict]:
-    # TODO : specify all static url parameter via config
-    LOGGER.info('base_crossref_url: %s', base_crossref_url)
-    url = (
-        base_crossref_url
-        + "&from-collected-date="
-        + from_date_collected_as_string
-        + "&obj-id.prefix="
-        + journal_doi_prefix
-    )
-    LOGGER.info('url: %s', url)
-    if until_collected_date_as_string:
-        url += "&until-collected-date=" + until_collected_date_as_string
-    if cursor:
-        url += "&cursor=" + cursor
-    with requests_retry_session() as session:
-        response = session.get(url)
-        try:
-            response.raise_for_status()
-            resp = response.json()
-        except Exception:
-            LOGGER.error(
-                'Failed to process url: %s | response_status_code: %s | response: %r ',
-                url, response.status_code, response.text
-            )
-            raise
-    return resp[message_key][EtlModuleConstant.MESSAGE_NEXT_CURSOR_KEY], resp
 
 
 def convert_bq_schema_field_list_to_dict(json_list,) -> dict:
