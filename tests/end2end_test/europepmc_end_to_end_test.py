@@ -1,19 +1,17 @@
-from dags.europepmc_data_import_pipeline import (
-    DAG_ID,
-    get_pipeline_config_list,
+from data_pipeline.europepmc.cli_europepmc import (
+    get_europepmc_pipeline_config_list,
+    main
 )
 
-from tests.end2end_test import (
-    trigger_run_test_pipeline,
-    DataPipelineCloudResource
-)
-from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI
+from tests.end2end_test.cli_end2end_test_helper import (
+    DataPipelineCloudResource,
+    check_after_test,
+    clean_before_test
 )
 
 
 def get_data_pipeline_cloud_resource():
-    config_list = get_pipeline_config_list()
+    config_list = get_europepmc_pipeline_config_list()
     assert len(config_list) == 1
     config = config_list[0]
     return DataPipelineCloudResource(
@@ -25,11 +23,8 @@ def get_data_pipeline_cloud_resource():
     )
 
 
-def test_dag_runs_data_imported():
-    airflow_api = AirflowAPI()
+def test_cli_semantic_scholar():
     data_pipeline_cloud_resource = get_data_pipeline_cloud_resource()
-    trigger_run_test_pipeline(
-        airflow_api=airflow_api,
-        dag_id=DAG_ID,
-        pipeline_cloud_resource=data_pipeline_cloud_resource
-    )
+    clean_before_test(data_pipeline_cloud_resource)
+    main()
+    check_after_test(data_pipeline_cloud_resource)

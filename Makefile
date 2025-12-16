@@ -114,6 +114,11 @@ dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-europepmc-pipeline:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc
+
+
 dev-run-monitoring-pipeline:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
@@ -168,6 +173,12 @@ dev-run-bigquery-to-opensearch-pipeline:
 dev-run-bigquery-to-opensearch-pipeline-ecr:
 	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch-ecr.yaml \
 		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
+dev-end-to-end-europepmc:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/europepmc_end_to_end_test.py
 
 
 dev-end-to-end-monitoring:
