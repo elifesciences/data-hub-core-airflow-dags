@@ -119,7 +119,8 @@ dev-run-europepmc-pipeline:
 		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc
 
 
-# start the ftp server first: make ftp-start-detach
+# Note: start the ftp server first: make ftp-start-detach
+#       this will still fail trying to upload file due to FTP's passive mode setup
 dev-run-europepmc-labslink-pipeline:
 	EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc-labslink-localhost.config.yaml \
 		EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=sample_data_config/europepmc/test-ftp-password.txt \
