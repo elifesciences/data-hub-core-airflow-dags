@@ -8,7 +8,6 @@ from airflow.providers.standard.operators.python import PythonOperator
 # from airflow.api.common.experimental.trigger_dag import trigger_dag
 
 from data_pipeline.utils.airflow_compat import days_ago
-from data_pipeline.utils.pipeline_config import ConfigKeys
 
 
 LOGGER = logging.getLogger(__name__)
@@ -65,11 +64,6 @@ def get_task_run_instance_fullname(task_context):
             task_context.get("task").task_id,
         ]
     )
-
-
-def get_suffix_for_config(config: dict) -> str:
-    config_id = config.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
-    return '_' + config_id if config_id else ''
 
 
 def truncate_run_id(run_id: str) -> str:
