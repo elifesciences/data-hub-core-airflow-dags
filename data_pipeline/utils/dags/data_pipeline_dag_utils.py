@@ -72,13 +72,6 @@ def get_suffix_for_config(config: dict) -> str:
     return '_' + config_id if config_id else ''
 
 
-def _get_full_run_id(conf: dict, default_run_id: str) -> str:
-    run_name = conf.get('run_name')
-    if run_name:
-        return truncate_run_id(f'{default_run_id}_{run_name}')
-    return truncate_run_id(default_run_id)
-
-
 def truncate_run_id(run_id: str) -> str:
     # maximum is 250
     return run_id[:250]
