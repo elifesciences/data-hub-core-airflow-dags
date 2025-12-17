@@ -67,21 +67,6 @@ def get_task_run_instance_fullname(task_context):
     )
 
 
-def simple_trigger_dag(dag_id, conf: dict, suffix=''):
-    raise NotImplementedError("simple_trigger_dag is not implemented for Airflow 3.x")
-    # run_id = _get_full_run_id(
-    #     conf=conf,
-    #     default_run_id=f'trig__{datetime.now(timezone.utc).isoformat()}{suffix}'
-    # )
-    # trigger_dag(
-    #     dag_id=dag_id,
-    #     run_id=run_id,
-    #     conf=json.dumps(conf),
-    #     execution_date=None,
-    #     replace_microseconds=False
-    # )
-
-
 def get_suffix_for_config(config: dict) -> str:
     config_id = config.get(ConfigKeys.DATA_PIPELINE_CONFIG_ID)
     return '_' + config_id if config_id else ''
