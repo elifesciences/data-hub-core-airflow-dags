@@ -231,6 +231,13 @@ dev-end-to-end-semantic-scholar-recommendation-pipeline:
 		tests/end2end_test/semantic_scholar_recommendation_data_import_end_to_end_test.py
 
 
+dev-end-to-end-web-api-pipeline:
+	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
+	WEB_API_CONFIG_FILE_PATH=sample_data_config/web-api/web-api-data-pipeline.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/web_api_etl_end_to_end_test.py
+
+
 build:
 	$(DOCKER_COMPOSE) build data-hub-dags
 
