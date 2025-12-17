@@ -54,13 +54,3 @@ def create_python_task(
         email_on_failure=email_on_failure,
         **kwargs
     )
-
-
-def get_task_run_instance_fullname(task_context):
-    return "___".join(
-        [
-            task_context.get("dag").dag_id,
-            task_context.get("run_id"),
-            task_context.get("task").task_id,
-        ]
-    )
