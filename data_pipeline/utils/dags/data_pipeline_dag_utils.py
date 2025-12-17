@@ -87,12 +87,6 @@ def get_suffix_for_config(config: dict) -> str:
     return '_' + config_id if config_id else ''
 
 
-def trigger_data_pipeline_dag(dag_id, conf: dict, suffix=None):
-    if suffix is None:
-        suffix = get_suffix_for_config(conf)
-    simple_trigger_dag(dag_id, conf, suffix=suffix)
-
-
 def _get_full_run_id(conf: dict, default_run_id: str) -> str:
     run_name = conf.get('run_name')
     if run_name:
