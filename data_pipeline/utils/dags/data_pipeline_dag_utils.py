@@ -64,8 +64,3 @@ def get_task_run_instance_fullname(task_context):
             task_context.get("task").task_id,
         ]
     )
-
-
-def truncate_run_id(run_id: str) -> str:
-    # maximum is 250
-    return run_id[:250]
