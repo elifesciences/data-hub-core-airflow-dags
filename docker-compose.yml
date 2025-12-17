@@ -30,7 +30,6 @@ x-airflow-env:
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
-    - CROSSREF_CONFIG_FILE_PATH=/home/airflow/sample_data_config/crossref-event/crossref-event-data-pipeline.config.yaml
     - GMAIL_DATA_CONFIG_FILE_PATH=/home/airflow/sample_data_config/gmail-data/gmail-data-pipeline.config.yaml
     - GMAIL_DATA_USER_ID=gmail-end2end-data-test@elifesciences.org
     - GMAIL_ACCOUNT_SECRET_FILE=path-for-gmail-secret
@@ -54,7 +53,6 @@ x-airflow-env:
     - S3_CSV_CONFIG_FILE_PATH=/home/airflow/sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml
     - WEB_API_SCHEDULE_INTERVAL=${WEB_API_SCHEDULE_INTERVAL:-}
     - WEB_API_CONFIG_FILE_PATH=${WEB_API_CONFIG_FILE_PATH:-/home/airflow/sample_data_config/web-api/web-api-data-pipeline.config.yaml}
-    - GOOGLE_ANALYTICS_CONFIG_FILE_PATH=/home/airflow/sample_data_config/google-analytics/ga-data-pipeline.config.yaml
     - PATH_TO_TOGGL_API_TOKEN_FILE=path-to-toggle-api-token
     - MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL=${MATERIALIZE_BIGQUERY_VIEWS_SCHEDULE_INTERVAL}
     - MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=${MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH}
@@ -64,7 +62,6 @@ x-airflow-env:
     - MONITORING_CONFIG_FILE_PATH=/home/airflow/sample_data_config/monitoring/monitoring.config.yaml
     - HEALTH_CHECK_URL=https://hc-ping.com/3549bc53-4bd9-4ef4-9c4a-22aa57c2fb5b
     - SURVEYMONKEY_SECRET_FILE=path-for-surveymonkey
-    - TWITTER_ADS_API_CONFIG_FILE_PATH=/home/airflow/sample_data_config/twitter-ads-api/twitter-ads-api.config.yaml
     - BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=/home/airflow/sample_data_config/opensearch/bigquery-to-opensearch.yaml
     - OPENSEARCH_USERNAME_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-username.txt
     - OPENSEARCH_PASSWORD_FILE_PATH=/home/airflow/sample_data_config/opensearch/test-opensearch-password.txt

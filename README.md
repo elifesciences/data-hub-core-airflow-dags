@@ -8,7 +8,6 @@ Generic data pipelines implemented so far include
 * Google Spreadsheet Data Pipeline
 * S3 CSV Data Pipeline
 * Generic Web Api Data Pipeline
-* Google Analytics Data Pipeline
 * Twitter Data Pipeline
 * Gmail Data Pipeline
 
