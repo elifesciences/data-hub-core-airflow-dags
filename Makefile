@@ -119,6 +119,15 @@ dev-run-europepmc-pipeline:
 		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc
 
 
+# Note: start the ftp server first: make ftp-start-detach
+#       this will still fail trying to upload file due to FTP's passive mode setup
+dev-run-europepmc-labslink-pipeline:
+	EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc-labslink-localhost.config.yaml \
+		EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=sample_data_config/europepmc/test-ftp-password.txt \
+		EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=sample_data_config/europepmc/test-ftp-directory-name.txt \
+		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc_labslink
+
+
 dev-run-monitoring-pipeline:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
@@ -179,6 +188,16 @@ dev-end-to-end-europepmc:
 	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
 		$(PYTHON) -m pytest -s \
 		tests/end2end_test/europepmc_end_to_end_test.py
+
+
+# Note: start the ftp server first: make ftp-start-detach
+#       this will still fail trying to upload file due to FTP's passive mode setup
+dev-end-to-end-europepmc-labslink:
+	EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc-labslink-localhost.config.yaml \
+		EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=sample_data_config/europepmc/test-ftp-password.txt \
+		EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=sample_data_config/europepmc/test-ftp-directory-name.txt \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/europepmc_labslink_end_to_end_test.py
 
 
 dev-end-to-end-monitoring:
@@ -278,6 +297,11 @@ k3s-start:
 
 k3s-start-detach :
 	$(DOCKER_COMPOSE) up --detach k3s-server k3s-agent
+
+
+ftp-start-detach:
+	$(DOCKER_COMPOSE) up --detach test-ftpserver
+
 
 opensearch-start:
 	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
