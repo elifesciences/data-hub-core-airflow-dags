@@ -4,8 +4,6 @@ from datetime import timedelta
 from typing import Optional
 
 import airflow
-from airflow.providers.standard.operators.python import PythonOperator
-# from airflow.api.common.experimental.trigger_dag import trigger_dag
 
 from data_pipeline.utils.airflow_compat import days_ago
 
@@ -31,26 +29,5 @@ def create_dag(
     return airflow.DAG(
         default_args=default_args,
         catchup=catchup,
-        **kwargs
-    )
-
-
-# pylint: disable=too-many-arguments
-def create_python_task(
-        dag,
-        task_id,
-        python_callable,
-        trigger_rule="all_success",
-        retries=0,
-        email_on_failure=False,
-        **kwargs
-):
-    return PythonOperator(
-        task_id=task_id,
-        dag=dag,
-        python_callable=python_callable,
-        trigger_rule=trigger_rule,
-        retries=retries,
-        email_on_failure=email_on_failure,
         **kwargs
     )
