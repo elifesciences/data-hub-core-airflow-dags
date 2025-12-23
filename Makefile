@@ -6,8 +6,7 @@ DOCKER_COMPOSE = $(DOCKER_COMPOSE_DEV)
 
 
 VENV = venv
-PIP = VIRTUAL_ENV=./venv uv pip
-# PIP = $(VENV)/bin/pip
+PIP = $(VENV)/bin/pip
 PYTHON = PYTHONPATH=dags $(VENV)/bin/python
 
 
