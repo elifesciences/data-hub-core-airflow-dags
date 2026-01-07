@@ -335,14 +335,18 @@ airflow-db-check-migrations:
 airflow-db-migrate:
 	$(DOCKER_COMPOSE) run --rm  webserver db migrate
 
-airflow-initdb:
-	$(DOCKER_COMPOSE) run --rm  webserver db init
+airflow-info:
+	$(DOCKER_COMPOSE) exec webserver \
+		airflow info
+
+airflow-show-user-passwords:
+	$(DOCKER_COMPOSE) exec webserver \
+		cat simple_auth_manager_passwords.json.generated
 
 
 end2end-test:
 	$(MAKE) clean
 	$(MAKE) airflow-db-migrate
-	$(MAKE) airflow-initdb
 	$(MAKE) test-ftpserver-start
 	$(MAKE) docker-wait-for-ftpserver
 	$(DOCKER_COMPOSE) run --rm  test-client

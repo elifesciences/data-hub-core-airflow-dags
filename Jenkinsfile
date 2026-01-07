@@ -38,6 +38,15 @@ elifePipeline {
             sh "make IMAGE_REPO=${image_repo} IMAGE_TAG=${commit} ci-build-main-image"
         }
 
+        stage 'Push image if in Airflow 3 branch', {
+            def dev_image_repo = image_repo + '_unstable'
+
+            sh "echo env.BRANCH_NAME: ${env.BRANCH_NAME}"
+            if (env.BRANCH_NAME == 'PR-1845') {
+                sh "make EXISTING_IMAGE_TAG=${commit} EXISTING_IMAGE_REPO=${image_repo} IMAGE_TAG=airflow3-${commitShort}-${timestamp} IMAGE_REPO=${dev_image_repo} retag-push-image"
+            }
+        }
+
         elifeMainlineOnly {
             def dev_image_repo = image_repo + '_unstable'
 

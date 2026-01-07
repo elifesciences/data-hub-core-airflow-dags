@@ -6,6 +6,7 @@ x-airflow-env:
     - AIRFLOW_HOST=webserver
     - AIRFLOW_PORT=8080
     - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+    - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://webserver:8080/execution/
     - AIRFLOW__CELERY__BROKER_URL=redis://redis:6379/1
     - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@postgres:5432/airflow
     - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
@@ -16,10 +17,15 @@ x-airflow-env:
     - AIRFLOW__SMTP__SMTP_PORT=25
     - AIRFLOW__SMTP__SMTP_MAIL_FROM=do-no-reply@domain.com
     - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.default
-    - AIRFLOW__API__ENABLE_EXPERIMENTAL_API=True
     - AIRFLOW__SCHEDULER__FILE_PARSING_SORT_MODE=modified_time
     - AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL=600
-    - AIRFLOW__WEBSERVER__SECRET_KEY='WmZHRmJwd1dCUEp6Xl4zVA=='
+    - AIRFLOW__API__SECRET_KEY=WmZHRmJwd1dCUEp6Xl4zVA==
+    - AIRFLOW__API_AUTH__JWT_SECRET=Z2h0dXJzRXhhbXBsZVNlY3JldEtleQ==
+    - AIRFLOW__CORE__AUTH_MANAGER=airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+    # username:role pairs; passwords are generated
+    # `make airflow-show-user-passwords` to see generated passwords
+    - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS=admin:admin,viewer:viewer
+    - AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS=true
     - GOOGLE_APPLICATION_CREDENTIALS=/home/airflow/.config/gcloud/credentials.json
     - GOOGLE_CLOUD_PROJECT=elife-data-pipeline
     - DEPLOYMENT_ENV=${DATA_HUB_DEPLOYMENT_ENV}
@@ -101,7 +107,7 @@ services:
         environment: *airflow-env
         image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
         entrypoint: /entrypoint
-        command: webserver
+        command: api-server
         volumes: *airflow-volumes
         healthcheck:
             test: ["CMD", "curl", "-f", "http://localhost:8080"]
@@ -120,6 +126,15 @@ services:
         environment: *airflow-env
         entrypoint: /entrypoint
         command: scheduler
+  
+    dag-processor:
+        depends_on:
+            - postgres
+        volumes: *airflow-volumes
+        image:  ${IMAGE_REPO}-dev:${IMAGE_TAG}
+        environment: *airflow-env
+        entrypoint: /entrypoint
+        command: dag-processor
 
     worker:
         environment: *airflow-env
@@ -127,6 +142,7 @@ services:
           - smtp-server
           - redis
           - scheduler
+          - dag-processor
           - fix-k3s-config
         volumes: *airflow-volumes
         image: ${IMAGE_REPO}-dev:${IMAGE_TAG}

@@ -1,10 +1,10 @@
 import logging
 import importlib
 import os
+from typing import Sequence
 
 import pytest
 from airflow import models as af_models
-from airflow.utils.dag_cycle_tester import test_cycle as _test_cycle
 
 from tests.dag_validation_test.conftest import DAG_FILES, DAG_PATH
 
@@ -26,7 +26,7 @@ def test_dag_should_contain_no_cycle(dag_file):
     mod_spec.loader.exec_module(module)
 
     module_vars = vars(module)
-    dag_objects = [
+    dag_objects: Sequence[af_models.DAG] = [
         var
         for var in module_vars.values()
         if isinstance(var, af_models.DAG)
@@ -36,7 +36,7 @@ def test_dag_should_contain_no_cycle(dag_file):
     assert len(dag_objects) > 0
 
     for dag in dag_objects:
-        _test_cycle(dag)
+        dag.check_cycle()
 
 
 def test_should_successfully_import_all_dags(dagbag):
