@@ -1,12 +1,18 @@
 from dataclasses import dataclass
-from typing import Sequence
+from datetime import date
+from typing import Optional, Sequence
 
 from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
-    ScheduledQueryPipelineConfigDict
+    ScheduledQueryPipelineConfigDict,
+    ScheduledQueryPipelineInitialStateConfigDict,
+    ScheduledQueryPipelineStateConfigDict
 )
-from data_pipeline.utils.pipeline_config import get_pipeline_config_for_env_name_and_config_parser
+from data_pipeline.utils.pipeline_config import (
+    StateFileConfig,
+    get_pipeline_config_for_env_name_and_config_parser
+)
 
 
 @dataclass(frozen=True)
@@ -25,9 +31,54 @@ class ScheduledBigQueryConfig:
 
 
 @dataclass(frozen=True)
+class ScheduledQueryPipelineInitialStateConfig:
+    start_date: date
+
+    @staticmethod
+    def from_dict(
+        pipeline_initial_state_config_dict: ScheduledQueryPipelineInitialStateConfigDict
+    ) -> 'ScheduledQueryPipelineInitialStateConfig':
+        return ScheduledQueryPipelineInitialStateConfig(
+            start_date=date.fromisoformat(
+                pipeline_initial_state_config_dict['startDate']
+            )
+        )
+
+
+@dataclass(frozen=True)
+class ScheduledQueryPipelineStateConfig:
+    initial_state: ScheduledQueryPipelineInitialStateConfig
+    state_file: StateFileConfig
+
+    @staticmethod
+    def from_dict(
+        pipeline_state_config_dict: ScheduledQueryPipelineStateConfigDict
+    ) -> 'ScheduledQueryPipelineStateConfig':
+        return ScheduledQueryPipelineStateConfig(
+            initial_state=ScheduledQueryPipelineInitialStateConfig.from_dict(
+                pipeline_state_config_dict['initialState']
+            ),
+            state_file=StateFileConfig.from_dict(
+                pipeline_state_config_dict['stateFile']
+            )
+        )
+
+    @staticmethod
+    def from_optional_dict(
+        pipeline_state_config_dict: Optional[ScheduledQueryPipelineStateConfigDict]
+    ) -> Optional['ScheduledQueryPipelineStateConfig']:
+        if pipeline_state_config_dict is None:
+            return None
+        return ScheduledQueryPipelineStateConfig.from_dict(
+            pipeline_state_config_dict
+        )
+
+
+@dataclass(frozen=True)
 class ScheduledQueryPipelineConfig:
     data_pipeline_id: str
     bigquery: ScheduledBigQueryConfig
+    state: Optional[ScheduledQueryPipelineStateConfig] = None
 
     @staticmethod
     def from_dict(
@@ -37,6 +88,9 @@ class ScheduledQueryPipelineConfig:
             data_pipeline_id=pipeline_config_dict['dataPipelineId'],
             bigquery=ScheduledBigQueryConfig.from_dict(
                 pipeline_config_dict['bigQuery']
+            ),
+            state=ScheduledQueryPipelineStateConfig.from_optional_dict(
+                pipeline_config_dict.get('state')
             )
         )
 

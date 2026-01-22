@@ -86,10 +86,19 @@ dev-watch:
 dev-test: dev-lint dev-unittest dev-dagtest
 
 
+dev-run-bigquery-views-materialize-views:
+	MATERIALIZE_BIGQUERY_VIEWS_GCP_PROJECT=elife-data-pipeline \
+	MATERIALIZE_BIGQUERY_VIEWS_DATASET=development \
+	MATERIALIZE_BIGQUERY_VIEWS_CONFIG_PATH=s3://ci-elife-data-pipeline/airflow-config/bigquery-views \
+		$(PYTHON) -m data_pipeline.bigquery_views.cli
+
 dev-run-elife-articles-xml:
 	ELIFE_ARTICLE_XML_CONFIG_FILE_PATH=sample_data_config/elife-article-xml/elife-article-xml.config.yaml \
 		$(PYTHON) -m data_pipeline.elife_article_xml.cli
 
+dev-run-finance-data:
+	FINANCE_DATA_CONFIG_FILE_PATH=sample_data_config/finance_data/finance-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.finance_data.cli
 
 dev-run-web-api:  .require-DATA_PIPELINE_ID
 	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
@@ -100,15 +109,135 @@ dev-run-web-api:  .require-DATA_PIPELINE_ID
 		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
 
 
+dev-run-gmail-data-pipeline:  .require-DATA_PIPELINE_ID
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
+		$(PYTHON) -m data_pipeline.gmail_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
+dev-run-europepmc-pipeline:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc
+
+
+# Note: start the ftp server first: make ftp-start-detach
+#       this will still fail trying to upload file due to FTP's passive mode setup
+dev-run-europepmc-labslink-pipeline:
+	EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc-labslink-localhost.config.yaml \
+		EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=sample_data_config/europepmc/test-ftp-password.txt \
+		EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=sample_data_config/europepmc/test-ftp-directory-name.txt \
+		$(PYTHON) -m data_pipeline.europepmc.cli_europepmc_labslink
+
+
+dev-run-monitoring-pipeline:
+	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
+		$(PYTHON) -m data_pipeline.monitoring.cli $(ARGS)
+
+
+dev-run-semantic-scholar-pipeline:
+	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
+		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar $(ARGS)
+
+
+dev-run-semantic-scholar-recommendation-pipeline:
+	SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml \
+		$(PYTHON) -m data_pipeline.semantic_scholar.cli_semantic_scholar_recommendation $(ARGS)
+
+
+dev-run-surveymonkey-pipeline:
+	SURVEYMONKEY_DATA_CONFIG_FILE_PATH=sample_data_config/surveymonkey/surveymonkey-data-pipeline.config.yaml \
+		SURVEYMONKEY_SECRET_FILE=.secrets/surveymonkey.json \
+		$(PYTHON) -m data_pipeline.surveymonkey.cli $(ARGS)
+
+
+dev-clear-state-csv-pipeline:
+	gsutil rm s3://ci-elife-data-pipeline/airflow_test/state/s3-csv/* || echo "No existing state to delete"
+
+
+dev-run-csv-pipeline:  .require-DATA_PIPELINE_ID
+	S3_CSV_CONFIG_FILE_PATH=sample_data_config/s3-csv/s3-csv-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.s3_csv_data.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
+dev-run-google-spreadsheet-pipeline:  .require-DATA_PIPELINE_ID
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m data_pipeline.google_spreadsheet.cli \
+		--data-pipeline-id=$(DATA_PIPELINE_ID) $(ARGS)
+
+
 dev-run-scheduled-queries-pipeline:
 	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/scheduled-queries.config.yaml \
 		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
+
+dev-run-scheduled-queries-pipeline-ga4-metrics-event-counts-by-date:
+	SCHEDULED_QUERIES_PIPELINE_CONFIG_FILE_PATH=sample_data_config/scheduled-queries/ga4_metrics_event_counts_by_date.config.yaml \
+		$(PYTHON) -m data_pipeline.scheduled_queries.cli $(ARGS)
+
+
+dev-run-bigquery-to-opensearch-pipeline:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
+dev-run-bigquery-to-opensearch-pipeline-ecr:
+	BIGQUERY_TO_OPENSEARCH_CONFIG_FILE_PATH=sample_data_config/opensearch/bigquery-to-opensearch-ecr.yaml \
+		$(PYTHON) -m data_pipeline.opensearch.cli $(ARGS)
+
+
+dev-end-to-end-europepmc:
+	EUROPEPMC_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/europepmc_end_to_end_test.py
+
+
+# Note: start the ftp server first: make ftp-start-detach
+#       this will still fail trying to upload file due to FTP's passive mode setup
+dev-end-to-end-europepmc-labslink:
+	EUROPEPMC_LABSLINK_CONFIG_FILE_PATH=sample_data_config/europepmc/europepmc-labslink-localhost.config.yaml \
+		EUROPEPMC_LABSLINK_FTP_PASSWORD_FILE_PATH=sample_data_config/europepmc/test-ftp-password.txt \
+		EUROPEPMC_LABSLINK_FTP_DIRECTORY_NAME_FILE_PATH=sample_data_config/europepmc/test-ftp-directory-name.txt \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/europepmc_labslink_end_to_end_test.py
 
 
 dev-end-to-end-monitoring:
 	MONITORING_CONFIG_FILE_PATH=sample_data_config/monitoring/monitoring.config.yaml \
 		$(PYTHON) -m pytest \
-		tests/end2end_test/data_hub_pipeline_health_check_test.py
+		tests/end2end_test/monitoring_end_to_end_test.py
+
+
+dev-end-to-end-google-spreadsheet:
+	SPREADSHEET_CONFIG_FILE_PATH=sample_data_config/google-spreadsheet/spreadsheet-data-pipeline.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/google_spreadsheet_end_to_end_test.py
+
+
+dev-end-to-end-gmail-data-pipeline:
+	GMAIL_DATA_CONFIG_FILE_PATH=sample_data_config/gmail-data/gmail-data-pipeline.config.yaml \
+		GMAIL_E2E_TEST_ACCOUNT_SECRET_FILE=.secrets/gmail_end2end_test_credentials.json \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/gmail_data_end_to_end_test.py
+
+
+dev-end-to-end-semantic-scholar-pipeline:
+	SEMANTIC_SCHOLAR_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/semantic_scholar_data_import_end_to_end_test.py
+
+
+dev-end-to-end-semantic-scholar-recommendation-pipeline:
+	SEMANTIC_SCHOLAR_RECOMMENDATION_CONFIG_FILE_PATH=sample_data_config/semantic-scholar/semantic-scholar-recommendation.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/semantic_scholar_recommendation_data_import_end_to_end_test.py
+
+
+dev-end-to-end-web-api-pipeline:
+	OPENALEX_API_KEY_FILE_PATH=.secrets/openalex-api-key.txt \
+	WEB_API_CONFIG_FILE_PATH=sample_data_config/web-api/web-api-data-pipeline.config.yaml \
+		$(PYTHON) -m pytest -s \
+		tests/end2end_test/web_api_etl_end_to_end_test.py
 
 
 build:
@@ -178,6 +307,11 @@ k3s-start:
 k3s-start-detach :
 	$(DOCKER_COMPOSE) up --detach k3s-server k3s-agent
 
+
+ftp-start-detach:
+	$(DOCKER_COMPOSE) up --detach test-ftpserver
+
+
 opensearch-start:
 	$(DOCKER_COMPOSE) up -d opensearch opensearch-dashboards
 
@@ -203,14 +337,18 @@ airflow-db-check-migrations:
 airflow-db-migrate:
 	$(DOCKER_COMPOSE) run --rm  webserver db migrate
 
-airflow-initdb:
-	$(DOCKER_COMPOSE) run --rm  webserver db init
+airflow-info:
+	$(DOCKER_COMPOSE) exec webserver \
+		airflow info
+
+airflow-show-user-passwords:
+	$(DOCKER_COMPOSE) exec webserver \
+		cat simple_auth_manager_passwords.json.generated
 
 
 end2end-test:
 	$(MAKE) clean
 	$(MAKE) airflow-db-migrate
-	$(MAKE) airflow-initdb
 	$(MAKE) test-ftpserver-start
 	$(MAKE) docker-wait-for-ftpserver
 	$(DOCKER_COMPOSE) run --rm  test-client
@@ -225,6 +363,10 @@ data-hub-pipelines-shell:
 data-hub-pipelines-run-elife-articles-xml:
 	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
 		python -m data_pipeline.elife_article_xml.cli
+
+data-hub-pipelines-run-finance-data:
+	$(DOCKER_COMPOSE) run --rm data-hub-pipelines \
+		python -m data_pipeline.finance_data.cli
 
 
 data-hub-pipelines-run-web-api:  .require-DATA_PIPELINE_ID

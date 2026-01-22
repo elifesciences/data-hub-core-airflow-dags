@@ -8,7 +8,6 @@ Generic data pipelines implemented so far include
 * Google Spreadsheet Data Pipeline
 * S3 CSV Data Pipeline
 * Generic Web Api Data Pipeline
-* Google Analytics Data Pipeline
 * Twitter Data Pipeline
 * Gmail Data Pipeline
 
@@ -28,85 +27,96 @@ Following are the credentials that you may need to provide
 
 To run the application locally:
 
-    make build-dev airflow-initdb airflow-start
+```shell
+make build-dev airflow-db-migrate airflow-start
+```
 
 To run the whole test on the application:
 
-    make end2end-test
+```shell
+make end2end-test
+```
 
 To run tests excluding the end to end tests:
 
-    make test-exclude-e2e
+```shell
+make test-exclude-e2e
+```
 
 To set up the development environment (virtual environment):
 
-    # initial setup
-    make dev-venv
-    # update dependencies
-    make dev-install
+```shell
+# initial setup
+make dev-venv
+# update dependencies
+make dev-install
+```
 
 ### Run k3s locally
 
-  The `kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
+The `k3s-config/kubeconfig.yaml` file will be created automatically on localhost when we run `k3s-agent` and `k3s-server`.
 
-    make k3s-start
+```shell
+make k3s-start
+```
 
-  We need to update the server IP in the `kubeconfig.yaml` file to connect with Airflow. To obtain the relevant IP address, use the commands provided below. Once you have the IP, replace the `server` entry in the file with `server: https://<YOUR_IP>:6443`.
+When you then start or re-start Airflow, this should copy and update the `k3s-config/kubeconfig_corrected.yaml` config file pointing to `k3s-server` (instead of `127.0.0.1`), making it accessible to Airflow. The config update will be done by `fix-k3s-config` (a dependency of the `worker`).
 
-  To do this:
+We can also use kubectl locally by specifying the configuration file. Assuming `k3s-config/kubeconfig.yaml` still points to `127.0.0.1` you could run:
 
-    # get network ids
-    $ docker network ls
-    NETWORK ID     NAME                                 DRIVER    SCOPE
-    6840f3bbe3f1   data-hub-core-airflow-dags_default   bridge    local
-    ...
+```shell
+kubectl --kubeconfig=k3s-config/kubeconfig.yaml get nodes
+```
 
-    $ docker network inspect 6840f3bbe3f1
-    ...
-    # search for `data-hub-core-airflow-dags-k3s-server-1`
-    {
-      "Name": "data-hub-core-airflow-dags-k3s-server-1",
-      "EndpointID": "",
-      "MacAddress": "",
-      "IPv4Address": "<YOUR_IP>",
-      "IPv6Address": ""
-    }
+Or:
 
-  We can also use kubectl locally by specifying the configuration file. To do this, we need to use `kubeconfig.yaml` with the localhost settings. Simply obtain a copy of the configuration with the localhost IP (`server: https://127.0.0.1:6443`) and save it as `kubeconfig_localhost.yaml`.
+```shell
+kubectl --kubeconfig=k3s-config/kubeconfig.yaml get pods -A
+```
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get nodes
-    ...
+You should then be able to run the `Simple_Airflow_Kubernetes` pipeline.
 
-    $ kubectl --kubeconfig=k3s-config/kubeconfig_localhost.yaml get pods -A
-    ...
+It would require additional config to make config volumes, secrets and local images available to the cluster.
 
 ## Running Pipelines via Virtual Environment
 
 The environment (and BigQuery dataset) can be selected by setting the `DEPLOYMENT_ENV` environment variable:
 
-    DEPLOYMENT_ENV=my_dev
+```shell
+DEPLOYMENT_ENV=my_dev
+```
 
 ### eLife Articles Xml via Virtual Environment
 
-    make dev-run-elife-articles-xml
+```shell
+make dev-run-elife-articles-xml
+```
 
 ### Running Web API via Virtual Environment
 
-    make dev-run-web-api DATA_PIPELINE_ID=people_api
+```shell
+make dev-run-web-api DATA_PIPELINE_ID=people_api
+```
 
 ## Running Pipelines via Docker
 
 The environment (and BigQuery dataset) can be selected by setting the `DATA_HUB_DEPLOYMENT_ENV` environment variable:
 
-    DATA_HUB_DEPLOYMENT_ENV=my_dev
+```shell
+DATA_HUB_DEPLOYMENT_ENV=my_dev
+```
 
 ### eLife Articles Xml via Docker
 
-    make data-hub-pipelines-run-elife-articles-xml
+```shell
+make data-hub-pipelines-run-elife-articles-xml
+```
 
 ### Running Web API via Docker
 
-    make data-hub-pipelines-run-web-api DATA_PIPELINE_ID=people_api
+```shell
+make data-hub-pipelines-run-web-api DATA_PIPELINE_ID=people_api
+```
 
 ## Project Folder/Package Organisation
 

@@ -1,3 +1,4 @@
+from datetime import date
 import logging
 import time
 
@@ -7,21 +8,76 @@ from data_pipeline.utils.data_store.bq_data_service import (
 
 from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
-    ScheduledQueryPipelineConfig
+    ScheduledQueryPipelineConfig,
+    ScheduledQueryPipelineStateConfig
 )
+from data_pipeline.utils.data_store.s3_data_service import (
+    download_s3_object_as_string_or_file_not_found_error,
+    upload_s3_object
+)
+from data_pipeline.utils.pipeline_config import StateFileConfig
 
 
 LOGGER = logging.getLogger(__name__)
 
 
+def replace_start_date_in_sql_query(
+    sql_query: str,
+    start_date: date
+) -> str:
+    return sql_query.replace('{start_date}', start_date.isoformat())
+
+
+def update_state_file(
+    state_file: StateFileConfig,
+    current_date: date
+) -> None:
+    upload_s3_object(
+        bucket=state_file.bucket_name,
+        object_key=state_file.object_name,
+        data_object=current_date.isoformat()
+    )
+    LOGGER.info(
+        'Updated state file: s3://%s/%s with current date: %s',
+        state_file.bucket_name,
+        state_file.object_name,
+        current_date.isoformat()
+    )
+
+
+def load_state_or_default_from_s3_for_config(
+    state_config: ScheduledQueryPipelineStateConfig
+) -> date:
+    try:
+        return date.fromisoformat(
+            download_s3_object_as_string_or_file_not_found_error(
+                bucket=state_config.state_file.bucket_name,
+                object_key=state_config.state_file.object_name
+            )
+        )
+    except FileNotFoundError:
+        LOGGER.info('state file not found, returning initial state')
+        return state_config.initial_state.start_date
+
+
 def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
     LOGGER.info('pipeline_config: %r', pipeline_config)
-    LOGGER.info('Running SQL Query: %r', pipeline_config.bigquery.sql_query)
+
+    sql_query = pipeline_config.bigquery.sql_query
+    if pipeline_config.state:
+        sql_query = replace_start_date_in_sql_query(
+            sql_query=pipeline_config.bigquery.sql_query,
+            start_date=load_state_or_default_from_s3_for_config(
+                pipeline_config.state
+            )
+        )
+
+    LOGGER.info('Running SQL Query: %r', sql_query)
 
     start_time = time.perf_counter()
 
     client = get_bq_client(project=pipeline_config.bigquery.project_name)
-    query_job = client.query(pipeline_config.bigquery.sql_query)
+    query_job = client.query(sql_query)
     query_job.result()
 
     duration = time.perf_counter() - start_time
@@ -41,6 +97,12 @@ def process_scheduled_query(pipeline_config: ScheduledQueryPipelineConfig):
         slot_millis / 1000,
         duration
     )
+
+    if pipeline_config.state:
+        update_state_file(
+            state_file=pipeline_config.state.state_file,
+            current_date=date.today()
+        )
 
 
 def process_scheduled_queries(multi_config: MultiScheduledQueryPipelineConfig):

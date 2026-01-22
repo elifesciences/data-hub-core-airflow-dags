@@ -5,21 +5,15 @@ from io import BytesIO
 
 from lxml import etree
 
-from dags.europepmc_labslink_data_export_pipeline import (
-    DAG_ID,
-    get_pipeline_config
+from data_pipeline.europepmc.cli_europepmc_labslink import (
+    get_europepmc_labslink_pipeline_config,
+    main
 )
+
 from data_pipeline.europepmc.europepmc_labslink_pipeline import (
     change_or_create_ftp_directory,
     get_connected_ftp_client,
     is_gzip_file_path
-)
-
-from tests.end2end_test import (
-    enable_and_trigger_dag_and_wait_for_success
-)
-from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI
 )
 
 
@@ -31,8 +25,7 @@ def assert_valid_xml_str(xml_str: bytes):
 
 
 def test_dag_runs_and_uploads_file():
-    airflow_api = AirflowAPI()
-    config = get_pipeline_config()
+    config = get_europepmc_labslink_pipeline_config()
     ftp_target_config = config.target.ftp
     ftp = get_connected_ftp_client(ftp_target_config)
     change_or_create_ftp_directory(
@@ -46,10 +39,7 @@ def test_dag_runs_and_uploads_file():
         ftp.delete(filename)
     except ftplib.error_perm:
         LOGGER.info('failed to delete %r, it may not not exist yet', filename)
-    enable_and_trigger_dag_and_wait_for_success(
-        airflow_api=airflow_api,
-        dag_id=DAG_ID
-    )
+    main()
     LOGGER.info('checking ftp file %r', filename)
     data = BytesIO()
     ftp.retrbinary(f'RETR {filename}', callback=data.write)

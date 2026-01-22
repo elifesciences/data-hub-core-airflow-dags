@@ -1,5 +1,6 @@
 import argparse
 import logging
+from typing import Optional, Sequence
 from data_pipeline.generic_web_api.generic_web_api_config import (
     MultiWebApiConfig,
     WebApiConfig
@@ -33,10 +34,10 @@ def web_api_data_etl(data_pipeline_id: str):
     LOGGER.info('Completed ETL for pipeline: %s', data_pipeline_id)
 
 
-def main():
+def main(argv: Optional[Sequence[str]] = None):
     parser = argparse.ArgumentParser(description="Run ETL for a specific Web API pipeline")
     parser.add_argument('--data-pipeline-id', required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     data_pipeline_id = args.data_pipeline_id
     LOGGER.info('Starting ETL for pipeline: %s', data_pipeline_id)
     web_api_data_etl(data_pipeline_id)

@@ -1,21 +1,27 @@
+from datetime import date
 from pathlib import Path
 
 import yaml
 
-from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables
+from data_pipeline.utils.pipeline_config import PipelineEnvironmentVariables, StateFileConfig
 
 from data_pipeline.scheduled_queries.pipeline_config import (
     MultiScheduledQueryPipelineConfig,
     ScheduledBigQueryConfig,
     ScheduledQueriesPipelineConfigEnvironmentVariables,
     ScheduledQueryPipelineConfig,
+    ScheduledQueryPipelineInitialStateConfig,
+    ScheduledQueryPipelineStateConfig,
     get_multi_scheduled_queries_pipeline_config
 )
 from data_pipeline.scheduled_queries.pipeline_config_typing import (
     MultiScheduledQueryPipelineConfigDict,
     ScheduledBigQueryConfigDict,
-    ScheduledQueryPipelineConfigDict
+    ScheduledQueryPipelineConfigDict,
+    ScheduledQueryPipelineInitialStateConfigDict,
+    ScheduledQueryPipelineStateConfigDict
 )
+from data_pipeline.utils.pipeline_config_typing import StateFileConfigDict
 
 
 BIGQUERY_CONFIG_DICT_1: ScheduledBigQueryConfigDict = {
@@ -29,6 +35,19 @@ PIPELINE_CONFIG_DICT_1: ScheduledQueryPipelineConfigDict = {
     'bigQuery': BIGQUERY_CONFIG_DICT_1
 }
 
+STATE_FILE_CONFIG_DICT_1: StateFileConfigDict = {
+    'bucketName': 'bucket_1',
+    'objectName': 'object_1'
+}
+
+INITAL_STATE_CONFIG_DICT_1: ScheduledQueryPipelineInitialStateConfigDict = {
+    'startDate': '2023-01-01'
+}
+
+STATE_CONFIG_DICT_1: ScheduledQueryPipelineStateConfigDict = {
+    'initialState': INITAL_STATE_CONFIG_DICT_1,
+    'stateFile': STATE_FILE_CONFIG_DICT_1
+}
 
 MULTI_PIPELINE_CONFIG_DICT_1: MultiScheduledQueryPipelineConfigDict = {
     'scheduledQueries': [PIPELINE_CONFIG_DICT_1]
@@ -42,12 +61,44 @@ class TestScheduledBigQueryConfig:
         assert config.sql_query == BIGQUERY_CONFIG_DICT_1['sqlQuery']
 
 
+class TestScheduledQueryPipelineInitialStateConfig:
+    def test_should_parse_start_date(self):
+        config = ScheduledQueryPipelineInitialStateConfig.from_dict(INITAL_STATE_CONFIG_DICT_1)
+        assert config.start_date == date.fromisoformat(
+            INITAL_STATE_CONFIG_DICT_1['startDate']
+        )
+
+
+class TestScheduledQueryPipelineStateConfig:
+    def test_should_parse_initial_state(self):
+        config = ScheduledQueryPipelineStateConfig.from_dict(STATE_CONFIG_DICT_1)
+        assert config.initial_state == ScheduledQueryPipelineInitialStateConfig.from_dict(
+            STATE_CONFIG_DICT_1['initialState']
+        )
+
+    def test_should_parse_state_file(self):
+        config = ScheduledQueryPipelineStateConfig.from_dict(STATE_CONFIG_DICT_1)
+        assert config.state_file == StateFileConfig.from_dict(
+            STATE_FILE_CONFIG_DICT_1
+        )
+
+
 class TestScheduledQueryConfig:
     def test_should_parse_bigquery_config(self):
         config = ScheduledQueryPipelineConfig.from_dict(PIPELINE_CONFIG_DICT_1)
         assert config.data_pipeline_id == PIPELINE_CONFIG_DICT_1['dataPipelineId']
         assert config.bigquery == ScheduledBigQueryConfig.from_dict(
             PIPELINE_CONFIG_DICT_1['bigQuery']
+        )
+
+    def test_should_parse_state_if_exists_in_config(self):
+        config_dict = {
+            **PIPELINE_CONFIG_DICT_1,
+            'state': STATE_CONFIG_DICT_1
+        }
+        config = ScheduledQueryPipelineConfig.from_dict(config_dict)
+        assert config.state == ScheduledQueryPipelineStateConfig.from_dict(
+            STATE_CONFIG_DICT_1
         )
 
 

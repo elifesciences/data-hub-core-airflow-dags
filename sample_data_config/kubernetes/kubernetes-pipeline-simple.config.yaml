@@ -1,0 +1,21 @@
+defaultConfig:
+  airflow:
+    dagParameters:
+      schedule: null
+      tags:
+        - 'Kubernetes'
+  resources:
+    limits:
+      memory: 600Mi
+      cpu: 1000m
+    requests:
+      memory: 500Mi
+      cpu: 100m
+
+kubernetesPipelines:
+
+  - dataPipelineId: 'Simple_Airflow_Kubernetes'
+    image: 'ubuntu:latest'
+    arguments: 
+      - 'echo'
+      - '"Hello Airflow Kubernetes!"'

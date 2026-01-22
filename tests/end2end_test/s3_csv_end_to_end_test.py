@@ -1,20 +1,16 @@
 import logging
 
-from dags.s3_csv_import_pipeline import (
-    get_dag_id_for_s3_csv_config_dict,
-    get_multi_csv_pipeline_config
-)
+from data_pipeline.s3_csv_data.cli import get_multi_csv_pipeline_config, main
 from data_pipeline.s3_csv_data.s3_csv_config_typing import S3CsvConfigDict
 
 from data_pipeline.s3_csv_data.s3_csv_config import (
     S3BaseCsvConfig
 )
-from tests.end2end_test import (
-    trigger_run_test_pipeline,
-    DataPipelineCloudResource
-)
-from tests.end2end_test.end_to_end_test_helper import (
-    AirflowAPI
+
+from tests.end2end_test.cli_end2end_test_helper import (
+    DataPipelineCloudResource,
+    check_after_test,
+    clean_before_test
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -37,14 +33,11 @@ def get_data_pipeline_cloud_resource(csv_config_dict: S3CsvConfigDict) -> DataPi
     )
 
 
-def test_dag_runs_data_imported():
+def test_csv_pipeline_cli():
     single_csv_pipeline_config_dict = get_test_csv_pipeline_config_dict()
-    airflow_api = AirflowAPI()
-    data_pipeline_cloud_resource = (
-        get_data_pipeline_cloud_resource(single_csv_pipeline_config_dict)
+    data_pipeline_cloud_resource = get_data_pipeline_cloud_resource(
+        single_csv_pipeline_config_dict
     )
-    trigger_run_test_pipeline(
-        airflow_api=airflow_api,
-        dag_id=get_dag_id_for_s3_csv_config_dict(single_csv_pipeline_config_dict),
-        pipeline_cloud_resource=data_pipeline_cloud_resource
-    )
+    clean_before_test(data_pipeline_cloud_resource)
+    main(['--data-pipeline-id', single_csv_pipeline_config_dict['dataPipelineId']])
+    check_after_test(data_pipeline_cloud_resource)

@@ -7,7 +7,7 @@ from google.cloud import bigquery
 
 from bigquery_views_manager.view_list import load_view_list_config
 from bigquery_views_manager.materialize_views import (
-    materialize_views,
+    materialize_views_if_necessary,
     MaterializeViewListResult
 )
 from data_pipeline.utils.data_pipeline_timestamp import get_current_timestamp
@@ -68,20 +68,11 @@ def materialize_bigquery_views(config: BigQueryViewsConfig):
     })
     LOGGER.info('view_list_config: %s', view_list_config)
 
-    views_ordered_dict_all = view_list_config.to_views_ordered_dict(
-        config.dataset
-    )
-    LOGGER.debug('views_ordered_dict_all: %s', views_ordered_dict_all)
-    materialized_view_ordered_dict_all = view_list_config.to_materialized_view_ordered_dict(
-        config.dataset
-    )
-    LOGGER.debug('materialized_view_ordered_dict_all: %s', materialized_view_ordered_dict_all)
-
-    materialize_views_log = materialize_views(
+    materialize_views_log = materialize_views_if_necessary(
         client=client,
-        materialized_view_dict=materialized_view_ordered_dict_all,
-        source_view_dict=views_ordered_dict_all,
-        project=client.project
+        project=client.project,
+        dataset=config.dataset,
+        view_list_config=view_list_config
     )
     load_given_json_list_data_from_tempdir_to_bq(
         project_name=config.gcp_project,

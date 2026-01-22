@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 import logging
 import os
 from typing import Any, Iterable, List, Mapping, Optional, Sequence, Type, TypeVar, cast
@@ -223,7 +224,7 @@ def get_multi_kubernetes_pipeline_config() -> KubernetesPipelineFileConfig:
         get_yaml_file_as_dict(config_file_path),
         deployment_env=deployment_env
     )
-    LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
+    LOGGER.info('pipeline_config_dict: %s', json.dumps(pipeline_config_dict))
     pipeline_config = KubernetesPipelineFileConfig.from_dict(
         pipeline_config_dict,
         base_path=os.path.dirname(config_file_path)

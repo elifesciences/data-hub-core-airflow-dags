@@ -1,4 +1,5 @@
 import dataclasses
+import json
 import os
 import logging
 from dataclasses import dataclass, field
@@ -151,6 +152,14 @@ class StateFileConfig:
             bucket_name=state_file_config_dict['bucketName'],
             object_name=state_file_config_dict['objectName']
         )
+
+    @staticmethod
+    def from_optional_dict(
+        state_file_config_dict: Optional[StateFileConfigDict] = None,
+    ) -> Optional['StateFileConfig']:
+        if state_file_config_dict is None:
+            return None
+        return StateFileConfig.from_dict(state_file_config_dict)
 
 
 @dataclass(frozen=True)
@@ -324,7 +333,7 @@ def get_pipeline_config_for_env_name_and_config_parser(
         get_yaml_file_as_dict(conf_file_path),
         deployment_env=deployment_env
     )
-    LOGGER.info('pipeline_config_dict: %s', pipeline_config_dict)
+    LOGGER.info('pipeline_config_dict: %s', json.dumps(pipeline_config_dict))
     pipeline_config = config_parser_fn(pipeline_config_dict)
     LOGGER.info('pipeline_config: %s', pipeline_config)
     return pipeline_config

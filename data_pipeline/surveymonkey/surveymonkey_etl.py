@@ -29,7 +29,7 @@ def get_survey_list(access_token: str) -> list:
     return survey_list
 
 
-def get_survey_question_details(access_token: str, survey_id: str) -> list:
+def get_survey_question_details(access_token: str, survey_id: str) -> dict:
     headers = get_surveymonkey_api_headers(access_token)
     response = requests.get(
         f"https://api.surveymonkey.com/v3/surveys/{survey_id}/details",
