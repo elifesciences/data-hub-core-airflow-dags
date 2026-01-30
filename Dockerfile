@@ -11,23 +11,23 @@ RUN apt-get update \
 RUN usermod -aG sudo airflow
 RUN echo "airflow ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 USER airflow
-COPY requirements.build.txt ./
-RUN pip install --disable-pip-version-check -r requirements.build.txt
 
 COPY requirements.monitoring.txt ./
-RUN pip install --disable-pip-version-check -r requirements.monitoring.txt
+RUN uv pip install -r requirements.monitoring.txt
 
 # Note: install requirements together with previous requirements file to make conflicts visible
 COPY requirements.txt ./
-RUN pip install --disable-pip-version-check \
+RUN uv pip install \
   -r requirements.monitoring.txt \
   -r requirements.txt
 
 ARG install_dev=n
 COPY requirements.dev.txt ./
 RUN if [ "${install_dev}" = "y" ]; then \
-    pip install --disable-pip-version-check \
+    uv pip install \
       -r requirements.monitoring.txt \
       -r requirements.txt \
       -r requirements.dev.txt; \
@@ -38,7 +38,6 @@ ENV PATH /home/airflow/.local/bin:$PATH
 COPY data_pipeline ./data_pipeline
 COPY dags ./dags
 COPY setup.py ./setup.py
-RUN pip install -e . --no-dependencies
 
 COPY .flake8 .pylintrc mypy.ini run_test.sh ./
 COPY tests ./tests
