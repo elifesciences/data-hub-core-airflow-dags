@@ -6,7 +6,8 @@ DOCKER_COMPOSE = $(DOCKER_COMPOSE_DEV)
 
 
 VENV = venv
-PIP = $(VENV)/bin/pip
+UV = VIRTUAL_ENV=$(VENV) uv
+UV_PIP = $(UV) pip
 PYTHON = PYTHONPATH=dags $(VENV)/bin/python
 
 
@@ -27,7 +28,7 @@ venv-clean:
 
 
 venv-create:
-	python3 -m venv $(VENV)
+	$(UV) venv $(VENV)
 
 
 venv-activate:
@@ -36,13 +37,12 @@ venv-activate:
 
 
 dev-install:
-	$(PIP) install --disable-pip-version-check -r requirements.build.txt
+	$(UV_PIP) install -r requirements.build.txt
 	SLUGIFY_USES_TEXT_UNIDECODE=yes \
-	$(PIP) install --disable-pip-version-check \
+	$(UV_PIP) install \
 		-r requirements.monitoring.txt \
 		-r requirements.txt \
 		-r requirements.dev.txt
-	$(PIP) install --disable-pip-version-check -e . --no-deps
 
 
 dev-venv: venv-create dev-install
