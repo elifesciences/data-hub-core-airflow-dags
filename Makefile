@@ -37,7 +37,6 @@ venv-activate:
 
 
 dev-install:
-	$(UV_PIP) install -r requirements.build.txt
 	SLUGIFY_USES_TEXT_UNIDECODE=yes \
 	$(UV_PIP) install \
 		-r requirements.monitoring.txt \
