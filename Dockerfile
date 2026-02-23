@@ -34,6 +34,7 @@ RUN if [ "${install_dev}" = "y" ]; then \
   fi
 
 ENV PATH /home/airflow/.local/bin:$PATH
+ENV PYTHONPATH /opt/airflow
 
 COPY data_pipeline ./data_pipeline
 COPY dags ./dags
