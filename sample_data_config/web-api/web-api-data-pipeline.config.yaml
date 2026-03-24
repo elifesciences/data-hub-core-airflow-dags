@@ -343,6 +343,13 @@ webApi:
       itemsKeyFromResponseRoot:
         - rows
 
+  # hypothesis api - single annotation (test for supplementary plane unicode encoding)
+  - dataPipelineId: hypothesis_single_annotation
+    dataset: '{ENV}'
+    table: test_hypothesis_single_annotation
+    dataUrl:
+      urlExcludingConfigurableParameters: https://hypothes.is/api/annotations/kmfExiHtEfGgWKfMekAbBg
+
   - dataPipelineId: keywords_from_manuscript_abstract_batch
     dataset: '{ENV}'
     table: test_keywords_from_manuscript_abstract_batch

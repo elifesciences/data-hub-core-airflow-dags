@@ -17,7 +17,7 @@ def iter_write_jsonl_to_file(
 ) -> Iterable[dict]:
     with open(full_temp_file_location, write_mode, encoding='UTF-8') as write_file:
         for record in json_list:
-            write_file.write(json.dumps(record))
+            write_file.write(json.dumps(record, ensure_ascii=False))
             write_file.write("\n")
             yield record
         write_file.flush()
@@ -30,7 +30,7 @@ def write_jsonl_to_file(
 ):
     with open(full_temp_file_location, write_mode, encoding='UTF-8') as write_file:
         for record in json_list:
-            write_file.write(json.dumps(record))
+            write_file.write(json.dumps(record, ensure_ascii=False))
             write_file.write("\n")
         write_file.flush()
 
