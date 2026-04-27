@@ -20,7 +20,7 @@ google-api-python-client==2.194.0
 google-cloud-bigquery!=2.4.0.a, >=3.41.0, <3.41.1
 google-oauth==1.0.1
 jinjasql2==0.1.12
-opensearch-py==3.1.0
+opensearch-py==3.2.0
 PyYAML>=6.0.3, <6.1.0
 s3fs==2026.3.0
 six==1.17.0
