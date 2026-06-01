@@ -227,7 +227,8 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
     data_config: WebApiConfig,
     latest_record_timestamp: Optional[datetime] = None,
     fixed_until_date: Optional[datetime] = None,
-    all_source_values_iterator: Optional[Iterable[dict]] = None
+    all_source_values_iterator: Optional[Iterable[dict]] = None,
+    total_count: Optional[int] = None
 ) -> Optional[WebApiDynamicRequestParameters]:
     if all_source_values_iterator is not None:
         # Note: added assert for currently unsupported other parameters when using source values
@@ -260,7 +261,8 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
             web_config=data_config,
             cursor=cursor,
             page_number=current_dynamic_request_parameters.page_number,
-            offset=current_dynamic_request_parameters.page_offset
+            offset=current_dynamic_request_parameters.page_offset,
+            total_count=total_count
         )
     )
     page_number = get_next_page_number(
@@ -273,7 +275,8 @@ def get_next_dynamic_request_parameters_for_page_data(  # pylint: disable=too-ma
         items_count=items_count,
         current_offset=current_dynamic_request_parameters.page_offset,
         web_config=data_config,
-        reset_param=to_reset_page_or_offset_param
+        reset_param=to_reset_page_or_offset_param,
+        total_count=total_count
     )
 
     variable_until_date = get_next_until_date(
@@ -439,7 +442,8 @@ def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-loca
             fixed_until_date=until_date,
             current_dynamic_request_parameters=current_dynamic_request_parameters,
             data_config=data_config,
-            all_source_values_iterator=all_source_values_iterator
+            all_source_values_iterator=all_source_values_iterator,
+            total_count=total_count
         )
 
     if progress_monitor.is_incomplete():
@@ -659,7 +663,8 @@ def get_next_page_number(
 def get_next_offset(
     items_count, current_offset,
     web_config: WebApiConfig,
-    reset_param: bool = False
+    reset_param: bool = False,
+    total_count: Optional[int] = None
 ):
 
     next_offset = None
@@ -667,11 +672,14 @@ def get_next_offset(
         if reset_param:
             next_offset = 0
         else:
-            has_more_items = (
-                items_count == web_config.page_size
-                if web_config.page_size
-                else items_count
-            )
+            if total_count is not None:
+                # The API reports the total; trust it instead of guessing from page size,
+                # because some APIs (e.g.bioRxiv) return fewer than page_size on intermediate pages
+                has_more_items = (current_offset + items_count) < int(total_count)
+            elif web_config.page_size:
+                has_more_items = items_count == web_config.page_size
+            else:
+                has_more_items = bool(items_count)
             next_offset = (
                 current_offset + web_config.page_size
                 if has_more_items else None
@@ -686,7 +694,8 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
     web_config: WebApiConfig,
     cursor: Optional[str] = None,
     page_number: Optional[int] = None,
-    offset: Optional[int] = None
+    offset: Optional[int] = None,
+    total_count: Optional[int] = None
 ):
     # pylint: disable=too-many-boolean-expressions
     from_timestamp = None
@@ -695,7 +704,7 @@ def get_next_start_date(  # pylint: disable=too-many-arguments
         items_count, page_number, web_config, False
     )
     next_offset = get_next_offset(
-        items_count, offset, web_config, False
+        items_count, offset, web_config, False, total_count=total_count
     )
     if cursor or next_page_number or next_offset:
         from_timestamp = current_start_timestamp

@@ -680,6 +680,60 @@ class TestNextOffset:
             (current_offset + current_item_count)
         )
 
+    def test_should_continue_when_total_count_not_reached_even_if_short_page(self):
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+        data_config = get_data_config(conf_dict)
+        # API returned only 30 items for an intermediate page (e.g. bioRxiv),
+        # but reported total is 555: pagination should advance.
+        assert get_next_offset(
+            items_count=30,
+            current_offset=250,
+            web_config=data_config,
+            total_count=555
+        ) == 350
+
+    def test_should_stop_when_total_count_reached(self):
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+        data_config = get_data_config(conf_dict)
+        assert get_next_offset(
+            items_count=55,
+            current_offset=500,
+            web_config=data_config,
+            total_count=555
+        ) is None
+
+    def test_should_accept_total_count_as_string(self):
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+        data_config = get_data_config(conf_dict)
+        # bioRxiv returns "total" as a JSON string
+        assert get_next_offset(
+            items_count=30,
+            current_offset=250,
+            web_config=data_config,
+            total_count='555'
+        ) == 350
+
 
 class TestGetDataSinglePage:
     def test_should_pass_method_url_and_header_to_session_request(
