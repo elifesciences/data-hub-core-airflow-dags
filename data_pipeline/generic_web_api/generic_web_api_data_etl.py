@@ -331,6 +331,19 @@ def get_initial_dynamic_request_parameters(
     )
 
 
+def parse_total_count_as_int_or_none(total_count) -> Optional[int]:
+    # get_dict_values_from_path_as_list fans out across nested lists,
+    # so totals like bioRxiv's `messages[0].total` come back as a single-element list.
+    if isinstance(total_count, list):
+        total_count = total_count[0] if len(total_count) == 1 else None
+    if total_count is None:
+        return None
+    try:
+        return int(total_count)
+    except (TypeError, ValueError):
+        return None
+
+
 def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-locals
     data_config: WebApiConfig,
     initial_from_date: Optional[datetime] = None,
@@ -377,7 +390,9 @@ def iter_processed_web_api_data_etl_batch_data(  # pylint: disable=too-many-loca
         )
         LOGGER.debug('page_response: %r', page_response)
         page_data = page_response.response_json
-        total_count = get_optional_total_count(page_data, data_config)
+        total_count = parse_total_count_as_int_or_none(
+            get_optional_total_count(page_data, data_config)
+        )
         if total_count:
             LOGGER.info('Total items (reported by API): %d', total_count)
             progress_monitor.set_total(total_count)
@@ -672,10 +687,10 @@ def get_next_offset(
         if reset_param:
             next_offset = 0
         else:
-            if total_count is not None:
-                # The API reports the total; trust it instead of guessing from page size,
-                # because some APIs (e.g.bioRxiv) return fewer than page_size on intermediate pages
-                has_more_items = (current_offset + items_count) < int(total_count)
+            total_count_int = parse_total_count_as_int_or_none(total_count)
+            if total_count_int is not None:
+                # Some APIs (e.g. bioRxiv) return fewer than page_size on intermediate pages.
+                has_more_items = (current_offset + items_count) < total_count_int
             elif web_config.page_size:
                 has_more_items = items_count == web_config.page_size
             else:

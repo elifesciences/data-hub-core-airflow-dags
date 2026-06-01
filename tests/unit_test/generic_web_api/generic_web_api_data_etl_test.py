@@ -734,6 +734,25 @@ class TestNextOffset:
             total_count='555'
         ) == 350
 
+    def test_should_accept_total_count_as_single_element_list(self):
+        # get_dict_values_from_path_as_list fans out across list-valued path segments
+        # (e.g. bioRxiv's `messages[0].total`), so the total can arrive wrapped in a list.
+        conf_dict = {
+            **WEB_API_CONFIG,
+        }
+        conf_dict['dataUrl']['configurableParameters'] = {
+            'offsetParameterName': 'offset',
+            'pageSizeParameterName': 'per-page',
+            'defaultPageSize': 100,
+        }
+        data_config = get_data_config(conf_dict)
+        assert get_next_offset(
+            items_count=30,
+            current_offset=250,
+            web_config=data_config,
+            total_count=['555']
+        ) == 350
+
 
 class TestGetDataSinglePage:
     def test_should_pass_method_url_and_header_to_session_request(
