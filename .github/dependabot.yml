@@ -19,3 +19,7 @@ updates:
       patterns:
         - "fsspec"
         - "s3fs"
+    airflow-group:
+      patterns:
+        - "apache-airflow"
+        - "apache-airflow-providers-celery"
