@@ -5,6 +5,10 @@ updates:
   schedule:
     interval: daily
   open-pull-requests-limit: 10
+  ignore:
+    # 10.17.1 crashes the Airflow scheduler (apache/airflow#67813); fix ships in 10.18.0
+    - dependency-name: "apache-airflow-providers-cncf-kubernetes"
+      versions: [">= 10.17.1, < 10.18.0"]
   groups:
     boto-group:
       patterns:
