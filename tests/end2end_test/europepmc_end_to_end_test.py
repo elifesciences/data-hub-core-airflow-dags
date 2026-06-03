@@ -23,7 +23,7 @@ def get_data_pipeline_cloud_resource():
     )
 
 
-def test_cli_semantic_scholar():
+def test_cli_europepmc():
     data_pipeline_cloud_resource = get_data_pipeline_cloud_resource()
     clean_before_test(data_pipeline_cloud_resource)
     main()
