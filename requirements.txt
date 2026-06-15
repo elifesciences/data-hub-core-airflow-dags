@@ -8,7 +8,7 @@ botocore
 aiobotocore==2.25.0
 cattrs==26.1.0
 cloudpickle==3.1.2
-dateparser==1.4.0
+dateparser==1.4.1
 kubernetes
 apache-airflow-providers-cncf-kubernetes==10.18.0
 objsize==0.8.0
