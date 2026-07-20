@@ -2,7 +2,7 @@ numpy>=2.2.6,<3.0.0
 pandas==2.3.3
 pandas-gbq==0.35.0
 pyarrow>=25.0.0, <26.0.0
-tqdm==4.68.4
+tqdm==4.69.0
 requests==2.34.2
 fsspec==2026.6.0
 s3fs==2026.6.0
