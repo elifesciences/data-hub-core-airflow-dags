@@ -17,7 +17,7 @@ regex==2026.7.19
 fsspec==2026.7.0
 lxml>=6.1.2, <6.2.0
 google-api-python-client==2.200.0
-google-cloud-bigquery!=2.4.0.a, >=3.43.0, <3.43.1
+google-cloud-bigquery!=2.4.0.a, >=3.44.0, <3.44.1
 google-oauth==1.0.1
 jinjasql2==0.1.13
 opensearch-py==3.2.0
