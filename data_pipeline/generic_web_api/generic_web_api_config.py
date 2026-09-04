@@ -14,7 +14,6 @@ from data_pipeline.utils.pipeline_config import (
     BigQueryIncludeExcludeSourceConfig,
     ConfigKeys,
     MappingConfig,
-    get_resolved_parameter_values_from_file_path_env_name,
     update_deployment_env_placeholder
 )
 from data_pipeline.generic_web_api.generic_web_api_config_typing import (
@@ -161,6 +160,7 @@ class WebApiConfig:
     dataset_name: str
     table_name: str
     table_write_disposition: str
+    static_parameters: MappingConfig
     headers: MappingConfig
     dynamic_request_builder: WebApiDynamicRequestBuilder
     gcp_project: str
@@ -220,16 +220,9 @@ class WebApiConfig:
         result_sort_param_value = configurable_parameters.get(
             "resultSortParameterValue", None
         )
-        static_parameters = (
-            {
-                **(get_resolved_parameter_values_from_env_name(
-                    data_url_config_dict.get("parametersFromEnv", [])
-                )),
-                **(get_resolved_parameter_values_from_file_path_env_name(
-                    data_url_config_dict.get("parametersFromFile", [])
-                )),
-            }
-        )
+        static_parameters = MappingConfig.from_dict({
+            'parametersFromFile': data_url_config_dict.get("parametersFromFile", [])
+        })
         from_date_param = configurable_parameters.get(
             "fromDateParameterName", None)
         to_date_param = configurable_parameters.get(
@@ -264,7 +257,6 @@ class WebApiConfig:
             offset_param=offset_param,
             page_size_param=page_size_param,
             page_size=page_size,
-            static_parameters=static_parameters,
             sort_key=result_sort_param,
             sort_key_value=result_sort_param_value,
             max_source_values_per_request=(
@@ -310,6 +302,7 @@ class WebApiConfig:
             retry=WebApiRetryConfig.from_optional_dict(
                 api_config.get('retry')
             ),
+            static_parameters=static_parameters,
             headers=MappingConfig.from_dict(api_config.get('headers', {})),
             default_start_date=(
                 configurable_parameters.get("defaultStartDate", None)

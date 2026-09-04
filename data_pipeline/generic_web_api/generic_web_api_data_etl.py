@@ -167,7 +167,10 @@ def get_data_single_page_response(
             method=data_config.dynamic_request_builder.method,
             url=url,
             json_data=json_data,
+            params=data_config.static_parameters.mapping,
+            printable_params=data_config.static_parameters.printable_mapping,
             headers=data_config.headers.mapping,
+            printable_headers=data_config.headers.printable_mapping,
             raise_on_status=True,
             timeout=data_config.timeout
         )
