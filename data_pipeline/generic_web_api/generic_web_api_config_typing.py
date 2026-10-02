@@ -35,7 +35,6 @@ class WebApiConfigurableParametersConfigDict(TypedDict):
 class WebApiDataUrlConfigDict(TypedDict):
     urlExcludingConfigurableParameters: str
     configurableParameters: NotRequired[WebApiConfigurableParametersConfigDict]
-    parametersFromEnv: NotRequired[Sequence[ParameterFromEnvConfigDict]]  # Note: not used anymore
     parametersFromFile: NotRequired[Sequence[ParameterFromFileConfigDict]]
 
 
