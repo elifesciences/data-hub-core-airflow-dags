@@ -8,6 +8,7 @@ from data_pipeline.generic_web_api.generic_web_api_config import (
 from data_pipeline.generic_web_api.generic_web_api_data_etl import (
     generic_web_api_data_etl
 )
+from data_pipeline.utils.logging import configure_logging_with_redacted_secrets
 from data_pipeline.utils.pipeline_config import (
     get_pipeline_config_for_env_name_and_config_parser
 )
@@ -46,4 +47,5 @@ def main(argv: Optional[Sequence[str]] = None):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    configure_logging_with_redacted_secrets()
     main()

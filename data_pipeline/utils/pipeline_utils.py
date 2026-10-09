@@ -147,9 +147,32 @@ def get_default_printable_mapping_with_secrets(
     return None
 
 
+def get_sanitized_exception_without_secrets(
+    exc: requests.RequestException,
+    url: str,
+    printable_params: Optional[Mapping[str, str]] = None,
+    printable_headers: Optional[Mapping[str, str]] = None
+) -> requests.RequestException:
+    sanitized_message = (
+        f'{exc.__class__.__name__} requesting url: {url}'
+        f', params: {printable_params}, headers: {printable_headers}'
+    )
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        status_code = exc.response.status_code
+        if status_code:
+            sanitized_message += f', status_code: {status_code}'
+    sanitized_exception = exc.__class__(
+        sanitized_message,
+        request=exc.request,
+        response=exc.response
+    )
+    return sanitized_exception
+
+
 def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-arguments,too-many-locals
     url: str,
     params: Optional[Mapping[str, str]] = None,
+    printable_params: Optional[Mapping[str, str]] = None,
     headers: Optional[Mapping[str, str]] = None,
     printable_headers: Optional[Mapping[str, str]] = None,
     method: str = 'GET',
@@ -169,38 +192,49 @@ def get_response_and_provenance_from_api(  # noqa pylint: disable=too-many-argum
         mapping=headers,
         printable_mapping=printable_headers
     )
+    if printable_params is None:
+        # Note: if printable_params is None (not empty) we assume params do not contain secrets
+        printable_params = params
     LOGGER.info(
         'requesting url%s: %r %r (params=%r, headers=%r)',
-        progress_message_str, method, url, params, printable_headers
+        progress_message_str, method, url, printable_params, printable_headers
     )
     request_timestamp = datetime.utcnow()
-    if session:
-        response = session.request(
-            method,
-            url,
-            params=params,
-            headers=headers,
-            json=json_data,
-            timeout=timeout
+    try:
+        if session:
+            response = session.request(
+                method,
+                url,
+                params=params,
+                headers=headers,
+                json=json_data,
+                timeout=timeout
+            )
+        else:
+            response = requests.request(
+                method,
+                url,
+                params=params,
+                headers=headers,
+                json=json_data,
+                timeout=timeout
+            )
+        response_timestamp = datetime.utcnow()
+        LOGGER.debug('raise_on_status: %r', raise_on_status)
+        response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
+        LOGGER.info(
+            'request took: %0.3f seconds (status_code: %r)',
+            response_duration_secs, response.status_code
         )
-    else:
-        response = requests.request(
-            method,
-            url,
-            params=params,
-            headers=headers,
-            json=json_data,
-            timeout=timeout
-        )
-    response_timestamp = datetime.utcnow()
-    LOGGER.debug('raise_on_status: %r', raise_on_status)
-    response_duration_secs = (response_timestamp - request_timestamp).total_seconds()
-    LOGGER.info(
-        'request took: %0.3f seconds (status_code: %r)',
-        response_duration_secs, response.status_code
-    )
-    if raise_on_status:
-        response.raise_for_status()
+        if raise_on_status:
+            response.raise_for_status()
+    except requests.RequestException as exc:
+        raise get_sanitized_exception_without_secrets(
+            exc,
+            url=url,
+            printable_params=printable_params,
+            printable_headers=printable_headers
+        ) from None
     request_provenance = {
         **(provenance or {}),
         'method': method,
