@@ -6,8 +6,10 @@ import itertools
 import logging
 from typing import Iterable, Iterator, List, Sequence, cast
 from unittest.mock import ANY, MagicMock, patch
+
 import pytest
 
+from data_pipeline.utils.pipeline_config import MappingConfig
 from data_pipeline.generic_web_api import (
     generic_web_api_data_etl as generic_web_api_data_etl_module
 )
@@ -755,7 +757,7 @@ class TestNextOffset:
 
 
 class TestGetDataSinglePage:
-    def test_should_pass_method_url_and_header_to_session_request(
+    def test_should_pass_method_url_params_and_header_to_session_request(
         self,
         requests_session_mock: MagicMock,
         get_response_and_provenance_from_api_mock: MagicMock
@@ -764,7 +766,10 @@ class TestGetDataSinglePage:
         dynamic_request_builder.method = 'POST'
         data_config = dataclasses.replace(
             get_data_config(WEB_API_CONFIG),
-            dynamic_request_builder=dynamic_request_builder
+            dynamic_request_builder=dynamic_request_builder,
+            static_parameters=MappingConfig.from_printable_mapping(
+                {'param_1': 'param_value_1'}
+            )
         )
         get_data_single_page_response(
             data_config=data_config,
@@ -775,7 +780,10 @@ class TestGetDataSinglePage:
             method=data_config.dynamic_request_builder.method,
             url=dynamic_request_builder.get_url.return_value,
             json_data=dynamic_request_builder.get_json.return_value,
+            params=data_config.static_parameters.mapping,
+            printable_params=data_config.static_parameters.printable_mapping,
             headers=data_config.headers.mapping,
+            printable_headers=data_config.headers.printable_mapping,
             raise_on_status=True,
             timeout=data_config.timeout
         )
