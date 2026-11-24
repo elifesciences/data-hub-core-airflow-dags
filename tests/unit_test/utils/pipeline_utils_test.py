@@ -1,12 +1,11 @@
 import dataclasses
 from datetime import datetime
-from email.message import Message
 from unittest.mock import MagicMock, patch
-from urllib.error import HTTPError
 
 import pytest
 
 import google.cloud.exceptions
+import requests
 
 from data_pipeline.utils.pipeline_config import SECRET_VALUE_PLACEHOLDER, BigQuerySourceConfig
 from data_pipeline.utils.pipeline_utils import (
@@ -52,6 +51,8 @@ def _datetime_mock():
 @pytest.fixture(name='requests_mock', autouse=True)
 def _requests_mock():
     with patch.object(pipeline_utils_module, 'requests') as mock:
+        mock.RequestException = requests.RequestException
+        mock.HTTPError = requests.HTTPError
         yield mock
 
 
@@ -68,17 +69,6 @@ def _get_single_column_value_list_from_bq_query_mock():
 def _iter_dict_from_bq_query_mock():
     with patch.object(pipeline_utils_module, 'iter_dict_from_bq_query') as mock:
         yield mock
-
-
-@pytest.fixture(name='http_error')
-def _http_error() -> HTTPError:
-    return HTTPError(
-        url='/test',
-        code=404,
-        msg='Test',
-        hdrs=Message(),
-        fp=None
-    )
 
 
 class TestFetchSingleColumnValueListForBigQuerySourceConfig:
@@ -344,13 +334,15 @@ class TestGetResponseJsonWithProvenanceFromApi:
 
     def test_should_raise_error_by_default(
         self,
-        requests_mock: MagicMock,
-        http_error: HTTPError
+        requests_mock: MagicMock
     ):
         response_mock = requests_mock.request.return_value
-        response_mock.raise_for_status.side_effect = http_error
+        response_mock.status_code = 404
+        response_mock.raise_for_status.side_effect = requests.HTTPError(
+            response=response_mock
+        )
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
-        with pytest.raises(HTTPError):
+        with pytest.raises(requests.HTTPError):
             get_response_json_with_provenance_from_api(
                 API_URL_1,
                 params=API_PARAMS_1
@@ -358,12 +350,13 @@ class TestGetResponseJsonWithProvenanceFromApi:
 
     def test_should_not_raise_error_if_disabled(
         self,
-        requests_mock: MagicMock,
-        http_error: HTTPError
+        requests_mock: MagicMock
     ):
         response_mock = requests_mock.request.return_value
-        response_mock.status_code = http_error.code
-        response_mock.raise_for_status.side_effect = http_error
+        response_mock.status_code = 404
+        response_mock.raise_for_status.side_effect = requests.HTTPError(
+            response=response_mock
+        )
         response_mock.json.return_value = SINGLE_ITEM_RESPONSE_JSON_1
         actual_response_json = get_response_json_with_provenance_from_api(
             API_URL_1,
@@ -371,7 +364,7 @@ class TestGetResponseJsonWithProvenanceFromApi:
             raise_on_status=False
         )
         assert actual_response_json
-        assert actual_response_json['provenance']['http_status'] == http_error.code
+        assert actual_response_json['provenance']['http_status'] == response_mock.status_code
 
     def test_should_include_provenance(
         self,
